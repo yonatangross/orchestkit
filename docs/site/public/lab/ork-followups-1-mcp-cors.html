@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP CORS headers for browser hosts, and a reference that resolves in every install</title>
+<meta name="description" content="A browser-based MCP host on another origin sends MCP transport headers, so the docs MCP server must allow them or the preflight fails. Pick the headers a client sends and the config to see the preflight result. Also: where audit-full finds the cross-model refuter doc in each install.">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; background:#faf8f3; color:#1d1b17; font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid #e2ddd2; }
+  p.lead, .legend { color:#6b665c; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  button { font:inherit; font-size:.9rem; background:#fff; color:#1d1b17; border:1px solid #e2ddd2; border-radius:8px; padding:6px 12px; min-height:44px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:#2f6f4f; box-shadow:inset 0 0 0 1px #2f6f4f; }
+  code, pre { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:#fff; border:1px solid #e2ddd2; border-left:5px solid #6b665c; border-radius:8px; padding:12px 14px; margin:8px 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+  pre.good { border-left-color:#2f6f4f; }
+  pre.bad { border-left-color:#a23b2a; }
+  .verdict { font-weight:600; margin:10px 0 0; }
+  .verdict.good { color:#2f6f4f; }
+  .verdict.bad { color:#a23b2a; }
+  @media (prefers-color-scheme: dark) {
+    body { background:#16150f; color:#ece8de; }
+    h2 { border-top-color:#34312a; }
+    p.lead, .legend { color:#a39d90; }
+    button, pre { background:#1f1d17; color:#ece8de; border-color:#34312a; }
+    button[aria-pressed="true"] { border-color:#7cc39c; box-shadow:inset 0 0 0 1px #7cc39c; }
+    pre.good { border-left-color:#7cc39c; }
+    pre.bad { border-left-color:#e08a7a; }
+    .verdict.good { color:#7cc39c; }
+    .verdict.bad { color:#e08a7a; }
+  }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="MCP CORS headers for browser hosts, and a reference that resolves in every install"><meta property="og:description" content="A browser-based MCP host on another origin sends MCP transport headers, so the docs MCP server must allow them or the preflight fails. Pick the headers a client sends and the config to see the preflight result. Also: where audit-full finds the cross-model refuter doc in each install."><meta property="og:url" content="https://orchestkit.dev/lab/ork-followups-1-mcp-cors.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="MCP CORS headers for browser hosts, and a reference that resolves in every install"><meta name="twitter:description" content="A browser-based MCP host on another origin sends MCP transport headers, so the docs MCP server must allow them or the preflight fails. Pick the headers a client sends and the config to see the preflight result. Also: where audit-full finds the cross-model refuter doc in each install."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>MCP CORS headers for browser hosts</h1>
+<p class="lead">The docs MCP server at <code>/api/mcp</code> allowed only <code>Content-Type</code> and <code>Accept</code> across origins. A browser-based MCP host on another origin also sends MCP transport headers, so the browser stopped the request at the preflight. Server-side clients never send a preflight and were not affected.</p>
+
+<h2>1. Run a preflight</h2>
+<p class="legend">Pick the config, then the headers the client sends. The browser allows the request only when every sent header is in the allow list.</p>
+<div class="row" role="group" aria-label="Config">
+  <button type="button" data-config="old" aria-pressed="false">Before this PR</button>
+  <button type="button" data-config="new" aria-pressed="true">After this PR</button>
+</div>
+<div class="row" role="group" aria-label="Headers the client sends" id="sent"></div>
+<pre id="request"></pre>
+<pre id="response"></pre>
+<p class="verdict" id="verdict" aria-live="polite"></p>
+
+<h2>2. Where the header names come from</h2>
+<p>MCP spec, Streamable HTTP transport, revision 2026-07-28: <code>MCP-Protocol-Version</code>, <code>Mcp-Method</code> and <code>Mcp-Name</code> are request headers. <code>Mcp-Session-Id</code> and <code>Last-Event-ID</code> belong to revisions 2025-06-18 to 2025-11-25, and this server speaks 2025-06-18, so its clients still send them. <code>Mcp-Session-Id</code> is also exposed, so a client can read it back from the response.</p>
+
+<h2>3. The cross-model refuter reference in audit-full</h2>
+<p class="legend">audit-full moved to the ork-extras plugin; review-pr stayed in ork. Pick an install to see whether the old path resolves.</p>
+<div class="row" role="group" aria-label="Install">
+  <button type="button" data-install="both" aria-pressed="true">ork and ork-extras</button>
+  <button type="button" data-install="extras" aria-pressed="false">ork-extras only</button>
+</div>
+<pre id="refOld"></pre>
+<pre id="refNew" class="good">After: "references/cross-model-refuter.md of the ork:review-pr skill, which ships in the core ork plugin only". No path that claims to resolve.</pre>
+</main>
+<script>
+(function () {
+  var OLD = ["Content-Type", "Accept"];
+  var NEW = ["Content-Type", "Accept", "MCP-Protocol-Version", "Mcp-Method", "Mcp-Name", "Mcp-Session-Id", "Last-Event-ID"];
+  var CANDIDATES = ["Content-Type", "Accept", "MCP-Protocol-Version", "Mcp-Method", "Mcp-Name", "Mcp-Session-Id", "Last-Event-ID"];
+  var state = { config: "new", sent: { "Content-Type": true, "Accept": true, "MCP-Protocol-Version": true, "Mcp-Session-Id": true } };
+  var sentBox = document.getElementById("sent");
+
+  CANDIDATES.forEach(function (h) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = h;
+    b.dataset.header = h;
+    b.setAttribute("aria-pressed", state.sent[h] ? "true" : "false");
+    b.addEventListener("click", function () {
+      state.sent[h] = !state.sent[h];
+      b.setAttribute("aria-pressed", state.sent[h] ? "true" : "false");
+      render();
+    });
+    sentBox.appendChild(b);
+  });
+
+  document.querySelectorAll("[data-config]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      state.config = b.dataset.config;
+      document.querySelectorAll("[data-config]").forEach(function (o) {
+        o.setAttribute("aria-pressed", o === b ? "true" : "false");
+      });
+      render();
+    });
+  });
+
+  function render() {
+    var allow = state.config === "old" ? OLD : NEW;
+    var allowLower = allow.map(function (h) { return h.toLowerCase(); });
+    var sent = CANDIDATES.filter(function (h) { return state.sent[h]; });
+    var missing = sent.filter(function (h) { return allowLower.indexOf(h.toLowerCase()) === -1; });
+    document.getElementById("request").textContent =
+      "OPTIONS /api/mcp\nOrigin: https://host.example\nAccess-Control-Request-Method: POST\nAccess-Control-Request-Headers: " + sent.map(function (h) { return h.toLowerCase(); }).join(", ");
+    var resp = document.getElementById("response");
+    resp.textContent = "Access-Control-Allow-Origin: *\nAccess-Control-Allow-Headers: " + allow.join(", ");
+    resp.className = missing.length ? "bad" : "good";
+    var v = document.getElementById("verdict");
+    if (missing.length) {
+      v.className = "verdict bad";
+      v.textContent = "Blocked by the browser: not allowed: " + missing.join(", ") + ". The POST is never sent.";
+    } else {
+      v.className = "verdict good";
+      v.textContent = "Allowed: every sent header is in the list, so the browser sends the POST.";
+    }
+  }
+
+  function renderRef(install) {
+    var el = document.getElementById("refOld");
+    if (install === "both") {
+      el.className = "bad";
+      el.textContent = "Before: ${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/cross-model-refuter.md\nThe path does not resolve: CLAUDE_PLUGIN_ROOT is the ork-extras folder, where review-pr is absent. The doc exists only in the ork plugin's folder.";
+    } else {
+      el.className = "bad";
+      el.textContent = "Before: ${CLAUDE_PLUGIN_ROOT}/skills/review-pr/references/cross-model-refuter.md\nNo such file: review-pr is not installed at all.";
+    }
+  }
+
+  document.querySelectorAll("[data-install]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("[data-install]").forEach(function (o) {
+        o.setAttribute("aria-pressed", o === b ? "true" : "false");
+      });
+      renderRef(b.dataset.install);
+    });
+  });
+
+  render();
+  renderRef("both");
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
