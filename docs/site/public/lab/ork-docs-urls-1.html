@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Old review-pr docs URLs keep working</title>
+<meta name="description" content="review-pr became one docs page, so its references and rules URLs went away. Pick an old URL and a state to see where it lands before and after the redirect.">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; background:#faf8f3; color:#1d1b17; font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid #e2ddd2; }
+  p.lead, .legend { color:#6b665c; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  button { font:inherit; font-size:.9rem; background:#fff; color:#1d1b17; border:1px solid #e2ddd2; border-radius:8px; padding:6px 12px; min-height:44px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color:#2f6f4f; box-shadow:inset 0 0 0 1px #2f6f4f; }
+  code, pre { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:#fff; border:1px solid #e2ddd2; border-left:5px solid #6b665c; border-radius:8px; padding:12px 14px; margin:8px 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+  pre.good { border-left-color:#2f6f4f; }
+  pre.bad { border-left-color:#a23b2a; }
+  .verdict { font-weight:600; margin:10px 0 0; }
+  .verdict.good { color:#2f6f4f; }
+  .verdict.bad { color:#a23b2a; }
+  @media (prefers-color-scheme: dark) {
+    body { background:#16150f; color:#ece8de; }
+    h2 { border-top-color:#34312a; }
+    p.lead, .legend { color:#a39d90; }
+    button, pre { background:#1f1d17; color:#ece8de; border-color:#34312a; }
+    button[aria-pressed="true"] { border-color:#7cc39c; box-shadow:inset 0 0 0 1px #7cc39c; }
+    pre.good { border-left-color:#7cc39c; }
+    pre.bad { border-left-color:#e08a7a; }
+    .verdict.good { color:#7cc39c; }
+    .verdict.bad { color:#e08a7a; }
+  }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Old review-pr docs URLs keep working"><meta property="og:description" content="review-pr became one docs page, so its references and rules URLs went away. Pick an old URL and a state to see where it lands before and after the permanent redirect, and which skills the rule covers."><meta property="og:url" content="https://orchestkit.dev/lab/ork-docs-urls-1.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Old review-pr docs URLs keep working"><meta name="twitter:description" content="review-pr became one docs page, so its references and rules URLs went away. Pick an old URL and a state to see where it lands before and after the permanent redirect, and which skills the rule covers."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Old review-pr docs URLs keep working</h1>
+<p class="lead">The docs build writes a skill page as a folder (the page plus references and rules pages) only while the page is over 90000 bytes. The shorter review-pr text puts it at 89806 bytes, so the build now writes one page, and the two sub-URLs that people have bookmarked would answer 404. A permanent redirect sends each of them to the page.</p>
+
+<h2>1. Request an old URL</h2>
+<p class="legend">Pick the URL and the state of the site. The redirect rule is built from the pages the build wrote, so a skill that is still a folder is left alone.</p>
+<div class="row" role="group" aria-label="Old URL" id="urls"></div>
+<div class="row" role="group" aria-label="State">
+  <button type="button" data-state="before" aria-pressed="false">Before this PR</button>
+  <button type="button" data-state="after" aria-pressed="true">After this PR</button>
+</div>
+<pre id="request"></pre>
+<pre id="response"></pre>
+<p class="verdict" id="verdict" aria-live="polite"></p>
+
+<h2>2. Which skills the rule covers</h2>
+<p class="legend">Pick a skill to see whether its sub-URLs are redirected.</p>
+<div class="row" role="group" aria-label="Skill" id="skills"></div>
+<pre id="skill"></pre>
+</main>
+<script>
+(function () {
+  var BASE = "/docs/reference/skills/";
+  var URLS = [BASE + "review-pr/references", BASE + "review-pr/rules"];
+  var SKILLS = [
+    { slug: "review-pr", single: true },
+    { slug: "verify", single: false },
+    { slug: "doctor", single: false }
+  ];
+  var state = { url: URLS[0], when: "after", skill: SKILLS[0] };
+
+  function pressed(group, active) {
+    group.querySelectorAll("button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b === active ? "true" : "false");
+    });
+  }
+
+  var urlBox = document.getElementById("urls");
+  URLS.forEach(function (u, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = u;
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.addEventListener("click", function () { state.url = u; pressed(urlBox, b); render(); });
+    urlBox.appendChild(b);
+  });
+
+  document.querySelectorAll("[data-state]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      state.when = b.dataset.state;
+      pressed(b.parentNode, b);
+      render();
+    });
+  });
+
+  var skillBox = document.getElementById("skills");
+  SKILLS.forEach(function (s, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = s.slug;
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.addEventListener("click", function () { state.skill = s; pressed(skillBox, b); renderSkill(); });
+    skillBox.appendChild(b);
+  });
+
+  function render() {
+    document.getElementById("request").textContent = "GET " + state.url;
+    var resp = document.getElementById("response");
+    var v = document.getElementById("verdict");
+    if (state.when === "before") {
+      resp.className = "bad";
+      resp.textContent = "404 Not Found\n(the folder is gone: review-pr is one page now)";
+      v.className = "verdict bad";
+      v.textContent = "The bookmark is dead.";
+    } else {
+      resp.className = "good";
+      resp.textContent = "308 Permanent Redirect\nLocation: " + BASE + "review-pr";
+      v.className = "verdict good";
+      v.textContent = "The reader lands on the review-pr page.";
+    }
+  }
+
+  function renderSkill() {
+    var el = document.getElementById("skill");
+    var s = state.skill;
+    if (s.single) {
+      el.className = "good";
+      el.textContent = BASE + s.slug + "/rules  ->  " + BASE + s.slug + "\nWritten as one page, so its old sub-URLs redirect.";
+    } else {
+      el.className = "";
+      el.textContent = BASE + s.slug + "/rules  ->  served as is\nStill a folder: the rules page is real, and a redirect would hide it.";
+    }
+  }
+
+  render();
+  renderSkill();
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -5,6 +5,8 @@
 //
 // Plain .mjs so next.config.mjs can import it without a TypeScript step.
 
+import { existsSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { DEVELOPER_ALIASES } from "./developer-aliases.mjs";
 
 export const CANONICAL_ORIGIN = "https://orchestkit.dev";
@@ -101,6 +103,41 @@ const RETIRED_SKILL_PAGES = [
 	["ci-sentinel", "ci-debug"],
 ];
 
+// Slugs of the skill reference pages the build wrote as ONE file. The docs
+// generator writes a skill as a folder (index plus references, rules, ...
+// pages) only while the page is over its byte budget, so a skill that shrinks
+// under it drops those sub-URLs and the old links 404. Read from the content
+// folder the build just wrote, so the next skill that shrinks needs no edit
+// here, and a skill that grows back into a folder stops being redirected (a
+// config redirect runs before the file router and would hide its real pages).
+const SKILL_PAGES_DIR = fileURLToPath(
+	new URL("../content/docs/reference/skills/", import.meta.url),
+);
+
+export function singlePageSkillSlugs(dir = SKILL_PAGES_DIR) {
+	if (!existsSync(dir)) return [];
+	return readdirSync(dir)
+		.filter((name) => name.endsWith(".mdx") && name !== "index.mdx")
+		.map((name) => name.slice(0, -".mdx".length))
+		.filter((slug) => /^[a-z0-9][a-z0-9-]*$/.test(slug))
+		.sort();
+}
+
+function singlePageSkillRedirects() {
+	const slugs = singlePageSkillSlugs();
+	if (slugs.length === 0) return [];
+	return [
+		{
+			// One rule for all of them: Vercel caps a project at 1024 redirects and
+			// this list is copied for two old hosts. Permanent, unlike the rules
+			// above: the folder is gone for good, not merged into another skill.
+			source: `/docs/reference/skills/:slug(${slugs.join("|")})/:path+`,
+			destination: "/docs/reference/skills/:slug",
+			permanent: true,
+		},
+	];
+}
+
 // The site's own path redirects (canonical host).
 function pathRedirects() {
 	return [
@@ -129,6 +166,7 @@ function pathRedirects() {
 			destination: `/docs/reference/skills/${to}`,
 			permanent: false,
 		})),
+		...singlePageSkillRedirects(),
 		// Predictable aliases for the developer resources (orank "Developer
 		// resource discoverability": use predictable URLs). Each lands on the
 		// existing product-titled page; no page moves. Temporary for the same

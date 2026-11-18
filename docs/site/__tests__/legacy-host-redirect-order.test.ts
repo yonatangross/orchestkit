@@ -72,6 +72,8 @@ const PATH_REDIRECT_PATHS = [
 	"/lab",
 	"/lab/",
 	"/lab/x.html**",
+	"/docs/reference/skills/review-pr/references",
+	"/docs/reference/skills/review-pr/rules",
 	...DEVELOPER_ALIASES.map(([source]) => source),
 ];
 const PAGES = ["/", "/about", "/docs/foundations/overview", "/llms.txt"];

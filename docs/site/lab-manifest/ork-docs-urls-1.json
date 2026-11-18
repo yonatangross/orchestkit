@@ -1,0 +1,8 @@
+{
+  "slug": "ork-docs-urls-1",
+  "source": "docs/fix--ork-docs-urls-1/index.html",
+  "title": "Old review-pr docs URLs keep working",
+  "description": "review-pr became one docs page, so its references and rules URLs went away. Pick an old URL and a state to see where it lands before and after the permanent redirect, and which skills the rule covers.",
+  "tags": ["site", "docs"],
+  "date": "2026-11-18"
+}
