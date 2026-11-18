@@ -3861,6 +3861,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "design → /ork:brainstorm",
       "build → /ork:implement",
       "review → /ork:review-pr",
+      "open-pr → /ork:create-pr",
       "verify → /ork:verify",
       "improve-skill → holdout-promotion gate",
       "setup → /ork:setup",
@@ -10700,13 +10701,16 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Related Skills",
       "vs. the built-in /review and /code-review",
       "References",
-      "Companion pages"
-    ]
-  },
-  {
-    "url": "/docs/reference/skills/review-pr/references",
-    "title": "Review Pr: References",
-    "headings": [
+      "Rules (3)",
+      "Agent Prompts: Agent Teams Mode: HIGH",
+      "Project Context Injection",
+      "Structured Output Contract",
+      "Team Formation",
+      "Agent Prompts: Agent Tool Mode: HIGH",
+      "Project Context Injection",
+      "Structured Output Contract",
+      "Agent Prompts",
+      "Configure an AI code review agent for prompt injection and token limit checks: MEDIUM",
       "References (11)",
       "Adversarial Refutation",
       "Bindings",
@@ -10752,22 +10756,6 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "When triggers fire: voice-friendly prompt",
       "After user response",
       "Opt-out"
-    ]
-  },
-  {
-    "url": "/docs/reference/skills/review-pr/rules",
-    "title": "Review Pr: Rules",
-    "headings": [
-      "Rules (3)",
-      "Agent Prompts: Agent Teams Mode: HIGH",
-      "Project Context Injection",
-      "Structured Output Contract",
-      "Team Formation",
-      "Agent Prompts: Agent Tool Mode: HIGH",
-      "Project Context Injection",
-      "Structured Output Contract",
-      "Agent Prompts",
-      "Configure an AI code review agent for prompt injection and token limit checks: MEDIUM"
     ]
   },
   {

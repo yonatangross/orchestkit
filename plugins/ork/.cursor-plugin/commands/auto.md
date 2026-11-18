@@ -45,13 +45,14 @@ so there is no "too obvious for auto".
 | intent | signal words | routes to |
 |---|---|---|
 | **fix** | fix, debug, broken, failing, error, crash, regression | `fix-issue` |
-| **diagnose** | why, why isn't, why does, why can't, investigate | `fix-issue` (investigation-first) |
+| **diagnose** | why, why isn't, why does, why can't, investigate, triage, root cause, culprit commit | `fix-issue` (investigation-first) |
 | **optimize** | faster, reduce, latency, bundle, minimize, below N ms | a **`/goal` optimization loop** (see Gaps) |
 | **cover** | coverage, untested, get to N% | `cover --target N` |
 | **e2e** | e2e, in the browser, browser test, playwright | `expect` (run on the diff); `cover` when no e2e tests exist yet |
 | **design** | design, architect, how should we, explore, idea | `/ork:brainstorm` |
 | **build** | build, implement, create, add feature, from ticket | `implement` |
-| **review** | review, PR, MR, pull request, #N | `review-pr` |
+| **review** | review, PR, MR, pull request, #N, diff | `review-pr` |
+| **open-pr** | open a PR, make a PR, PR title and body, ready for review, go up for review | `create-pr` |
 | **verify** | verify, check, make sure, passes, green | `verify` |
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
 | **setup** | set up OrchestKit, onboard this repo, which skills fit this project, rescan the stack | `/ork:setup` |
@@ -185,5 +186,5 @@ Done means all of these hold:
 
 - `help` — static categorized directory (browse, don't route)
 - `prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
-- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `verify` · `setup` · `swarm-migrate`: the route targets
+- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `create-pr` · `verify` · `setup` · `swarm-migrate`: the route targets
 - `assess` — champion/challenger holdout gate (the `improve-skill` route)

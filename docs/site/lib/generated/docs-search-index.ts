@@ -933,7 +933,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/create-pr",
     "title": "Create Pr",
-    "description": "Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
+    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
   },
   {
     "url": "/docs/reference/skills/create-research",
@@ -1158,7 +1158,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/fix-issue",
     "title": "Fix Issue",
-    "description": "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue."
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one."
   },
   {
     "url": "/docs/reference/skills/freeze",
@@ -1388,17 +1388,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/review-pr",
     "title": "Review Pr",
-    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess)."
-  },
-  {
-    "url": "/docs/reference/skills/review-pr/references",
-    "title": "Review Pr: References",
-    "description": "11 references for the Review Pr skill: Adversarial Refutation; Claude Code; Cross Model Refuter; Memory Persistence; Orchestration Mode Selection; Progressive And Partial Results; Review Report Template; Review Template; Rule Check Mode; Task Metrics Template; Ultrareview Gate"
-  },
-  {
-    "url": "/docs/reference/skills/review-pr/rules",
-    "title": "Review Pr: Rules",
-    "description": "3 rules for the Review Pr skill: Agent Prompts: Agent Teams Mode; Agent Prompts: Agent Tool Mode; Configure an AI code review agent for prompt injection and token limit checks"
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess)."
   },
   {
     "url": "/docs/reference/skills/scope-appropriate-architecture",

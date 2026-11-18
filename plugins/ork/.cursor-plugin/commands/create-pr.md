@@ -1,5 +1,5 @@
 ---
-description: "Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
+description: "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
 argument-hint: "[title]"
 disable-model-invocation: false
 context: fork

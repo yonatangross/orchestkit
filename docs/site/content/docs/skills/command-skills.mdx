@@ -25,7 +25,7 @@ Plan, build, and fix features, from a plain-English goal to working code.
 |---------|--------------|------------|-------|
 | [`/ork:auto`](/docs/reference/skills/auto) | Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. | medium | `/ork:auto [plain-english goal]` |
 | [`/ork:implement`](/docs/reference/skills/implement) | Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. | medium | `/ork:implement [feature-description]` |
-| [`/ork:fix-issue`](/docs/reference/skills/fix-issue) | Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. | medium | `/ork:fix-issue [issue-number]` |
+| [`/ork:fix-issue`](/docs/reference/skills/fix-issue) | Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. | medium | `/ork:fix-issue [issue-number]` |
 | [`/ork:explore`](/docs/reference/skills/explore) | Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. | high | `/ork:explore [topic-or-feature] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high]` |
 | [`/ork:brainstorm`](/docs/reference/skills/brainstorm) | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. | medium | `/ork:brainstorm [topic-or-idea]` |
 | [`/ork:assess`](/docs/reference/skills/assess) | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. | high | `/ork:assess [code-path-or-topic] [--render=markdown\|json-render\|both] [--effort=low\|medium\|high\|xhigh]` |
@@ -54,8 +54,8 @@ Commits, pull requests, reviews, and failing CI runs.
 | Command | What it does | Complexity | Usage |
 |---------|--------------|------------|-------|
 | [`/ork:commit`](/docs/reference/skills/commit) | Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-only files. | low | `/ork:commit [message]` |
-| [`/ork:create-pr`](/docs/reference/skills/create-pr) | Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. | medium | `/ork:create-pr [title]` |
-| [`/ork:review-pr`](/docs/reference/skills/review-pr) | PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
+| [`/ork:create-pr`](/docs/reference/skills/create-pr) | Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. | medium | `/ork:create-pr [title]` |
+| [`/ork:review-pr`](/docs/reference/skills/review-pr) | Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. | medium | `/ork:review-pr [pr-number-or-branch] [--post] [--post-verdict]` |
 | [`/ork:ci-debug`](/docs/reference/skills/ci-debug) | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. | medium | `/ork:ci-debug <PR-number \| run-URL \| job-URL> \| sweep [install\|status\|enable\|disable]` |
 
 ---

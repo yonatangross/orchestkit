@@ -1,4 +1,4 @@
-13534
+13533
 # Ceiling, in bytes, for the CORE skill listing total: name + description + when_to_use
 # of every model-facing skill (disable-model-invocation not true) that core ork ships,
 # which is src/skills minus manifests/ork.json skillsExclude (#4936). The skills in
@@ -22,3 +22,4 @@
 # 2026-11-17 design-to-code merge: storybook-mcp-integration left the listing and design-import
 # and design-ship became typed-only aliases (hidden from the model). LOWERED 15588 -> 15099 (-489 bytes, 80 skills).
 # 2026-11-18 stage 1c, stage 1a and the design-to-code merge together: 15588 - 1005 - 489 - 560 = 13534, and Test 4b measured 13534 bytes on the merged tree (extras 6254, unchanged). Not raised.
+# 2026-11-18 G7 trigger fix on top of stage 1c, 1a and the proven tier: the create-pr, fix-issue and review-pr descriptions; Test 4b replica measured 13533 bytes over 82 skills (extras 6254). LOWERED 13534 -> 13533 (-1 byte). Not raised.

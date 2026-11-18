@@ -672,7 +672,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "create-pr",
     "station": "ship",
-    "description": "Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling.",
+    "description": "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling.",
     "command": true,
     "scopedHooks": 0
   },
@@ -888,7 +888,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "fix-issue",
     "station": "ship",
-    "description": "Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue.",
+    "description": "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one.",
     "command": true,
     "scopedHooks": 0
   },
@@ -1266,7 +1266,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "review-pr",
     "station": "check",
-    "description": "PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).",
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess).",
     "command": true,
     "scopedHooks": 2
   },
