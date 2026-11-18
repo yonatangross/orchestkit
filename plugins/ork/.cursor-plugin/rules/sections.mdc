@@ -29,7 +29,7 @@ self-preferential bias by verifying decision-bearing findings with a separate, b
 
 ## 4. Untrusted Input (security) — HIGH — 1 rule
 
-Prompt-injection defense for skills that read untrusted GitHub/CI content (ci-sentinel,
+Prompt-injection defense for skills that read untrusted GitHub/CI content (ci-debug sweep mode,
 fix-issue, review-pr) — separate the agent that reads untrusted text from the one that acts.
 
 - `untrusted-input-quarantine.md` — reader/actor split, structured-facts contract, per-skill bindings

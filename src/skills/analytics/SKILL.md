@@ -138,6 +138,6 @@ Present results as clean markdown tables. Include counts, percentages, and avera
 ## Related Skills
 
 - `ork:explore` - Codebase exploration and analysis
-- `ork:remember` - Store project knowledge
+- `ork:memory remember` - Store project knowledge
 - `ork:doctor` - Health check diagnostics
-- `ork:prompt-focus` - Where the user's own attention went, from their prompts (the user's own prompts, not tool telemetry)
+- `ork-extras:prompt-focus` - Where the user's own attention went, from their prompts (the user's own prompts, not tool telemetry)

@@ -39,7 +39,6 @@ skills:
   - testing-llm
   - testing-integration
   - error-analysis
-  - remember
   - memory
 mcpServers: [context7]
 metadata:
@@ -288,7 +287,7 @@ Task: "Run evals on the RAG golden dataset against GPT-4o-2024-08-06"
 
 ## Eval Preflight
 
-Read `init.plugin_errors` from `--output-format stream-json` before running any eval batch. CC 2.1.128 expanded this field to include `--plugin-dir` load failures (it previously only covered marketplace plugin loads since 2.1.111). If `plugin_errors` is non-empty, surface the failures in the eval report and **stop** — a missing skill/agent caused by a silent plugin load error will produce false-negative regressions that look like model quality drops. This is the same preflight pattern used by `/ork:bare-eval`.
+Read `init.plugin_errors` from `--output-format stream-json` before running any eval batch. CC 2.1.128 expanded this field to include `--plugin-dir` load failures (it previously only covered marketplace plugin loads since 2.1.111). If `plugin_errors` is non-empty, surface the failures in the eval report and **stop** — a missing skill/agent caused by a silent plugin load error will produce false-negative regressions that look like model quality drops. This is the same preflight pattern used by `/ork-extras:bare-eval`.
 
 ## Context Protocol
 
@@ -338,6 +337,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-llm:{SKILL.md,references/{healer-agent.md,langfuse-v4.md,ork-delta.md}}|testing,llm,ai,deepeval,ragas,evaluation,mocking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,ork-delta.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
 |error-analysis:{SKILL.md,references/{judge-alignment.md,langfuse-traces.md,method.md}}|error-analysis,evaluation,llm-testing,testing,langfuse,traces,failure-taxonomy,evals,debugging
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

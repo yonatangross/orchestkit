@@ -6,14 +6,14 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "ork",
-    "description": "The complete AI development toolkit — 89 skills, 36 agents, 163 hooks.",
+    "description": "The complete AI development toolkit — 82 skills, 36 agents, 163 hooks.",
     "fullDescription": "The complete OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration, RAG retrieval, and all specialized agents.",
     "category": "development",
     "version": "10.14.0", // x-release-please-version
-    "skillCount": 89,
+    "skillCount": 82,
     "agentCount": 36,
     "hooks": 163,
-    "commandCount": 44,
+    "commandCount": 47,
     "color": "#06b6d4",
     "required": false,
     "recommended": true,
@@ -23,14 +23,10 @@ export const PLUGINS: Plugin[] = [
       "architecture-decision-record",
       "architecture-patterns",
       "assess",
-      "audit-activation",
-      "audit-full",
       "auto",
-      "bare-eval",
       "brainstorm",
       "browser-tools",
       "business-case",
-      "careful",
       "chain-patterns",
       "ci-debug",
       "ci-sentinel",
@@ -41,7 +37,11 @@ export const PLUGINS: Plugin[] = [
       "configure",
       "cover",
       "create-plan",
-      "create-pr"
+      "create-pr",
+      "create-research",
+      "database-patterns",
+      "demo-producer",
+      "design-context-extract"
     ],
     "agents": [
       "accessibility-specialist",
@@ -83,10 +83,8 @@ export const PLUGINS: Plugin[] = [
     ],
     "commands": [
       "assess",
-      "audit-activation",
       "auto",
       "brainstorm",
-      "careful",
       "ci-debug",
       "ci-sentinel",
       "commit",
@@ -106,7 +104,6 @@ export const PLUGINS: Plugin[] = [
       "expect",
       "explore",
       "fix-issue",
-      "freeze",
       "glyph",
       "help",
       "implement",
@@ -120,7 +117,6 @@ export const PLUGINS: Plugin[] = [
       "review-artifact-comments",
       "review-pr",
       "setup",
-      "swarm-migrate",
       "telemetry-inspect",
       "verify",
       "visualize-plan",
@@ -129,14 +125,14 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork-extras",
-    "description": "Opt-in reference skills split out of ork: 26 skills, no agents or hooks.",
-    "fullDescription": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork.",
+    "description": "Opt-in reference skills split out of ork: 33 skills, no agents or hooks.",
+    "fullDescription": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) engineering domain guides (accessibility, distributed systems, DDD, release management) and slash-only operator tools (audit-full, careful, freeze, swarm-migrate and more). Skills only, no agents or hooks. Install next to ork.",
     "category": "development",
     "version": "10.14.0", // x-release-please-version
-    "skillCount": 26,
+    "skillCount": 33,
     "agentCount": 0,
     "hooks": 0,
-    "commandCount": 1,
+    "commandCount": 8,
     "color": "#a78bfa",
     "required": false,
     "recommended": false,
@@ -168,7 +164,14 @@ export const PLUGINS: Plugin[] = [
     ],
     "agents": [],
     "commands": [
-      "design-stylecards"
+      "audit-activation",
+      "audit-full",
+      "bare-eval",
+      "careful",
+      "design-stylecards",
+      "freeze",
+      "prompt-focus",
+      "swarm-migrate"
     ]
   }
 ];

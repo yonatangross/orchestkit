@@ -68,10 +68,10 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 | Claude Code | 115 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
 | Cursor | 115 | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
-| Devin | 89 | ? | ? | plugin (git) |  |
+| Devin | 82 | ? | ? | plugin (git) |  |
 | OpenCode | 12 | ? | ? | skills.sh |  |
 | Muse Code | 12 | ? | ? | .agents/skills |  |
-| Pi | 89 | ? | not yet (#4004) | pi manifest |  |
+| Pi | 82 | ? | not yet (#4004) | pi manifest |  |
 | Antigravity | 12 | ? | ? | .agents/skills |  |
 
 `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.
@@ -158,7 +158,7 @@ All available in a single `/plugin install ork`. Skills load on-demand. Hooks wo
 /ork:verify       # Multi-agent validation
 /ork:commit       # Conventional commit with pre-checks
 /ork:explore      # Analyze unfamiliar codebase
-/ork:remember     # Save to persistent memory
+/ork:memory remember     # Save to persistent memory
 /ork:doctor       # Health check
 ```
 

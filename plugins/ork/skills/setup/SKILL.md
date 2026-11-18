@@ -10,7 +10,7 @@ background: false
 user-invocable: true
 disable-model-invocation: false
 allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
-skills: [configure, remember, explore, help]
+skills: [configure, memory, explore, help]
 metadata:
   category: configuration
   mcp-server: memory
@@ -293,6 +293,6 @@ Load on demand with `Read("references/<file>")`:
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
 - `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
-- `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
+- `ork:memory remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)

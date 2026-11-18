@@ -40,7 +40,6 @@ skills:
   - performance
   - testing-perf
   - testing-integration
-  - remember
   - memory
 mcpServers: [tavily, context7]
 metadata:

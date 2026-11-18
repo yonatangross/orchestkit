@@ -28,7 +28,7 @@ MEM0_SCOPE_BEST_PRACTICES="best-practices"
 MEM0_VALID_SCOPES=("continuity" "decisions" "agents" "patterns" "best-practices")
 
 # Skill paths (CC 2.1.6 nested structure)
-REMEMBER_SKILL="$PROJECT_ROOT/src/skills/remember"
+REMEMBER_SKILL="$PROJECT_ROOT/src/skills/memory"
 MEMORY_SKILL_DIR="$PROJECT_ROOT/src/skills/memory"
 BEST_PRACTICES_SKILL="$PROJECT_ROOT/src/skills/quality-gates"
 

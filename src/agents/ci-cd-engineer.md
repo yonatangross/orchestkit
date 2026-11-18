@@ -39,7 +39,6 @@ skills:
   - security-patterns
   - github-operations
   - code-review-playbook
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

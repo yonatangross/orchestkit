@@ -22,7 +22,7 @@
  * every lane raised a permission dialog (since CC 2.1.211 a hook's ask wins
  * even under auto mode). ork's stance since the #3835 purge is that a plugin
  * hook never prompts; the opinion here is "trim the index", which the model
- * can act on itself (/ork:dream index-budget). A deny would repeat the #2947
+ * can act on itself (/ork:memory dream index-budget). A deny would repeat the #2947
  * display-lint mistake and teach users the escape hatch instead.
  *
  * Edit inputs carry old_string/new_string diffs, not the full body, so the
@@ -122,7 +122,7 @@ export function contextFileBudgetGuard(input: HookInput, _ctx: HookContext = NOO
     `${(projected / 1024).toFixed(1)} KB, ${(overBy / 1024).toFixed(1)} KB over its ` +
     `${(budget / 1024).toFixed(0)} KB budget (currently ${(currentSize / 1024).toFixed(1)} KB). ` +
     `${fileName} loads into every session; past its read limit it degrades silently. ` +
-    `Trim, or run /ork:dream (index-budget) before writing more. ` +
+    `Trim, or run /ork:memory dream (index-budget) before writing more. ` +
     `(Override budget: ORK_CONTEXT_FILE_BUDGET_BYTES=<bytes>)`;
   logHook(HOOK_NAME, `ADVISORY: ${fileName} projected ${projected}B > budget ${budget}B`);
   return outputPreToolAdvisory(advisory);

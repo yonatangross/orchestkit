@@ -647,7 +647,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/audit-full": {
       "title": "Audit Full",
-      "inbound": 3
+      "inbound": 5
     },
     "/docs/reference/skills/auto": {
       "title": "Auto",
@@ -655,7 +655,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/bare-eval": {
       "title": "Bare Eval",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/brainstorm": {
       "title": "Brainstorm",
@@ -699,7 +699,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/ci-sentinel": {
       "title": "CI Sentinel",
-      "inbound": 4
+      "inbound": 3
     },
     "/docs/reference/skills/code-review-playbook": {
       "title": "Code Review Playbook",
@@ -1075,7 +1075,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/prompt-focus": {
       "title": "Prompt Focus",
-      "inbound": 2
+      "inbound": 4
     },
     "/docs/reference/skills/python-backend": {
       "title": "Python Backend",
@@ -1103,7 +1103,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/reference/skills/remember": {
       "title": "Remember",
-      "inbound": 37
+      "inbound": 4
     },
     "/docs/reference/skills/responsive-patterns": {
       "title": "Responsive Patterns",
@@ -1270,7 +1270,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "inbound": 0
     },
     "/docs/skills/command-skills": {
-      "title": "44 Commands You Can Invoke",
+      "title": "47 Commands You Can Invoke",
       "inbound": 11
     },
     "/docs/skills/dependency-graph": {
@@ -1680,12 +1680,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/reference/agents/accessibility-specialist": [
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-e2e"
     ],
     "/docs/reference/agents/ai-safety-auditor": [
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns"
     ],
     "/docs/reference/agents/backend-system-architect": [
@@ -1696,7 +1694,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
       "/docs/reference/skills/python-backend",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/scope-appropriate-architecture",
       "/docs/reference/skills/security-patterns"
     ],
@@ -1705,22 +1702,19 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/devops-deployment",
       "/docs/reference/skills/github-operations",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns"
     ],
     "/docs/reference/agents/claude-design-orchestrator": [
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/design-context-extract",
       "/docs/reference/skills/design-to-code",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/code-quality-reviewer": [
       "/docs/reference/skills/architecture-patterns",
       "/docs/reference/skills/code-review-playbook",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/quality-gates",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns",
       "/docs/reference/skills/testing-integration",
       "/docs/reference/skills/testing-unit"
@@ -1729,45 +1723,38 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/component-search",
       "/docs/reference/skills/design-system-tokens",
       "/docs/reference/skills/design-to-code",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/data-pipeline-engineer": [
       "/docs/reference/skills/browser-tools",
       "/docs/reference/skills/devops-deployment",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/performance",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/performance"
     ],
     "/docs/reference/agents/database-engineer": [
       "/docs/reference/skills/database-patterns",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
-      "/docs/reference/skills/python-backend",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/python-backend"
     ],
     "/docs/reference/agents/debug-investigator": [
       "/docs/reference/skills/errors",
       "/docs/reference/skills/fix-issue",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/demo-producer": [
       "/docs/reference/skills/demo-producer",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/deployment-manager": [
       "/docs/reference/skills/devops-deployment",
       "/docs/reference/skills/github-operations",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/design-context-extractor": [
       "/docs/reference/skills/design-context-extract",
       "/docs/reference/skills/design-system-tokens",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/design-system-architect": [
       "/docs/reference/skills/component-search",
@@ -1776,7 +1763,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/design-to-code",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-unit"
     ],
@@ -1790,15 +1776,13 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/agents/eval-runner": [
       "/docs/reference/skills/error-analysis",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-integration",
       "/docs/reference/skills/testing-llm"
     ],
     "/docs/reference/agents/event-driven-architect": [
       "/docs/reference/skills/api-design",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/python-backend",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/python-backend"
     ],
     "/docs/reference/agents/expect-agent": [
       "/docs/reference/skills/expect",
@@ -1806,8 +1790,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/reference/agents/frontend-performance-engineer": [
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/performance",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/performance"
     ],
     "/docs/reference/agents/frontend-ui-developer": [
       "/docs/reference/skills/architecture-patterns",
@@ -1819,7 +1802,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
       "/docs/reference/skills/react-server-components-framework",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-unit"
     ],
@@ -1832,45 +1814,38 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/reference/agents/git-operations-engineer": [
       "/docs/reference/skills/architecture-decision-record",
       "/docs/reference/skills/github-operations",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/infrastructure-architect": [
       "/docs/reference/skills/devops-deployment",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns"
     ],
     "/docs/reference/agents/llm-integrator": [
       "/docs/reference/skills/api-design",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns"
     ],
     "/docs/reference/agents/market-intelligence": [
       "/docs/reference/skills/github-operations",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/monitoring-engineer": [
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/telemetry-inspect",
       "/docs/reference/skills/testing-integration",
       "/docs/reference/skills/testing-perf"
     ],
     "/docs/reference/agents/multimodal-specialist": [
       "/docs/reference/skills/api-design",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/product-strategist": [
       "/docs/reference/skills/github-operations",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/prd-to-goal",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/write-prd"
     ],
     "/docs/reference/agents/python-performance-engineer": [
@@ -1878,31 +1853,26 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
       "/docs/reference/skills/python-backend",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-perf",
       "/docs/reference/skills/testing-unit"
     ],
     "/docs/reference/agents/release-engineer": [
       "/docs/reference/skills/github-operations",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/release-sync",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/release-sync"
     ],
     "/docs/reference/agents/security-auditor": [
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns"
     ],
     "/docs/reference/agents/security-layer-auditor": [
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns"
     ],
     "/docs/reference/agents/system-design-reviewer": [
       "/docs/reference/skills/architecture-decision-record",
       "/docs/reference/skills/memory",
       "/docs/reference/skills/performance",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/security-patterns",
       "/docs/reference/skills/visualize-plan"
     ],
@@ -1910,7 +1880,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/architecture-patterns",
       "/docs/reference/skills/browser-tools",
       "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember",
       "/docs/reference/skills/testing-e2e",
       "/docs/reference/skills/testing-integration",
       "/docs/reference/skills/testing-llm",
@@ -1919,12 +1888,10 @@ export const RELATED_GRAPH: RelatedGraphData = {
     ],
     "/docs/reference/agents/web-research-analyst": [
       "/docs/reference/skills/browser-tools",
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/agents/workflow-architect": [
-      "/docs/reference/skills/memory",
-      "/docs/reference/skills/remember"
+      "/docs/reference/skills/memory"
     ],
     "/docs/reference/hooks": [
       "/docs/reference/hooks/config-change",
@@ -2484,7 +2451,6 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/agents/release-engineer",
       "/docs/reference/skills/analytics",
       "/docs/reference/skills/ci-debug",
-      "/docs/reference/skills/ci-sentinel",
       "/docs/reference/skills/configure",
       "/docs/reference/skills/create-pr",
       "/docs/reference/skills/devops-deployment",
@@ -2589,7 +2555,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/skills/by-category/workflows": [
       "/docs/reference/skills/assess",
       "/docs/reference/skills/audit-activation",
+      "/docs/reference/skills/audit-full",
       "/docs/reference/skills/auto",
+      "/docs/reference/skills/bare-eval",
       "/docs/reference/skills/brainstorm",
       "/docs/reference/skills/careful",
       "/docs/reference/skills/ci-debug",
@@ -2624,6 +2592,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/page-serve",
       "/docs/reference/skills/prd-to-goal",
+      "/docs/reference/skills/prompt-focus",
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/review-artifact-comments",
@@ -2639,7 +2608,9 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/skills/command-skills": [
       "/docs/reference/skills/assess",
       "/docs/reference/skills/audit-activation",
+      "/docs/reference/skills/audit-full",
       "/docs/reference/skills/auto",
+      "/docs/reference/skills/bare-eval",
       "/docs/reference/skills/brainstorm",
       "/docs/reference/skills/careful",
       "/docs/reference/skills/ci-debug",
@@ -2671,6 +2642,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
       "/docs/reference/skills/memory",
       "/docs/reference/skills/page-serve",
       "/docs/reference/skills/prd-to-goal",
+      "/docs/reference/skills/prompt-focus",
       "/docs/reference/skills/release-sync",
       "/docs/reference/skills/remember",
       "/docs/reference/skills/review-artifact-comments",

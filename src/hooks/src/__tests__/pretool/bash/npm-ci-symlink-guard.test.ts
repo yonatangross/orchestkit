@@ -28,6 +28,13 @@ function denied(result: { continue?: boolean; hookSpecificOutput?: { permissionD
   return result.continue === false && result.hookSpecificOutput?.permissionDecision === 'deny';
 }
 
+// The speed tests below measure growth, not the clock. Four times the input may cost at most eight
+// times the time: linear is four, quadratic is sixteen. Both speed tables share these.
+const SIZE_STEP = 4;
+const GROWTH_BOUND = 8;
+
+const growth = (run: (n: number) => void, n: number) => measureGrowth(run, n, SIZE_STEP);
+
 describe('npmCiTargetDir', () => {
   it.each([
     ['npm ci', '/wt'],
@@ -560,21 +567,432 @@ describe('substitutions the scanner must not lose', () => {
     expect(blocked(command, nothingLinked)).toBe(false);
   });
 
-  it.each([
-    ['twenty thousand nested substitutions', `${'$('.repeat(20000)}npm ci --prefix /lw${')'.repeat(20000)}`],
-    ['twenty thousand nested double-quoted substitutions', `${'"$('.repeat(20000)}npm ci --prefix /lw${')"'.repeat(20000)}`],
-    ['three thousand sibling substitutions', `${'echo "$(true)" '.repeat(3000)}"$(npm ci --prefix /lw)"`],
-    ['twenty thousand unclosed $( before it', `${'$( '.repeat(20000)}echo "$(npm ci --prefix /lw)"`],
-    ['twenty thousand lone backticks before it', `${'` '.repeat(20000)}echo "$(npm ci --prefix /lw)"`],
-  ])('%s: fails closed (never allowed, never throws) and stays fast', (_name, command) => {
-    const started = Date.now();
-    expect(blocked(command, linked)).toBe(true);
-    // The bound catches the quadratic scan (seconds), not normal speed: under
-    // vitest --coverage the linear scan takes about 0.8 s, so the bound has room for it.
-    expect(Date.now() - started).toBeLessThan(2000);
+  // Never allowed, never throws, and the time grows no faster than the input. A wall-clock bound
+  // would measure the machine (a coverage run is several times slower than a plain one); the growth
+  // between a small and a full size, timed back to back in this process, measures the scanner.
+  const failClosedCases: ReadonlyArray<readonly [string, (n: number) => string, number]> = [
+    ['twenty thousand nested substitutions', (n) => `${'$('.repeat(n)}npm ci --prefix /lw${')'.repeat(n)}`, 20000],
+    ['twenty thousand nested double-quoted substitutions', (n) => `${'"$('.repeat(n)}npm ci --prefix /lw${')"'.repeat(n)}`, 20000],
+    ['three thousand sibling substitutions', (n) => `${'echo "$(true)" '.repeat(n)}"$(npm ci --prefix /lw)"`, 3000],
+    ['twenty thousand unclosed $( before it', (n) => `${'$( '.repeat(n)}echo "$(npm ci --prefix /lw)"`, 20000],
+    ['twenty thousand lone backticks before it', (n) => `${'` '.repeat(n)}echo "$(npm ci --prefix /lw)"`, 20000],
+  ];
+
+  it('the fail-closed growth table has its five shapes', () => {
+    expect(failClosedCases.length).toBe(5);
   });
+
+  it.each(failClosedCases)('%s: fails closed (never allowed, never throws) and time grows no faster than the input', (_name, build, n) => {
+    const small = Math.floor(n / SIZE_STEP);
+    expect(small).toBeGreaterThan(0);
+    // Blocked at both sizes: the shape never lets the install through.
+    expect(blocked(build(small), linked)).toBe(true);
+    expect(blocked(build(n), linked)).toBe(true);
+    const g = growth((size) => void blocked(build(size), linked), n);
+    // The timer returned a real duration for both sizes, or the ratio below says nothing.
+    expect(g.small).toBeGreaterThan(0);
+    expect(g.large).toBeGreaterThan(0);
+    expect(g.ratio, `${_name}: ${g.small.toFixed(1)} ms at ${small}, ${g.large.toFixed(1)} ms at ${n}, ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeLessThan(GROWTH_BOUND);
+  }, 120000);
 
   it("control: sh -c 'npm ci' in a cwd whose node_modules is real stays quiet when another dir is linked", () => {
     expect(blocked("sh -c 'npm ci'", linked)).toBe(false);
   });
 });
+
+// Command shapes the reader follows to the install. Every command here runs a clean install aimed
+// at /lw, a linked worktree, from /wt, which is not linked.
+describe('command shapes the reader must follow to the install', () => {
+  const linked = linksAt('/lw/node_modules');
+  const nothingLinked = linksAt();
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps, cwd = '/wt') =>
+    npmCiSymlinkGuard(bash(command, cwd), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  describe('nested scripts, read the way the shell unquotes them', () => {
+    it.each([
+      ['a double-quoted sh -c body with escaped quotes', 'sh -c "echo \\"\\$(npm ci --prefix /lw)\\""'],
+      ['a sh -c inside a sh -c, double quotes inside single', `sh -c 'bash -c "echo \\$(npm ci --prefix /lw)"'`],
+      ['sh -c after a double dash', `sh -c -- 'echo "$(npm ci --prefix /lw)"'`],
+      ['a single-quoted script inside a single-quoted script', `sh -c 'sh -c '\\''echo "$(npm ci --prefix /lw)"'\\'''`],
+      ['three shells deep with escaped quotes', `sh -c 'sh -c "bash -c \\"npm ci --prefix /lw\\""'`],
+      ['a path-qualified shell', `/bin/sh -c 'npm ci --prefix /lw'`],
+      ['a shell after options', `bash -o pipefail -c 'npm ci --prefix /lw'`],
+      ['a combined option', `bash -ec 'npm ci --prefix /lw'`],
+      ['eval of a substitution', `eval 'echo "$(npm ci --prefix /lw)"'`],
+      ['eval of a plain command', 'eval "npm ci --prefix /lw"'],
+      ['eval with several words', 'eval npm ci --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ["sh -c 'npm install --prefix /lw'"],
+      ['eval "npm install --prefix /lw"'],
+      ["bash -c 'echo npm ci'"],
+      ['eval "$(ssh-agent -s)"'],
+    ])('control: %s is quiet while /lw is linked', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+
+    it.each([
+      ["sh -c 'sh -c \"echo \\$(npm ci --prefix /lw)\"'"],
+      ['eval "npm ci --prefix /lw"'],
+    ])('control: %s is quiet when nothing is linked', (command) => {
+      expect(decision(command, nothingLinked)).toBeUndefined();
+    });
+  });
+
+  describe('a heredoc with a quoted delimiter is literal text', () => {
+    it('reads the install after an apostrophe and a backtick inside the heredoc body', () => {
+      const command = "cat <<'EOF'\nit's `x\nEOF\necho `npm ci --prefix /lw`";
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('reads an install on the line after the heredoc', () => {
+      expect(decision("cat <<'EOF'\nit's here\nEOF\nnpm ci --prefix /lw", linked)).toBe('deny');
+    });
+
+    it('control: the same heredoc with nothing linked is quiet', () => {
+      expect(decision("cat <<'EOF'\nit's `x\nEOF\necho `npm ci --prefix /lw`", nothingLinked)).toBeUndefined();
+    });
+
+  });
+
+  describe('a backslash before a newline joins the lines', () => {
+    it.each([
+      ['inside a word list', 'npm \\\nci --prefix /lw'],
+      ['inside a substitution', 'echo "$(npm \\\nci --prefix /lw)"'],
+      ['inside a word', 'n\\\npm ci --prefix /lw'],
+      ['inside the subcommand', 'npm c\\\ni --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('control: a continued npm install is quiet', () => {
+      expect(decision('npm \\\ninstall --prefix /lw', linked)).toBeUndefined();
+    });
+  });
+
+  describe('a redirection is not part of the word next to it', () => {
+    it.each([
+      ['glued to the subcommand', 'npm ci --prefix /lw>/dev/null'],
+      ['glued to the subcommand, fd number', 'npm ci --prefix /lw 2>/dev/null'],
+      ['before the subcommand', 'npm >/dev/null ci --prefix /lw'],
+      ['with an append', 'npm ci --prefix /lw >> out.log'],
+      ['after a cd', 'cd /lw 2>/dev/null && npm ci'],
+      ['an input redirect', 'npm ci --prefix /lw </dev/null'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('reads the cwd form too', () => {
+      expect(decision('npm ci>/dev/null', linked, '/lw')).toBe('deny');
+    });
+
+    it.each([
+      ['npm install --prefix /lw>/dev/null'],
+      ['npm test --prefix /lw 2>&1'],
+      ['echo ok >/dev/null'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+  });
+
+  describe('the command word', () => {
+    it.each([
+      ['an absolute path', '/usr/local/bin/npm ci --prefix /lw'],
+      ['a relative path', './node_modules/.bin/npm ci --prefix /lw'],
+      ['a path after a wrapper', 'sudo /opt/homebrew/bin/npm ci --prefix /lw'],
+      ['npx running npm', 'npx npm ci --prefix /lw'],
+      ['xargs running npm', 'echo x | xargs -n 1 npm ci --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ['/usr/local/bin/npm install --prefix /lw'],
+      ['/usr/local/bin/npmx ci --prefix /lw'],
+      ['/opt/npm/bin/node ci --prefix /lw'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+  });
+
+  describe('words the shell rewrites before it runs them', () => {
+    it.each([
+      ['a braced IFS for the blank', `npm\${IFS}ci --prefix /lw`],
+      ['a braced IFS between every word', `npm\${IFS}ci\${IFS}--prefix\${IFS}/lw`],
+      ['$IFS for the blank', 'npm$IFS$9ci --prefix /lw'],
+      ['an ANSI-C escape for the subcommand', "npm $'\\x63i' --prefix /lw"],
+      ['an ANSI-C word for the command', "$'npm' ci --prefix /lw"],
+      ['an ANSI-C octal escape', "npm $'\\143i' --prefix /lw"],
+      ['a brace expansion for the subcommand', 'npm c{i,} --prefix /lw'],
+      ['a brace expansion with the install first', 'npm {ci,x} --prefix /lw'],
+      ['a brace expansion in the command', '{npm,} ci --prefix /lw'],
+      ['a variable holding the command', 'NPM=npm; $NPM ci --prefix /lw'],
+      ['a braced variable holding the command', `NPM=npm; \${NPM} ci --prefix /lw`],
+      ['a quoted variable holding the command', 'NPM=npm && "$NPM" ci --prefix /lw'],
+      ['an exported variable holding the command', 'export NPM=npm; $NPM ci --prefix /lw'],
+      ['a variable holding the subcommand', 'SUB=ci; npm $SUB --prefix /lw'],
+      ['a variable holding a path', 'D=/lw; npm ci --prefix $D'],
+      ['a variable chain', 'A=npm; B=$A; $B ci --prefix /lw'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ['a command word the command never defines', '$NPM ci --prefix /lw'],
+      ['a subcommand the command never defines', 'npm $SUB --prefix /lw'],
+      ['a substitution as the subcommand', 'npm $(echo ci) --prefix /lw'],
+      ['a variable assigned two different values', 'NPM=npm; NPM=echo; $NPM ci --prefix /lw'],
+    ])('%s: asked, because it cannot be read', (_name, command) => {
+      expect(decision(command, linked)).toBe('ask');
+    });
+
+    it.each([
+      ['npm c{a,b} --prefix /lw'],
+      ['npm c{,i} --prefix /lw'],
+      ['npm {x,ci} --prefix /lw'],
+      ['n{p,}m ci --prefix /lw'],
+      ['NPM=npm; $NPM install --prefix /lw'],
+      ['SUB=install; npm $SUB --prefix /lw'],
+      ['npm $FLAGS install --prefix /lw'],
+      ["npm $'in\\x73tall' --prefix /lw"],
+      [`npm\${IFS}install --prefix /lw`],
+      ['echo $NPM ci'],
+      ['$EDITOR notes.md'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+
+    it('control: nothing linked, nothing asked, for the commands that ask above', () => {
+      for (const command of ['$NPM ci --prefix /lw', 'npm $SUB --prefix /lw', 'NPM=npm; $NPM ci --prefix /lw']) {
+        expect(decision(command, nothingLinked)).toBeUndefined();
+      }
+    });
+  });
+
+  describe('a cd with options', () => {
+    it.each([
+      ['cd -P'],
+      ['cd -L'],
+      ['cd --'],
+      ['pushd'],
+    ])('%s moves the directory for the install after it', (cdWord) => {
+      expect(decision(`${cdWord} /lw && npm ci`, linked)).toBe('deny');
+    });
+  });
+
+  describe('a comment after the directory', () => {
+    it.each([
+      ['on the same line, then a newline', 'cd /lw # reclaimed worktree\nnpm ci'],
+      ['on the same line, then &&', 'cd /lw # reclaimed worktree && npm ci\nnpm ci'],
+      ['after pushd', 'pushd /lw # here\nnpm ci'],
+      ['after the install', 'npm ci --prefix /lw # fresh install'],
+      ['after a tab, with several words in the comment', 'cd /lw\t# one two three\nnpm ci'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    // The comment cut applies to cd and pushd only. On an npm line it would drop words the shell
+    // keeps, whenever the guard splits finer than the shell does.
+    it.each([
+      ['a # after a space inside a parameter expansion', `npm ci \${x:- #} --prefix /lw`],
+      ['a # after IFS blanks', `npm\${IFS}ci\${IFS}#\${IFS}--prefix\${IFS}/lw`],
+      ['a # after a bare IFS', 'npm$IFS$9ci$IFS#$IFS--prefix$IFS/lw'],
+      ['a braced IFS body of more than sixteen characters', `npm\${IFS//zzzzzzzzzzzzzzzzzzz/}ci --prefix /lw`],
+      ['a braced IFS body holding a variable', `npm\${IFS:-$x}ci --prefix /lw`],
+      ['a braced IFS body holding a variable, trimmed', `npm\${IFS%$x}ci --prefix /lw`],
+      ['a braced IFS body holding a brace', `npm\${IFS:-{}ci --prefix /lw`],
+      ['a braced IFS body holding a replaced brace', `npm\${IFS//{/}ci --prefix /lw`],
+      ['a braced IFS body holding a quoted variable', `npm\${IFS:-"$x"}ci --prefix /lw`],
+      ['a braced IFS body between words of the prefix', `npm ci --prefix\${IFS:-$x}/lw`],
+      ['a braced IFS body in a cd', `cd\${IFS:-$x}/lw; npm ci`],
+      ['a carriage return before a # word', 'npm ci --foo\r#bar --prefix /lw'],
+      ['a no-break space before a # word', 'npm ci --foo #bar --prefix /lw'],
+      ['a form feed before a # word', 'npm ci --foo\f#bar --prefix /lw'],
+      ['an ideographic space before a # word', 'npm ci --foo　#bar --prefix /lw'],
+    ])('%s: the install after it is still read', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ['cd /wt # reclaimed worktree\nnpm ci'],
+      ['cd /lw # reclaimed worktree\nnpm install'],
+      ['echo "cd /lw # x"; npm ci'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, linked)).toBeUndefined();
+    });
+  });
+
+  describe('the other spellings npm accepts for a clean install', () => {
+    it.each([
+      ['install-ci-test'],
+      ['install-ci'],
+      ['install-cl'],
+      ['isntall-c'],
+      ['clean-install-t'],
+      ['cleanInstall'],
+      ['installClean'],
+      ['isntallClean'],
+      ['installCiTest'],
+      ['cleanInstallTest'],
+    ])('npm %s: denied', (spelling) => {
+      expect(decision(`npm ${spelling} --prefix /lw`, linked)).toBe('deny');
+    });
+
+    it.each([['install-test'], ['install-foo'], ['run-script'], ['cleanup']])('control: npm %s is quiet', (spelling) => {
+      expect(decision(`npm ${spelling} --prefix /lw`, linked)).toBeUndefined();
+    });
+  });
+
+  // A command past the parse budget falls back to a word test. A backslash before a newline joins
+  // the two lines for the shell, so the test must read it the same way.
+  describe('past the parse budget, a line continuation does not hide the install', () => {
+    const unclosed = (n: number) => Array.from({ length: n }, (_, k) => `# step ${k}: type $( to open`).join('\n');
+    const padded = unclosed(70);
+    const overLength = `# ${'x'.repeat(200_001)}`;
+
+    it.each([
+      ['a continuation after npm', 'npm \\\nci --prefix /lw'],
+      ['a continuation and a blank after it', 'npm \\\n ci --prefix /lw'],
+      ['a continuation inside the subcommand', 'npm c\\\ni --prefix /lw'],
+      ['a continuation inside the command word', 'n\\\npm ci --prefix /lw'],
+      ['two continuations in a row', 'npm \\\n\\\nci --prefix /lw'],
+      ['a continuation after the subcommand', 'npm ci \\\n --prefix /lw'],
+      ['a continuation before a spelled-out alias', 'npm \\\nclean-install --prefix /lw'],
+    ])('too many unclosed openers, %s: asked', (_name, tail) => {
+      expect(decision(`${padded}\n${tail}`, linked)).toBe('ask');
+    });
+
+    it.each([
+      ['a continuation after npm', 'npm \\\nci --prefix /lw'],
+      ['a continuation inside the subcommand', 'npm c\\\ni --prefix /lw'],
+    ])('too long, %s: asked', (_name, tail) => {
+      expect(decision(`${overLength}\n${tail}`, linked)).toBe('ask');
+    });
+
+    it('control: the plain form is asked, so the harness does reach the fallback', () => {
+      expect(decision(`${padded}\nnpm ci --prefix /lw`, linked)).toBe('ask');
+    });
+
+    it.each([
+      ['a continued npm install', 'npm \\\ninstall --prefix /lw'],
+      ['npm and ci joined into one word', 'npm\\\nci --prefix /lw'],
+      ['no npm at all', 'echo \\\nci --prefix /lw'],
+    ])('control: %s stays quiet past the budget', (_name, tail) => {
+      expect(decision(`${padded}\n${tail}`, linked)).toBeUndefined();
+    });
+  });
+
+  describe('process substitution runs its body', () => {
+    it.each([
+      ['cat <(npm ci --prefix /lw)'],
+      ['diff a >(npm ci --prefix /lw)'],
+    ])('%s: denied', (command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+  });
+
+  // Each shape is near the size limit and built to make a new reader work hard. Never allowed, and
+  // the time grows no faster than the input. A wall-clock bound would measure the machine (a
+  // coverage run is several times slower than a plain one); the growth between a small and a full
+  // size, timed back to back in this process, measures the guard.
+  const growthCases: ReadonlyArray<readonly [string, (n: number) => string, number]> = [
+    ['two thousand eval words', (n) => `${'eval '.repeat(n)}npm ci --prefix /lw`, 2000],
+    ['a variable that doubles on every assignment', (n) => `${'a=$a$a; '.repeat(n)}$a ci --prefix /lw`, 5000],
+    ['four thousand brace expansions per word', (n) => `${'npm c{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,}{i,} --prefix /lw; '.repeat(n)}`, 200],
+    ['eight thousand redirections', (n) => `${'echo > /dev/null '.repeat(n)}; npm ci --prefix /lw>x`, 8000],
+    ['four thousand sibling here-documents', (n) => `${"cat <<'E'\nx\nE\n".repeat(n)}npm ci --prefix /lw`, 4000],
+    ['a chain of sh -c scripts, each one word shorter', (n) => `${'sh -c '.repeat(n)}'npm ci --prefix /lw'`, 20000],
+    ['a long run of line continuations', (n) => `${'x \\\n'.repeat(n)}; npm ci --prefix /lw`, 40000],
+    ['a run of unclosed braced IFS words', (n) => `npm ci --prefix /lw ${'${IFS'.repeat(n)}`, 30000],
+    ['a run of closing parentheses before a word', (n) => `npm ci --prefix /lw; echo x ${')'.repeat(n)}x`, 150000],
+    ['a run of hash words', (n) => `npm ci --prefix /lw ${'# '.repeat(n)}`, 90000],
+  ];
+
+  it('the growth table is not empty', () => {
+    expect(growthCases.length).toBeGreaterThanOrEqual(10);
+  });
+
+  // The ratio check must be able to fail. A workload whose cost grows with the square of its input
+  // is measured with the same helper and must come out above the bound; a linear one must stay under.
+  describe('the growth check itself', () => {
+    it('control: a quadratic workload is above the bound', () => {
+      const g = growth((n) => sink(quadratic(n)), 4000);
+      expect(g.small).toBeGreaterThan(0);
+      expect(g.large).toBeGreaterThan(0);
+      expect(g.ratio, `quadratic ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeGreaterThan(GROWTH_BOUND);
+    }, 30000);
+
+    it('control: a linear workload is under the bound', () => {
+      const g = growth((n) => sink(linear(n * 4000)), 4000);
+      expect(g.small).toBeGreaterThan(0);
+      expect(g.large).toBeGreaterThan(0);
+      expect(g.ratio, `linear ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeLessThan(GROWTH_BOUND);
+    }, 30000);
+  });
+
+  it.each(growthCases)('%s: blocked, and time grows no faster than the input', (_name, build, n) => {
+    const small = Math.floor(n / SIZE_STEP);
+    expect(small).toBeGreaterThan(0);
+    // Blocked at both sizes: the shape never lets the install through.
+    expect(['deny', 'ask']).toContain(decision(build(small), linked));
+    expect(['deny', 'ask']).toContain(decision(build(n), linked));
+    const g = growth((size) => void decision(build(size), linked), n);
+    // The timer returned a real duration for both sizes, or the ratio below says nothing.
+    expect(g.small).toBeGreaterThan(0);
+    expect(g.large).toBeGreaterThan(0);
+    expect(g.ratio, `${_name}: ${g.small.toFixed(1)} ms at ${small}, ${g.large.toFixed(1)} ms at ${n}, ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeLessThan(GROWTH_BOUND);
+  }, 120000);
+});
+
+let sinkValue = 0;
+/** Keeps a computed number alive so the optimizer cannot drop the workload. */
+function sink(value: number): void {
+  sinkValue = (sinkValue + value) % 1000003;
+}
+
+/** Work that grows with the square of n (the shape the guard must never have). */
+function quadratic(n: number): number {
+  let total = 0;
+  for (let i = 0; i < n; i += 1) for (let j = 0; j < n; j += 1) total += (i ^ j) & 7;
+  return total;
+}
+
+/** Work that grows linearly with n. */
+function linear(n: number): number {
+  let total = 0;
+  for (let i = 0; i < n; i += 1) total += (i * 31) & 7;
+  return total;
+}
+
+/** CPU milliseconds this process has used (user plus system): a busy machine does not add to it. */
+function cpuMs(): number {
+  const { user, system } = process.cpuUsage();
+  return (user + system) / 1000;
+}
+
+/**
+ * Times `run` at n / step and at n in the same process and returns both times in ms and their ratio.
+ * It measures CPU time, not the clock, and alternates the small and the full size in each round, so
+ * a loaded runner (a coverage run with many files in parallel) slows both sizes alike. The best of
+ * six rounds is kept for each size so one slow tick does not decide. One warm-up round comes first.
+ */
+function measureGrowth(run: (n: number) => void, n: number, step: number): { small: number; large: number; ratio: number } {
+  const smallSize = Math.floor(n / step);
+  const time = (size: number): number => {
+    const started = cpuMs();
+    run(size);
+    return cpuMs() - started;
+  };
+  run(smallSize);
+  run(n);
+  let small = Number.POSITIVE_INFINITY;
+  let large = Number.POSITIVE_INFINITY;
+  for (let round = 0; round < 6; round += 1) {
+    small = Math.min(small, time(smallSize));
+    large = Math.min(large, time(n));
+  }
+  return { small, large, ratio: large / small };
+}

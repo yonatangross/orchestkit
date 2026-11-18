@@ -1,6 +1,6 @@
 // audit-full-mapreduce — dynamic-workflow harness (template).
 //
-// The SCALE tier for /ork:audit-full. The skill's default is a single-context
+// The SCALE tier for /ork-extras:audit-full. The skill's default is a single-context
 // Opus-1M pass (its edge: whole-codebase cross-file reasoning in one window).
 // When STEP 1's token estimate EXCEEDS that budget (~125K LOC / repos that one
 // context can't hold), the skill used to PUNT to /ork:verify. This is the proper
@@ -32,7 +32,7 @@
 export const meta = {
 	name: "audit-full-mapreduce",
 	description:
-		"Scale tier for /ork:audit-full: shard a too-big codebase, audit each shard in an isolated context, synthesize with a cross-shard boundary pass, then adversarially refute CRITICAL/HIGH.",
+		"Scale tier for /ork-extras:audit-full: shard a too-big codebase, audit each shard in an isolated context, synthesize with a cross-shard boundary pass, then adversarially refute CRITICAL/HIGH.",
 	phases: [
 		{
 			title: "Shard-audit",

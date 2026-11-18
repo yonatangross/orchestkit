@@ -469,7 +469,7 @@ const STRATS={
 };
 let EX={};
 const REC={
-  memory:{strategy:'single',skill:'/ork:remember',specialists:['ork:system-design-reviewer'],reason:'one-shot memory write → single ork skill (~90%, $0)'},
+  memory:{strategy:'single',skill:'/ork:memory remember',specialists:['ork:system-design-reviewer'],reason:'one-shot memory write → single ork skill (~90%, $0)'},
   prd:{strategy:'single',skill:'/ork:write-prd',specialists:['ork:product-strategist','ork:workflow-architect'],reason:'spec authoring → ork skill (it fans out ork agents internally)'},
   pg:{strategy:'workflow',topology:'pipeline',skill:'/ork:implement',specialists:['ork:frontend-ui-developer','ork:system-design-reviewer'],reason:'independent UI task → Workflow pipeline of ork specialists (~90%)'},
   i212:{strategy:'single',skill:'/ork:verify',specialists:['ork:release-engineer'],reason:'gated check → single ork skill; self-resolves on next PR'},

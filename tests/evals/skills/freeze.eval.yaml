@@ -5,7 +5,7 @@ skill_path: src/skills/freeze/SKILL.md
 plugin_dir: plugins/ork
 
 trigger_evals:
-  - prompt: "/ork:freeze src/hooks"
+  - prompt: "/ork-extras:freeze src/hooks"
     should_trigger: true
   - prompt: "Only let edits touch the packages/api directory for now"
     should_trigger: true

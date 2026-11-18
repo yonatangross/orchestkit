@@ -22,7 +22,7 @@ Tiers 2 and 3 need no setup. Tier 1 needs a memory MCP server, which OrchestKit 
 
 ## How Decisions Flow Across Tiers
 
-When you store a decision with `/ork:remember`, Claude writes it through the graph MCP. Local files and MEMORY.md are written by skills or by Claude when the session calls for it, not by a background writer.
+When you store a decision with `/ork:memory remember`, Claude writes it through the graph MCP. Local files and MEMORY.md are written by skills or by Claude when the session calls for it, not by a background writer.
 
 | Tier | Backend | What Gets Stored |
 |---|---|---|
@@ -54,16 +54,16 @@ Decisions enter the system through multiple channels.
 
 ```bash
 # Basic decision
-/ork:remember "Use JWT tokens for auth, not session cookies"
+/ork:memory remember "Use JWT tokens for auth, not session cookies"
 
 # Successful pattern
-/ork:remember --success "Cursor-based pagination scales for 2M+ rows"
+/ork:memory remember --success "Cursor-based pagination scales for 2M+ rows"
 
 # Anti-pattern
-/ork:remember --failed "Offset pagination caused timeouts at 1M rows"
+/ork:memory remember --failed "Offset pagination caused timeouts at 1M rows"
 
 # Cross-project best practice
-/ork:remember --global "Always validate input at API boundaries"
+/ork:memory remember --global "Always validate input at API boundaries"
 ```
 
 ### Suggested Capture
@@ -76,7 +76,7 @@ One hook suggests what to store. It writes nothing itself:
 
 ### Entity and Relation Extraction
 
-`/ork:remember` extracts structured data from natural language:
+`/ork:memory remember` extracts structured data from natural language:
 
 | Input Pattern | Extracted Entity Type |
 |---|---|

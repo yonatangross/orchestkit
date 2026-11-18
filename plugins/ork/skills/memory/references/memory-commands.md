@@ -73,7 +73,7 @@ No results found matching "{query}"
 
 Try:
 - Broader search terms
-- /ork:remember to store new decisions
+- /ork:memory remember to store new decisions
 - --global flag to search cross-project best practices
 ```
 

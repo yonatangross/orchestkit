@@ -490,7 +490,7 @@ Done means all of these hold:
 - `debug-investigator` - Debug complex issues
 - `browser-tools` - Visual inspection with agent-browser + Portless
 - `ork:issue-progress-tracking` - Auto-updates from commits
-- `ork:remember` - Store lessons learned
+- `ork:memory remember` - Store lessons learned
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 

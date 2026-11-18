@@ -39,7 +39,6 @@ skills:
   - testing-llm
   - testing-integration
   - error-analysis
-  - remember
   - memory
 mcpServers: [context7]
 metadata:
@@ -288,7 +287,7 @@ Task: "Run evals on the RAG golden dataset against GPT-4o-2024-08-06"
 
 ## Eval Preflight
 
-Read `init.plugin_errors` from `--output-format stream-json` before running any eval batch. CC 2.1.128 expanded this field to include `--plugin-dir` load failures (it previously only covered marketplace plugin loads since 2.1.111). If `plugin_errors` is non-empty, surface the failures in the eval report and **stop** — a missing skill/agent caused by a silent plugin load error will produce false-negative regressions that look like model quality drops. This is the same preflight pattern used by `/ork:bare-eval`.
+Read `init.plugin_errors` from `--output-format stream-json` before running any eval batch. CC 2.1.128 expanded this field to include `--plugin-dir` load failures (it previously only covered marketplace plugin loads since 2.1.111). If `plugin_errors` is non-empty, surface the failures in the eval report and **stop** — a missing skill/agent caused by a silent plugin load error will produce false-negative regressions that look like model quality drops. This is the same preflight pattern used by `/ork-extras:bare-eval`.
 
 ## Context Protocol
 

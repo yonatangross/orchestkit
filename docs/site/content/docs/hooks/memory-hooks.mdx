@@ -13,7 +13,7 @@ OrchestKit no longer ships a `memory-writer` hook (or per-prompt `memory-context
 ```
 Session start                         During session                      Stop (every assistant turn, async)
 -------------                         --------------                      --------------------------------
-CC loads MEMORY.md                    /ork:remember -> mcp__memory__*     stop/session-summary
+CC loads MEMORY.md                    /ork:memory remember -> mcp__memory__*     stop/session-summary
 sync-session-dispatcher               memory-validator (PreToolUse)       (graph entity suggestion; may
   materializes profile rules          sync-write-edit-dispatcher           land on a later turn)
                                       (context-file-budget-guard on       stop/handoff-writer
@@ -46,7 +46,7 @@ This is the graph-first replacement for older local-capture hooks. It does not w
 2. Builds a session entity name from the date and branch (for example `Session-2026-03-06-feat/my-feature`).
 3. Classifies the session outcome from the last assistant message (`question`, `summary`, `code`, or `unknown`).
 4. Constructs a `mcp__memory__create_entities` suggestion and returns it via `additionalContext`.
-5. For high-activity sessions (more than 50 tool calls), nudges the user to run `/ork:remember`.
+5. For high-activity sessions (more than 50 tool calls), nudges the user to run `/ork:memory remember`.
 
 ```typescript
 // The hook returns a graph entity suggestion, not a local file write
@@ -98,12 +98,12 @@ Docs still describe three storage surfaces. `checkMemoryHealth()` in `lib/memory
 
 | Surface | Storage | Written By | Read By |
 |---------|---------|-----------|---------|
-| **Knowledge Graph** | MCP `mcp__memory__*` | `/ork:remember` (and agent MCP calls), validated by `memory-validator` | `/ork:memory search`, agent tool use |
+| **Knowledge Graph** | MCP `mcp__memory__*` | `/ork:memory remember` (and agent MCP calls), validated by `memory-validator` | `/ork:memory search`, agent tool use |
 | **Local JSONL** | `.claude/memory/*.jsonl` | Skills/scripts when used; snapshotted by `pre-compact-saver` | Skill status/viz scripts; compaction recovery |
 | **CC Native** | `MEMORY.md` | Skills/agents via Edit/Write; guarded by `context-file-budget-guard` | Claude Code session-start load (automatic) |
 
 <Callout type="info">
-There is no OrchestKit posttool writer that auto-promotes high-confidence decisions into MEMORY.md. Use `/ork:remember` (graph) and explicit filesystem memory edits when you want durable native memory.
+There is no OrchestKit posttool writer that auto-promotes high-confidence decisions into MEMORY.md. Use `/ork:memory remember` (graph) and explicit filesystem memory edits when you want durable native memory.
 </Callout>
 
 ## Profile Rules (SessionStart)

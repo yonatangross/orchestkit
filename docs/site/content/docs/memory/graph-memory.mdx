@@ -14,7 +14,7 @@ The knowledge graph stores two things:
 1. **Entities**: named nodes with a type and a list of observations
 2. **Relations**: directed, typed edges between entities
 
-When you run `/ork:remember "database-engineer uses pgvector for RAG applications"`, the system creates:
+When you run `/ork:memory remember "database-engineer uses pgvector for RAG applications"`, the system creates:
 
 ```
 Entities:
@@ -114,11 +114,11 @@ mcp__memory__add_observations
 }
 ```
 
-Appends new observations to an existing entity without creating duplicates. The `/ork:remember` skill uses this when it detects that an entity already exists in the graph.
+Appends new observations to an existing entity without creating duplicates. The `/ork:memory remember` skill uses this when it detects that an entity already exists in the graph.
 
 ## Entity Types
 
-`/ork:remember` infers entity types from the content of your text:
+`/ork:memory remember` infers entity types from the content of your text:
 
 | Entity Type | Examples | When Assigned |
 |---|---|---|
@@ -179,8 +179,8 @@ This means a `database-engineer` agent automatically inherits all graph knowledg
 ### Storing Knowledge
 
 ```bash
-# The /ork:remember skill writes to graph as primary
-/ork:remember "Use PostgreSQL with pgvector for vector search"
+# The /ork:memory remember skill writes to graph as primary
+/ork:memory remember "Use PostgreSQL with pgvector for vector search"
 ```
 
 Behind the scenes, the skill calls `mcp__memory__create_entities` and `mcp__memory__create_relations` to build the graph. It also writes to Tier 2 (local JSONL) as a backup.
