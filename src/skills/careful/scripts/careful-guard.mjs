@@ -345,7 +345,7 @@ export function findDestructive(command, opts = {}) {
 
 export function denyMessage(hit) {
   return [
-    `[ork:careful] blocked by rule ${hit.rule}: ${hit.detail}.`,
+    `[ork-extras:careful] blocked by rule ${hit.rule}: ${hit.detail}.`,
     'careful mode is on for this session, so destructive commands do not run unattended.',
     'To proceed, ask the operator: they can run the command themselves, or confirm it and run it outside careful mode.',
     'Do not rephrase the command to get past this guard.',
@@ -357,7 +357,7 @@ function main() {
   try {
     payload = JSON.parse(readFileSync(0, 'utf8'));
   } catch (err) {
-    process.stderr.write(`[ork:careful] could not read the hook input (${err.message}); blocking because the command cannot be checked.\n`);
+    process.stderr.write(`[ork-extras:careful] could not read the hook input (${err.message}); blocking because the command cannot be checked.\n`);
     return 2;
   }
   if (payload?.tool_name !== 'Bash') return 0;

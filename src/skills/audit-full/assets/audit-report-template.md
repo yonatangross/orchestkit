@@ -8,7 +8,7 @@ Use this structure for all audit reports.
 # Audit Report: {project-name}
 
 **Date:** {YYYY-MM-DD}
-**Auditor:** Claude {model} via /ork:audit-full
+**Auditor:** Claude {model} via /ork-extras:audit-full
 **Mode:** {Full | Security | Architecture | Dependencies}
 **Scope:** {Entire codebase | Directory: path/ | Changed files only}
 

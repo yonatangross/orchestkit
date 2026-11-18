@@ -151,7 +151,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "analytics",
     "description": "Local OrchestKit usage analytics: agent and skill frequency, hook timing, session replay, cost estimates, model delegation trends. Use when reviewing usage, performance or costs.",
     "version": "2.1.0",
-    "sha256": "9e7f3ecd8e6fe3b9b873fe7c90a4c19f3e45b723c7dc36c53af9ebbd34742a46",
+    "sha256": "9c4be383a60a43b777c563bcec39ccec7ac63abf500946bb305e17d542de2205",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -521,7 +521,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-activation",
     "description": "Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. Use when agents feel under-used or before pruning the catalog.",
     "version": "1.0.0",
-    "sha256": "eadbec8e141b7f09e8102e4c5a4ea86d2627cab30f2cb7f19f6570c4b3184bcb",
+    "sha256": "6f21e790099f5ca27bfac03a4406da541f2474e065fc9bce7176badf060ab2ef",
     "author": "OrchestKit",
     "tags": [
       "audit",
@@ -554,7 +554,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -562,7 +562,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "audit-full",
     "description": "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce.",
     "version": "1.2.0",
-    "sha256": "e84a5e34b87330af28d39160ee852253e5a2fefe4d0dfb9df7fc203ba272b1b0",
+    "sha256": "f8a1e67ce6b08248ad78a7fa37b8cfa1d7648852efe5ff534d7e16f601d7b149",
     "author": "OrchestKit",
     "tags": [
       "security",
@@ -572,7 +572,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "1m-context",
       "cross-file"
     ],
-    "userInvocable": false,
+    "userInvocable": true,
     "context": "fork",
     "allowedTools": [
       "AskUserQuestion",
@@ -597,10 +597,12 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "max",
     "structure": {
       "references": [
+        "adversarial-refutation-engine.md",
         "adversarial-refutation.md",
         "architecture-review-guide.md",
         "audit-scope-dialog.md",
         "dependency-audit-guide.md",
+        "push-notification-on-completion.md",
         "report-structure.md",
         "security-audit-guide.md",
         "token-budget-planning.md",
@@ -618,7 +620,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -626,7 +628,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "auto",
     "description": "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).",
     "version": "1.0.0",
-    "sha256": "44d3c73b14310035289e863a91bde2d256679a6d735f2ca9ef378ae4a8b00014",
+    "sha256": "560b37f221f5883cd0c38e9ce31ea9d4523bddbcbe7e95e6b4d988b8efde27a6",
     "author": "OrchestKit",
     "tags": [
       "router",
@@ -663,7 +665,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "bare-eval",
     "description": "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy.",
     "version": "1.1.0",
-    "sha256": "db7e09842ce4ffcf96b914d7fcb5dcc4f71466ce282b38284fb099a52ef9f0c5",
+    "sha256": "9affd7a3b0f3dd572862152dfc1508ae152402e5ca9493f19979242f3ff87e96",
     "author": "OrchestKit",
     "tags": [
       "eval",
@@ -673,7 +675,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "testing",
       "ci"
     ],
-    "userInvocable": false,
+    "userInvocable": true,
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
@@ -687,7 +689,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -863,7 +865,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "careful",
     "description": "Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes and remote branch deletes, git reset --hard, DROP TABLE / DROP DATABASE / TRUNCATE, kubectl delete and terraform or tofu destroy, including inside ssh remote commands, and makes Claude ask the operator. Use before touching production, a shared branch, a live database or a cluster.",
     "version": "1.0.0",
-    "sha256": "1c72fbb5d7689ed8be30aa0f66026ab66609f4415ddf7af81aab3aa9fe87a7b0",
+    "sha256": "48ca83d055daf0e9dbabdb631188c9b9e850615296741a745dedd6b14d9d715d",
     "author": "OrchestKit",
     "tags": [
       "careful",
@@ -888,7 +890,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -1929,7 +1931,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "disk-cleanup",
     "description": "Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry run lists safe, regenerable and ask-first items with sizes; --apply after you confirm. Use when the disk is nearly full. Never deletes branches.",
     "version": "1.0.0",
-    "sha256": "a5273075bdd53c61988291d5eb9e9702629e7f0bf05e27cbc2a5cd12c924ffe6",
+    "sha256": "0f6c504d2e6f08c6a54c31dcc48e27397b995290dcc7a4b15d816dfdfc8da9da",
     "author": "OrchestKit",
     "tags": [
       "disk",
@@ -2608,7 +2610,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "freeze",
     "description": "Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path whose real location, symlinks followed, falls outside the frozen dir. Argument: the dir, or off. Use when a change must stay inside one package, module or worktree.",
     "version": "1.0.0",
-    "sha256": "371a529dae0e73a9aa3275b8b55915df1067fc1b608fdae457bb0362d7c4be80",
+    "sha256": "c67229dd3f709407e87197d014d2444f17d97a8a11aa294b4333a2b3f4a90151",
     "author": "OrchestKit",
     "tags": [
       "freeze",
@@ -2637,7 +2639,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -3819,7 +3821,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prd-to-goal",
     "description": "Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal against a spec.",
     "version": "0.1.0",
-    "sha256": "12f571ddb0c10b668f5499a3b566a0c20670b5790e48ae692d438ac1ff85f50e",
+    "sha256": "5e846edf764ac102c5a25d4b1d4921cf613d41f2ab45bc3c524b69213e5c630c",
     "author": "OrchestKit",
     "tags": [
       "/goal",
@@ -4006,7 +4008,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "prompt-focus",
     "description": "Shows where your attention went from your own Claude Code and Codex prompts over 20 weeks, as a local counts-only report. Use when asking where your focus goes.",
     "version": "1.0.0",
-    "sha256": "9c50b26e0e23d9d9e2662c0c51f6f16360a66d2bc245275ee348aeb69d7a9246",
+    "sha256": "79473072a8fc6148149ba253cedbc7b7951858660c3333100cc48983b3247a6f",
     "author": "OrchestKit",
     "tags": [
       "analytics",
@@ -4019,7 +4021,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "daily",
       "privacy"
     ],
-    "userInvocable": false,
+    "userInvocable": true,
     "context": "fork",
     "allowedTools": [
       "Bash",
@@ -4038,7 +4040,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       ]
     },
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },
@@ -4775,7 +4777,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "swarm-migrate",
     "description": "Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and log to a shared ledger. Use for org-wide dependency bumps or codemods. Not for one repo (use implement).",
     "version": "0.1.0",
-    "sha256": "52235df7b31c4d968a3aece56415d592a56314798c1c384f8313adac90ea8e20",
+    "sha256": "5015084471f88829925bc54d43e5b07fcee50468e6885dcbc4943e04e9599cb0",
     "author": "OrchestKit",
     "tags": [
       "migration",
@@ -4812,7 +4814,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "complexity": "high",
     "structure": {},
     "plugins": [
-      "ork"
+      "ork-extras"
     ],
     "relatedAgents": []
   },

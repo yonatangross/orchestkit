@@ -14,7 +14,7 @@
 //   - a /ork:<skill> route is not the target the table gives that category
 //     (only for categories with a single /ork: target)
 //   - setup or migrate has fewer than 3 cases, or loses its /ork:setup or
-//     /ork:swarm-migrate route (#4981: both route through ork:auto now)
+//     /ork-extras:swarm-migrate route (#4981: both route through ork:auto now)
 //
 // Usage: node tests/skills/structure/test-auto-routing-benchmark.mjs
 // ============================================================================
@@ -65,7 +65,7 @@ for (const c of bench.cases || []) {
   }
 }
 
-for (const [category, route] of [['setup', '/ork:setup'], ['migrate', '/ork:swarm-migrate']]) {
+for (const [category, route] of [['setup', '/ork:setup'], ['migrate', '/ork-extras:swarm-migrate']]) {
   const cases = perCategory.get(category) || [];
   if (cases.length < 3) failures.push(`${category}: ${cases.length} benchmark cases, need at least 3 (#4981)`);
   if (cases.some((c) => c.route !== route)) failures.push(`${category}: every case must route to ${route}`);

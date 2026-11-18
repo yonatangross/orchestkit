@@ -1,6 +1,6 @@
 # `swarm-specs/` — cross-repo migration specs
 
-Input directory for `/ork:swarm-migrate`. Each spec is a YAML file describing a
+Input directory for `/ork-extras:swarm-migrate`. Each spec is a YAML file describing a
 transformation to fan out across repositories, optionally paired with a
 `.pr.md` body file.
 

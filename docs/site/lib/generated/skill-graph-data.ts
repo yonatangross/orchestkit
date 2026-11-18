@@ -117,7 +117,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "audit-full",
     "label": "Audit Full",
-    "type": "reference",
+    "type": "command",
     "complexity": "max",
     "category": "security",
     "hasDeps": true,
@@ -137,7 +137,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "bare-eval",
     "label": "Bare Eval",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
     "category": "testing",
     "hasDeps": false,
@@ -847,9 +847,9 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "prompt-focus",
     "label": "Prompt Focus",
-    "type": "reference",
+    "type": "command",
     "complexity": "low",
-    "category": "other",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0

@@ -141,4 +141,4 @@ it does not stop sessions, delete branches, or touch anything outside the home d
 
 - `ork:dev`: stop a branch's dev loop before its worktree is removed.
 - `ork:doctor`: project and plugin health, the other maintenance check next to disk space.
-- `ork:careful`: guard destructive shell commands while a cleanup runs.
+- `ork-extras:careful`: guard destructive shell commands while a cleanup runs.

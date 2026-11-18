@@ -1,4 +1,4 @@
-"""The ork-extras split (#4936): 26 skills leave core ork for an opt-in plugin.
+"""The ork-extras split (#4936): 33 skills leave core ork for an opt-in plugin (26 at the split, 7 more in trim stage 1).
 
 Four gates, each one a way the split can be half done:
 
@@ -62,6 +62,14 @@ MOVED = frozenset(
         "interaction-patterns",
         "release-management",
         "responsive-patterns",
+        # trim stage 1 moves (7): no call in the 90-day log, no preload
+        "audit-activation",
+        "audit-full",
+        "bare-eval",
+        "careful",
+        "freeze",
+        "prompt-focus",
+        "swarm-migrate",
     }
 )
 
@@ -413,14 +421,31 @@ def check_release_please() -> None:
 # Listed by exact path so a new offender never hides behind a pattern.
 OLD_NAME_ON_PURPOSE = {
     "docs/site/content/docs/getting-started/ork-extras.mdx": "the migration note shows each old name next to its new one",
+    "CHANGELOG.md": "release history records the names as released",
+    "docs/site/lib/generated/changelog-data.ts": "generated from CHANGELOG.md, which records the names as released",
+    "docs/audits/cc-adoption-2.1.259-261-triage-2026-09-05.md": "dated audit record, not rewritten",
+    "shared/cc-adoption-gaps.json": "dated adoption record, not rewritten",
 }
 
 
 HIDDEN_FLAG = re.compile(r"^disable-model-invocation:\s*true\s*$", re.M)
 # Recorded manual-only choice (#848): the one extras skill that stays hidden.
-STAYS_HIDDEN = frozenset({"release-management"})
+STAYS_HIDDEN = frozenset(
+    {
+        "release-management",
+        # the 7 stage 1 moves are slash-only in ork-extras (ruling 2026-11-17: no ceiling change)
+        "audit-activation",
+        "audit-full",
+        "bare-eval",
+        "careful",
+        "freeze",
+        "prompt-focus",
+        "swarm-migrate",
+    }
+)
 # A core skill hidden on purpose, so the check is shown to see the flag at all.
-HIDDEN_CONTROL = "careful"
+# (careful was the control until it moved to ork-extras in trim stage 1.)
+HIDDEN_CONTROL = "memory-fabric"
 
 
 def frontmatter(path: Path) -> str:

@@ -4,7 +4,8 @@ license: MIT
 compatibility: "Claude Code 2.1.277+. Python 3.9+ (stdlib only)."
 description: "Shows where your attention went from your own Claude Code and Codex prompts over 20 weeks, as a local counts-only report. Use when asking where your focus goes."
 argument-hint: "[scan|report|daily|demo]"
-user-invocable: false
+user-invocable: true
+disable-model-invocation: true
 allowed-tools: "Bash Read"
 effort: low
 metadata:
