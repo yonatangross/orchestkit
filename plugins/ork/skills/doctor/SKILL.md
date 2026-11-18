@@ -251,6 +251,7 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 |------|---------|
 | `rules/diagnostic-checks.md` | Bash commands and validation logic per category |
 | `rules/mcp-status-checks.md` | Credential validation and misconfiguration detection |
+| `scripts/check-agent-browser-version.sh` | Check 11: WARN when agent-browser on PATH is below `MIN_VERSION` (the one place the minimum lives), with the upgrade command (#5289) |
 | `references/remediation-guide.md` | Results interpretation and troubleshooting steps |
 | `references/health-check-outputs.md` | Sample output per category |
 | `references/skills-validation.md` | Skills frontmatter and structure checks |

@@ -376,7 +376,7 @@ The servers above are ones OrchestKit *consumes*. OrchestKit also *publishes* on
 | Local stdio image | `docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp` |
 | Registry entry | `io.github.yonatangross/orchestkit` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit) |
 
-Two tools: `orchestkit_docs_search` (ranked pages with titles and URLs) and `orchestkit_docs_get` (one page as Markdown by path). The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.dev/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
+Four read-only tools: `orchestkit_docs_search` (ranked pages with titles and URLs), `orchestkit_docs_get` (one page as Markdown by path), `orchestkit_skill_get` (one skill as a card: what it does, which plugin ships it, the install line) and `orchestkit_install` (a picker for Claude Code, Cursor and Codex with the exact install command). In a host that supports MCP Apps, the search results, the skill card and the install picker render inline in the chat. The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.dev/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
 
 ## OrchestKit Actions MCP Server
 

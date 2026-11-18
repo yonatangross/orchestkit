@@ -783,7 +783,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "browser-tools",
     "description": "Safety rules over the upstream agent-browser skill: scraping ethics, auth, request pacing, local URLs. Use for browser automation.",
     "version": "6.1.0",
-    "sha256": "b0a45a99aa82a4b31a062be62dec02528f4974391abae48bc1475ee9e238b6dd",
+    "sha256": "d3c1c8f3f03f805794f0edf7eff13927cb9908758255cdaad79719743126a8f7",
     "author": "OrchestKit",
     "tags": [
       "browser",
@@ -1821,7 +1821,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "dev",
     "description": "One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. Use when starting a branch, switching worktrees or resuming a project.",
     "version": "1.1.0",
-    "sha256": "0ac8da971a548f0305b678d5c325b344a0c0b515c84e2488c9a685e5898fcbdb",
+    "sha256": "3fe5abe3b1676b3719163f400b2f6d5fd0e1166d60d5329e603830cdae1cb7ff",
     "author": "OrchestKit",
     "tags": [
       "dev-loop",
@@ -2016,7 +2016,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "doctor",
     "description": "Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. Use to run doctor checks, diagnose issues or check project health before a release.",
     "version": "3.3.0",
-    "sha256": "2c583aa33af3513e932e9a26ce367ea5384850a033a6476d73786dc73065f3d7",
+    "sha256": "6203a541f34feeb0b1882be4ede579af08689aad2e7776738f91e47af3dbae0b",
     "author": "OrchestKit",
     "tags": [
       "health-check",
@@ -2063,6 +2063,7 @@ export const SKILLS: Record<string, SkillMeta> = {
         "version-compatibility.md"
       ],
       "scripts": [
+        "check-agent-browser-version.sh",
         "check-agent-memory.sh",
         "check-mcp-pinning.sh",
         "check-operator-permissions.cjs",
@@ -2316,7 +2317,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "expect",
     "description": "Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Use when testing UI changes before merge. Not for writing tests (use cover), grading a suite (use verify) or unit tests.",
     "version": "1.2.0",
-    "sha256": "bc11e77bd6bc8219d5db702eae8c6c454e76aaa6d57219456b447a0930bf9199",
+    "sha256": "15a1fe1fd3714808638ea439d8f4bb04b63cd30f1106d49dbef6c8cd603dc40f",
     "author": "OrchestKit",
     "tags": [
       "testing",

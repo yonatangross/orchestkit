@@ -282,6 +282,7 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 |------|---------|
 | `skills/doctor/rules/diagnostic-checks.md` | Bash commands and validation logic per category |
 | `skills/doctor/rules/mcp-status-checks.md` | Credential validation and misconfiguration detection |
+| `<ORK_PLUGIN_DIR>/skills/doctor/scripts/check-agent-browser-version.sh` | Check 11: WARN when agent-browser on PATH is below `MIN_VERSION` (the one place the minimum lives), with the upgrade command (#5289) |
 | `skills/doctor/references/remediation-guide.md` | Results interpretation and troubleshooting steps |
 | `skills/doctor/references/health-check-outputs.md` | Sample output per category |
 | `skills/doctor/references/skills-validation.md` | Skills frontmatter and structure checks |

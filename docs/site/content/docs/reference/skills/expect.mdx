@@ -80,6 +80,11 @@ Bash("command -v agent-browser || npx agent-browser --version")
 # NOT `skills get agent-browser` — that resolves but returns only the thin
 # top-level router; `core --full` is the actual 2,800+ line command reference.
 Bash("agent-browser skills get core --full")
+
+# Load it before the first agent-browser command, never drive the CLI from memory.
+# Windows (Git Bash): never pipe a command that may start the daemon (| tail hangs);
+# redirect to a file instead. See ../browser-tools/references/ork-delta.md,
+# section "Windows (Git Bash) and piping".
 ```
 
 
