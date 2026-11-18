@@ -168,12 +168,13 @@ const CARD_WHAT: Record<CardHostId, string> = {
 	codex: "A pack made for Codex. It is separate from the Claude Code plugin.",
 };
 
-// Claude Code and Cursor have a setup command to run next; Codex has no setup
-// step, only a first skill to try, so it is labelled as an example.
+// One verb for all three hosts. Claude Code and Cursor run a setup command next;
+// Codex has no setup step, only a first skill, and it is typed in a Codex chat,
+// not in the terminal above it.
 const CARD_THEN: Record<CardHostId, string> = {
 	claude: "Then run in Claude Code",
 	cursor: "Then run in a new Cursor chat",
-	codex: "Then try it in Codex",
+	codex: "Then run in a Codex chat",
 };
 
 export function buildInstallPicker(rawHost?: unknown): InstallPickerData {

@@ -28,8 +28,8 @@ export const CARD_CSP = [
 // ring in the accent color, shown for keyboard focus only. Spacing sits on the
 // 4, 8, 12, 16, 24 scale. One solid element per card: the copy button.
 const CARD_CSS = `
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--btn:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--btn:#818cf8;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--fg);background:var(--bg)}
   .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
@@ -38,7 +38,7 @@ const CARD_CSS = `
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
   .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
-  .lead{margin:0 0 8px}
+  .lead{margin:0 0 8px;font-size:1.05rem}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
   pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
@@ -46,14 +46,13 @@ const CARD_CSS = `
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:"$ ";color:var(--muted);user-select:none}
-  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--btn);border-radius:6px;background:var(--btn);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button.text{padding:12px 0;border:0;background:transparent;color:var(--accent);text-align:left}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
   .links{display:flex;flex-wrap:wrap;column-gap:16px}
-  .links a{display:inline-flex;align-items:center;min-height:44px}
-  p{text-wrap:pretty}
-  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
   .links{margin:8px 0 0}
@@ -175,7 +174,7 @@ export const SKILL_CARD_HTML = page(
     root.appendChild(el("h2","","Install in Claude Code"));
     root.appendChild(commandBlock(String(d.installCommand).split(" && "),true));
     var status=el("p","status");status.setAttribute("role","status");
-    root.appendChild(copyButton(String(d.installCommand),status,"Copy both install lines"));
+    root.appendChild(copyButton(String(d.installCommand),status,"Copy both commands"));
     root.appendChild(status);
     if(d.invoke){
       var after=el("p","note");
@@ -186,6 +185,13 @@ export const SKILL_CARD_HTML = page(
     }
     var docs=link(d.docsUrl,String(d.name)+" docs \\u2192");
     if(docs){var p=el("p","links");p.appendChild(docs);root.appendChild(p);}
+    var other=el("button","text","Using Cursor or Codex? Show the install picker \\u2192");other.type="button";
+    var ostatus=el("p","status");ostatus.setAttribute("role","status");
+    other.addEventListener("click",function(){
+      var asked=askHost("Show me how to install OrchestKit in Cursor or Codex");
+      ostatus.textContent=asked?"Asked. If nothing happens, ask how to install OrchestKit in Cursor or Codex.":"Ask how to install OrchestKit in Cursor or Codex.";
+    });
+    root.appendChild(other);root.appendChild(ostatus);
   }
   start(render);
 `,
@@ -198,12 +204,12 @@ export const INSTALL_PICKER_HTML = page(
   function hostById(id){for(var i=0;i<data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById("out");out.textContent="";
+    out.appendChild(el("p","sub",h.what));
     out.appendChild(el("p","lead",h.where));
     out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el("p","status");status.setAttribute("role","status");
     out.appendChild(copyButton(h.copy,status,h.copyLabel||"Copy command"));
     out.appendChild(status);
-    out.appendChild(el("p","note",h.what));
     if(h.then){out.appendChild(el("h2","",h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
     var docs=link(h.docsUrl,h.name+" install page \\u2192");
     if(docs){var p=el("p","links");p.appendChild(docs);out.appendChild(p);}

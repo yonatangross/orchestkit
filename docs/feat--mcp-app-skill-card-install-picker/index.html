@@ -39,8 +39,8 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit skill card&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--btn:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--btn:#818cf8;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
   .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
@@ -49,7 +49,7 @@
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
   .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
-  .lead{margin:0 0 8px}
+  .lead{margin:0 0 8px;font-size:1.05rem}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
   pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
@@ -57,14 +57,13 @@
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--btn);border-radius:6px;background:var(--btn);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button.text{padding:12px 0;border:0;background:transparent;color:var(--accent);text-align:left}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
   .links{display:flex;flex-wrap:wrap;column-gap:16px}
-  .links a{display:inline-flex;align-items:center;min-height:44px}
-  p{text-wrap:pretty}
-  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
   .links{margin:8px 0 0}
@@ -167,7 +166,7 @@
     root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Install in Claude Code&quot;));
     root.appendChild(commandBlock(String(d.installCommand).split(&quot; &amp;&amp; &quot;),true));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy both install lines&quot;));
+    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy both commands&quot;));
     root.appendChild(status);
     if(d.invoke){
       var after=el(&quot;p&quot;,&quot;note&quot;);
@@ -178,6 +177,13 @@
     }
     var docs=link(d.docsUrl,String(d.name)+&quot; docs \u2192&quot;);
     if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);root.appendChild(p);}
+    var other=el(&quot;button&quot;,&quot;text&quot;,&quot;Using Cursor or Codex? Show the install picker \u2192&quot;);other.type=&quot;button&quot;;
+    var ostatus=el(&quot;p&quot;,&quot;status&quot;);ostatus.setAttribute(&quot;role&quot;,&quot;status&quot;);
+    other.addEventListener(&quot;click&quot;,function(){
+      var asked=askHost(&quot;Show me how to install OrchestKit in Cursor or Codex&quot;);
+      ostatus.textContent=asked?&quot;Asked. If nothing happens, ask how to install OrchestKit in Cursor or Codex.&quot;:&quot;Ask how to install OrchestKit in Cursor or Codex.&quot;;
+    });
+    root.appendChild(other);root.appendChild(ostatus);
   }
   start(render);
 })();&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></figure>
@@ -188,8 +194,8 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit skill card&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--btn:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--btn:#818cf8;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
   .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
@@ -198,7 +204,7 @@
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
   .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
-  .lead{margin:0 0 8px}
+  .lead{margin:0 0 8px;font-size:1.05rem}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
   pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
@@ -206,14 +212,13 @@
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--btn);border-radius:6px;background:var(--btn);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button.text{padding:12px 0;border:0;background:transparent;color:var(--accent);text-align:left}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
   .links{display:flex;flex-wrap:wrap;column-gap:16px}
-  .links a{display:inline-flex;align-items:center;min-height:44px}
-  p{text-wrap:pretty}
-  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
   .links{margin:8px 0 0}
@@ -226,7 +231,7 @@
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:false,&quot;query&quot;:&quot;brainstorn&quot;,&quot;suggestions&quot;:[&quot;brainstorm&quot;],&quot;browseUrl&quot;:&quot;https://orchestkit.dev/docs/reference/skills&quot;}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:false,&quot;query&quot;:&quot;brainstrom&quot;,&quot;suggestions&quot;:[&quot;brainstorm&quot;],&quot;browseUrl&quot;:&quot;https://orchestkit.dev/docs/reference/skills&quot;}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
@@ -316,7 +321,7 @@
     root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Install in Claude Code&quot;));
     root.appendChild(commandBlock(String(d.installCommand).split(&quot; &amp;&amp; &quot;),true));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy both install lines&quot;));
+    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy both commands&quot;));
     root.appendChild(status);
     if(d.invoke){
       var after=el(&quot;p&quot;,&quot;note&quot;);
@@ -327,6 +332,13 @@
     }
     var docs=link(d.docsUrl,String(d.name)+&quot; docs \u2192&quot;);
     if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);root.appendChild(p);}
+    var other=el(&quot;button&quot;,&quot;text&quot;,&quot;Using Cursor or Codex? Show the install picker \u2192&quot;);other.type=&quot;button&quot;;
+    var ostatus=el(&quot;p&quot;,&quot;status&quot;);ostatus.setAttribute(&quot;role&quot;,&quot;status&quot;);
+    other.addEventListener(&quot;click&quot;,function(){
+      var asked=askHost(&quot;Show me how to install OrchestKit in Cursor or Codex&quot;);
+      ostatus.textContent=asked?&quot;Asked. If nothing happens, ask how to install OrchestKit in Cursor or Codex.&quot;:&quot;Ask how to install OrchestKit in Cursor or Codex.&quot;;
+    });
+    root.appendChild(other);root.appendChild(ostatus);
   }
   start(render);
 })();&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></figure>
@@ -342,8 +354,8 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit install picker&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--btn:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--btn:#818cf8;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
   .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
@@ -352,7 +364,7 @@
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
   .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
-  .lead{margin:0 0 8px}
+  .lead{margin:0 0 8px;font-size:1.05rem}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
   pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
@@ -360,14 +372,13 @@
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--btn);border-radius:6px;background:var(--btn);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button.text{padding:12px 0;border:0;background:transparent;color:var(--accent);text-align:left}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
   .links{display:flex;flex-wrap:wrap;column-gap:16px}
-  .links a{display:inline-flex;align-items:center;min-height:44px}
-  p{text-wrap:pretty}
-  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
   .links{margin:8px 0 0}
@@ -380,7 +391,7 @@
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;claude&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a new Cursor chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then try it in Codex&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;claude&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a new Cursor chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a Codex chat&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
@@ -437,12 +448,12 @@
   function hostById(id){for(var i=0;i&lt;data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById(&quot;out&quot;);out.textContent=&quot;&quot;;
+    out.appendChild(el(&quot;p&quot;,&quot;sub&quot;,h.what));
     out.appendChild(el(&quot;p&quot;,&quot;lead&quot;,h.where));
     out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
     out.appendChild(copyButton(h.copy,status,h.copyLabel||&quot;Copy command&quot;));
     out.appendChild(status);
-    out.appendChild(el(&quot;p&quot;,&quot;note&quot;,h.what));
     if(h.then){out.appendChild(el(&quot;h2&quot;,&quot;&quot;,h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
     var docs=link(h.docsUrl,h.name+&quot; install page \u2192&quot;);
     if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);out.appendChild(p);}
@@ -473,8 +484,8 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit install picker&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
-  @media all{:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--btn:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media all{:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--btn:#818cf8;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
   .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
@@ -483,7 +494,7 @@
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
   .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
-  .lead{margin:0 0 8px}
+  .lead{margin:0 0 8px;font-size:1.05rem}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
   pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
@@ -491,14 +502,13 @@
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--btn);border-radius:6px;background:var(--btn);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button.text{padding:12px 0;border:0;background:transparent;color:var(--accent);text-align:left}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
   .links{display:flex;flex-wrap:wrap;column-gap:16px}
-  .links a{display:inline-flex;align-items:center;min-height:44px}
-  p{text-wrap:pretty}
-  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
   .links{margin:8px 0 0}
@@ -511,7 +521,7 @@
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;codex&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a new Cursor chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then try it in Codex&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;codex&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a new Cursor chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a Codex chat&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
@@ -568,12 +578,12 @@
   function hostById(id){for(var i=0;i&lt;data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById(&quot;out&quot;);out.textContent=&quot;&quot;;
+    out.appendChild(el(&quot;p&quot;,&quot;sub&quot;,h.what));
     out.appendChild(el(&quot;p&quot;,&quot;lead&quot;,h.where));
     out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
     out.appendChild(copyButton(h.copy,status,h.copyLabel||&quot;Copy command&quot;));
     out.appendChild(status);
-    out.appendChild(el(&quot;p&quot;,&quot;note&quot;,h.what));
     if(h.then){out.appendChild(el(&quot;h2&quot;,&quot;&quot;,h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
     var docs=link(h.docsUrl,h.name+&quot; install page \u2192&quot;);
     if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);out.appendChild(p);}

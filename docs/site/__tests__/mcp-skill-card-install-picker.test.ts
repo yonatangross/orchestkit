@@ -321,6 +321,29 @@ describe("skill card renders", () => {
 		expect(document.body.textContent).not.toContain("Then run");
 	});
 
+	it("the picker names the host first, then where to paste, then the command; all hosts say 'Then run in'", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: { host: "codex" } });
+		mount(await viewHtml(PICKER_URI), call.structuredContent);
+		const text = document.body.textContent ?? "";
+		const codex = (call.structuredContent.hosts as Array<{ id: string; what: string; where: string }>).find((h) => h.id === "codex")!;
+		expect(text.indexOf(codex.what)).toBeLessThan(text.indexOf(codex.where));
+		expect(text.indexOf(codex.what)).toBeLessThan(text.indexOf("Copy both commands"));
+		for (const h of call.structuredContent.hosts as Array<{ then: { label: string } | null }>) {
+			expect(h.then?.label).toMatch(/^Then run in /);
+		}
+		expect(text).toContain("Then run in a Codex chat");
+	});
+
+	it("the skill card offers the install picker for other hosts, as a button that asks the host", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorm" } });
+		mount(await viewHtml(SKILL_URI), call.structuredContent);
+		expect(document.querySelector("button[data-copy]")?.textContent).toBe("Copy both commands");
+		const sent = vi.fn();
+		(window as unknown as { openai: unknown }).openai = { sendFollowUpMessage: sent };
+		(document.querySelector("button.text") as HTMLButtonElement).click();
+		expect(sent).toHaveBeenCalledWith({ prompt: "Show me how to install OrchestKit in Cursor or Codex" });
+	});
+
 	it("a command block wraps inside its box instead of running past it (390 px regression)", async () => {
 		for (const uri of [SKILL_URI, PICKER_URI]) {
 			const html = await viewHtml(uri);
