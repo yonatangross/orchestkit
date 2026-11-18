@@ -10,7 +10,7 @@ export function GET() {
 	const d = SITE.domain;
 	const card = {
 		name: `${SITE.name} Docs MCP`,
-		description: `Model Context Protocol server for the ${SITE.name} documentation (${COUNTS.skills} skills, ${COUNTS.agents} agents). Search the docs and fetch pages as Markdown.`,
+		description: `Model Context Protocol server for the ${SITE.name} documentation (${COUNTS.skills} skills, ${COUNTS.agents} agents). Search the docs, fetch pages as Markdown, and open a skill card or an install picker.`,
 		version: SITE.version,
 		serverUrl: `${d}/api/mcp`,
 		// `url` + `remotes` mirror the official MCP registry server.json schema so
@@ -53,6 +53,18 @@ export function GET() {
 				name: "orchestkit_docs_get",
 				description:
 					"Fetch one OrchestKit documentation page as Markdown by its path.",
+				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+			},
+			{
+				name: "orchestkit_skill_get",
+				description:
+					"Show one OrchestKit skill as a card: what it does, which plugin ships it, and the install line. Renders inline in hosts that support MCP Apps.",
+				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+			},
+			{
+				name: "orchestkit_install",
+				description:
+					"Show an install picker for Claude Code, Cursor and Codex with the exact command for the picked host. Renders inline in hosts that support MCP Apps.",
 				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
 		],

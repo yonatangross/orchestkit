@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-app-skill-card-install-picker",
+  "source": "docs/feat--mcp-app-skill-card-install-picker/index.html",
+  "title": "MCP App: a skill card and an install picker in the chat",
+  "description": "The docs MCP gains orchestkit_skill_get and orchestkit_install. Each returns a card the chat shows inline: a skill card with a copy button, and a host picker for Claude Code, Cursor and Codex. Pick a host and copy its command.",
+  "tags": ["mcp", "docs-site", "install"],
+  "date": "2026-11-18"
+}
