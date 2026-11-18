@@ -218,7 +218,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/getting-started/ork-extras",
     "title": "ork-extras, the opt-in reference skills",
-    "description": "26 library and engineering skills moved from core ork to the opt-in ork-extras plugin. How to install it, the new /ork-extras: names, and what each host gets."
+    "description": "33 library, engineering and operator skills moved from core ork to the opt-in ork-extras plugin. How to install it, new /ork-extras: names, what each host gets."
   },
   {
     "url": "/docs/getting-started/sandbox",
@@ -1577,7 +1577,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   },
   {
     "url": "/docs/skills/command-skills",
-    "title": "44 Commands You Can Invoke",
+    "title": "47 Commands You Can Invoke",
     "description": "Every /ork: command skill in OrchestKit, grouped by task, with what it does and the arguments it takes."
   },
   {
@@ -1598,7 +1598,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/skills/reference-skills",
     "title": "Reference Skills",
-    "description": "The 71 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
+    "description": "The 68 user-invocable:false skills auto-injected into agent context, the knowledge library behind OrchestKit agents."
   },
   {
     "url": "/docs/skills/skill-composition",

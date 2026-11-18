@@ -28,6 +28,13 @@ function denied(result: { continue?: boolean; hookSpecificOutput?: { permissionD
   return result.continue === false && result.hookSpecificOutput?.permissionDecision === 'deny';
 }
 
+// The speed tests below measure growth, not the clock. Four times the input may cost at most eight
+// times the time: linear is four, quadratic is sixteen. Both speed tables share these.
+const SIZE_STEP = 4;
+const GROWTH_BOUND = 8;
+
+const growth = (run: (n: number) => void, n: number) => measureGrowth(run, n, SIZE_STEP);
+
 describe('npmCiTargetDir', () => {
   it.each([
     ['npm ci', '/wt'],
@@ -560,19 +567,33 @@ describe('substitutions the scanner must not lose', () => {
     expect(blocked(command, nothingLinked)).toBe(false);
   });
 
-  it.each([
-    ['twenty thousand nested substitutions', `${'$('.repeat(20000)}npm ci --prefix /lw${')'.repeat(20000)}`],
-    ['twenty thousand nested double-quoted substitutions', `${'"$('.repeat(20000)}npm ci --prefix /lw${')"'.repeat(20000)}`],
-    ['three thousand sibling substitutions', `${'echo "$(true)" '.repeat(3000)}"$(npm ci --prefix /lw)"`],
-    ['twenty thousand unclosed $( before it', `${'$( '.repeat(20000)}echo "$(npm ci --prefix /lw)"`],
-    ['twenty thousand lone backticks before it', `${'` '.repeat(20000)}echo "$(npm ci --prefix /lw)"`],
-  ])('%s: fails closed (never allowed, never throws) and stays fast', (_name, command) => {
-    const started = Date.now();
-    expect(blocked(command, linked)).toBe(true);
-    // The bound catches the quadratic scan (seconds), not normal speed: under
-    // vitest --coverage the linear scan takes about 0.8 s, so the bound has room for it.
-    expect(Date.now() - started).toBeLessThan(2000);
+  // Never allowed, never throws, and the time grows no faster than the input. A wall-clock bound
+  // would measure the machine (a coverage run is several times slower than a plain one); the growth
+  // between a small and a full size, timed back to back in this process, measures the scanner.
+  const failClosedCases: ReadonlyArray<readonly [string, (n: number) => string, number]> = [
+    ['twenty thousand nested substitutions', (n) => `${'$('.repeat(n)}npm ci --prefix /lw${')'.repeat(n)}`, 20000],
+    ['twenty thousand nested double-quoted substitutions', (n) => `${'"$('.repeat(n)}npm ci --prefix /lw${')"'.repeat(n)}`, 20000],
+    ['three thousand sibling substitutions', (n) => `${'echo "$(true)" '.repeat(n)}"$(npm ci --prefix /lw)"`, 3000],
+    ['twenty thousand unclosed $( before it', (n) => `${'$( '.repeat(n)}echo "$(npm ci --prefix /lw)"`, 20000],
+    ['twenty thousand lone backticks before it', (n) => `${'` '.repeat(n)}echo "$(npm ci --prefix /lw)"`, 20000],
+  ];
+
+  it('the fail-closed growth table has its five shapes', () => {
+    expect(failClosedCases.length).toBe(5);
   });
+
+  it.each(failClosedCases)('%s: fails closed (never allowed, never throws) and time grows no faster than the input', (_name, build, n) => {
+    const small = Math.floor(n / SIZE_STEP);
+    expect(small).toBeGreaterThan(0);
+    // Blocked at both sizes: the shape never lets the install through.
+    expect(blocked(build(small), linked)).toBe(true);
+    expect(blocked(build(n), linked)).toBe(true);
+    const g = growth((size) => void blocked(build(size), linked), n);
+    // The timer returned a real duration for both sizes, or the ratio below says nothing.
+    expect(g.small).toBeGreaterThan(0);
+    expect(g.large).toBeGreaterThan(0);
+    expect(g.ratio, `${_name}: ${g.small.toFixed(1)} ms at ${small}, ${g.large.toFixed(1)} ms at ${n}, ratio ${g.ratio.toFixed(1)} against bound ${GROWTH_BOUND}`).toBeLessThan(GROWTH_BOUND);
+  }, 120000);
 
   it("control: sh -c 'npm ci' in a cwd whose node_modules is real stays quiet when another dir is linked", () => {
     expect(blocked("sh -c 'npm ci'", linked)).toBe(false);
@@ -889,12 +910,6 @@ describe('command shapes the reader must follow to the install', () => {
     ['a run of closing parentheses before a word', (n) => `npm ci --prefix /lw; echo x ${')'.repeat(n)}x`, 150000],
     ['a run of hash words', (n) => `npm ci --prefix /lw ${'# '.repeat(n)}`, 90000],
   ];
-
-  // Four times the input may cost at most eight times the time: linear is four, quadratic is sixteen.
-  const SIZE_STEP = 4;
-  const GROWTH_BOUND = 8;
-
-  const growth = (run: (n: number) => void, n: number) => measureGrowth(run, n, SIZE_STEP);
 
   it('the growth table is not empty', () => {
     expect(growthCases.length).toBeGreaterThanOrEqual(10);

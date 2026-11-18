@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>design-to-code ship: a quote in the PR title no longer breaks the command</title>
+<meta name="description" content="design-to-code ship built gh pr create with the title and body inside single quotes, so a name holding a quote or a command substitution broke out of the quote. The body now goes through a file and the title is quoted as one shell word. Type a title to see both commands.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button, input { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; min-height:44px; }
+  input { width:100%; }
+  button { cursor:pointer; }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:10px 0 4px; }
+  code, pre { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--muted); border-radius:8px; padding:12px 14px; margin:8px 0; white-space:pre-wrap; word-break:break-all; }
+  pre.bad { border-left-color:var(--bad); }
+  pre.good { border-left-color:var(--accent); }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>design-to-code ship: a quote in the PR title no longer breaks the command</h1>
+      <p class="lead">Ship mode opened the PR with the title and body written between single quotes inside the shell line. A name from the export that holds a quote, a <code>$( )</code> or a backtick ended the quote early, and the rest ran as shell.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <h2>Try a title</h2>
+  <label for="title">PR title</label>
+  <input id="title" type="text" value="Add O'Brien's card $(touch pwned)">
+  <div class="row"><button type="button" id="plain">Plain title</button><button type="button" id="quote">With a quote</button><button type="button" id="subst">With a substitution</button></div>
+  <p><b>Before</b> (the title sits inside single quotes):</p>
+  <pre class="bad" id="before"></pre>
+  <p id="beforeNote" class="lead"></p>
+  <p><b>Now</b> (the title is quoted as one word, the body is read from a file):</p>
+  <pre class="good" id="after"></pre>
+
+  <h2>What changed</h2>
+  <p>In <code>design-to-code/references/ship-mode.md</code>, Phase 4 writes the PR body to <code>.claude/design-handoffs/&lt;bundle&gt;.pr-body.md</code> and builds the command with a small helper, <code>pr_create_cmd</code>, that applies <code>shlex.quote</code> to the title and the path. The old <code>--body @-</code> form is gone. A test extracts the helper from the doc, runs the command it builds against a stub <code>gh</code> with a hostile title, and checks the title arrives as one argument and nothing inside it runs.</p>
+
+  <div class="row"><button id="copy" type="button">Copy as prompt</button></div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  // Minimal shlex.quote: safe words stay bare, everything else is single-quoted with ' written as '"'"'.
+  const q = (s) => (/^[A-Za-z0-9_@%+=:,./-]+$/.test(s) ? s : "'" + s.replace(/'/g, "'\"'\"'") + "'");
+  function show() {
+    const t = $('title').value;
+    $('before').textContent = `gh pr create --title '${t}' --body @- <<< '<body>' --label claude-design`;
+    const broken = t.includes("'");
+    $('beforeNote').textContent = broken ? 'The quote in the title closes the quoted string early: the shell reads the rest as separate words, and a substitution after it can run.' : 'No quote in this title, so the old form happens to work. The body had the same problem.';
+    $('after').textContent = `gh pr create --title ${q(t)} --body-file .claude/design-handoffs/<bundle>.pr-body.md --label claude-design`;
+  }
+  $('title').addEventListener('input', show);
+  $('plain').addEventListener('click', () => { $('title').value = 'Add card from export'; show(); });
+  $('quote').addEventListener('click', () => { $('title').value = "Add O'Brien's card"; show(); });
+  $('subst').addEventListener('click', () => { $('title').value = 'Add card $(touch pwned) `id`'; show(); });
+  show();
+  $('theme').addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    $('theme').textContent = dark ? 'Dark' : 'Light';
+  });
+  $('copy').addEventListener('click', async () => {
+    const text = `In orchestkit, check that src/skills/design-to-code/references/ship-mode.md builds gh pr create with a shell-quoted title and --body-file, and that tests/unit/test-ship-mode-pr-create.mjs passes for the title: ${$('title').value}`;
+    try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; } catch { $('copy').textContent = 'Copy failed'; }
+  });
+</script>
+</body>
+</html>

@@ -52,7 +52,7 @@ remote command of `ssh host '...'` are checked as well.
 The hook exits 2 and Claude sees the reason, for example:
 
 ```
-[ork:careful] blocked by rule git-push-force: git push with --force-with-lease.
+[ork-extras:careful] blocked by rule git-push-force: git push with --force-with-lease.
 careful mode is on for this session, so destructive commands do not run unattended.
 To proceed, ask the operator: they can run the command themselves, or confirm it and run it outside careful mode.
 ```
@@ -87,6 +87,6 @@ cases live in `tests/unit/test-careful-guard.mjs`.
 
 ## Related Skills
 
-- `ork:freeze`: fence file edits to one directory; careful covers shell commands, freeze covers the edit tools.
+- `ork-extras:freeze`: fence file edits to one directory; careful covers shell commands, freeze covers the edit tools.
 - `ork:security-patterns`: defense in depth, the wider picture a text matcher is one layer of.
 - `ork:commit`: history hygiene and branch protection for the force pushes careful asks about.

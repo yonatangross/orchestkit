@@ -14,7 +14,26 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULT_CATALOG_ROOT = path.resolve(HERE, '../../../agents');
+// The agent catalog ships in core ork. This skill also ships in ork-extras, which has no
+// agents/, so the default looks for the catalog beside the script first, then in a sibling
+// core ork plugin (repo layout plugins/ork, or the install cache layout .../ork/<version>).
+// --catalog-root still overrides all of it. The first candidate is the fallback, so the
+// "catalog unreadable" message names the path beside the script as before.
+function resolveDefaultCatalogRoot() {
+  const own = path.resolve(HERE, '../../../agents');
+  const pluginRoot = path.resolve(HERE, '../../..');
+  const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
+  if (isDir(own)) return own;
+  const repoSibling = path.resolve(pluginRoot, '../ork/agents');
+  if (isDir(repoSibling)) return repoSibling;
+  const cacheDir = path.resolve(pluginRoot, '../../ork');
+  try {
+    const versions = fs.readdirSync(cacheDir).filter((v) => isDir(path.join(cacheDir, v, 'agents'))).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    if (versions.length) return path.join(cacheDir, versions[versions.length - 1], 'agents');
+  } catch { /* no sibling cache dir */ }
+  return own;
+}
+const DEFAULT_CATALOG_ROOT = resolveDefaultCatalogRoot();
 const DEFAULT_NAMESPACE = 'ork';
 const BUILTIN = new Set(['Explore', 'general-purpose', 'Plan', 'workflow-subagent', 'statusline-setup']);
 

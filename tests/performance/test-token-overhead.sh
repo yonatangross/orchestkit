@@ -79,7 +79,7 @@ CLAUDE_MD_MAX_BYTES=4800       # ~1,200 tokens — project instructions
 MEMORY_MD_MAX_BYTES=5000       # ~1,250 tokens — auto-memory (trim the bloat)
 AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions combined
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
-MAX_USER_INVOCABLE_SKILLS=44   # Slash-command sprawl cap ONLY (size of the /ork:<name> menu). This is NOT an index-token budget: `user-invocable` controls whether a slash command exists, and 10 of these 35 skills are also `disable-model-invocation: true`, so they cost ZERO always-loaded tokens. Real index cost is measured separately by SKILL_INDEX_MAX_BYTES below. History (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865; 33→34: +audit-activation made user-invocable, P3-A2 activation unbolting; 34→35: glyph — the repurposed ascii-visualizer, flipped from inert to invocable so there is a CHEAP inline viz on-ramp next to visualize-plan's full pipeline. Paid from the ~325t of real headroom under TOTAL_SESSION_MAX_TOKENS, not by demoting a skill: 18 of the 34 invocable skills show zero use across a 5-month window, so demotion candidates exist and should be spent deliberately via analytics, not opportunistically to fund one flip; 35->36: +page-serve, milestone 166 #3899, the hand-a-human-a-URL primitive that glyph and visualize-plan now chain through; the same 18 zero-use candidates are still the right place to buy this back.; 36->38: +careful, +freeze, skill-scoped guard hooks (claude.dev skills-10), both disable-model-invocation so they add zero always-loaded index tokens, slash menu only; 38->43: +create-plan, +iterate-plan, +create-research, +iterate-research, +review-artifact-comments, the L6 artifact-pair commands, each typed with a task or file argument; their index bytes are charged by SKILL_INDEX_MAX_BYTES, not here; 43->44: +disk-cleanup, 2026-11-11, an operator types it when the disk fills (dry run first, --apply after a yes); matches EXPECTED_USER_INVOCABLE in tests/skills/structure/test-skill-md.sh, no other skill demoted to fund it.)
+MAX_USER_INVOCABLE_SKILLS=39   # Slash-command sprawl cap ONLY (size of the /ork:<name> menu). This is NOT an index-token budget: `user-invocable` controls whether a slash command exists, and 10 of these 35 skills are also `disable-model-invocation: true`, so they cost ZERO always-loaded tokens. Real index cost is measured separately by SKILL_INDEX_MAX_BYTES below. History (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865; 33→34: +audit-activation made user-invocable, P3-A2 activation unbolting; 34→35: glyph — the repurposed ascii-visualizer, flipped from inert to invocable so there is a CHEAP inline viz on-ramp next to visualize-plan's full pipeline. Paid from the ~325t of real headroom under TOTAL_SESSION_MAX_TOKENS, not by demoting a skill: 18 of the 34 invocable skills show zero use across a 5-month window, so demotion candidates exist and should be spent deliberately via analytics, not opportunistically to fund one flip; 35->36: +page-serve, milestone 166 #3899, the hand-a-human-a-URL primitive that glyph and visualize-plan now chain through; the same 18 zero-use candidates are still the right place to buy this back.; 36->38: +careful, +freeze, skill-scoped guard hooks (claude.dev skills-10), both disable-model-invocation so they add zero always-loaded index tokens, slash menu only; 38->43: +create-plan, +iterate-plan, +create-research, +iterate-research, +review-artifact-comments, the L6 artifact-pair commands, each typed with a task or file argument; their index bytes are charged by SKILL_INDEX_MAX_BYTES, not here; 43->44: +disk-cleanup, 2026-11-11, an operator types it when the disk fills (dry run first, --apply after a yes); matches EXPECTED_USER_INVOCABLE in tests/skills/structure/test-skill-md.sh, no other skill demoted to fund it; 44->39 on 2026-11-17: the cap counts CORE skills only (ork-extras is opt-in and not on the default menu) and is set to the measured core count; s1c moved audit-activation, careful, freeze and swarm-migrate to ork-extras; Test 4f is the control.)
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
 
 # Always-loaded skill index. The set that costs tokens is every skill whose
@@ -273,14 +273,23 @@ echo "────────────────────────�
 # `name` + `description` frontmatter fields, not a per-skill guess.
 # One awk pass over every SKILL.md emits:
 #   <model-facing count> <index bytes> <user-invocable count> <slash-only count> <slash-only AND user-invocable>
-read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocable extras_mf_count extras_index_bytes < <(
-  awk -v excl="$EXCLUDED_SPACED" '
-    function emit(   p, n, d) {
+# The slash cap counts CORE only (ork-extras is opt-in, as Test 4b splits the
+# listing), so a skill whose directory is in the excluded list is not counted in
+# <user-invocable count> or <slash-only AND user-invocable>. <slash-only count>
+# stays a count of every slash-only skill.
+# scan_skills EXCLUDED_SPACED FILE...: the awk pass, a function so Test 4f runs
+# the very same logic on a planted directory.
+scan_skills() {
+  local excluded_spaced="$1"
+  shift
+  awk -v excl="$excluded_spaced" '
+    function emit(   p, n, d, isx) {
       if (!seen) return
-      if (ui) invocable++
-      if (dmi) { slash_only++; if (ui) slash_ui++; return }
       n = split(cur, p, "/"); d = p[n-1]
-      if (index(excl, " " d " ")) { xmf++; xbytes += length(nm) + length(ds); return }
+      isx = index(excl, " " d " ")
+      if (ui && !isx) invocable++
+      if (dmi) { slash_only++; if (ui && !isx) slash_ui++; return }
+      if (isx) { xmf++; xbytes += length(nm) + length(ds); return }
       mf++
       bytes += length(nm) + length(ds)
     }
@@ -301,14 +310,18 @@ read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocab
     inds && /^[[:space:]]+[^[:space:]]/ { s=$0; sub(/^[[:space:]]+/,"",s); ds = ds " " s; next }
     { inds=0 }
     END { emit(); printf "%d %d %d %d %d %d %d\n", mf, bytes, invocable, slash_only, slash_ui, xmf, xbytes }
-  ' "$SKILLS_DIR"/*/SKILL.md
+  ' "$@"
+}
+
+read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocable extras_mf_count extras_index_bytes < <(
+  scan_skills "$EXCLUDED_SPACED" "$SKILLS_DIR"/*/SKILL.md
 )
 
 skill_index_t=$(estimate_tokens "$index_bytes")
 
 info "Population: core ${#CORE_FILES[@]} skills (${mf_count} model-facing, ${index_bytes} B) · excluded names $(printf '%s\n' "$EXCLUDED_NAMES" | wc -l | tr -d ' ') · extras ${#EXTRAS_FILES[@]} skills (${extras_mf_count:-0} model-facing, ${extras_index_bytes:-0} B)"
 info "Model-facing core skills: ${mf_count} · slash-only (zero index cost): ${slash_only_count}"
-info "user-invocable: ${invocable_count}, of which ${slash_only_invocable} are slash-only and cost 0 index tokens"
+info "user-invocable (core): ${invocable_count}, of which ${slash_only_invocable} are slash-only and cost 0 index tokens"
 
 if [[ "$index_bytes" -le "$SKILL_INDEX_MAX_BYTES" ]]; then
     pass "Skill index (name+description of ${mf_count} model-facing CORE skills): ${index_bytes} bytes (~${skill_index_t}t) ≤ ${SKILL_INDEX_MAX_BYTES}"
@@ -318,10 +331,10 @@ else
 fi
 
 if [[ "$invocable_count" -le "$MAX_USER_INVOCABLE_SKILLS" ]]; then
-    pass "User-invocable skills (slash sprawl): ${invocable_count} ≤ ${MAX_USER_INVOCABLE_SKILLS}"
+    pass "User-invocable CORE skills (slash sprawl): ${invocable_count} ≤ ${MAX_USER_INVOCABLE_SKILLS}"
 else
-    fail "User-invocable skills (slash sprawl): ${invocable_count} exceeds ${MAX_USER_INVOCABLE_SKILLS} limit"
-    info "This caps the /ork: menu size. It is NOT the index-token budget (that is the check above)."
+    fail "User-invocable CORE skills (slash sprawl): ${invocable_count} exceeds ${MAX_USER_INVOCABLE_SKILLS} limit"
+    info "This caps the core /ork: menu size (ork-extras is opt-in and not counted). It is NOT the index-token budget (that is the check above)."
 fi
 echo ""
 
@@ -625,6 +638,43 @@ else
     else
         fail "Control 1 NOT caught: with ${victim} back in core the core listing is ${planted_core_total} B, real core ${listing_total} B, ceiling ${ratchet_ceiling:-?} B; the exclusion could hide core growth"
     fi
+fi
+echo ""
+
+# ============================================================================
+# Test 4f: Slash cap control (core counts, ork-extras does not)
+# ============================================================================
+# The slash cap in Test 4 counts user-invocable CORE skills only. This control
+# runs the same scan_skills awk on a planted directory in TMPDIR (never the real
+# tree): MAX_USER_INVOCABLE_SKILLS + 1 core skills and one excluded skill, all
+# user-invocable. The count must come out exactly cap + 1: over the cap (so a
+# core skill pushing past the cap turns Test 4 red, and the gate cannot go blind to
+# core) and without the extras skill (so the exclusion cannot stop applying).
+echo "▶ Test 4f: Slash Cap Control"
+echo "────────────────────────────────────────"
+
+slash_dir="$(mktemp -d "${TMPDIR:-/tmp}/ork-slash-cap.XXXXXX")"
+trap 'rm -rf "$slash_dir"; rm -f "$listing_report_file" "$extras_report_file"' EXIT
+planted_core_n=$((MAX_USER_INVOCABLE_SKILLS + 1))
+for i in $(seq 1 "$planted_core_n"); do
+    mkdir "$slash_dir/planted-core-$i"
+    printf -- '---\nname: planted-core-%s\ndescription: planted core skill\nuser-invocable: true\n---\n' "$i" > "$slash_dir/planted-core-$i/SKILL.md"
+done
+mkdir "$slash_dir/planted-extras"
+printf -- '---\nname: planted-extras\ndescription: planted extras skill\nuser-invocable: true\n---\n' > "$slash_dir/planted-extras/SKILL.md"
+
+read -r _ _ planted_invocable _ _ _ _ < <(scan_skills " planted-extras " "$slash_dir"/*/SKILL.md)
+rm -rf "$slash_dir"
+
+if [[ "$planted_invocable" -gt "$MAX_USER_INVOCABLE_SKILLS" ]]; then
+    pass "Control (planted ${planted_core_n} core skills): slash cap would fail, counted ${planted_invocable} > ${MAX_USER_INVOCABLE_SKILLS}"
+else
+    fail "Control NOT caught: ${planted_core_n} planted core user-invocable skills counted ${planted_invocable}, not over ${MAX_USER_INVOCABLE_SKILLS}; the slash cap is blind to core"
+fi
+if [[ "$planted_invocable" -eq "$planted_core_n" ]]; then
+    pass "Control (planted extras skill): not counted, total ${planted_invocable} = ${planted_core_n} core only"
+else
+    fail "Control FAILED: counted ${planted_invocable} for ${planted_core_n} core + 1 extras user-invocable skills; the extras skill must not be counted"
 fi
 echo ""
 

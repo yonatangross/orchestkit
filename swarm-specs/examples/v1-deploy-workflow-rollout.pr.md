@@ -2,7 +2,7 @@
 
 Migrate this repo's deploy workflow to the canonical reusable workflow
 at `yonatangross/.github/.github/workflows/deploy.yml@v1`. Opened by
-`/ork:swarm-migrate` from
+`/ork-extras:swarm-migrate` from
 `swarm-specs/examples/v1-deploy-workflow-rollout.yaml`.
 
 ## Change

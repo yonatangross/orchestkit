@@ -211,4 +211,4 @@ Full pattern (prompt template, independence rules, worked example): `skills/chai
 
 - `ork:write-prd` — if the input has no acceptance criteria, run this first.
 - `ork:brainstorm` — useful when the PRD itself is contested and you want options before writing the goal.
-- `ork:audit-full` — after `/goal` exits, run audit-full to confirm the assertions actually held end-to-end (the loop trusts the boolean; audit re-checks the intent).
+- `ork-extras:audit-full` — after `/goal` exits, run audit-full to confirm the assertions actually held end-to-end (the loop trusts the boolean; audit re-checks the intent).

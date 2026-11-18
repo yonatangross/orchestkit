@@ -1,0 +1,8 @@
+{
+  "slug": "trim-s1c-seven-to-ork-extras",
+  "source": "docs/feat--trim-s1c-seven-to-ork-extras/index.html",
+  "title": "Seven operator skills move to ork-extras, slash-only",
+  "description": "audit-activation, audit-full, bare-eval, careful, freeze, prompt-focus and swarm-migrate leave core ork for the opt-in ork-extras plugin. Each keeps its file. Pick a skill to see its old and new command and what stays in core.",
+  "tags": ["skills", "plugins", "ork-extras"],
+  "date": "2026-11-17"
+}

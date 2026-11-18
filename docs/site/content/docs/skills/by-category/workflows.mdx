@@ -5,13 +5,15 @@ description: "User-invocable commands for common development workflows."
 
 # Workflows Skills
 
-**48 skills** for user-invocable commands for common development workflows.
+**51 skills** for user-invocable commands for common development workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
 | [Assess](/docs/reference/skills/assess) | Command | high | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or co... |
 | [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents... |
+| [Audit Full](/docs/reference/skills/audit-full) | Command | max | Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use... |
 | [Auto](/docs/reference/skills/auto) | Command | medium | Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use fo... |
+| [Bare Eval](/docs/reference/skills/bare-eval) | Command | medium | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading s... |
 | [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when b... |
 | [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes... |
 | [CI Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
@@ -46,6 +48,7 @@ description: "User-invocable commands for common development workflows."
 | [Memory](/docs/reference/skills/memory) | Command | medium | Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream ... |
 | [Page Serve](/docs/reference/skills/page-serve) | Command | low | Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request... |
 | [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal agains... |
+| [Prompt Focus](/docs/reference/skills/prompt-focus) | Command | low | Shows where your attention went from your own Claude Code and Codex prompts over 20 weeks, as a local counts-only rep... |
 | [Release Sync](/docs/reference/skills/release-sync) | Command | low | After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Us... |
 | [Remember](/docs/reference/skills/remember) | Command | low | Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. R... |
 | [Review Artifact Comments](/docs/reference/skills/review-artifact-comments) | Command | low | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate... |

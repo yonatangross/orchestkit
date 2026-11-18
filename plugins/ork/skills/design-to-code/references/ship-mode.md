@@ -170,8 +170,22 @@ Bundle ID: `{bundle_id}` · Provenance: `.claude/design-handoffs/{bundle_id}.jso
 🤖 Opened by `design-to-code ship` · Closes: (none, link issues manually)
 """
 
-Bash(f"gh pr create --title '{pr_title}' --body @- <<< '{pr_body}' --label claude-design")
+body_path = f".claude/design-handoffs/{bundle_id}.pr-body.md"
+Write(body_path, pr_body)  # the body goes to a file, never into the shell line
+
+# ship-mode:pr-create
+import shlex
+
+def pr_create_cmd(pr_title, body_path):
+    # The title can hold a quote, a $( ) or a backtick (it comes from the export's
+    # name), so it is quoted as ONE shell word. The body is read from the file.
+    return ("gh pr create --title " + shlex.quote(pr_title)
+            + " --body-file " + shlex.quote(body_path) + " --label claude-design")
+
+Bash(pr_create_cmd(pr_title, body_path))
 ```
+
+Never write `pr_title` or `pr_body` between quotes inside the command text: a name such as `O'Brien's card` or one holding `$(...)` ends the quote early and the rest runs as shell. The body file is the only way the body reaches `gh`; `--body-file -` (stdin) is the other safe form.
 
 ## Phase 5: Update provenance
 
