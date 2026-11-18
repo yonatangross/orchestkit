@@ -1,0 +1,8 @@
+{
+  "slug": "ork-followups-1-mcp-cors",
+  "source": "docs/fix--ork-followups-1/index.html",
+  "title": "MCP CORS headers for browser hosts, and a reference that resolves in every install",
+  "description": "A browser-based MCP host on another origin sends MCP transport headers, so the docs MCP server must allow them or the preflight fails. Pick the headers a client sends and the config to see the preflight result. Also: where audit-full finds the cross-model refuter doc in each install.",
+  "tags": ["site", "mcp", "audit-full"],
+  "date": "2026-11-18"
+}
