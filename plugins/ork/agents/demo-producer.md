@@ -29,7 +29,6 @@ tools:
   - mcp__context7__query-docs
 skills:
   - demo-producer
-  - remember
   - memory
 mcpServers: [context7]
 metadata:
@@ -293,6 +292,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |demo-producer:{SKILL.md,references/{code-drawn-mode.md,content-types.md,demo-pipeline.md,format-selection.md,remotion-composition.md,script-generation.md,skill-category-mapping.md,template-system.md,terminal-simulation.md}}|demo,video,marketing,vhs,remotion,terminal,showcase,tutorial
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

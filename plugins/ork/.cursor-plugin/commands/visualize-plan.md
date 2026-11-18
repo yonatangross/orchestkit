@@ -473,4 +473,4 @@ Done means all of these hold:
 - `ork:explore` - Understand current architecture
 - `ork:assess` - Evaluate complexity and risks
 - `ork:memory` - Search prior plan visualizations
-- `ork:remember` - Store plan decisions for future reference
+- `ork:memory remember` - Store plan decisions for future reference

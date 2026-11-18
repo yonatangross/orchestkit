@@ -30,7 +30,6 @@ skills:
   - performance
   - browser-tools
   - devops-deployment
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

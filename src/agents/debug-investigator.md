@@ -33,7 +33,6 @@ disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - fix-issue
   - errors
-  - remember
   - memory
 mcpServers: [memory, context7]
 metadata:

@@ -30,7 +30,6 @@ skills:
   - testing-perf
   - testing-unit
   - database-patterns
-  - remember
   - memory
 mcpServers: [context7]
 background: true

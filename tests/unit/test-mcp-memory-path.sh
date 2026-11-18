@@ -13,7 +13,7 @@
 #       "${CLAUDE_PROJECT_DIR:-.}/.claude/memory/memory.json"
 #   was config-load-expanded by CC (whose own env lacks the var) down to
 #   "./.claude/..." -> resolved into the npx cache dir -> ENOENT -> the graph
-#   silently never persisted (dead for months; every /ork:remember write failed).
+#   silently never persisted (dead for months; every /ork:memory remember write failed).
 #
 # The fix: an `sh -c` wrapper that resolves an ABSOLUTE path at RUNTIME from the
 # server-env $CLAUDE_PROJECT_DIR (fallback $PWD), then execs the server.

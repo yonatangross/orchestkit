@@ -17,9 +17,9 @@ OrchestKit solves this with a **3-tier memory architecture**: graph MCP for sear
 
 | Component | Type | Purpose |
 |---|---|---|
-| `/ork:remember` | Command skill | Store decisions, patterns, and context in the knowledge graph (and optionally filesystem memory) |
+| `/ork:memory remember` | Command skill | Store decisions, patterns, and context in the knowledge graph (and optionally filesystem memory) |
 | `/ork:memory` | Command skill | Search, load, sync, visualize stored knowledge |
-| `session-summary` | Hook (stop, async) | After each assistant turn (when busy enough), suggests a graph entity capture and nudges `/ork:remember`; async output may arrive on a later turn |
+| `session-summary` | Hook (stop, async) | After each assistant turn (when busy enough), suggests a graph entity capture and nudges `/ork:memory remember`; async output may arrive on a later turn |
 | `memory-validator` | Hook (pretool) | Validates `mcp__memory__*` tool calls before they run |
 | `mcp__memory__*` | MCP server | Graph database for entities and relations |
 
@@ -34,17 +34,17 @@ Before diving into commands, understand what each tier does and when it activate
 | **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Loaded by Claude Code at session start. Survives plugin removal. Written by skills/agents, not by a dedicated OrchestKit writer hook. |
 
 <Callout type="info">
-The graph tier needs a `memory` MCP server, which OrchestKit does not bundle. Add one once, for example `claude mcp add --scope user memory -- npx -y @modelcontextprotocol/server-memory` (`--scope user` makes it available in every project; without it the server lands in the local scope of the current project only), and confirm it with `claude mcp list`. Without it, `/ork:remember` and `/ork:memory` have no graph to write to or read from. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:remember` filesystem updates). No OrchestKit hook writes decisions into MEMORY.md.
+The graph tier needs a `memory` MCP server, which OrchestKit does not bundle. Add one once, for example `claude mcp add --scope user memory -- npx -y @modelcontextprotocol/server-memory` (`--scope user` makes it available in every project; without it the server lands in the local scope of the current project only), and confirm it with `claude mcp list`. Without it, `/ork:memory remember` and `/ork:memory` have no graph to write to or read from. Local JSONL files appear when something writes them. CC Native MEMORY.md is maintained by Claude Code and by explicit skill or agent edits (for example `/ork:memory remember` filesystem updates). No OrchestKit hook writes decisions into MEMORY.md.
 </Callout>
 
 ## Step-by-Step
 
 ### Step 1: Store Your First Decision
 
-Use `/ork:remember` to record an architecture decision. The skill auto-detects the category from keywords in your text, extracts entities, and creates typed relations in the knowledge graph.
+Use `/ork:memory remember` to record an architecture decision. The skill auto-detects the category from keywords in your text, extracts entities, and creates typed relations in the knowledge graph.
 
 ```bash
-/ork:remember "We use JWT tokens for auth, not session cookies"
+/ork:memory remember "We use JWT tokens for auth, not session cookies"
 ```
 
 **What you see:**
@@ -66,10 +66,10 @@ Mark successful patterns so OrchestKit reinforces them in future sessions. Mark 
 
 ```bash
 # A pattern that worked well
-/ork:remember --success "Cursor-based pagination scales well for our 2M-row tables"
+/ork:memory remember --success "Cursor-based pagination scales well for our 2M-row tables"
 
 # A pattern that caused problems
-/ork:remember --failed "Offset pagination caused timeouts on tables with 1M+ rows"
+/ork:memory remember --failed "Offset pagination caused timeouts on tables with 1M+ rows"
 ```
 
 **Success output:**
@@ -197,7 +197,7 @@ Here is what OrchestKit actually wires for memory today (verified against `src/h
 
 `stop/session-summary` and `stop/handoff-writer` are async Stop hooks. Claude Code fires Stop after every assistant turn, not only when you quit. Their output is delivered asynchronously and may land on a later turn. If you end the session right after a qualifying turn, the suggestion may never reach Claude; if you continue, the nudge can recur.
 
-When the session has had meaningful work (20 or more tool calls), `session-summary` returns an `additionalContext` suggestion to create a session graph entity, and for high-activity sessions (over 50 tool calls) it nudges you to run `/ork:remember`. It does not write local JSONL or MEMORY.md itself.
+When the session has had meaningful work (20 or more tool calls), `session-summary` returns an `additionalContext` suggestion to create a session graph entity, and for high-activity sessions (over 50 tool calls) it nudges you to run `/ork:memory remember`. It does not write local JSONL or MEMORY.md itself.
 
 `handoff-writer` may include recent entries from `.claude/logs/decisions.jsonl` in the handoff note when that file exists.
 
@@ -207,7 +207,7 @@ When the session has had meaningful work (20 or more tool calls), `session-summa
 
 ### The Write Path
 
-When you invoke `/ork:remember`, the skill's primary path is the knowledge graph. Filesystem MEMORY.md updates are agent-side Edit/Write operations when you choose durable auto-memory scope, not a background hook:
+When you invoke `/ork:memory remember`, the skill's primary path is the knowledge graph. Filesystem MEMORY.md updates are agent-side Edit/Write operations when you choose durable auto-memory scope, not a background hook:
 
 | Tier | Storage | Method |
 |---|---|---|
@@ -230,7 +230,7 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 ## Tips
 
 <Callout type="info">
-**Store investigation context explicitly.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` when you want durable recall. `session-summary` only suggests graph capture via additionalContext on Stop turns (async, after each assistant turn when busy enough); it does not persist MEMORY.md for you.
+**Store investigation context explicitly.** Run `/ork:memory remember "Session summary: completed X, found Y, next steps Z"` when you want durable recall. `session-summary` only suggests graph capture via additionalContext on Stop turns (async, after each assistant turn when busy enough); it does not persist MEMORY.md for you.
 </Callout>
 
 <Callout type="info">
@@ -238,7 +238,7 @@ Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR 
 </Callout>
 
 <Callout type="info">
-**Use `--global` for cross-project wisdom.** Decisions like "always validate input at API boundaries" apply everywhere. Store them with `/ork:remember --global` and search them with `/ork:memory search --global`. They use a separate user ID (`orchestkit-global-best-practices`) so they never pollute project-specific context.
+**Use `--global` for cross-project wisdom.** Decisions like "always validate input at API boundaries" apply everywhere. Store them with `/ork:memory remember --global` and search them with `/ork:memory search --global`. They use a separate user ID (`orchestkit-global-best-practices`) so they never pollute project-specific context.
 </Callout>
 
 <Callout type="warn">

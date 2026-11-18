@@ -10,5 +10,4 @@
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
 |design-to-code:{SKILL.md,references/{export-formats.md,import-mode.md,ship-mode.md}}|design-to-code,claude-design,design-export,design-import,design-ship,stitch,21st-dev,storybook,mcp,ui-generation,mockup,component,react,frontend
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream

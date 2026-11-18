@@ -65,7 +65,7 @@ Yes. Create a directory in `src/skills/your-skill/` with a `SKILL.md` file conta
 
 - `context: fork`: The skill runs in an isolated context. This is the default for most skills and prevents one skill's state from leaking into another.
 - `context: inherit`: The skill shares the parent context. Used by `/ork:commit` because it needs access to the current git state.
-- `context: none`: The skill does not need conversation context. Used by `/ork:remember` which only writes to the knowledge graph.
+- `context: none`: The skill does not need conversation context. Used by `/ork:memory remember` which only writes to the knowledge graph.
 
 ---
 
@@ -124,7 +124,7 @@ Tiers 2 and 3 work out of the box. Tier 1 (the knowledge graph) needs a memory M
 
 ### What gets stored automatically?
 
-Nothing in the graph is written behind your back: the `session-summary` hook suggests what to capture at the end of a busy session, and you control what gets stored with `/ork:remember`. Nothing is stored without your action.
+Nothing in the graph is written behind your back: the `session-summary` hook suggests what to capture at the end of a busy session, and you control what gets stored with `/ork:memory remember`. Nothing is stored without your action.
 
 ### Can I delete memories?
 
@@ -132,7 +132,7 @@ Yes. Memories in the knowledge graph can be managed via the MCP memory tools. Lo
 
 ### Does memory work across different projects?
 
-By default, memory is project-scoped. Use `/ork:remember --global` to store patterns that should be available across all projects. Search with `/ork:memory search --global` to find them.
+By default, memory is project-scoped. Use `/ork:memory remember --global` to store patterns that should be available across all projects. Search with `/ork:memory search --global` to find them.
 
 ---
 

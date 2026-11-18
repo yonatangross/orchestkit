@@ -1,6 +1,6 @@
 ---
-description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures."
-argument-hint: "<PR-number | run-URL | job-URL>"
+description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures."
+argument-hint: "<PR-number | run-URL | job-URL> | sweep [install|status|enable|disable]"
 disable-model-invocation: false
 model: sonnet
 context: fork
@@ -22,6 +22,7 @@ Direct response to the recurring CI-debug pattern surfaced by `/insights`: ~12 s
 
 User invokes with one of:
 
+- **sweep**: `/ci-debug sweep <install|status|enable|disable>` runs sweep mode, see the Sweep mode section below (not the steps in Execution)
 - **PR number**: `/ci-debug 822` (default repo from context; ask if ambiguous)
 - **Run URL**: `/ci-debug https://github.com/owner/repo/actions/runs/12345`
 - **Job URL**: `/ci-debug https://github.com/owner/repo/actions/runs/X/job/Y`
@@ -116,6 +117,16 @@ adding it to the playbook (in this SKILL.md) so the next run catches
 it automatically.
 ```
 
+## Sweep mode (every open red PR)
+
+`/ci-debug sweep <install|status|enable|disable>` manages the manually dispatched workflow `.github/workflows/ci-sentinel.yml`, which applies a copy of this playbook to every open PR with a failed check and posts one collapsed verdict comment per PR (propose only, it never pushes). It was the separate `ci-sentinel` skill; its full text is `Read("skills/ci-debug/references/sweep-mode.md")`.
+
+- `sweep install`: copy the workflow into a new repo and check its secrets. Uses Bash (`cp`, `gh secret`) only.
+- `sweep status`: read the latest run's job summary (`gh run list --workflow ci-sentinel.yml`, then `gh run view`).
+- `sweep enable` / `sweep disable`: `gh workflow enable ci-sentinel.yml` or `gh workflow disable ci-sentinel.yml`. Never add an `on.schedule` block.
+
+The workflow's own `claude -p` call has no tools and does not load this skill: it carries a one-line copy of each pattern below, kept in step by `tests/ci/test-ci-sentinel-playbook-sync.sh`.
+
 ## Headless invocation (permission mode)
 
 `/ci-debug` REQUIRES Bash tool access — `gh pr checks`, `gh run view`, and `gh api .../jobs/.../logs` are how it fetches evidence. In a headless `claude -p` run that loads this skill:
@@ -138,7 +149,7 @@ it automatically.
 
 ## When NOT to invoke
 
-- For every open PR with red checks at once, use `ci-sentinel`, a workflow that classifies them with a copy of this playbook.
+- For every open PR with red checks at once, use sweep mode (`/ci-debug sweep`), a workflow that classifies them with a copy of this playbook.
 - For application-level test failures (the playbook is **CI-infra-specific**, not e.g. pytest failures).
 - Before reading the actual log — don't speculate.
 
@@ -154,6 +165,6 @@ Commit the SKILL.md change as `docs(ci-debug): add pattern #N (<short-name>)`. A
 
 ## Related Skills
 
-- **Related:** `ci-sentinel` (a manually dispatched workflow that applies a copy of this playbook to open red PRs).
+- **Related:** sweep mode above (a manually dispatched workflow that applies a copy of this playbook to open red PRs).
 - **Anti-pattern** — manually re-running `gh pr checks` and eyeballing the logs across N repos. That's exactly the toil this skill kills.
 - **Upstream** — `/status` for org-wide sweeps that surface WHICH PRs are red; this skill answers WHY.

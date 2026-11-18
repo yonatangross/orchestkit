@@ -30,7 +30,6 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - github-operations
-  - remember
   - memory
 mcpServers: [tavily]
 metadata:

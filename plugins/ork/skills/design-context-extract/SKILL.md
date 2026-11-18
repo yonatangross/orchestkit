@@ -16,7 +16,6 @@ allowed-tools: "Read Write Glob Grep Bash WebFetch AskUserQuestion TaskCreate Ta
   # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
 skills:
   - design-system-tokens
-  - remember
   - memory
 metadata:
   category: document-asset-creation

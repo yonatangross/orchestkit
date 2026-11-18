@@ -173,7 +173,7 @@ Where §3-5 *generate* a custom `/goal` line from a spec, the recipe library *sh
 | 🔴 Production error sweep | clear a backlog of actionable errors | `fix-issue` |
 | 📚 Docs-drift sweep | docs / reference drifted from code | `audit-full` |
 | ⚡ Page-load budget | a page exceeds its latency budget | `performance` |
-| 🧹 Repository cleanup | stale memory / state accumulated | `dream` |
+| 🧹 Repository cleanup | stale memory / state accumulated | `memory dream` |
 | ✅ Quality streak | don't trust a single green (flaky suite) | `verify` |
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `fix-issue` → `create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
@@ -246,7 +246,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 | 🔴 Production error sweep | Production Error Sweep | `/ork:fix-issue` |
 | 📚 Docs-drift sweep | Docs Sweep | `/ork-extras:audit-full` |
 | ⚡ Page-load budget | Sub-50ms Page-Load | `/ork:performance` |
-| 🧹 Repository cleanup | Repository Cleanup | `/ork:dream` |
+| 🧹 Repository cleanup | Repository Cleanup | `/ork:memory dream` |
 | ✅ Quality streak | Quality Streak | `/ork:verify` |
 | 🎫 Ticket → PR-ready | Ticket-to-PR-Ready | `/ork:fix-issue` → `/ork:create-pr` |
 | 🧼 Type/lint zero | (static-analysis baseline) | fixer agent |
@@ -300,7 +300,7 @@ Each recipe is a **loop shape** (when to stop) wrapped around an **ork skill** (
 ## 🧹 Repository cleanup
 
 **Use when:** memory files, stale branches, or dead state have accumulated.
-**Backs each pass:** `/ork:dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating, each pass strictly reduces the stale set).
+**Backs each pass:** `/ork:memory dream` · **Convergent signal:** the dry-run reports nothing to prune (naturally terminating, each pass strictly reduces the stale set).
 
 ```
 /goal until <DREAM_DRYRUN_CMD> reports 0 stale AND 0 duplicate AND 0 contradiction, or stop after 8 turns

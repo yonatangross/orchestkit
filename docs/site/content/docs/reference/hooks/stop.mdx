@@ -10,7 +10,7 @@ description: "Hooks triggered on Stop events (12 hooks)."
 | Hook | Matcher | Behavior | Description |
 |------|---------|----------|-------------|
 | <span id="hook--stop-handoff-writer"></span>`handoff-writer` | `*` | Fire-and-forget | Writes .claude/HANDOFF.md with structured session context on stop. This is the WRITE half of the save/restore loop. The READ half is prompt/handoff-injector.ts (UserPromptSubmit). |
-| <span id="hook--stop-session-summary"></span>`session-summary` | `*` | Injects | Runs at session end. Only fires when session had meaningful work (&gt;=20 tool calls). Builds a graph entity suggestion via additionalContext and nudges /ork:remember for high-activity sessions (&gt;50 tool calls). |
+| <span id="hook--stop-session-summary"></span>`session-summary` | `*` | Injects | Runs at session end. Only fires when session had meaningful work (&gt;=20 tool calls). Builds a graph entity suggestion via additionalContext and nudges /ork:memory remember for high-activity sessions (&gt;50 tool calls). |
 | <span id="hook--stop-task-completion-check"></span>`task-completion-check` | `*` | Fire-and-forget | Task Completion Check - Verifies tasks are properly completed before stop |
 | <span id="hook--stop-security-scan-aggregator"></span>`security-scan-aggregator` | `*` | Fire-and-forget | Runs Stop-time security scans under a machine-wide lock, only on a dirty working tree, with real child-process kill-on-timeout. |
 | <span id="hook--stop-ledger-cleanup"></span>`ledger-cleanup` | `*` | Fire-and-forget | Ledger Cleanup, removes stale agent attribution ledgers on session stop. |

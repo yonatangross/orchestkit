@@ -24,7 +24,6 @@ skills:
   - design-system-tokens
   - component-search
   - design-context-extract
-  - remember
   - memory
 metadata:
   category: workflow-automation

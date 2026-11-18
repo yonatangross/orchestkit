@@ -42,7 +42,6 @@ skills:
   - component-search
   - design-to-code
   - design-system-tokens
-  - remember
   - memory
 mcpServers: [storybook-mcp, context7]
 metadata:

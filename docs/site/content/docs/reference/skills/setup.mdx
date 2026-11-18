@@ -287,7 +287,7 @@ Load on demand with `Read("references/<file>")`:
 
 - `ork:doctor`: Health diagnostics (wizard uses its checks)
 - `ork:configure`: Internal configuration (called by wizard phases 3.5, 9, 10)
-- `ork:remember`: Knowledge persistence (wizard seeds initial patterns)
+- `ork:memory remember`: Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore`: Deep codebase analysis (wizard links for follow-up)
 - `ork:help`: Skill directory (wizard surfaces relevant subset)
 
@@ -1191,7 +1191,7 @@ OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
   Agent Utilization ████████░░  8/10  36 agents available
 
-  Top improvement: Add /ork:remember patterns → +1.5 points
+  Top improvement: Add /ork:memory remember patterns → +1.5 points
 ```
 
 ## Memory Integration
@@ -1214,7 +1214,7 @@ mcp__memory__create_entities(entities=[{
 
 Generate prioritized, **runnable** recommendations in 3 tiers:
 
-- **P0 (do now)**: Seed knowledge graph with `/ork:remember` patterns
+- **P0 (do now)**: Seed knowledge graph with `/ork:memory remember` patterns
 - **P1 (this week)**: Configure recommended MCPs, create custom skills for repeated patterns
 - **P2 (ongoing)**: Run `/ork:explore architecture`, rescan with `/ork:setup --rescan` in 2 weeks
 
@@ -1330,7 +1330,7 @@ Maps detected technologies to recommended OrchestKit skills.
 | Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
 | Security concerns | `security-patterns` |
 
-**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
+**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `memory`, `brainstorm`, `help`
 
 ## MCP Recommendation Matrix
 
