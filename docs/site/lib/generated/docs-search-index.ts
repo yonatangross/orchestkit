@@ -1388,7 +1388,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/review-pr",
     "title": "Review Pr",
-    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before a merge. Not for design scores (use assess)."
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess)."
   },
   {
     "url": "/docs/reference/skills/scope-appropriate-architecture",

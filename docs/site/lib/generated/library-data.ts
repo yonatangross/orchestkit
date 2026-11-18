@@ -1266,7 +1266,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "kind": "skill",
     "name": "review-pr",
     "station": "check",
-    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before a merge. Not for design scores (use assess).",
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess).",
     "command": true,
     "scopedHooks": 2
   },

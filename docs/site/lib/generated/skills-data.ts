@@ -4417,9 +4417,9 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "review-pr": {
     "name": "review-pr",
-    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before a merge. Not for design scores (use assess).",
+    "description": "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess).",
     "version": "1.9.0",
-    "sha256": "aff49e57bcf65991c55475b660bbac3efef69e485d2d612b62f7ce19530cf7b6",
+    "sha256": "beb64846369bba8455f8708f9d1c2f3649e4077063ff6052443bc8d25914baf1",
     "author": "OrchestKit",
     "tags": [
       "code-review",
