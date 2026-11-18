@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The npm ci guard reads more command shapes</title>
+<meta name="description" content="Twenty-seven commands run through the npm ci symlink guard on main and on this branch: which ones the guard now denies or asks about, which were already denied, and which stay as they were.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;word-break:break-word;margin-top:.6rem}
+  table{width:100%;border-collapse:collapse;font-size:.78rem}
+  th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  .deny{color:var(--status-bad)} .ask{color:var(--status-warn)} .allow{color:var(--status-ok)}
+  .changed td:first-child{border-left:3px solid var(--pg-accent)}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px;white-space:pre-wrap}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+</head>
+<body><main>
+<h1>The npm ci guard reads more command shapes</h1>
+<p class="sub">A clean install in a worktree whose node_modules is a symlink empties the shared tree the link points at, while printing a normal success line. The guard already denied the plain command. This change teaches it more ways the same install can be written. It stays on the same two files and adds no new hook.</p>
+
+<section><h2>1 / The same commands, on main and on this branch</h2>
+<p>Each command below was run through the real guard code of main and of this branch, in a working directory whose node_modules is a symlink (unless the row says it is a real directory). Verdicts: <span class="deny">deny</span> stops the command, <span class="ask">ask</span> puts the question to the person, <span class="allow">allow</span> is silent.</p>
+<label for="show">Show</label>
+<select id="show">
+  <option value="all">All commands</option>
+  <option value="changed">Only commands whose verdict changed</option>
+  <option value="same">Only commands whose verdict is the same</option>
+</select>
+<table id="rows"></table>
+<p id="tally"></p>
+</section>
+
+<section><h2>2 / What to read in it</h2>
+<table>
+<tr><th>Rule</th><th>Choice</th></tr>
+<tr><td>A command it can resolve to a clean install in a linked directory</td><td>denied, as before.</td></tr>
+<tr><td>A command word it cannot resolve (an unset variable, a substitution)</td><td>asks, and only where a linked node_modules is at stake. A real directory stays quiet (the row marked real directory).</td></tr>
+<tr><td>The new readings share a work budget</td><td>past it the guard keeps its earlier behavior: it asks when the text names a clean install, and never stops quietly.</td></tr>
+<tr><td>The new patterns are bounded</td><td>a long run of unclosed openers or closing parentheses stays linear in the size tests.</td></tr>
+</table>
+<p>Commands such as <code>npm install</code>, <code>git status</code> and <code>eval "$(ssh-agent -s)"</code> are unchanged. Note the row for <code>echo "npm ci"</code>: both guards ask when the text names a clean install in a linked directory, so this change leaves it as it was.</p>
+</section>
+
+<section><h2>What this page does not show</h2>
+<p>Twenty-seven commands are a sample, not the whole test file: the guard test file holds 327 cases, and the full hooks suite passes. Some commands here were already denied on main, and the rows say so; they are in the sample because they sit in the same families the change reads.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const ROWS = [
+  ['plain', 'baseline', 'npm ci', 'linked', 'deny', 'deny'],
+  ['nested scripts', 'sh -c, escaped quotes inside', 'sh -c "sh -c \\"npm ci\\""', 'linked', 'ask', 'deny'],
+  ['nested scripts', 'path-qualified shell', "/bin/sh -c 'npm ci'", 'linked', 'ask', 'deny'],
+  ['nested scripts', 'options before -c', "bash -e -c 'npm ci'", 'linked', 'deny', 'deny'],
+  ['nested scripts', 'double dash after -c', "sh -c -- 'npm ci'", 'linked', 'ask', 'deny'],
+  ['nested scripts', 'eval', 'eval "npm ci"', 'linked', 'ask', 'deny'],
+  ['nested scripts', 'npm exec -c', "npm exec -c 'npm ci'", 'linked', 'ask', 'deny'],
+  ['nested scripts', 'npx -c', "npx -c 'npm ci'", 'linked', 'ask', 'deny'],
+  ['line joins and heredocs', 'backslash before a newline', 'npm \\\nci', 'linked', 'ask', 'deny'],
+  ['line joins and heredocs', 'quoted heredoc, then the install', "cat <<'EOF'\nit's text\nEOF\nnpm ci", 'linked', 'deny', 'deny'],
+  ['redirections and cd', 'redirection beside the word', 'npm ci>/dev/null', 'linked', 'allow', 'deny'],
+  ['redirections and cd', 'cd -P', 'cd -P . && npm ci', 'linked', 'deny', 'deny'],
+  ['redirections and cd', 'pushd', 'pushd . && npm ci', 'linked', 'deny', 'deny'],
+  ['wrappers and spellings', 'path-qualified npm', '/usr/local/bin/npm ci', 'linked', 'allow', 'deny'],
+  ['wrappers and spellings', 'xargs', 'echo | xargs npm ci', 'linked', 'ask', 'deny'],
+  ['obfuscated words', '$IFS as the space', 'npm${IFS}ci', 'linked', 'allow', 'deny'],
+  ['obfuscated words', "$'...' word", "npm $'ci'", 'linked', 'allow', 'deny'],
+  ['obfuscated words', 'brace word', 'npm c{i,}', 'linked', 'allow', 'deny'],
+  ['variables and substitutions', 'NAME=value resolves $NAME', 'S=ci; npm $S', 'linked', 'allow', 'deny'],
+  ['variables and substitutions', 'process substitution body', 'cat <(npm ci)', 'linked', 'ask', 'deny'],
+  ['cannot resolve', 'unset variable, linked', 'npm $SUB', 'linked', 'allow', 'ask'],
+  ['cannot resolve', 'unset variable, real directory', 'npm $SUB', 'real directory', 'allow', 'allow'],
+  ['unchanged', 'npm install', 'npm install', 'linked', 'allow', 'allow'],
+  ['unchanged', 'text inside echo', 'echo "npm ci"', 'linked', 'ask', 'ask'],
+  ['unchanged', 'eval of ssh-agent', 'eval "$(ssh-agent -s)"', 'linked', 'allow', 'allow'],
+  ['unchanged', 'plain install, real directory', 'npm ci', 'real directory', 'allow', 'allow'],
+  ['unchanged', 'git status', 'git status', 'linked', 'allow', 'allow'],
+];
+const sel = document.getElementById('show');
+const table = document.getElementById('rows');
+function chip(v) { const s = document.createElement('span'); s.className = v; s.textContent = v; return s; }
+function render() {
+  const head = document.createElement('tr');
+  for (const h of ['Family', 'Shape', 'Command', 'node_modules', 'On main', 'On this branch']) { const th = document.createElement('th'); th.textContent = h; head.append(th); }
+  table.replaceChildren(head);
+  let shown = 0, changed = 0;
+  for (const [family, shape, cmd, dir, before, now] of ROWS) {
+    const isChanged = before !== now;
+    if (isChanged) changed += 1;
+    if ((sel.value === 'changed' && !isChanged) || (sel.value === 'same' && isChanged)) continue;
+    shown += 1;
+    const tr = document.createElement('tr');
+    if (isChanged) tr.className = 'changed';
+    for (const v of [family, shape]) { const td = document.createElement('td'); td.textContent = v; tr.append(td); }
+    const c = document.createElement('td'); const code = document.createElement('code'); code.textContent = cmd; c.append(code); tr.append(c);
+    const d = document.createElement('td'); d.textContent = dir; tr.append(d);
+    const b = document.createElement('td'); b.append(chip(before)); tr.append(b);
+    const n = document.createElement('td'); n.append(chip(now)); tr.append(n);
+    table.append(tr);
+  }
+  document.getElementById('tally').textContent = shown + ' shown of ' + ROWS.length + '; ' + changed + ' of the ' + ROWS.length + ' change verdict, ' + (ROWS.length - changed) + ' do not.';
+}
+sel.addEventListener('change', render);
+render();
+const PROMPT = 'In the orchestkit repo, run the npm ci symlink guard test file (src/hooks/src/__tests__/pretool/bash/npm-ci-symlink-guard.test.ts) and tell me how many cases pass, then try the command npm${IFS}ci in a worktree whose node_modules is a symlink and say whether the guard denies it.';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main></body>
+</html>
