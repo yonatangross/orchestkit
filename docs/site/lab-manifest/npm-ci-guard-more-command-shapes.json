@@ -1,0 +1,11 @@
+{
+  "slug": "npm-ci-guard-more-command-shapes",
+  "source": "docs/fix--npm-ci-guard-row17/index.html",
+  "title": "The npm ci guard reads more command shapes",
+  "description": "Twenty-seven commands run through the npm ci symlink guard on main and on this branch: which ones the guard now denies or asks about, which were already denied, and which stay as they were.",
+  "tags": [
+    "hooks",
+    "security"
+  ],
+  "date": "2026-11-17"
+}
