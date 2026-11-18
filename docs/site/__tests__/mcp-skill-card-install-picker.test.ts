@@ -273,8 +273,22 @@ describe("skill card renders", () => {
 		// A headline with the answer, the typed name quoted, and a path forward.
 		expect(document.querySelector("h1")?.textContent).toBe("Did you mean brainstorm?");
 		expect(text).toContain("OrchestKit has no skill named “brainstorn”.");
-		expect(text).toContain("Ask for it by name");
 		expect(document.querySelector("button[data-copy]")).toBeNull();
+		// The suggestion is a real button, and the typed name is set apart in code style.
+		expect(document.querySelector(".code")?.textContent).toBe("brainstorn");
+		const show = document.querySelector("button.quiet") as HTMLButtonElement;
+		expect(show.tagName).toBe("BUTTON");
+		expect(show.textContent).toBe("Show brainstorm");
+	});
+
+	it("the suggestion button asks the host for that skill's card, with no request from the frame", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorn" } });
+		mount(await viewHtml(SKILL_URI), call.structuredContent);
+		const sent = vi.fn();
+		(window as unknown as { openai: unknown }).openai = { sendFollowUpMessage: sent };
+		(document.querySelector("button.quiet") as HTMLButtonElement).click();
+		expect(sent).toHaveBeenCalledWith({ prompt: "Show me the OrchestKit skill card for brainstorm" });
+		expect(document.body.textContent).toContain("Asked.");
 	});
 
 	it("an unknown name with nothing close says so and points at the docs search", async () => {

@@ -154,13 +154,22 @@ export function parseCardHost(raw: unknown): CardHostId {
 	return (CARD_HOSTS as readonly string[]).includes(id) ? (id as CardHostId) : "claude";
 }
 
+// What a person gets, in plain words, for the line under the copy button. The
+// site's own taglines (HOST_INSTALLS.what) are written for the docs page; these
+// say the same facts without the plugin jargon. The commands are never written here.
+const CARD_WHAT: Record<CardHostId, string> = {
+	claude: "Skills, agents and hooks, all inside Claude Code.",
+	cursor: "Skills, commands and agents in Cursor. Claude Code's hooks do not run there.",
+	codex: "A pack made for Codex. It is separate from the Claude Code plugin.",
+};
+
 export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 	const hosts = CARD_HOSTS.map((id): InstallHostCard => {
 		const spec = HOST_INSTALL_BY_ID[id];
 		return {
 			id,
 			name: spec.name,
-			what: spec.what,
+			what: CARD_WHAT[id],
 			where: spec.where,
 			commands: [...spec.commands],
 			// Two shell lines copy as one `&&` line so a failed first step stops the
@@ -173,7 +182,11 @@ export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 					? "Copy repo name"
 					: "Copy command",
 			then: spec.then
-				? { label: spec.then.label, commands: [...spec.then.commands], prompt: spec.then.prompt }
+				? {
+						label: `Then type in ${spec.name}`,
+						commands: [...spec.then.commands],
+						prompt: spec.then.prompt,
+					}
 				: null,
 			docsUrl: `${SITE.domain}${spec.href}`,
 		};
