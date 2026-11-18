@@ -37,7 +37,6 @@ skills:
   - testing-integration
   - architecture-patterns
   - quality-gates
-  - remember
   - memory
 mcpServers: [context7]
 background: true

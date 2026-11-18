@@ -125,7 +125,7 @@ describe('route classes', () => {
     expect(ROUTE_CLASS_TO_EXECUTOR.dev_design).toEqual({ kind: 'skill', name: 'brainstorm' });
     expect(ROUTE_CLASS_TO_EXECUTOR.research).toEqual({ kind: 'agent', name: 'Explore' });
     expect(ROUTE_CLASS_TO_EXECUTOR.visual).toEqual({ kind: 'skill', name: 'glyph' });
-    expect(ROUTE_CLASS_TO_EXECUTOR.session_admin).toEqual({ kind: 'skill', name: 'remember' });
+    expect(ROUTE_CLASS_TO_EXECUTOR.session_admin).toEqual({ kind: 'skill', name: 'memory' });
     for (const id of ROUTE_INTENT_IDS.filter((c) => c.startsWith('ops_'))) {
       expect(ROUTE_CLASS_TO_EXECUTOR[id]).toBeNull();
     }

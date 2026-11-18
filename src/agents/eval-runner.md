@@ -39,7 +39,6 @@ skills:
   - testing-llm
   - testing-integration
   - error-analysis
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

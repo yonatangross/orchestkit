@@ -20,7 +20,7 @@ This means anything written to MEMORY.md is visible to Claude in every conversat
 
 ## How Decisions Reach MEMORY.md
 
-No OrchestKit hook writes MEMORY.md, and nothing scores decisions. Claude writes it, for example when `/ork:remember` stores a durable fact as a memory file, or when you ask. The `session-summary` hook suggests what to capture at the end of a busy session; it does not write memory.
+No OrchestKit hook writes MEMORY.md, and nothing scores decisions. Claude writes it, for example when `/ork:memory remember` stores a durable fact as a memory file, or when you ask. The `session-summary` hook suggests what to capture at the end of a busy session; it does not write memory.
 
 ## Size Limits
 

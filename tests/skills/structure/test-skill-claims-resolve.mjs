@@ -63,7 +63,7 @@ if (doctor.includes("shared/cc-support.json")) {
 }
 
 // B5: no zero-config promise for a server the plugin does not ship
-const remember = read("src/skills/remember/SKILL.md");
+const remember = read("src/skills/memory/SKILL.md");
 const shipsMemoryServer =
   existsSync(join(ROOT, "plugins/ork/.mcp.json")) &&
   /"memory"\s*:/.test(readFileSync(join(ROOT, "plugins/ork/.mcp.json"), "utf8"));

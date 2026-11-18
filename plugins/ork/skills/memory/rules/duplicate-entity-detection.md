@@ -25,7 +25,7 @@ Before calling `mcp__memory__create_entities`, always call `mcp__memory__search_
 ### Incorrect -- creating without search:
 
 ```json
-// User says: "/remember PostgreSQL handles our vector search"
+// User says: "/ork:memory remember PostgreSQL handles our vector search"
 // Agent immediately creates without checking:
 mcp__memory__create_entities({
   "entities": [{

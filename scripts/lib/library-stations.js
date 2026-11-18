@@ -41,11 +41,11 @@ const SKILL_STATION = invert({
     'storybook-testing', 'audit-full', 'audit-activation', 'errors',
   ],
   ship: [
-    'commit', 'create-pr', 'ci-debug', 'ci-sentinel', 'release-management', 'release-sync', 'devops-deployment',
+    'commit', 'create-pr', 'ci-debug', 'release-management', 'release-sync', 'devops-deployment',
     'github-operations', 'issue-progress-tracking', 'swarm-migrate', 'fix-issue', 'disk-cleanup',
   ],
   remember: [
-    'memory', 'remember', 'dream', 'memory-fabric', 'analytics', 'telemetry-inspect', 'prompt-focus',
+    'memory', 'memory-fabric', 'analytics', 'telemetry-inspect', 'prompt-focus',
     'chain-patterns', 'task-dependency-patterns', 'monitoring-observability', 'documentation-patterns',
   ],
 });

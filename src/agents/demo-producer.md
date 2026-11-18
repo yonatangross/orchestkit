@@ -29,7 +29,6 @@ tools:
   - mcp__context7__query-docs
 skills:
   - demo-producer
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

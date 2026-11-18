@@ -30,7 +30,6 @@ skills:
   - testing-perf
   - testing-unit
   - database-patterns
-  - remember
   - memory
 mcpServers: [context7]
 background: true
@@ -419,6 +418,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories,vitest-4,aroundEach
 |database-patterns:{SKILL.md,references/{cost-comparison.md,db-migration-paths.md,migration-testing.md,ork-delta.md,postgres-vs-mongodb.md,storage-and-cms.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

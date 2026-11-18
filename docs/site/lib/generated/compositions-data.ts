@@ -96,7 +96,7 @@ export const COMPOSITIONS: Composition[] = [
   {
     "id": "Remember",
     "skill": "remember",
-    "command": "/ork:remember",
+    "command": "/ork:memory remember",
     "hook": "Build your team's knowledge base",
     "style": "TriTerminalRace",
     "format": "landscape",

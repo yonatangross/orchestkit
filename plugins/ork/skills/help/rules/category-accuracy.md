@@ -59,18 +59,18 @@ CONFIG_SKILLS = ["setup", "doctor", "configure"]
 ```python
 # Skill has metadata.category: "workflow-automation"
 # But help places it under CONFIG because of a legacy mapping
-CONFIG_SKILLS = ["setup", "doctor", "configure", "remember"]
+CONFIG_SKILLS = ["setup", "doctor", "configure", "memory"]
 #                                                  ^^^^^^^^
-# remember.metadata.category = "workflow-automation", not config
-# remember.tags = [memory, decisions, patterns]
+# memory.metadata.category = "mcp-enhancement", not config
+# memory.tags = [memory, decisions, patterns]
 # Belongs in MEMORY, not CONFIG
 ```
 
 ### Correct -- checking metadata.category:
 
 ```python
-skill_meta = read_frontmatter("src/skills/remember/SKILL.md")
-# metadata.category = "workflow-automation"
+skill_meta = read_frontmatter("src/skills/memory/SKILL.md")
+# metadata.category = "mcp-enhancement"
 # tags = [memory, decisions, patterns]
 # -> Place in MEMORY (tags match), not CONFIG
 ```

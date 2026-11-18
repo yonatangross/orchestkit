@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-SKILL = ROOT / "src" / "skills" / "remember" / "SKILL.md"
+SKILL = ROOT / "src" / "skills" / "memory" / "SKILL.md"
 DOCS = ROOT / "docs" / "site" / "content" / "docs"
 RECIPE = DOCS / "cookbook" / "setup-memory.mdx"
 

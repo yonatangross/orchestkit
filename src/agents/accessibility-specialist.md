@@ -26,7 +26,6 @@ tools:
   - mcp__context7__query-docs
 skills:
   - testing-e2e
-  - remember
   - memory
 mcpServers: [context7]
 background: true

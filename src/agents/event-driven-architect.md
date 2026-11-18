@@ -30,7 +30,6 @@ tools:
 skills:
   - api-design
   - python-backend
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

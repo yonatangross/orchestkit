@@ -1581,6 +1581,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Sweep mode (every open red PR)",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Headless invocation (permission mode)",
             "does": "",
             "out": null,
@@ -1627,77 +1634,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "What it does",
+            "label": "When to Use",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "What it does NOT do (v1)",
+            "label": "What changed",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Why it's safe to run unattended",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Install on a new repo",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Configuration",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Comment shape",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "CI Debug: PR <n>",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Mutation journal (deferred to v1.1)",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Cost model",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "When to invoke this skill (not the workflow)",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Why this design wins (one paragraph)",
+            "label": "Removal",
             "does": "",
             "out": null,
             "tag": null
@@ -3169,72 +3120,30 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
     ]
   },
   "dream": {
-    "tier": "headings",
+    "tier": "sections",
     "lanes": [
       {
-        "id": "core",
-        "label": "Steps",
+        "id": "map",
+        "label": "What it covers",
         "nodes": [
           {
-            "num": "1",
-            "label": "Discover Memory Files",
+            "num": "",
+            "label": "When to Use",
             "does": "",
             "out": null,
             "tag": null
           },
           {
-            "num": "2",
-            "label": "Detect Staleness",
-            "does": "For each memory file, extract references and verify they still exist.",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "2.5",
-            "label": "Consult-gate (#2351), never prune a memory…",
-            "does": "Closing the VERIFY loop: a deletion must survive the question \"was this actually consulted?\". A memory whose external refs all vanished (FULLY_STALE) but that the agent keeps looking up is still load-bearing, its refs are stale, its knowledge is live. So before pruning, read .claude/logs/memory-consult.jsonl (written by memory-validator on every mcp__memory__search_nodes/open_nodes/read_graph) and downgrade any recently-consulted FULLY_STALE memory to PARTIALLY_STALE (kept + flagged, not auto-deleted).",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "3",
-            "label": "Detect Duplicates",
-            "does": "Compare memories pairwise within the same directory. Two memories are duplicates when:",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "4",
-            "label": "Resolve Contradictions",
-            "does": "Contradictions occur when two memories of the same type make opposing claims about the same subject. Detection:",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "5",
-            "label": "Execute Changes",
+            "num": "",
+            "label": "What changed",
             "does": "",
             "out": null,
             "tag": null
           },
           {
-            "num": "5.5",
-            "label": "Index budget",
-            "does": "Consistency (1:1 with the files) and budget (bytes a session can afford) are different questions;",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "6",
-            "label": "Report",
-            "does": "Output a summary table after consolidation:",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "9",
-            "label": "Cross-Repo Promotion Candidates",
-            "does": "A memory pattern that shows up in 2+ projects is a capability that outgrew its repo.",
+            "num": "",
+            "label": "Removal",
+            "does": "",
             "out": null,
             "tag": null
           }
@@ -4909,6 +4818,13 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           },
           {
             "num": "",
+            "label": "Verb: remember (store decisions and pattern…",
+            "does": "",
+            "out": null,
+            "tag": null
+          },
+          {
+            "num": "",
             "label": "Error Handling",
             "does": "",
             "out": null,
@@ -6309,56 +6225,21 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
         "nodes": [
           {
             "num": "",
-            "label": "Architecture",
+            "label": "When to Use",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Usage",
+            "label": "What changed",
             "does": "",
             "out": null,
             "tag": null
           },
           {
             "num": "",
-            "label": "Flags",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Categories",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Outcome Flags",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Workflow",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "File-Based Memory Updates",
-            "does": "",
-            "out": null,
-            "tag": null
-          },
-          {
-            "num": "",
-            "label": "Error Handling",
+            "label": "Removal",
             "does": "",
             "out": null,
             "tag": null

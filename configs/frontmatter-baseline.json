@@ -34,10 +34,6 @@
       "house-key:triggers",
       "unknown-key:skills"
     ],
-    "src/skills/ci-sentinel/SKILL.md": [
-      "house-key:triggers",
-      "unknown-key:skills"
-    ],
     "src/skills/commit/SKILL.md": [
       "house-key:invocation_hooks",
       "house-key:triggers",
@@ -87,9 +83,6 @@
     "src/skills/doctor/SKILL.md": [
       "house-key:triggers",
       "unknown-key:skills"
-    ],
-    "src/skills/dream/SKILL.md": [
-      "house-key:triggers"
     ],
     "src/skills/error-analysis/SKILL.md": [
       "house-key:triggers",
@@ -162,9 +155,6 @@
       "house-key:targets"
     ],
     "src/skills/release-sync/SKILL.md": [
-      "house-key:triggers"
-    ],
-    "src/skills/remember/SKILL.md": [
       "house-key:triggers"
     ],
     "src/skills/review-pr/SKILL.md": [

@@ -34,7 +34,6 @@ skills:
   - testing-perf
   - architecture-patterns
   - browser-tools
-  - remember
   - memory
 mcpServers: [context7]
 metadata:
