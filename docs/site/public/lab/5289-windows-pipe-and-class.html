@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>browser-tools on Windows: redirect instead of piping, and doctor flags an old agent-browser</title>
+<meta name="description" content="On native Windows with Git Bash, piping an agent-browser command that starts the daemon can hang forever. The skills now say to redirect to a file with stdin closed, and doctor warns when agent-browser is below the minimum. Pick a command and a version to see both.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --bad:#a23b2a; --card:#ffffff; --warn:#8a5a00; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --bad:#e08a7a; --card:#1f1d17; --warn:#e0b25a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button, input { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; min-height:44px; }
+  input { width:100%; }
+  button { cursor:pointer; }
+  button[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:10px 0 4px; }
+  code, pre { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--muted); border-radius:8px; padding:12px 14px; margin:8px 0; white-space:pre-wrap; overflow-wrap:anywhere; word-break:normal; }
+  .verdict code { font-weight:400; }
+  .nw { white-space:nowrap; }
+  p { text-wrap:pretty; }
+  .row { gap:8px; }
+  .row button { white-space:nowrap; }
+  .items .path { overflow-wrap:break-word; }
+  .legend { color:var(--muted); font-size:.9rem; margin:8px 0 0; }
+  #theme { white-space:nowrap; flex:none; }
+  pre.cmd { white-space:pre; overflow-x:auto; }
+  pre.bad { border-left-color:var(--bad); }
+  pre.good { border-left-color:var(--accent); }
+  pre.warn { border-left-color:var(--warn); }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .verdict { font-weight:600; margin:10px 0 0; }
+  .verdict.bad { color:var(--bad); }
+  .verdict.good { color:var(--accent); }
+  .verdict.warn { color:var(--warn); }
+  .items { list-style:none; margin:12px 0 0; padding:0; }
+  .items li { border:1px solid var(--rule); border-radius:8px; background:var(--card); padding:10px 12px; margin:8px 0; }
+  .items .path { font:0.85em ui-monospace, SFMono-Regular, Menlo, monospace; word-break:break-all; }
+  .items .why { color:var(--muted); margin:4px 0 0; font-size:.92rem; }
+  .tag { display:inline-block; font-size:.75rem; border:1px solid var(--rule); border-radius:99px; padding:1px 8px; margin-right:6px; color:var(--muted); }
+  .tag.fixed { color:var(--accent); border-color:var(--accent); }
+  .tag.listed { color:var(--warn); border-color:var(--warn); }
+  .count { color:var(--muted); font-size:.9rem; margin:10px 0 0; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="browser-tools on Windows: redirect instead of piping, and doctor flags an old agent-browser"><meta property="og:description" content="On native Windows with Git Bash, piping an agent-browser command that starts the daemon can hang forever. The skills now say to redirect to a file with stdin closed, and doctor warns when agent-browser is below the minimum. Pick a command and a version to see both."><meta property="og:url" content="https://orchestkit.dev/lab/5289-windows-pipe-and-class.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="browser-tools on Windows: redirect instead of piping, and doctor flags an old agent-browser"><meta name="twitter:description" content="On native Windows with Git Bash, piping an agent-browser command that starts the daemon can hang forever. The skills now say to redirect to a file with stdin closed, and doctor warns when agent-browser is below the minimum. Pick a command and a version to see both."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Windows: redirect <span class="nw">agent-browser</span>, do not pipe it</h1>
+      <p class="lead">Piped: hangs. Redirected: returns.</p>
+    </div>
+    <button id="theme" type="button">Dark</button>
+  </header>
+
+  <h2>Before and after</h2>
+  <p><b>Before</b> (output goes into a pipe):</p>
+  <pre class="bad cmd" tabindex="0" role="region" aria-label="Before command">agent-browser open "$URL" 2&gt;&amp;1 \
+  | tail -3</pre>
+  <p class="verdict bad">Never returns.</p>
+  <p class="lead">In Git Bash on Windows the daemon starts from this command and keeps the pipe open, so <code>tail</code> never sees end of file, and a <code>timeout</code> does not change that.</p>
+  <p><b>Now</b> (output goes to a file, stdin is closed):</p>
+  <pre class="good cmd" tabindex="0" role="region" aria-label="Now command">agent-browser open "$URL" \
+  &gt; ab.out 2&gt;&amp;1 &lt; /dev/null
+tail -c 300 ab.out</pre>
+  <p class="verdict good">Returns, then the file is read.</p>
+  <p class="lead">The daemon holds nothing the shell waits on. A bare <code>open about:blank</code> in a call of its own works too.</p>
+
+  <h2>Doctor check: try a version</h2>
+  <p class="lead"><code>doctor</code> is the plugin's health check. It now warns when the installed agent-browser is older than the minimum.</p>
+  <label for="ver">Output of <code>agent-browser --version</code></label>
+  <input id="ver" type="text" value="agent-browser 0.27.1" autocomplete="off" spellcheck="false">
+  <div class="row" id="chips"><button type="button" data-v="agent-browser 0.9.0">0.9.0</button><button type="button" data-v="agent-browser 0.27.1">0.27.1</button><button type="button" data-v="agent-browser 0.31.0">0.31.0</button><button type="button" data-v="agent-browser 0.43.0">0.43.0</button><button type="button" data-v="command not found">No version</button></div>
+  <pre id="doctor" class="warn cmd" role="status" aria-live="polite"></pre>
+  <p id="doctorNote" class="lead"></p>
+
+  <h2>What the sweep found</h2>
+  <p>A sweep is a search for the same problem elsewhere: 2,825 files in skills, agents, hooks and the docs site. Most raw matches are not defects (TypeScript generics, security rules that deny <code>/dev/stdin</code>, macOS-only tools by design). Each row below was either fixed or deliberately left, with the reason.</p>
+  <p class="legend">Class: <b>a</b> piped or captured daemon starter, <b>b</b> Windows or Git Bash difference, <b>c</b> missing tool guide, <b>d</b> stale version claim.</p>
+  <div class="row"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="fixed" aria-pressed="false">Fixed</button><button type="button" data-f="listed" aria-pressed="false">Left as is</button><button type="button" data-f="check" aria-pressed="false">Not checked</button></div>
+  <p id="count" class="count"></p>
+  <ul id="items" class="items"></ul>
+
+  <h2>What was not tested</h2>
+  <p>Nothing here ran on Windows. PowerShell and WSL are not tested either; the hang is taken from the issue report. The one attempt to reproduce it on agent-browser 0.43.0 (on macOS) never started a browser, so there is no evidence either way for the current release, and no upstream issue is filed by this change.</p>
+
+  <div class="row"><button id="copy" type="button">Copy as prompt</button></div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  // 1. The doctor check: the same numeric, field-by-field compare as check-agent-browser-version.sh.
+  const MIN = '0.31.1';
+  const UPGRADE = 'npm install -g agent-browser@latest';
+  function doctor(raw) {
+    const m = /(\d+)\.(\d+)\.(\d+)/.exec(raw);
+    if (!m) return { v: 'UNKNOWN', cls: 'warn cmd', line: 'agent-browser: UNKNOWN version\n(could not read x.y.z from\n`agent-browser --version`)', note: 'Unreadable output cannot prove a problem, so it never flags.' };
+    const got = [Number(m[1]), Number(m[2]), Number(m[3])];
+    const min = MIN.split('.').map(Number);
+    let outdated = false;
+    for (let i = 0; i < 3; i++) { if (got[i] !== min[i]) { outdated = got[i] < min[i]; break; } }
+    const ver = m[0];
+    if (outdated) return { v: 'OUTDATED', cls: 'bad cmd', line: `agent-browser: WARN ${ver} is older\nthan the minimum ${MIN}.\nUpgrade:\n  ${UPGRADE}\nor:\n  agent-browser upgrade`, note: 'Below the minimum: doctor prints WARN with the upgrade command and exits 1 (line breaks added here for width).' };
+    return { v: 'OK', cls: 'good cmd', line: `agent-browser: OK ${ver}\n(minimum ${MIN})`, note: 'At or above the minimum: no flag, exit 0.' };
+  }
+  function showDoctor() {
+    const r = doctor($('ver').value);
+    $('doctor').textContent = r.line; $('doctor').className = r.cls;
+    document.querySelectorAll('#chips button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === $('ver').value)));
+    $('doctorNote').textContent = 'Minimum ' + MIN + '. ' + r.note + ' The compare is numeric, field by field, so 0.9.0 is below 0.31.1 even though it sorts after it as text.';
+  }
+  $('ver').addEventListener('input', showDoctor);
+  document.querySelectorAll('#chips button').forEach((b) => b.addEventListener('click', () => { $('ver').value = b.dataset.v; showDoctor(); }));
+
+  // 3. The sweep.
+  const ROWS = [
+    ['fixed', 'a', 'src/skills/browser-tools/references/ork-delta.md', 'New section "Windows (Git Bash) and piping": the hang, the redirect form, and the scope (native Git Bash only).'],
+    ['fixed', 'a, c', 'src/skills/browser-tools/SKILL.md, src/skills/expect/SKILL.md, src/skills/dev/SKILL.md', 'Load the tool\'s own guide first, never pipe a daemon-starting command, pointer to the new section.'],
+    ['fixed', 'd', 'src/skills/doctor/scripts/check-agent-browser-version.sh (new)', 'WARN below MIN_VERSION with the upgrade command, wired into doctor check 11. Test: 10 passed, 0 failed.'],
+    ['fixed', 'a, b', 'src/skills/doctor/rules/diagnostic-checks.md', 'agent-browser doctor --json redirects to a mktemp file with stdin closed (was a hardcoded /tmp path).'],
+    ['fixed', 'a', 'src/skills/page-serve/scripts/serve.sh', 'A $( ) capture of the daemon starter became a redirect to a log file with < /dev/null.'],
+    ['fixed', 'b', '.gitattributes (new)', '*.sh text eol=lf, so a Windows checkout with core.autocrlf=true cannot give shell scripts CRLF.'],
+    ['fixed', 'b', 'portless checklist, prompt-focus reference', '"open" named as macOS, with xdg-open and start (start not tested under Git Bash).'],
+    ['listed', 'a', 'src/skills/browser-tools/references/upstream-slack.md', 'Synced from vercel-labs/agent-browser, so an edit would be overwritten. The daemon is already up earlier in that recipe.'],
+    ['listed', 'a', 'src/skills/dev/scripts/boot.sh', 'Short read-only queries into head -1, and servers backgrounded with output in a log file: no pipe is inherited.'],
+    ['listed', 'a', 'dev rules and references (Incorrect examples)', 'Marked as anti-examples, or they describe boot.sh, which already redirects.'],
+    ['listed', 'a', 'emulate-seed, testing-e2e, expect ci-integration', 'GitHub Actions steps on Linux runners, not commands an agent runs in a Windows shell.'],
+    ['listed', 'a', 'browser-rate-limiting, browser-auth-security, browser-patterns, web-research-analyst', '$( ) captures that run after an open in the same recipe, so the daemon is already up.'],
+    ['listed', 'b', 'src/skills/dev/scripts/stop.sh', 'pgrep -P is likely missing in Git Bash (not verified).'],
+    ['listed', 'b', 'src/hooks/docs/async-hooks.md', 'Doc example with timeout; not verified whether Git Bash ships it.'],
+    ['listed', 'b', '491 literal /tmp paths', 'Git Bash maps /tmp, native tools may not. Needs a Windows run to say which break.'],
+    ['listed', 'b', 'skills using lsof, launchctl, osascript, pbcopy', 'macOS only by design.'],
+    ['listed', 'c', 'portless, emulate-seed, 47 skills using gh', 'Already point to the vendor docs or to the github-operations skill. vercel and higgsfield: 0 matches.'],
+    ['listed', 'd', 'agent-browser 0.38.1, json-render 0.21.3, langgraph 1.2.12', 'The pin means "tested against". Latest read 2026-11-18: 0.43.0, 0.23.1, 1.2.22. Moving a pin needs a test pass.'],
+    ['listed', 'd', 'monitoring-observability (langfuse 4.16.0)', 'PyPI shows 5.2.0 and the file says the Python SDK is 4.x, so the claim may be stale. Needs a read of the 5.x changelog.'],
+    ['check', 'd', 'portless 0.15.6, emulate 0.12.0', 'Latest versions were not read in this change.']
+  ];
+  const LABEL = { fixed: 'Fixed', listed: 'Left as is', check: 'Not checked' };
+  const N = (k) => ROWS.filter((r) => r[0] === k).length;
+  let filter = 'all';
+  function renderRows() {
+    const rows = ROWS.filter((r) => filter === 'all' || r[0] === filter);
+    $('count').textContent = 'Showing ' + rows.length + ' of ' + ROWS.length + ' rows: ' + N('fixed') + ' fixed, ' + N('listed') + ' left as is, ' + N('check') + ' not checked.';
+    const ul = $('items'); ul.textContent = '';
+    for (const [st, cls, path, why] of rows) {
+      const li = document.createElement('li');
+      const tags = document.createElement('div');
+      const t1 = document.createElement('span'); t1.className = 'tag ' + (st === 'check' ? 'listed' : st); t1.textContent = LABEL[st];
+      const t2 = document.createElement('span'); t2.className = 'tag'; t2.textContent = 'class ' + cls;
+      tags.append(t1, t2);
+      const p = document.createElement('div'); p.className = 'path';
+      // Allow a line break only after / - _ . and spaces, never in the middle of a word.
+      path.split(/([\/\-_. ,])/).forEach((part) => { p.append(part); if (/^[\/\-_. ,]$/.test(part)) p.append(document.createElement('wbr')); });
+      const w = document.createElement('p'); w.className = 'why'; w.textContent = why;
+      li.append(tags, p, w); ul.append(li);
+    }
+  }
+  document.querySelectorAll('button[data-f]').forEach((b) => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('button[data-f]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderRows();
+  }));
+
+  showDoctor(); renderRows();
+
+  $('theme').addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    document.documentElement.dataset.theme = dark ? '' : 'dark';
+    $('theme').textContent = dark ? 'Dark' : 'Light';
+  });
+  $('copy').addEventListener('click', async () => {
+    const text = 'In orchestkit, check that src/skills/browser-tools/references/ork-delta.md has the "Windows (Git Bash) and piping" section, that src/skills/doctor/scripts/check-agent-browser-version.sh flags ' + ($('ver').value || 'an old version') + ' against MIN_VERSION ' + MIN + ', and that tests/unit/test-agent-browser-version-check.mjs passes (10 passed).';
+    try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; } catch { $('copy').textContent = 'Copy failed'; }
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
