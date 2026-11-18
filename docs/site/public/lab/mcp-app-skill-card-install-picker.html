@@ -39,46 +39,47 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit skill card&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9;--warn:#92400e}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d;--warn:#fcd34d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
-  .card{max-width:640px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
-  h1{margin:4px 0 8px;font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere}
-  h2{margin:16px 0 6px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+  h1{margin:0 0 4px;font-size:1.25rem;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+  h2{margin:24px 0 8px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
-  .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
-  .badge{display:inline-block;padding:2px 10px;border:1px solid var(--accent);border-radius:999px;color:var(--accent);font-size:.82rem;font-weight:600}
-  .cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
-  pre{flex:1 1 220px;min-width:0;margin:0;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+  .lead{margin:0 0 4px;font-weight:600}
+  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:normal;user-select:all}
+  .t{white-space:nowrap}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{min-height:44px;padding:8px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
   button:hover{filter:brightness(1.08)}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
-  a:focus-visible,button:focus-visible,input:focus-visible+label{outline:3px solid var(--accent);outline-offset:2px}
-  .status{min-height:1.5em;margin:6px 0 0;color:var(--muted);font-size:.9rem}
-  ul.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-  ul.near li{padding:4px 10px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  fieldset{margin:0 0 12px;padding:0;border:0;min-width:0}
-  legend{padding:0;margin:0 0 8px;font-weight:600}
+  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
+  .status:empty{margin:0}
+  .links{margin:16px 0 0}
+  ul.near{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  ul.near li{padding:4px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
+  legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);cursor:pointer;font-weight:600}
-  .seg input:checked+label{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .then{margin-top:12px}
+  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
+  .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:true,&quot;name&quot;:&quot;brainstorm&quot;,&quot;description&quot;:&quot;Design ideation with parallel agents: 10+ ideas, feasibility filter, devil&#x27;s-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).&quot;,&quot;plugin&quot;:&quot;ork&quot;,&quot;version&quot;:&quot;4.10.0&quot;,&quot;invoke&quot;:&quot;/ork:brainstorm&quot;,&quot;installCommand&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/reference/skills/brainstorm&quot;}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:true,&quot;name&quot;:&quot;brainstorm&quot;,&quot;description&quot;:&quot;Design ideation with parallel agents: 10+ ideas, feasibility filter, devil&#x27;s-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess).&quot;,&quot;summary&quot;:&quot;Design ideation with parallel agents: 10+ ideas, feasibility filter, devil&#x27;s-advocate scoring, trade-offs.&quot;,&quot;useWhen&quot;:&quot;Use when brainstorming or comparing alternatives.&quot;,&quot;plugin&quot;:&quot;ork&quot;,&quot;version&quot;:&quot;4.10.0&quot;,&quot;invoke&quot;:&quot;/ork:brainstorm&quot;,&quot;installCommand&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/reference/skills/brainstorm&quot;}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
   function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined&amp;&amp;text!==null)n.textContent=text;return n;}
   function safeUrl(u){return typeof u===&quot;string&quot;&amp;&amp;u.indexOf(&quot;https://orchestkit.dev/&quot;)===0?u:null;}
   function link(href,label){var u=safeUrl(href);if(!u)return null;var a=el(&quot;a&quot;,&quot;&quot;,label);a.href=u;a.target=&quot;_blank&quot;;a.rel=&quot;noopener noreferrer&quot;;return a;}
-  function copyButton(getText,status,label){
-    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,getText());
+  function copyButton(text,status,label){
+    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      var text=b.getAttribute(&quot;data-copy&quot;);
       function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
@@ -90,9 +91,15 @@
     });
     return b;
   }
+  // One command per line. Each space-separated word is a no-wrap unit, so a long
+  // command wraps between words and never inside one (no break at a hyphen).
   function commandBlock(lines,prompt){
     var pre=el(&quot;pre&quot;,&quot;&quot;);pre.tabIndex=0;
-    lines.forEach(function(l,i){var s=el(&quot;span&quot;,&quot;ln&quot;,l);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));});
+    lines.forEach(function(l,i){
+      var s=el(&quot;span&quot;,&quot;ln&quot;);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);
+      l.split(&quot; &quot;).forEach(function(w,j){if(j)s.appendChild(document.createTextNode(&quot; &quot;));s.appendChild(el(&quot;span&quot;,&quot;t&quot;,w));});
+      pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));
+    });
     return pre;
   }
   function tell(parent,message){parent.postMessage(message,&quot;*&quot;);}
@@ -112,32 +119,30 @@
     root.textContent=&quot;&quot;;
     if(!d||typeof d!==&quot;object&quot;){root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Waiting for skill data from the host…&quot;));return;}
     if(d.found===false){
-      root.appendChild(el(&quot;h1&quot;,&quot;&quot;,&quot;No such skill&quot;));
-      root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;OrchestKit has no skill named \u201c&quot;+String(d.query)+&quot;\u201d.&quot;));
       var near=Array.isArray(d.suggestions)?d.suggestions:[];
+      root.appendChild(el(&quot;h1&quot;,&quot;&quot;,near.length?&quot;Did you mean &quot;+String(near[0])+&quot;?&quot;:&quot;No such skill&quot;));
+      root.appendChild(el(&quot;p&quot;,&quot;sub&quot;,&quot;OrchestKit has no skill named \u201c&quot;+String(d.query)+&quot;\u201d.&quot;));
       if(near.length){
-        root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Nearest names&quot;));
+        root.appendChild(el(&quot;h2&quot;,&quot;&quot;,near.length&gt;1?&quot;Nearest names&quot;:&quot;Nearest name&quot;));
         var ul=el(&quot;ul&quot;,&quot;near&quot;);near.forEach(function(n){ul.appendChild(el(&quot;li&quot;,&quot;&quot;,String(n)));});root.appendChild(ul);
-        root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Ask for one of these by name to see its card.&quot;));
+        root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,near.length&gt;1?&quot;Ask for one of these by name to see its card.&quot;:&quot;Ask for it by name to see its card.&quot;));
       }else{
         root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Nothing close. Search the docs with orchestkit_docs_search.&quot;));
       }
       return;
     }
-    var meta=el(&quot;p&quot;,&quot;meta&quot;);
-    meta.appendChild(el(&quot;span&quot;,&quot;badge&quot;,&quot;plugin: &quot;+String(d.plugin)));
-    meta.appendChild(el(&quot;span&quot;,&quot;muted&quot;,&quot;v&quot;+String(d.version)));
-    root.appendChild(meta);
     root.appendChild(el(&quot;h1&quot;,&quot;&quot;,String(d.name)));
-    root.appendChild(el(&quot;p&quot;,&quot;&quot;,String(d.description)));
-    if(d.invoke){root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Run it&quot;));var run=commandBlock([String(d.invoke)],false);root.appendChild(run);}
+    root.appendChild(el(&quot;p&quot;,&quot;sub&quot;,&quot;Ships in the &quot;+String(d.plugin)+&quot; plugin \u00b7 skill v&quot;+String(d.version)));
+    root.appendChild(el(&quot;p&quot;,&quot;lead&quot;,String(d.summary||d.description)));
+    if(d.useWhen)root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,String(d.useWhen)));
     root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Install in Claude Code&quot;));
-    var row=el(&quot;div&quot;,&quot;cmd&quot;);
-    row.appendChild(commandBlock([String(d.installCommand)],true));
+    root.appendChild(commandBlock(String(d.installCommand).split(&quot; &amp;&amp; &quot;),true));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    row.appendChild(copyButton(function(){return String(d.installCommand);},status,&quot;Copy install command&quot;));
-    root.appendChild(row);root.appendChild(status);
-    var docs=link(d.docsUrl,&quot;Read the docs page&quot;);if(docs)root.appendChild(docs);
+    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy install command&quot;));
+    root.appendChild(status);
+    if(d.invoke){root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Then run it in Claude Code&quot;));root.appendChild(commandBlock([String(d.invoke)],false));}
+    var docs=link(d.docsUrl,String(d.name)+&quot; docs \u2192&quot;);
+    if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);root.appendChild(p);}
   }
   start(render);
 })();&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></figure>
@@ -148,34 +153,36 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit skill card&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9;--warn:#92400e}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d;--warn:#fcd34d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
-  .card{max-width:640px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
-  h1{margin:4px 0 8px;font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere}
-  h2{margin:16px 0 6px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+  h1{margin:0 0 4px;font-size:1.25rem;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+  h2{margin:24px 0 8px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
-  .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
-  .badge{display:inline-block;padding:2px 10px;border:1px solid var(--accent);border-radius:999px;color:var(--accent);font-size:.82rem;font-weight:600}
-  .cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
-  pre{flex:1 1 220px;min-width:0;margin:0;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+  .lead{margin:0 0 4px;font-weight:600}
+  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:normal;user-select:all}
+  .t{white-space:nowrap}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{min-height:44px;padding:8px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
   button:hover{filter:brightness(1.08)}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
-  a:focus-visible,button:focus-visible,input:focus-visible+label{outline:3px solid var(--accent);outline-offset:2px}
-  .status{min-height:1.5em;margin:6px 0 0;color:var(--muted);font-size:.9rem}
-  ul.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-  ul.near li{padding:4px 10px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  fieldset{margin:0 0 12px;padding:0;border:0;min-width:0}
-  legend{padding:0;margin:0 0 8px;font-weight:600}
+  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
+  .status:empty{margin:0}
+  .links{margin:16px 0 0}
+  ul.near{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  ul.near li{padding:4px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
+  legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);cursor:pointer;font-weight:600}
-  .seg input:checked+label{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .then{margin-top:12px}
+  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
+  .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
 &lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:false,&quot;query&quot;:&quot;brainstorn&quot;,&quot;suggestions&quot;:[&quot;brainstorm&quot;]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
@@ -184,10 +191,9 @@
   function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined&amp;&amp;text!==null)n.textContent=text;return n;}
   function safeUrl(u){return typeof u===&quot;string&quot;&amp;&amp;u.indexOf(&quot;https://orchestkit.dev/&quot;)===0?u:null;}
   function link(href,label){var u=safeUrl(href);if(!u)return null;var a=el(&quot;a&quot;,&quot;&quot;,label);a.href=u;a.target=&quot;_blank&quot;;a.rel=&quot;noopener noreferrer&quot;;return a;}
-  function copyButton(getText,status,label){
-    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,getText());
+  function copyButton(text,status,label){
+    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      var text=b.getAttribute(&quot;data-copy&quot;);
       function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
@@ -199,9 +205,15 @@
     });
     return b;
   }
+  // One command per line. Each space-separated word is a no-wrap unit, so a long
+  // command wraps between words and never inside one (no break at a hyphen).
   function commandBlock(lines,prompt){
     var pre=el(&quot;pre&quot;,&quot;&quot;);pre.tabIndex=0;
-    lines.forEach(function(l,i){var s=el(&quot;span&quot;,&quot;ln&quot;,l);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));});
+    lines.forEach(function(l,i){
+      var s=el(&quot;span&quot;,&quot;ln&quot;);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);
+      l.split(&quot; &quot;).forEach(function(w,j){if(j)s.appendChild(document.createTextNode(&quot; &quot;));s.appendChild(el(&quot;span&quot;,&quot;t&quot;,w));});
+      pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));
+    });
     return pre;
   }
   function tell(parent,message){parent.postMessage(message,&quot;*&quot;);}
@@ -221,32 +233,30 @@
     root.textContent=&quot;&quot;;
     if(!d||typeof d!==&quot;object&quot;){root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Waiting for skill data from the host…&quot;));return;}
     if(d.found===false){
-      root.appendChild(el(&quot;h1&quot;,&quot;&quot;,&quot;No such skill&quot;));
-      root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;OrchestKit has no skill named \u201c&quot;+String(d.query)+&quot;\u201d.&quot;));
       var near=Array.isArray(d.suggestions)?d.suggestions:[];
+      root.appendChild(el(&quot;h1&quot;,&quot;&quot;,near.length?&quot;Did you mean &quot;+String(near[0])+&quot;?&quot;:&quot;No such skill&quot;));
+      root.appendChild(el(&quot;p&quot;,&quot;sub&quot;,&quot;OrchestKit has no skill named \u201c&quot;+String(d.query)+&quot;\u201d.&quot;));
       if(near.length){
-        root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Nearest names&quot;));
+        root.appendChild(el(&quot;h2&quot;,&quot;&quot;,near.length&gt;1?&quot;Nearest names&quot;:&quot;Nearest name&quot;));
         var ul=el(&quot;ul&quot;,&quot;near&quot;);near.forEach(function(n){ul.appendChild(el(&quot;li&quot;,&quot;&quot;,String(n)));});root.appendChild(ul);
-        root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Ask for one of these by name to see its card.&quot;));
+        root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,near.length&gt;1?&quot;Ask for one of these by name to see its card.&quot;:&quot;Ask for it by name to see its card.&quot;));
       }else{
         root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Nothing close. Search the docs with orchestkit_docs_search.&quot;));
       }
       return;
     }
-    var meta=el(&quot;p&quot;,&quot;meta&quot;);
-    meta.appendChild(el(&quot;span&quot;,&quot;badge&quot;,&quot;plugin: &quot;+String(d.plugin)));
-    meta.appendChild(el(&quot;span&quot;,&quot;muted&quot;,&quot;v&quot;+String(d.version)));
-    root.appendChild(meta);
     root.appendChild(el(&quot;h1&quot;,&quot;&quot;,String(d.name)));
-    root.appendChild(el(&quot;p&quot;,&quot;&quot;,String(d.description)));
-    if(d.invoke){root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Run it&quot;));var run=commandBlock([String(d.invoke)],false);root.appendChild(run);}
+    root.appendChild(el(&quot;p&quot;,&quot;sub&quot;,&quot;Ships in the &quot;+String(d.plugin)+&quot; plugin \u00b7 skill v&quot;+String(d.version)));
+    root.appendChild(el(&quot;p&quot;,&quot;lead&quot;,String(d.summary||d.description)));
+    if(d.useWhen)root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,String(d.useWhen)));
     root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Install in Claude Code&quot;));
-    var row=el(&quot;div&quot;,&quot;cmd&quot;);
-    row.appendChild(commandBlock([String(d.installCommand)],true));
+    root.appendChild(commandBlock(String(d.installCommand).split(&quot; &amp;&amp; &quot;),true));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    row.appendChild(copyButton(function(){return String(d.installCommand);},status,&quot;Copy install command&quot;));
-    root.appendChild(row);root.appendChild(status);
-    var docs=link(d.docsUrl,&quot;Read the docs page&quot;);if(docs)root.appendChild(docs);
+    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy install command&quot;));
+    root.appendChild(status);
+    if(d.invoke){root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Then run it in Claude Code&quot;));root.appendChild(commandBlock([String(d.invoke)],false));}
+    var docs=link(d.docsUrl,String(d.name)+&quot; docs \u2192&quot;);
+    if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);root.appendChild(p);}
   }
   start(render);
 })();&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></figure>
@@ -262,46 +272,47 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit install picker&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9;--warn:#92400e}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d;--warn:#fcd34d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
-  .card{max-width:640px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
-  h1{margin:4px 0 8px;font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere}
-  h2{margin:16px 0 6px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+  h1{margin:0 0 4px;font-size:1.25rem;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+  h2{margin:24px 0 8px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
-  .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
-  .badge{display:inline-block;padding:2px 10px;border:1px solid var(--accent);border-radius:999px;color:var(--accent);font-size:.82rem;font-weight:600}
-  .cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
-  pre{flex:1 1 220px;min-width:0;margin:0;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+  .lead{margin:0 0 4px;font-weight:600}
+  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:normal;user-select:all}
+  .t{white-space:nowrap}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{min-height:44px;padding:8px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
   button:hover{filter:brightness(1.08)}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
-  a:focus-visible,button:focus-visible,input:focus-visible+label{outline:3px solid var(--accent);outline-offset:2px}
-  .status{min-height:1.5em;margin:6px 0 0;color:var(--muted);font-size:.9rem}
-  ul.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-  ul.near li{padding:4px 10px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  fieldset{margin:0 0 12px;padding:0;border:0;min-width:0}
-  legend{padding:0;margin:0 0 8px;font-weight:600}
+  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
+  .status:empty{margin:0}
+  .links{margin:16px 0 0}
+  ul.near{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  ul.near li{padding:4px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
+  legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);cursor:pointer;font-weight:600}
-  .seg input:checked+label{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .then{margin-top:12px}
+  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
+  .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;claude&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Full ork plugin: skills, agents, hooks.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;then&quot;:{&quot;label&quot;:&quot;Then run&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Same ork plugin. Claude hook scripts are not registered.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;then&quot;:{&quot;label&quot;:&quot;Then in a new chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;Portable ork-codex pack. Not the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;then&quot;:{&quot;label&quot;:&quot;Then invoke&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;claude&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Full ork plugin: skills, agents, hooks.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Same ork plugin. Claude hook scripts are not registered.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then in a new chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;Portable ork-codex pack. Not the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then invoke&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
   function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined&amp;&amp;text!==null)n.textContent=text;return n;}
   function safeUrl(u){return typeof u===&quot;string&quot;&amp;&amp;u.indexOf(&quot;https://orchestkit.dev/&quot;)===0?u:null;}
   function link(href,label){var u=safeUrl(href);if(!u)return null;var a=el(&quot;a&quot;,&quot;&quot;,label);a.href=u;a.target=&quot;_blank&quot;;a.rel=&quot;noopener noreferrer&quot;;return a;}
-  function copyButton(getText,status,label){
-    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,getText());
+  function copyButton(text,status,label){
+    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      var text=b.getAttribute(&quot;data-copy&quot;);
       function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
@@ -313,9 +324,15 @@
     });
     return b;
   }
+  // One command per line. Each space-separated word is a no-wrap unit, so a long
+  // command wraps between words and never inside one (no break at a hyphen).
   function commandBlock(lines,prompt){
     var pre=el(&quot;pre&quot;,&quot;&quot;);pre.tabIndex=0;
-    lines.forEach(function(l,i){var s=el(&quot;span&quot;,&quot;ln&quot;,l);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));});
+    lines.forEach(function(l,i){
+      var s=el(&quot;span&quot;,&quot;ln&quot;);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);
+      l.split(&quot; &quot;).forEach(function(w,j){if(j)s.appendChild(document.createTextNode(&quot; &quot;));s.appendChild(el(&quot;span&quot;,&quot;t&quot;,w));});
+      pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));
+    });
     return pre;
   }
   function tell(parent,message){parent.postMessage(message,&quot;*&quot;);}
@@ -335,20 +352,22 @@
   function hostById(id){for(var i=0;i&lt;data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById(&quot;out&quot;);out.textContent=&quot;&quot;;
-    out.appendChild(el(&quot;p&quot;,&quot;&quot;,h.what));
-    out.appendChild(el(&quot;p&quot;,&quot;muted&quot;,h.where));
-    var row=el(&quot;div&quot;,&quot;cmd&quot;);row.appendChild(commandBlock(h.commands,h.prompt));
+    out.appendChild(el(&quot;p&quot;,&quot;lead&quot;,h.where));
+    out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    row.appendChild(copyButton(function(){return h.copy;},status,&quot;Copy command&quot;));
-    out.appendChild(row);out.appendChild(status);
-    if(h.then){var t=el(&quot;div&quot;,&quot;then&quot;);t.appendChild(el(&quot;h2&quot;,&quot;&quot;,h.then.label));t.appendChild(commandBlock(h.then.commands,h.then.prompt));out.appendChild(t);}
-    var docs=link(h.docsUrl,&quot;Read the &quot;+h.name+&quot; install page&quot;);if(docs){var p=el(&quot;p&quot;,&quot;&quot;);p.style.marginTop=&quot;12px&quot;;p.appendChild(docs);out.appendChild(p);}
+    out.appendChild(copyButton(h.copy,status,h.copyLabel||&quot;Copy command&quot;));
+    out.appendChild(status);
+    out.appendChild(el(&quot;p&quot;,&quot;sub&quot;,h.what));
+    if(h.then){out.appendChild(el(&quot;h2&quot;,&quot;&quot;,h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
+    var docs=link(h.docsUrl,h.name+&quot; install page \u2192&quot;);
+    if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);out.appendChild(p);}
   }
   function render(d){
     root.textContent=&quot;&quot;;
     if(!d||typeof d!==&quot;object&quot;||!Array.isArray(d.hosts)||!d.hosts.length){root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Waiting for install data from the host…&quot;));return;}
     data=d;
-    var fs=el(&quot;fieldset&quot;,&quot;&quot;);fs.appendChild(el(&quot;legend&quot;,&quot;&quot;,&quot;Install OrchestKit in&quot;));
+    root.appendChild(el(&quot;h1&quot;,&quot;&quot;,&quot;Install OrchestKit&quot;));
+    var fs=el(&quot;fieldset&quot;,&quot;&quot;);fs.appendChild(el(&quot;legend&quot;,&quot;&quot;,&quot;Pick where you work&quot;));
     var seg=el(&quot;div&quot;,&quot;seg&quot;);
     d.hosts.forEach(function(h){
       var input=document.createElement(&quot;input&quot;);input.type=&quot;radio&quot;;input.name=&quot;host&quot;;input.id=&quot;host-&quot;+h.id;input.value=h.id;input.checked=(h.id===d.selected);
@@ -369,46 +388,47 @@
 &lt;meta name=&quot;color-scheme&quot; content=&quot;light dark&quot; /&gt;
 &lt;title&gt;OrchestKit install picker&lt;/title&gt;
 &lt;style&gt;
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9;--warn:#92400e}
-  @media all{:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d;--warn:#fcd34d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media all{:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,sans-serif;color:var(--fg);background:var(--bg)}
-  .card{max-width:640px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
-  h1{margin:4px 0 8px;font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere}
-  h2{margin:16px 0 6px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+  h1{margin:0 0 4px;font-size:1.25rem;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+  h2{margin:24px 0 8px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
-  .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
-  .badge{display:inline-block;padding:2px 10px;border:1px solid var(--accent);border-radius:999px;color:var(--accent);font-size:.82rem;font-weight:600}
-  .cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
-  pre{flex:1 1 220px;min-width:0;margin:0;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+  .lead{margin:0 0 4px;font-weight:600}
+  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:normal;user-select:all}
+  .t{white-space:nowrap}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
-  button{min-height:44px;padding:8px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
   button:hover{filter:brightness(1.08)}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
-  a:focus-visible,button:focus-visible,input:focus-visible+label{outline:3px solid var(--accent);outline-offset:2px}
-  .status{min-height:1.5em;margin:6px 0 0;color:var(--muted);font-size:.9rem}
-  ul.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-  ul.near li{padding:4px 10px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  fieldset{margin:0 0 12px;padding:0;border:0;min-width:0}
-  legend{padding:0;margin:0 0 8px;font-weight:600}
+  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
+  .status:empty{margin:0}
+  .links{margin:16px 0 0}
+  ul.near{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  ul.near li{padding:4px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
+  legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);cursor:pointer;font-weight:600}
-  .seg input:checked+label{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .then{margin-top:12px}
+  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
+  .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;codex&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Full ork plugin: skills, agents, hooks.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;then&quot;:{&quot;label&quot;:&quot;Then run&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Same ork plugin. Claude hook scripts are not registered.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;then&quot;:{&quot;label&quot;:&quot;Then in a new chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;Portable ork-codex pack. Not the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;then&quot;:{&quot;label&quot;:&quot;Then invoke&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;codex&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Full ork plugin: skills, agents, hooks.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Same ork plugin. Claude hook scripts are not registered.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then in a new chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;Portable ork-codex pack. Not the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then invoke&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
   function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined&amp;&amp;text!==null)n.textContent=text;return n;}
   function safeUrl(u){return typeof u===&quot;string&quot;&amp;&amp;u.indexOf(&quot;https://orchestkit.dev/&quot;)===0?u:null;}
   function link(href,label){var u=safeUrl(href);if(!u)return null;var a=el(&quot;a&quot;,&quot;&quot;,label);a.href=u;a.target=&quot;_blank&quot;;a.rel=&quot;noopener noreferrer&quot;;return a;}
-  function copyButton(getText,status,label){
-    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,getText());
+  function copyButton(text,status,label){
+    var b=el(&quot;button&quot;,&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      var text=b.getAttribute(&quot;data-copy&quot;);
       function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
@@ -420,9 +440,15 @@
     });
     return b;
   }
+  // One command per line. Each space-separated word is a no-wrap unit, so a long
+  // command wraps between words and never inside one (no break at a hyphen).
   function commandBlock(lines,prompt){
     var pre=el(&quot;pre&quot;,&quot;&quot;);pre.tabIndex=0;
-    lines.forEach(function(l,i){var s=el(&quot;span&quot;,&quot;ln&quot;,l);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));});
+    lines.forEach(function(l,i){
+      var s=el(&quot;span&quot;,&quot;ln&quot;);if(prompt)s.setAttribute(&quot;data-p&quot;,&quot;1&quot;);
+      l.split(&quot; &quot;).forEach(function(w,j){if(j)s.appendChild(document.createTextNode(&quot; &quot;));s.appendChild(el(&quot;span&quot;,&quot;t&quot;,w));});
+      pre.appendChild(s);if(i&lt;lines.length-1)pre.appendChild(document.createTextNode(&quot;\n&quot;));
+    });
     return pre;
   }
   function tell(parent,message){parent.postMessage(message,&quot;*&quot;);}
@@ -442,20 +468,22 @@
   function hostById(id){for(var i=0;i&lt;data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById(&quot;out&quot;);out.textContent=&quot;&quot;;
-    out.appendChild(el(&quot;p&quot;,&quot;&quot;,h.what));
-    out.appendChild(el(&quot;p&quot;,&quot;muted&quot;,h.where));
-    var row=el(&quot;div&quot;,&quot;cmd&quot;);row.appendChild(commandBlock(h.commands,h.prompt));
+    out.appendChild(el(&quot;p&quot;,&quot;lead&quot;,h.where));
+    out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    row.appendChild(copyButton(function(){return h.copy;},status,&quot;Copy command&quot;));
-    out.appendChild(row);out.appendChild(status);
-    if(h.then){var t=el(&quot;div&quot;,&quot;then&quot;);t.appendChild(el(&quot;h2&quot;,&quot;&quot;,h.then.label));t.appendChild(commandBlock(h.then.commands,h.then.prompt));out.appendChild(t);}
-    var docs=link(h.docsUrl,&quot;Read the &quot;+h.name+&quot; install page&quot;);if(docs){var p=el(&quot;p&quot;,&quot;&quot;);p.style.marginTop=&quot;12px&quot;;p.appendChild(docs);out.appendChild(p);}
+    out.appendChild(copyButton(h.copy,status,h.copyLabel||&quot;Copy command&quot;));
+    out.appendChild(status);
+    out.appendChild(el(&quot;p&quot;,&quot;sub&quot;,h.what));
+    if(h.then){out.appendChild(el(&quot;h2&quot;,&quot;&quot;,h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
+    var docs=link(h.docsUrl,h.name+&quot; install page \u2192&quot;);
+    if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);out.appendChild(p);}
   }
   function render(d){
     root.textContent=&quot;&quot;;
     if(!d||typeof d!==&quot;object&quot;||!Array.isArray(d.hosts)||!d.hosts.length){root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Waiting for install data from the host…&quot;));return;}
     data=d;
-    var fs=el(&quot;fieldset&quot;,&quot;&quot;);fs.appendChild(el(&quot;legend&quot;,&quot;&quot;,&quot;Install OrchestKit in&quot;));
+    root.appendChild(el(&quot;h1&quot;,&quot;&quot;,&quot;Install OrchestKit&quot;));
+    var fs=el(&quot;fieldset&quot;,&quot;&quot;);fs.appendChild(el(&quot;legend&quot;,&quot;&quot;,&quot;Pick where you work&quot;));
     var seg=el(&quot;div&quot;,&quot;seg&quot;);
     d.hosts.forEach(function(h){
       var input=document.createElement(&quot;input&quot;);input.type=&quot;radio&quot;;input.name=&quot;host&quot;;input.id=&quot;host-&quot;+h.id;input.value=h.id;input.checked=(h.id===d.selected);

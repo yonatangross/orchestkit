@@ -20,6 +20,10 @@ export type SkillCardData =
 			found: true;
 			name: string;
 			description: string;
+			/** The leading sentence(s) of the description: what the skill does. */
+			summary: string;
+			/** The "Use when ..." sentence of the description, if it has one. */
+			useWhen: string | null;
 			plugin: SkillPlugin;
 			version: string;
 			/** The slash command, only for a skill a person can type. */
@@ -40,6 +44,8 @@ export type InstallHostCard = {
 	copy: string;
 	/** Show a `$` before each command line. */
 	prompt: boolean;
+	/** The copy button's label: a repo name is not a command. */
+	copyLabel: string;
 	then: { label: string; commands: string[]; prompt: boolean } | null;
 	docsUrl: string;
 };
@@ -89,6 +95,23 @@ export function nearestSkillNames(query: string): string[] {
 		.map((s) => s.name);
 }
 
+/**
+ * Skill descriptions are written for the model's router: what the skill does,
+ * then "Use when ...", then "Not for ...". A person reading the card wants the
+ * first two. Both parts are cut from the real description, never rewritten.
+ */
+export function splitDescription(description: string): { summary: string; useWhen: string | null } {
+	const sentences = description
+		.split(/(?<=[.!?])\s+/)
+		.map((s) => s.trim())
+		.filter(Boolean);
+	const isRouting = (s: string) => /^(use (when|for)|not for)\b/i.test(s);
+	const firstRouting = sentences.findIndex(isRouting);
+	const lead = firstRouting === -1 ? sentences.slice(0, 1) : sentences.slice(0, firstRouting);
+	const useWhen = sentences.find((s) => /^use (when|for)\b/i.test(s)) ?? null;
+	return { summary: lead.length ? lead.join(" ") : description.trim(), useWhen };
+}
+
 export function buildSkillCard(rawName: string): SkillCardData {
 	const key = normalizeSkillName(rawName);
 	const skill = Object.prototype.hasOwnProperty.call(SKILLS, key) ? SKILLS[key] : undefined;
@@ -100,6 +123,7 @@ export function buildSkillCard(rawName: string): SkillCardData {
 		found: true,
 		name: skill.name,
 		description: skill.description,
+		...splitDescription(skill.description),
 		plugin,
 		version: skill.version,
 		invoke: skill.userInvocable ? `/${plugin}:${skill.name}` : null,
@@ -143,6 +167,11 @@ export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 			// second. A single slug or slash command copies as shown.
 			copy: spec.copy ?? (spec.prompt ? spec.commands.join(" && ") : spec.commands.join("\n")),
 			prompt: spec.prompt,
+			// A single word with no shell prompt is a marketplace slug, not a command.
+			copyLabel:
+				!spec.prompt && spec.commands.length === 1 && !spec.commands[0].includes(" ")
+					? "Copy repo name"
+					: "Copy command",
 			then: spec.then
 				? { label: spec.then.label, commands: [...spec.then.commands], prompt: spec.then.prompt }
 				: null,

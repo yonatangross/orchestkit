@@ -24,37 +24,40 @@ export const CARD_CSP = [
 ].join("; ");
 
 // Colors: every text pair is at least 4.5:1 (body and muted text, code, the
-// button label on its fill, the checked chip), in both schemes. Focus is a 3 px
-// ring in the accent color, shown for keyboard focus only.
+// button label on its fill, the selected host), in both schemes. Focus is a 3 px
+// ring in the accent color, shown for keyboard focus only. Spacing sits on the
+// 4, 8, 12, 16, 24 scale. One solid element per card: the copy button.
 const CARD_CSS = `
-  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9;--warn:#92400e}
-  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d;--warn:#fcd34d}}
+  :root{color-scheme:light dark;--bg:#ffffff;--fg:#111827;--muted:#4b5563;--accent:#4338ca;--on-accent:#ffffff;--surface:#f8fafc;--border:#cbd5e1;--code-bg:#f1f5f9}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e1626;--fg:#e9eef7;--muted:#a3b3cc;--accent:#a5b4fc;--on-accent:#0e1626;--surface:#111a2e;--border:#2a3a5c;--code-bg:#0a101d}}
   *{box-sizing:border-box}
   body{margin:0;padding:12px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--fg);background:var(--bg)}
-  .card{max-width:640px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
-  h1{margin:4px 0 8px;font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere}
-  h2{margin:16px 0 6px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .card{max-width:560px;margin:0 auto;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+  h1{margin:0 0 4px;font-size:1.25rem;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+  h2{margin:24px 0 8px;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
   p{margin:0 0 8px}
   .muted{color:var(--muted)}
-  .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
-  .badge{display:inline-block;padding:2px 10px;border:1px solid var(--accent);border-radius:999px;color:var(--accent);font-size:.82rem;font-weight:600}
-  .cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
-  pre{flex:1 1 220px;min-width:0;margin:0;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;user-select:all}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+  .lead{margin:0 0 4px;font-weight:600}
+  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:normal;user-select:all}
+  .t{white-space:nowrap}
   .ln[data-p]::before{content:"$ ";color:var(--muted);user-select:none}
-  button{min-height:44px;padding:8px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
+  button{display:inline-block;min-height:44px;padding:12px 24px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
   button:hover{filter:brightness(1.08)}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
-  a:focus-visible,button:focus-visible,input:focus-visible+label{outline:3px solid var(--accent);outline-offset:2px}
-  .status{min-height:1.5em;margin:6px 0 0;color:var(--muted);font-size:.9rem}
-  ul.near{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
-  ul.near li{padding:4px 10px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  fieldset{margin:0 0 12px;padding:0;border:0;min-width:0}
-  legend{padding:0;margin:0 0 8px;font-weight:600}
+  a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
+  .status:empty{margin:0}
+  .links{margin:16px 0 0}
+  ul.near{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+  ul.near li{padding:4px 12px;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
+  legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);cursor:pointer;font-weight:600}
-  .seg input:checked+label{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .then{margin-top:12px}
+  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
+  .seg input:checked+label::before{content:"\\2713\\00a0"}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
 `;
 
@@ -66,10 +69,9 @@ const CARD_RUNTIME = `
   function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined&&text!==null)n.textContent=text;return n;}
   function safeUrl(u){return typeof u==="string"&&u.indexOf("https://orchestkit.dev/")===0?u:null;}
   function link(href,label){var u=safeUrl(href);if(!u)return null;var a=el("a","",label);a.href=u;a.target="_blank";a.rel="noopener noreferrer";return a;}
-  function copyButton(getText,status,label){
-    var b=el("button","",label);b.type="button";b.setAttribute("data-copy",getText());
+  function copyButton(text,status,label){
+    var b=el("button","",label);b.type="button";b.setAttribute("data-copy",text);
     b.addEventListener("click",function(){
-      var text=b.getAttribute("data-copy");
       function done(ok){status.textContent=ok?"Copied to the clipboard.":"Copy was blocked here. Select the command and press Ctrl+C.";}
       function fallback(){
         var ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");
@@ -81,9 +83,15 @@ const CARD_RUNTIME = `
     });
     return b;
   }
+  // One command per line. Each space-separated word is a no-wrap unit, so a long
+  // command wraps between words and never inside one (no break at a hyphen).
   function commandBlock(lines,prompt){
     var pre=el("pre","");pre.tabIndex=0;
-    lines.forEach(function(l,i){var s=el("span","ln",l);if(prompt)s.setAttribute("data-p","1");pre.appendChild(s);if(i<lines.length-1)pre.appendChild(document.createTextNode("\\n"));});
+    lines.forEach(function(l,i){
+      var s=el("span","ln");if(prompt)s.setAttribute("data-p","1");
+      l.split(" ").forEach(function(w,j){if(j)s.appendChild(document.createTextNode(" "));s.appendChild(el("span","t",w));});
+      pre.appendChild(s);if(i<lines.length-1)pre.appendChild(document.createTextNode("\\n"));
+    });
     return pre;
   }
   function tell(parent,message){parent.postMessage(message,"*");}
@@ -119,32 +127,30 @@ export const SKILL_CARD_HTML = page(
     root.textContent="";
     if(!d||typeof d!=="object"){root.appendChild(el("p","muted","Waiting for skill data from the host…"));return;}
     if(d.found===false){
-      root.appendChild(el("h1","","No such skill"));
-      root.appendChild(el("p","muted","OrchestKit has no skill named \\u201c"+String(d.query)+"\\u201d."));
       var near=Array.isArray(d.suggestions)?d.suggestions:[];
+      root.appendChild(el("h1","",near.length?"Did you mean "+String(near[0])+"?":"No such skill"));
+      root.appendChild(el("p","sub","OrchestKit has no skill named \\u201c"+String(d.query)+"\\u201d."));
       if(near.length){
-        root.appendChild(el("h2","","Nearest names"));
+        root.appendChild(el("h2","",near.length>1?"Nearest names":"Nearest name"));
         var ul=el("ul","near");near.forEach(function(n){ul.appendChild(el("li","",String(n)));});root.appendChild(ul);
-        root.appendChild(el("p","muted","Ask for one of these by name to see its card."));
+        root.appendChild(el("p","muted",near.length>1?"Ask for one of these by name to see its card.":"Ask for it by name to see its card."));
       }else{
         root.appendChild(el("p","muted","Nothing close. Search the docs with orchestkit_docs_search."));
       }
       return;
     }
-    var meta=el("p","meta");
-    meta.appendChild(el("span","badge","plugin: "+String(d.plugin)));
-    meta.appendChild(el("span","muted","v"+String(d.version)));
-    root.appendChild(meta);
     root.appendChild(el("h1","",String(d.name)));
-    root.appendChild(el("p","",String(d.description)));
-    if(d.invoke){root.appendChild(el("h2","","Run it"));var run=commandBlock([String(d.invoke)],false);root.appendChild(run);}
+    root.appendChild(el("p","sub","Ships in the "+String(d.plugin)+" plugin \\u00b7 skill v"+String(d.version)));
+    root.appendChild(el("p","lead",String(d.summary||d.description)));
+    if(d.useWhen)root.appendChild(el("p","muted",String(d.useWhen)));
     root.appendChild(el("h2","","Install in Claude Code"));
-    var row=el("div","cmd");
-    row.appendChild(commandBlock([String(d.installCommand)],true));
+    root.appendChild(commandBlock(String(d.installCommand).split(" && "),true));
     var status=el("p","status");status.setAttribute("role","status");
-    row.appendChild(copyButton(function(){return String(d.installCommand);},status,"Copy install command"));
-    root.appendChild(row);root.appendChild(status);
-    var docs=link(d.docsUrl,"Read the docs page");if(docs)root.appendChild(docs);
+    root.appendChild(copyButton(String(d.installCommand),status,"Copy install command"));
+    root.appendChild(status);
+    if(d.invoke){root.appendChild(el("h2","","Then run it in Claude Code"));root.appendChild(commandBlock([String(d.invoke)],false));}
+    var docs=link(d.docsUrl,String(d.name)+" docs \\u2192");
+    if(docs){var p=el("p","links");p.appendChild(docs);root.appendChild(p);}
   }
   start(render);
 `,
@@ -157,20 +163,22 @@ export const INSTALL_PICKER_HTML = page(
   function hostById(id){for(var i=0;i<data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById("out");out.textContent="";
-    out.appendChild(el("p","",h.what));
-    out.appendChild(el("p","muted",h.where));
-    var row=el("div","cmd");row.appendChild(commandBlock(h.commands,h.prompt));
+    out.appendChild(el("p","lead",h.where));
+    out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el("p","status");status.setAttribute("role","status");
-    row.appendChild(copyButton(function(){return h.copy;},status,"Copy command"));
-    out.appendChild(row);out.appendChild(status);
-    if(h.then){var t=el("div","then");t.appendChild(el("h2","",h.then.label));t.appendChild(commandBlock(h.then.commands,h.then.prompt));out.appendChild(t);}
-    var docs=link(h.docsUrl,"Read the "+h.name+" install page");if(docs){var p=el("p","");p.style.marginTop="12px";p.appendChild(docs);out.appendChild(p);}
+    out.appendChild(copyButton(h.copy,status,h.copyLabel||"Copy command"));
+    out.appendChild(status);
+    out.appendChild(el("p","sub",h.what));
+    if(h.then){out.appendChild(el("h2","",h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
+    var docs=link(h.docsUrl,h.name+" install page \\u2192");
+    if(docs){var p=el("p","links");p.appendChild(docs);out.appendChild(p);}
   }
   function render(d){
     root.textContent="";
     if(!d||typeof d!=="object"||!Array.isArray(d.hosts)||!d.hosts.length){root.appendChild(el("p","muted","Waiting for install data from the host…"));return;}
     data=d;
-    var fs=el("fieldset","");fs.appendChild(el("legend","","Install OrchestKit in"));
+    root.appendChild(el("h1","","Install OrchestKit"));
+    var fs=el("fieldset","");fs.appendChild(el("legend","","Pick where you work"));
     var seg=el("div","seg");
     d.hosts.forEach(function(h){
       var input=document.createElement("input");input.type="radio";input.name="host";input.id="host-"+h.id;input.value=h.id;input.checked=(h.id===d.selected);

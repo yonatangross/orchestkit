@@ -242,10 +242,23 @@ describe("skill card renders", () => {
 		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorm" } });
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
 		const text = document.body.textContent ?? "";
+		const real = SKILLS["brainstorm"];
 		expect(text).toContain("brainstorm");
-		expect(text).toContain(SKILLS["brainstorm"].description);
-		expect(text).toContain("ork");
-		expect(text).toContain(SITE.installCommand);
+		// The card shows the leading sentence and the "Use when" sentence, both cut
+		// from the real description; the routing text after them is not shown.
+		expect(call.structuredContent.summary.length).toBeGreaterThan(0);
+		expect(real.description.startsWith(call.structuredContent.summary)).toBe(true);
+		expect(text).toContain(call.structuredContent.summary);
+		expect(call.structuredContent.useWhen).toMatch(/^Use when/);
+		expect(real.description).toContain(call.structuredContent.useWhen);
+		expect(text).toContain(call.structuredContent.useWhen);
+		expect(text).not.toContain("Not for building");
+		expect(text).toContain("Ships in the ork plugin");
+		// Install first, then run: the install block comes before the run block.
+		const installLines = SITE.installCommand.split(" && ");
+		for (const line of installLines) expect(text).toContain(line);
+		expect(text.indexOf("Install in Claude Code")).toBeLessThan(text.indexOf("Then run it in Claude Code"));
+		expect(text).toContain("/ork:brainstorm");
 		const btn = document.querySelector("button[data-copy]") as HTMLButtonElement | null;
 		expect(btn, "copy button").not.toBeNull();
 		expect(btn!.tagName).toBe("BUTTON");
@@ -257,10 +270,47 @@ describe("skill card renders", () => {
 		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorn" } });
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
 		const text = document.body.textContent ?? "";
-		expect(text).toMatch(/no such skill/i);
-		expect(text).toContain("brainstorn");
-		expect(text).toContain("brainstorm");
+		// A headline with the answer, the typed name quoted, and a path forward.
+		expect(document.querySelector("h1")?.textContent).toBe("Did you mean brainstorm?");
+		expect(text).toContain("OrchestKit has no skill named “brainstorn”.");
+		expect(text).toContain("Ask for it by name");
 		expect(document.querySelector("button[data-copy]")).toBeNull();
+	});
+
+	it("an unknown name with nothing close says so and points at the docs search", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "zzzzzzzz" } });
+		expect(call.structuredContent).toMatchObject({ found: false, suggestions: [] });
+		mount(await viewHtml(SKILL_URI), call.structuredContent);
+		expect(document.querySelector("h1")?.textContent).toBe("No such skill");
+		expect(document.body.textContent).toContain("orchestkit_docs_search");
+	});
+
+	it("long, short and missing content still render: a 200-character name, an empty description", async () => {
+		const longName = "x".repeat(200);
+		mount(await viewHtml(SKILL_URI), {
+			found: true,
+			name: longName,
+			description: "",
+			summary: "",
+			useWhen: null,
+			plugin: "ork",
+			version: "1.0.0",
+			invoke: null,
+			installCommand: SITE.installCommand,
+			docsUrl: `${SITE.domain}/docs/reference/skills/${longName}`,
+		});
+		expect(document.querySelector("h1")?.textContent).toBe(longName);
+		expect(document.querySelector("button[data-copy]")).not.toBeNull();
+		expect(document.body.textContent).not.toContain("Then run it");
+	});
+
+	it("a command wraps between words, never inside one: every word is a no-wrap unit", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: { host: "codex" } });
+		mount(await viewHtml(PICKER_URI), call.structuredContent);
+		const words = [...document.querySelectorAll("pre .t")].map((n) => n.textContent);
+		expect(words).toContain("ork-codex@orchestkit-codex");
+		expect(words).toContain("--sparse");
+		expect(words.some((w) => w?.includes(" "))).toBe(false);
 	});
 
 	it("renders text as text: a hostile description cannot inject markup", async () => {
@@ -312,6 +362,16 @@ describe("install picker renders", () => {
 		const btn = document.querySelector("button[data-copy]") as HTMLButtonElement;
 		expect(btn.getAttribute("data-copy")).toBe(hosts.find((h) => h.id === "codex")!.copy);
 		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("a repo name is labelled as a repo name, a shell command as a command", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: {} });
+		const hosts = call.structuredContent.hosts as Array<{ id: string; copyLabel: string }>;
+		expect(hosts.find((h) => h.id === "cursor")!.copyLabel).toBe("Copy repo name");
+		expect(hosts.find((h) => h.id === "claude")!.copyLabel).toBe("Copy command");
+		expect(hosts.find((h) => h.id === "codex")!.copyLabel).toBe("Copy command");
+		mount(await viewHtml(PICKER_URI), { ...call.structuredContent, selected: "cursor" });
+		expect(document.querySelector("button[data-copy]")?.textContent).toBe("Copy repo name");
 	});
 
 	it("preselects the host the tool was asked for", async () => {
