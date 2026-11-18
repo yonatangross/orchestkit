@@ -224,10 +224,14 @@ describe("each host's install command equals the manifest text", () => {
 
 // The frame runs the card's own script, so render each view for real data in the
 // test DOM: build the body from the served HTML, set the host's toolOutput, run it.
+// The served HTML is parsed with the DOM's own parser (a parsed document never
+// runs its scripts), so no regex has to recognise a script tag.
 function mount(html: string, toolOutput: unknown) {
-	const body = /<body[^>]*>([\s\S]*?)<script>/.exec(html)?.[1] ?? "";
-	const script = /<script>([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "";
-	document.body.innerHTML = body;
+	const doc = new DOMParser().parseFromString(html, "text/html");
+	const scripts = [...doc.body.querySelectorAll("script")];
+	const script = scripts[0]?.textContent ?? "";
+	for (const el of scripts) el.remove();
+	document.body.innerHTML = doc.body.innerHTML;
 	(window as unknown as { openai: unknown }).openai = { toolOutput };
 	(0, eval)(script);
 }

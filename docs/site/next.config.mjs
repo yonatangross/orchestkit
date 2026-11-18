@@ -189,8 +189,24 @@ const config = {
 					value: "GET, POST, OPTIONS",
 				},
 				{
+					// A browser-based MCP host on another origin sends MCP transport
+					// headers on every POST to /api/mcp, so each one must be allowed
+					// here or the preflight fails before the request is made. Names
+					// from the MCP spec, Streamable HTTP transport, read at revision
+					// 2026-07-28: MCP-Protocol-Version, Mcp-Method and Mcp-Name are
+					// required request headers in that revision; Mcp-Session-Id and
+					// Last-Event-ID are the 2025-06-18 to 2025-11-25 headers, which
+					// clients of the version this server speaks (2025-06-18) still send.
 					key: "Access-Control-Allow-Headers",
-					value: "Content-Type, Accept",
+					value: [
+						"Content-Type",
+						"Accept",
+						"MCP-Protocol-Version",
+						"Mcp-Method",
+						"Mcp-Name",
+						"Mcp-Session-Id",
+						"Last-Event-ID",
+					].join(", "),
 				},
 				{
 					// Without this, the CORS allowance above is only half a grant. A
@@ -199,7 +215,8 @@ const config = {
 					// `null` from every RateLimit-* lookup and cannot pace itself, while
 					// curl sees them fine. Same request, different visibility, no error
 					// either way. Everything listed here is a public pacing or policy
-					// signal already sent to every client.
+					// signal already sent to every client, plus Mcp-Session-Id, which an
+					// MCP client on the 2025-06-18 to 2025-11-25 transport must read back.
 					key: "Access-Control-Expose-Headers",
 					value: [
 						"RateLimit-Policy",
@@ -215,6 +232,7 @@ const config = {
 						"Sunset",
 						"X-Total-Count",
 						"X-Next-Cursor",
+						"Mcp-Session-Id",
 					].join(", "),
 				},
 				// RFC 8288 Link headers — advertise agent-discovery resources so agents
