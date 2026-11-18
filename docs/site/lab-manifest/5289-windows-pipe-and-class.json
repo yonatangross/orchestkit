@@ -1,0 +1,8 @@
+{
+  "slug": "5289-windows-pipe-and-class",
+  "source": "docs/fix--5289-windows-pipe-and-class/index.html",
+  "title": "browser-tools on Windows: redirect instead of piping, and doctor flags an old agent-browser",
+  "description": "On native Windows with Git Bash, piping an agent-browser command that starts the daemon can hang forever. The skills now say to redirect to a file with stdin closed, and doctor warns when agent-browser is below the minimum. Pick a command and a version to see both.",
+  "tags": ["skills", "browser-tools", "doctor"],
+  "date": "2026-11-18"
+}

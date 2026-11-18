@@ -22,6 +22,10 @@ OrchestKit security wrapper for `agent-browser`. **For command reference and usa
 
 > **Command docs**: Refer to the upstream `agent-browser` skill for the full command reference (50+ commands: interaction, wait, capture, extraction, storage, semantic locators, tabs, debug, mobile, network, cookies, state, vault).
 
+> **Load agent-browser's own guide before the first command, never drive it from memory.** Run `agent-browser skills get core` (add `--full` for the whole command reference), plus `agent-browser skills get dogfood` for a QA sweep. The binary ships the guide for its own version, so it is the one that matches what is installed.
+>
+> **Never pipe a command that may start the daemon** (`agent-browser open ... | tail`): on native Windows under Git Bash it can hang forever. Redirect to a file instead, see `references/ork-delta.md`, section "Windows (Git Bash) and piping".
+
 ## Upstream coverage (do not restate)
 
 These topics belong to the vendor. Read them at the source; do not copy them back into this skill.
@@ -35,7 +39,7 @@ These topics belong to the vendor. Read them at the source; do not copy them bac
 | Exploratory QA sweep with repro evidence (issue taxonomy, report template) | `dogfood` skill · https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md |
 | Named `.localhost` dev URLs | `ork-extras:portless` skill · https://github.com/vercel-labs/portless |
 
-**Our delta over all of the above**: `references/ork-delta.md`, covering what nothing checks any more, polite pacing across sessions, and the local-URL policy.
+**Our delta over all of the above**: `references/ork-delta.md`, covering what nothing checks any more, the Windows (Git Bash) no-pipe rule, polite pacing across sessions, and the local-URL policy.
 
 ## Decision Tree
 
