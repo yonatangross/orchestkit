@@ -18,6 +18,41 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.15.0",
+    "date": "2026-11-18",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.14.0...v10.15.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**plugins:** move 7 operator skills to ork-extras, slash-only ([#5287](https://github.com/yonatangross/orchestkit/issues/5287)) ([a91d565](https://github.com/yonatangross/orchestkit/commit/a91d565ff0eb66b5f4431af30746af87b91cf511))",
+          "**site:** add a skill card and an install picker to the docs MCP app ([#5291](https://github.com/yonatangross/orchestkit/issues/5291)) ([e03e7e0](https://github.com/yonatangross/orchestkit/commit/e03e7e055773b23ac659b1ff9642b6be49e48bb0))",
+          "**skills:** one design-to-code skill that reads Claude Design exports ([#5277](https://github.com/yonatangross/orchestkit/issues/5277)) ([927d21d](https://github.com/yonatangross/orchestkit/commit/927d21d4697eddc9b1b6e123d2159059a1dafa4f))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**browser-tools:** Windows no-pipe note, doctor version check ([#5290](https://github.com/yonatangross/orchestkit/issues/5290)) ([8ba7e64](https://github.com/yonatangross/orchestkit/commit/8ba7e64e04eeab7a76eaca7e36c9264d2856f19f))",
+          "**design-to-code:** quote the PR title in ship mode, body from a file ([#5286](https://github.com/yonatangross/orchestkit/issues/5286)) ([7bcbad5](https://github.com/yonatangross/orchestkit/commit/7bcbad503911f966b3150aa75dc29dbf95ba0153))",
+          "**review-pr:** four follow-ups on the proven-by-a-run tier ([#5288](https://github.com/yonatangross/orchestkit/issues/5288)) ([356405c](https://github.com/yonatangross/orchestkit/commit/356405c9ddc2c6d3f34e34bb1179389500cff8ba))",
+          "**security:** allowlist picomatch advisory 1247710 until 2026-12-17 ([#5283](https://github.com/yonatangross/orchestkit/issues/5283)) ([4b3ff36](https://github.com/yonatangross/orchestkit/commit/4b3ff3685f5233fa3781269551791b519915905c))",
+          "**site,audit-full:** allow MCP CORS headers ([#5293](https://github.com/yonatangross/orchestkit/issues/5293)) ([c8e17aa](https://github.com/yonatangross/orchestkit/commit/c8e17aa068ce4ee912836a66241b9627032ad0f4))",
+          "**skills:** trigger wording and an open-pr route for three skills ([#5292](https://github.com/yonatangross/orchestkit/issues/5292)) ([ccfbcdc](https://github.com/yonatangross/orchestkit/commit/ccfbcdc9802289ce1cd2296755f621aed1c938a6))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Code Refactoring",
+        "items": [
+          "**skills:** fold remember, dream and ci-sentinel into other skills ([#5278](https://github.com/yonatangross/orchestkit/issues/5278)) ([1af9acd](https://github.com/yonatangross/orchestkit/commit/1af9acda7bd077b6f29bd04bcfaa5ae4e7a0d33f))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.14.0",
     "date": "2026-11-17",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.13.0...v10.14.0",
