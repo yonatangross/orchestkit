@@ -10,13 +10,25 @@
 // node:fs cannot be used. Import this file from Node only (config, tests).
 
 import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SKILL_PAGES_DIR = fileURLToPath(
-	new URL("../content/docs/reference/skills/", import.meta.url),
-);
+const SKILL_PAGES_REL = "content/docs/reference/skills";
 
-export function singlePageSkillSlugs(dir = SKILL_PAGES_DIR) {
+// next.config.mjs loads this file as a real file: module, so the folder is
+// found next to it. The site tests run in happy-dom, where import.meta.url is
+// not the file's real location (it may not be file: at all), so when that
+// path does not exist the folder is found from the working directory (vitest
+// and next build both run from docs/site), the same way the tests find it.
+function defaultSkillPagesDir() {
+	if (import.meta.url.startsWith("file:")) {
+		const besideThisFile = fileURLToPath(new URL(`../${SKILL_PAGES_REL}/`, import.meta.url));
+		if (existsSync(besideThisFile)) return besideThisFile;
+	}
+	return join(process.cwd(), SKILL_PAGES_REL);
+}
+
+export function singlePageSkillSlugs(dir = defaultSkillPagesDir()) {
 	if (!existsSync(dir)) return [];
 	return readdirSync(dir)
 		.filter((name) => name.endsWith(".mdx") && name !== "index.mdx")

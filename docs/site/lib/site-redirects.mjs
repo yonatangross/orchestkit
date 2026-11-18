@@ -84,7 +84,9 @@ function isKeptOnLegacyHost(path) {
 // Order is the contract (first match wins): old-host copies of the path
 // redirects, then the old-host catch-alls, then the path redirects that
 // serve the canonical host.
-// skillSlugs: the skills the build wrote as one page (lib/skill-page-slugs.mjs).
+/**
+ * @param {string[]} [skillSlugs] the skills the build wrote as one page (lib/skill-page-slugs.mjs)
+ */
 export function siteRedirects(skillSlugs = []) {
 	return [
 		...hostAliasRedirects(LEGACY_HOST, skillSlugs),
