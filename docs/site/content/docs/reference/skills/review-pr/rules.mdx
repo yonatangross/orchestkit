@@ -1,0 +1,495 @@
+---
+title: "Review Pr: Rules"
+description: "3 rules for the Review Pr skill: Agent Prompts: Agent Teams Mode; Agent Prompts: Agent Tool Mode; Configure an AI code review agent for prompt injection and token limit checks"
+---
+
+> Part of the [Review Pr](/docs/reference/skills/review-pr) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
+
+## Rules (3)
+
+### Agent Prompts: Agent Teams Mode: HIGH
+
+
+# Agent Prompts: Agent Teams Mode
+
+In Agent Teams mode, form a review team where reviewers cross-reference findings directly.
+
+## Project Context Injection
+
+Before spawning agents, load project-specific review context if it exists:
+
+```python
+# Load project review context from memory (if available)
+PROJECT_CONTEXT = ""
+try:
+    Read("${MEMORY_DIR}/review-pr-context.md")  # ${MEMORY_DIR} = project memory path
+    PROJECT_CONTEXT = "<result from read>"
+except:
+    PROJECT_CONTEXT = "No project-specific review context available."
+```
+
+## Structured Output Contract
+
+Every agent MUST return a JSON block (fenced with ```json```) at the end of their review matching the schema in `review-pr-output.md`. Category prefixes: SEC, PERF, BUG, MAINT, A11Y, TEST.
+
+## Team Formation
+
+```python
+# DOMAIN-AWARE AGENT SELECTION
+# Core agents (always spawn): quality-reviewer, security-reviewer, test-reviewer
+# Conditional: backend-reviewer (if HAS_BACKEND), frontend-reviewer (if HAS_FRONTEND)
+
+# Capture scope from Phase 1
+CHANGED_FILES = "$(gh pr diff $PR_NUMBER --name-only)"
+
+# CC 2.1.178+: one implicit team per session — no TeamCreate.
+# Spawn teammates directly via Agent(name=...). Requires
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
+
+Agent(subagent_type="ork:code-quality-reviewer", name="quality-reviewer",
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review code quality and type safety for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
+     When you find patterns that overlap with security concerns,
+     message security-reviewer with the finding.
+     When you find test gaps, message test-reviewer.
+     Return findings as a JSON block (```json```) with category prefix MAINT.""")
+
+Agent(subagent_type="ork:security-auditor", name="security-reviewer",
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Security audit for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
+     Check: fail-closed auth, SSRF on user-controlled URLs, rate limiting, secrets in diff.
+     Cross-reference with quality-reviewer for injection risks in code patterns.
+     When you find issues, message the responsible reviewer (backend-reviewer
+     for API issues, frontend-reviewer for XSS).
+     Return findings as a JSON block (```json```) with category prefix SEC.""")
+
+Agent(subagent_type="ork:test-generator", name="test-reviewer",
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review TEST ADEQUACY for PR #$PR_NUMBER.
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
+     1. Check: Does the PR add/modify code WITHOUT adding tests? Flag as MISSING.
+     2. Match change types to required test types (testing-unit/testing-e2e/testing-integration rules):
+        - API → integration-api, verification-contract
+        - DB → integration-database, data-seeding-cleanup
+        - UI → unit-aaa-pattern, a11y-testing
+        - Logic → verification-techniques
+     3. Evaluate test quality: meaningful assertions, no flaky patterns.
+     4. When quality-reviewer flags test gaps, verify and suggest specific tests.
+     Message backend-reviewer or frontend-reviewer with test requirements.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
+     Return findings as a JSON block (```json```) with category prefix TEST.""")
+
+# Only spawn if backend files detected (HAS_BACKEND)
+Agent(subagent_type="ork:backend-system-architect", name="backend-reviewer",
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review backend code for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
+     Check: Redis connection lifecycle, webhook auth (fail-closed), N+1 queries, async patterns.
+     When security-reviewer flags API issues, validate and suggest fixes.
+     Share API pattern findings with frontend-reviewer for consistency.
+     Return findings as a JSON block (```json```) with prefixes BUG/PERF/MAINT.""")
+
+# Only spawn if frontend files detected (HAS_FRONTEND)
+Agent(subagent_type="ork:frontend-ui-developer", name="frontend-reviewer",
+     team_name="review-pr-$PR_NUMBER",
+     prompt="""Review frontend code for PR #$PR_NUMBER.
+
+     ## Project Context
+     ${PROJECT_CONTEXT}
+
+     Scope: ONLY review the following changed files:
+     ${CHANGED_FILES}
+     Do NOT explore beyond these files.
+     Check: SSR safety (no navigator/window outside hooks), button type attrs, a11y.
+     When backend-reviewer shares API patterns, verify frontend matches.
+     When security-reviewer flags XSS risks, validate and suggest fixes.
+     Return findings as a JSON block (```json```) with prefixes A11Y/PERF/BUG.""")
+```
+
+**Team teardown** after synthesis (only shut down agents that were actually spawned):
+```python
+# After collecting all findings and producing the review
+# CC 2.1.178+: no TeamDelete — teammates wind down at turn end
+# (press Ctrl+F twice to stop lingering background teammates).
+
+# Worktree cleanup (CC 2.1.72)
+ExitWorktree(action="keep")
+```
+
+**Teammate lifecycle (CC 2.1.178+):** No explicit teardown, teammates wind down
+when their turn ends. A teammate's `run_in_background` task now survives its own
+turn-end too (CC 2.1.183), so a long check can outlive the teammate and still be
+collected at synthesis. To force-stop a teammate left spinning on a background
+task, press `Ctrl+F` twice (foreground/Stop).
+
+> **Fallback:** If team formation fails, use standard Agent tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).
+
+
+### Agent Prompts: Agent Tool Mode: HIGH
+
+
+# Agent Prompts, Agent Tool Mode
+
+Fallback. Default: `workflows/review-fanout.js` runs Phase 3 (SKILL.md) with these roles and this contract. Without the Workflow tool, launch SIX specialized reviewers in ONE message with `run_in_background: false`.
+
+**Why foreground (#3892):** review-pr runs as `context: fork`, and a fork is finished the moment its turn ends. Background reviewers let the fork end its turn with "waiting on the reviewers", so the skill reports `completed` with no verdict and the reviewer results arrive later as stray task-notifications in the parent session. Foreground calls sent in ONE message still run concurrently; the fork simply cannot end its turn until every reviewer has returned. Do not end the turn, and do not start Phase 5 synthesis, while any reviewer is still running.
+
+| Agent | Focus Area |
+|-------|-----------|
+| code-quality-reviewer #1 | Readability, complexity, DRY |
+| code-quality-reviewer #2 | Type safety, Zod, Pydantic |
+| security-auditor | Security, secrets, injection |
+| test-generator | Test coverage, edge cases |
+| backend-system-architect | API, async, transactions |
+| frontend-ui-developer | React 19, hooks, a11y |
+
+## Project Context Injection
+
+Before spawning agents, load project-specific review context if it exists:
+
+```python
+# Load project review context from memory (if available)
+# This file contains project conventions, security patterns, and known weaknesses
+# from prior reviews. Agents receive it as PROJECT_CONTEXT in their prompts.
+PROJECT_CONTEXT = ""
+try:
+    Read("${MEMORY_DIR}/review-pr-context.md")  # ${MEMORY_DIR} = project memory path
+    PROJECT_CONTEXT = "<result from read>"
+except:
+    PROJECT_CONTEXT = "No project-specific review context available."
+```
+
+## Structured Output Contract
+
+Every agent MUST return a JSON block (fenced with ```json```) at the end of their review:
+
+```json
+{
+  "agent": "<agent-role>",
+  "pr_number": $PR_NUMBER,
+  "summary": "One-line summary",
+  "findings": [
+    {
+      "id": "<CATEGORY_PREFIX>-<NNN>",
+      "severity": "critical|high|medium|low|info",
+      "category": "security|performance|correctness|maintainability|accessibility|testing",
+      "file": "relative/path.ext",
+      "line": 42,
+      "title": "Short title (<80 chars)",
+      "description": "Detailed explanation",
+      "suggestion": "Fix suggestion",
+      "effort": "5min|15min|30min|1h|2h+",
+      "conventional_comment": "praise|nitpick|suggestion|issue|question"
+    }
+  ],
+  "stats": { "files_reviewed": 0, "findings_count": 0, "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "verdict": "approve|request-changes|comment-only"
+}
+```
+
+Category prefixes: SEC (security), PERF (performance), BUG (correctness), MAINT (maintainability), A11Y (accessibility), TEST (testing).
+
+The lead reviewer collects all agent JSON outputs, deduplicates by file+line+category (keeps highest severity), and persists critical/high findings to the memory graph.
+
+## Agent Prompts
+
+```python
+# DOMAIN-AWARE AGENT SELECTION
+# Only spawn agents relevant to detected domains.
+# CHANGED_FILES and domain flags (HAS_FRONTEND, HAS_BACKEND, HAS_AI)
+# are captured in Phase 1.
+
+# ALWAYS spawn these 4 core agents:
+# - code-quality-reviewer (readability)
+# - code-quality-reviewer (type safety)
+# - security-auditor
+# - test-generator
+
+# CONDITIONALLY spawn these based on domain:
+# - backend-system-architect  → only if HAS_BACKEND
+# - frontend-ui-developer     → only if HAS_FRONTEND
+# - llm-integrator (7th)      → only if HAS_AI
+
+# PARALLEL - All agents in ONE message
+Agent(
+  description="Review code quality",
+  subagent_type="ork:code-quality-reviewer",
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  CODE QUALITY REVIEW
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
+  Review code readability and maintainability:
+  1. Naming conventions and clarity
+  2. Function/method complexity (cyclomatic < 10)
+  3. DRY violations and code duplication
+  4. SOLID principles adherence
+
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
+
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix MAINT for maintainability findings. Use conventional comments (praise/suggestion/issue/nitpick).
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+  """,
+  run_in_background=False,
+  max_turns=25
+)
+Agent(
+  description="Review type safety",
+  subagent_type="ork:code-quality-reviewer",
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  TYPE SAFETY REVIEW
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
+  Review type safety and validation:
+  1. TypeScript strict mode compliance
+  2. Zod/Pydantic schema usage
+  3. No `any` types or type assertions
+  4. Exhaustive switch/union handling
+
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
+
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix MAINT for type safety findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+  """,
+  run_in_background=False,
+  max_turns=25
+)
+Agent(
+  description="Security audit PR",
+  subagent_type="ork:security-auditor",
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  SECURITY REVIEW
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
+  Security audit:
+  1. Secrets/credentials in code
+  2. Injection vulnerabilities (SQL, XSS)
+  3. Authentication/authorization checks
+  4. Dependency vulnerabilities
+  5. Fail-closed auth patterns (reject when config missing)
+  6. SSRF protection on user-controlled URLs
+  7. Rate limiting on auth endpoints
+
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
+
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix SEC for security findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+  """,
+  run_in_background=False,
+  max_turns=25
+)
+Agent(
+  description="Review test adequacy",
+  subagent_type="ork:test-generator",
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  TEST ADEQUACY REVIEW
+
+  Evaluate whether this PR has sufficient tests:
+
+  1. TEST EXISTENCE CHECK
+     - Does the PR add/modify code WITHOUT adding/updating tests?
+     - Are there changed files with 0 corresponding test files?
+     - Flag: "MISSING" if code changes have no tests at all
+
+  2. TEST TYPE MATCHING (use testing-unit/testing-e2e/testing-integration rules)
+     Match changed code to required test types:
+     - API endpoint changes → need integration tests (rule: integration-api)
+     - DB schema changes → need migration + integration tests (rule: integration-database)
+     - UI component changes → need unit + a11y tests (rule: unit-aaa-pattern, a11y-testing)
+     - Business logic → need unit + property tests (rule: verification-techniques)
+     - LLM/AI changes → need eval tests (rule: llm-evaluation)
+
+  3. TEST QUALITY
+     - Meaningful assertions (not just truthy/exists)
+     - Edge cases and error paths covered
+     - No flaky patterns (timing, external deps, random)
+     - Mocking is appropriate (not over-mocked)
+
+  4. COVERAGE GAPS
+     - Which changed functions/methods lack test coverage?
+     - Which error paths are untested?
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
+
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefix TEST for testing findings. Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+  """,
+  run_in_background=False,
+  max_turns=25
+)
+Agent(
+  description="Review backend code",
+  subagent_type="ork:backend-system-architect",
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  BACKEND REVIEW
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
+  Review backend code:
+  1. API design and REST conventions
+  2. Async/await patterns and error handling
+  3. Database query efficiency (N+1)
+  4. Transaction boundaries
+  5. Redis connection lifecycle (close in try/finally)
+  6. Webhook auth patterns (fail-closed)
+
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
+
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefixes: BUG (correctness), PERF (performance), MAINT (maintainability). Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+  """,
+  run_in_background=False,
+  max_turns=25
+)
+Agent(
+  description="Review frontend code",
+  subagent_type="ork:frontend-ui-developer",
+  prompt="""# Cache-optimized: stable content first (CC 2.1.73)
+  FRONTEND REVIEW
+
+  ## Project Context
+  ${PROJECT_CONTEXT}
+
+  Review frontend code:
+  1. React 19 patterns (hooks, server components)
+  2. State management correctness
+  3. Accessibility (a11y) compliance — button type attrs, ARIA
+  4. Performance (memoization, lazy loading)
+  5. SSR safety — no navigator/window outside hooks/useEffect
+
+  Do NOT explore beyond the changed files listed below. Focus your analysis on the diff.
+
+  Return your findings as a JSON block (```json```) matching the structured output contract above.
+  Use category prefixes: A11Y (accessibility), PERF (performance), BUG (correctness). Use conventional comments.
+
+  PR: $PR_NUMBER
+  Scope: ONLY review the following changed files:
+  ${CHANGED_FILES}
+  """,
+  run_in_background=False,
+  max_turns=25
+)
+```
+
+**Incorrect, Sequential agents:**
+```python
+# 6 reviewers run one-by-one (slow)
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...")
+# Wait for completion
+Agent(subagent_type="ork:security-auditor", prompt="...")
+# Wait again...
+```
+
+**Incorrect: background agents inside the fork (#3892):**
+```python
+# The fork ends its turn right after launching, reports "completed" with no
+# verdict, and the reviewer results land later in the PARENT session.
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=True)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
+```
+
+**Correct: parallel foreground agents:**
+```python
+# All 6 agents in ONE message: they run concurrently, and the fork's turn
+# cannot end until every one has returned its findings.
+Agent(subagent_type="ork:code-quality-reviewer", prompt="...", run_in_background=False)
+Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=False)
+Agent(subagent_type="ork:test-generator", prompt="...", run_in_background=False)
+```
+
+
+### Configure an AI code review agent for prompt injection and token limit checks: MEDIUM
+
+
+# AI Code Review Agent (Optional)
+
+If PR includes AI/ML code, add a 7th agent:
+
+```python
+Agent(
+  description="Review LLM integration",
+  subagent_type="ork:llm-integrator",
+  prompt="""LLM CODE REVIEW for PR $ARGUMENTS
+
+  Review AI/LLM integration:
+  1. Prompt injection prevention
+  2. Token limit handling
+  3. Caching strategy
+  4. Error handling and fallbacks
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
+  """,
+  run_in_background=False,  # foreground: review-pr is a fork, see agent-prompts-task-tool.md (#3892)
+  max_turns=25
+)
+```
+
+**Incorrect, Missing LLM review for AI code:**
+```python
+# PR modifies prompt.py but no LLM reviewer
+Agent(subagent_type="ork:code-quality-reviewer", ...)
+Agent(subagent_type="ork:security-auditor", ...)
+# Missing: LLM-specific review
+```
+
+**Correct, Add LLM reviewer for AI code:**
+```python
+# Detect AI/ML changes, add specialized reviewer
+if pr_contains_llm_code:
+    Agent(subagent_type="ork:llm-integrator", prompt="LLM CODE REVIEW...", run_in_background=False)
+```
+

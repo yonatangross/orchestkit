@@ -17,8 +17,10 @@
 //   Proof  -> a "proven by a run" tier over the critical and high findings that
 //             survive the gate: PROVEN only when the finding carries the command
 //             it ran, the output it printed and the output the intent requires.
-//             The result lists proven and only-unrefuted findings apart. The tier
-//             labels; it never moves a verdict, a refuter vote or a quorum.
+//             The result lists proven and only-unrefuted findings apart, and carries
+//             allowRuns: with runs off a claimed run is labelled unverified, never
+//             proven. The tier labels; it never moves a verdict, a refuter vote or
+//             a quorum.
 //             The rule "a finding counts as proven only when a run shows it" is
 //             adapted from the interrogate skill of pstack by Lauren Tan,
 //             https://github.com/cursor/plugins, MIT License, Copyright (c) 2026
@@ -251,9 +253,21 @@ const NO_TEXT = /^(?:n\/?a|none|null|nil|unknown|undefined|tbd|todo|empty|skippe
 const RUN_TEXT_CAP = 4000;
 const runText = (v) => {
 	if (typeof v !== "string") return "";
-	const t = v.replace(/[​-‍﻿]/g, "").trim();
+	const t = v.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
 	if (!/[A-Za-z0-9]/.test(t) || NO_TEXT.test(t)) return "";
 	return t.length > RUN_TEXT_CAP ? `${t.slice(0, RUN_TEXT_CAP)} [truncated]` : t;
+};
+// An output that IS one of these value words is a real result when the intent names the same
+// word (required_output "a user object, never null"): a defect whose proof is "printed null"
+// must be able to be proven. Every other placeholder stays refused, and so does the word
+// when the intent does not name it.
+const VALUE_WORD = /^(?:null|none|nil|undefined|empty)\.?$/i;
+const outputText = (v, required) => {
+	const t = runText(v);
+	if (t !== "" || typeof v !== "string") return t;
+	const w = v.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+	if (!VALUE_WORD.test(w)) return "";
+	return new RegExp(`\\b${w.replace(/\.$/, "")}\\b`, "i").test(required) ? w : "";
 };
 // A run that printed exactly what the intent requires shows no defect, so it does not prove one.
 const carriesRun = (f) => f.command !== "" && f.output !== "" && f.requiredOutput !== "" && f.output !== f.requiredOutput;
@@ -264,6 +278,7 @@ function normalize(raw, r) {
 	const file = raw && typeof raw.file === "string" && raw.file.trim() ? raw.file.trim() : null;
 	const line = raw && typeof raw.line === "number" && Number.isFinite(raw.line) ? raw.line : null;
 	const traced = Array.isArray(raw && raw.traced_files) ? raw.traced_files.map(String).filter(Boolean) : [];
+	const requiredOutput = runText(raw && raw.required_output);
 	return {
 		id: String((raw && raw.id) || `${r.role}-${file || "nofile"}-${line === null ? "" : line}`),
 		severity: sev,
@@ -277,8 +292,8 @@ function normalize(raw, r) {
 		groundTruth: raw && raw.ground_truth === true,
 		traced,
 		command: runText(raw && raw.command),
-		output: runText(raw && raw.output),
-		requiredOutput: runText(raw && raw.required_output),
+		output: outputText(raw && raw.output, requiredOutput),
+		requiredOutput,
 		raisedBy: [r.role],
 		agentType: r.agentType,
 	};
@@ -491,16 +506,21 @@ const advisory = findings.filter((f) => f.refutation && String(f.refutation.outc
 // the command, its output and the output the intent requires. Ground truth (a failing
 // check) is its own class: it is a run already. A finding that is neither is only
 // unrefuted: it stands because no refuter killed it, not because a run showed it.
+// With runs off (allowRuns not true) the reviewers were told to run read-only commands only,
+// so a command, output and required output they filled in is a read, not a run of the code:
+// it is labelled unverified and never proven. No label without the run behind it.
 // This labels and lists. It never changes a verdict, a refuter vote or a quorum.
 const inProofTier = (f) => ["critical", "high"].includes(postSeverity(f));
-for (const f of findings) f.proof = !inProofTier(f) ? "not-required" : f.groundTruth ? "ground-truth" : carriesRun(f) ? "proven" : "only-unrefuted";
-const proofRow = (f) => ({ key: f.key, id: f.id, severity: postSeverity(f), outcome: f.refutation ? f.refutation.outcome : "not-refuted", ...(f.proof === "proven" ? { command: f.command, output: f.output, requiredOutput: f.requiredOutput } : {}) });
+for (const f of findings) f.proof = !inProofTier(f) ? "not-required" : f.groundTruth ? "ground-truth" : carriesRun(f) ? (ALLOW_RUNS ? "proven" : "unverified") : "only-unrefuted";
+const proofRow = (f) => ({ key: f.key, id: f.id, severity: postSeverity(f), outcome: f.refutation ? f.refutation.outcome : "not-refuted", ...(f.proof === "proven" || f.proof === "unverified" ? { command: f.command, output: f.output, requiredOutput: f.requiredOutput } : {}) });
 const proof = {
 	proven: findings.filter((f) => f.proof === "proven").map(proofRow),
+	unverified: findings.filter((f) => f.proof === "unverified").map(proofRow),
 	onlyUnrefuted: findings.filter((f) => f.proof === "only-unrefuted").map(proofRow),
 	groundTruth: findings.filter((f) => f.proof === "ground-truth").map(proofRow),
 };
 if (proof.onlyUnrefuted.length) reasons.push(`note: ${proof.onlyUnrefuted.length} critical or high finding(s) carry no run (command, output and required output), listed as only unrefuted, not proven`);
+if (proof.unverified.length) reasons.push(`note: ${proof.unverified.length} critical or high finding(s) carry a command, but runs were off (allowRuns is not true), so it is a read, not a run: listed as unverified, not proven`);
 
 const said = new Set(reviewers.map((r) => r.verdict).filter(Boolean));
 const reviewerDisagreement = said.has("approve") && said.has("request-changes");
@@ -530,6 +550,7 @@ return {
 	confirmationNeeded,
 	manualReview,
 	advisory,
+	allowRuns: ALLOW_RUNS,
 	proof,
 	reviewerDisagreement,
 	reasons,
