@@ -183,6 +183,7 @@ const TOOLS = [
 				docsUrl: { type: "string" },
 				query: { type: "string" },
 				suggestions: { type: "array", items: { type: "string" } },
+				browseUrl: { type: "string" },
 			},
 			required: ["found"],
 		},

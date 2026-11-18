@@ -52,26 +52,28 @@
   .lead{margin:0 0 8px}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
-  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;user-select:all}
+  pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
   .t{white-space:nowrap}
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
   button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
-  button.quiet{background:transparent;color:var(--accent)}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
+  .links{display:flex;flex-wrap:wrap;column-gap:16px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}
+  p{text-wrap:pretty}
   a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
-  .links{margin:16px 0 0}
+  .links{margin:8px 0 0}
   .near{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
   fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
   legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg label{display:inline-flex;align-items:center;min-height:48px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
@@ -85,7 +87,7 @@
   function copyButton(text,status,label,quiet){
     var b=el(&quot;button&quot;,quiet?&quot;quiet&quot;:&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
+      function done(ok){status.textContent=ok?&quot;\u2713 Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
         ta.style.position=&quot;fixed&quot;;ta.style.opacity=&quot;0&quot;;document.body.appendChild(ta);ta.select();
@@ -135,15 +137,15 @@
       var near=Array.isArray(d.suggestions)?d.suggestions:[];
       root.appendChild(el(&quot;h1&quot;,&quot;&quot;,near.length?&quot;Did you mean &quot;+String(near[0])+&quot;?&quot;:&quot;No such skill&quot;));
       var miss=el(&quot;p&quot;,&quot;sub&quot;);
-      miss.appendChild(document.createTextNode(&quot;OrchestKit has no skill named \u201c&quot;));
+      miss.appendChild(document.createTextNode(&quot;OrchestKit has no skill named &quot;));
       miss.appendChild(el(&quot;span&quot;,&quot;code&quot;,String(d.query)));
-      miss.appendChild(document.createTextNode(&quot;\u201d.&quot;));
+      miss.appendChild(document.createTextNode(&quot;.&quot;));
       root.appendChild(miss);
       if(near.length){
         var row=el(&quot;div&quot;,&quot;near&quot;);
         var nstatus=el(&quot;p&quot;,&quot;status&quot;);nstatus.setAttribute(&quot;role&quot;,&quot;status&quot;);
         near.forEach(function(n){
-          var b=el(&quot;button&quot;,&quot;quiet&quot;,&quot;Show &quot;+String(n));b.type=&quot;button&quot;;
+          var b=el(&quot;button&quot;,&quot;&quot;,&quot;Show &quot;+String(n));b.type=&quot;button&quot;;
           b.addEventListener(&quot;click&quot;,function(){
             var asked=askHost(&quot;Show me the OrchestKit skill card for &quot;+String(n));
             nstatus.textContent=asked?&quot;Asked. If nothing happens, ask for \u201c&quot;+String(n)+&quot;\u201d by name.&quot;:&quot;Ask for \u201c&quot;+String(n)+&quot;\u201d by name to see its card.&quot;;
@@ -154,6 +156,8 @@
       }else{
         root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Nothing close. Search the docs with orchestkit_docs_search.&quot;));
       }
+      var all=link(d.browseUrl,&quot;Browse all skills \u2192&quot;);
+      if(all){var bp=el(&quot;p&quot;,&quot;links&quot;);bp.appendChild(all);root.appendChild(bp);}
       return;
     }
     root.appendChild(el(&quot;h1&quot;,&quot;&quot;,String(d.name)));
@@ -163,9 +167,15 @@
     root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Install in Claude Code&quot;));
     root.appendChild(commandBlock(String(d.installCommand).split(&quot; &amp;&amp; &quot;),true));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy install command&quot;,true));
+    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy both install lines&quot;));
     root.appendChild(status);
-    if(d.invoke){root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Then run it in Claude Code&quot;));root.appendChild(commandBlock([String(d.invoke)],false));}
+    if(d.invoke){
+      var after=el(&quot;p&quot;,&quot;note&quot;);
+      after.appendChild(document.createTextNode(&quot;Then run &quot;));
+      after.appendChild(el(&quot;span&quot;,&quot;code&quot;,String(d.invoke)));
+      after.appendChild(document.createTextNode(&quot; in Claude Code.&quot;));
+      root.appendChild(after);
+    }
     var docs=link(d.docsUrl,String(d.name)+&quot; docs \u2192&quot;);
     if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);root.appendChild(p);}
   }
@@ -191,30 +201,32 @@
   .lead{margin:0 0 8px}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
-  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;user-select:all}
+  pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
   .t{white-space:nowrap}
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
   button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
-  button.quiet{background:transparent;color:var(--accent)}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
+  .links{display:flex;flex-wrap:wrap;column-gap:16px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}
+  p{text-wrap:pretty}
   a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
-  .links{margin:16px 0 0}
+  .links{margin:8px 0 0}
   .near{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
   fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
   legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg label{display:inline-flex;align-items:center;min-height:48px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:false,&quot;query&quot;:&quot;brainstorn&quot;,&quot;suggestions&quot;:[&quot;brainstorm&quot;]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;found&quot;:false,&quot;query&quot;:&quot;brainstorn&quot;,&quot;suggestions&quot;:[&quot;brainstorm&quot;],&quot;browseUrl&quot;:&quot;https://orchestkit.dev/docs/reference/skills&quot;}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
@@ -224,7 +236,7 @@
   function copyButton(text,status,label,quiet){
     var b=el(&quot;button&quot;,quiet?&quot;quiet&quot;:&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
+      function done(ok){status.textContent=ok?&quot;\u2713 Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
         ta.style.position=&quot;fixed&quot;;ta.style.opacity=&quot;0&quot;;document.body.appendChild(ta);ta.select();
@@ -274,15 +286,15 @@
       var near=Array.isArray(d.suggestions)?d.suggestions:[];
       root.appendChild(el(&quot;h1&quot;,&quot;&quot;,near.length?&quot;Did you mean &quot;+String(near[0])+&quot;?&quot;:&quot;No such skill&quot;));
       var miss=el(&quot;p&quot;,&quot;sub&quot;);
-      miss.appendChild(document.createTextNode(&quot;OrchestKit has no skill named \u201c&quot;));
+      miss.appendChild(document.createTextNode(&quot;OrchestKit has no skill named &quot;));
       miss.appendChild(el(&quot;span&quot;,&quot;code&quot;,String(d.query)));
-      miss.appendChild(document.createTextNode(&quot;\u201d.&quot;));
+      miss.appendChild(document.createTextNode(&quot;.&quot;));
       root.appendChild(miss);
       if(near.length){
         var row=el(&quot;div&quot;,&quot;near&quot;);
         var nstatus=el(&quot;p&quot;,&quot;status&quot;);nstatus.setAttribute(&quot;role&quot;,&quot;status&quot;);
         near.forEach(function(n){
-          var b=el(&quot;button&quot;,&quot;quiet&quot;,&quot;Show &quot;+String(n));b.type=&quot;button&quot;;
+          var b=el(&quot;button&quot;,&quot;&quot;,&quot;Show &quot;+String(n));b.type=&quot;button&quot;;
           b.addEventListener(&quot;click&quot;,function(){
             var asked=askHost(&quot;Show me the OrchestKit skill card for &quot;+String(n));
             nstatus.textContent=asked?&quot;Asked. If nothing happens, ask for \u201c&quot;+String(n)+&quot;\u201d by name.&quot;:&quot;Ask for \u201c&quot;+String(n)+&quot;\u201d by name to see its card.&quot;;
@@ -293,6 +305,8 @@
       }else{
         root.appendChild(el(&quot;p&quot;,&quot;muted&quot;,&quot;Nothing close. Search the docs with orchestkit_docs_search.&quot;));
       }
+      var all=link(d.browseUrl,&quot;Browse all skills \u2192&quot;);
+      if(all){var bp=el(&quot;p&quot;,&quot;links&quot;);bp.appendChild(all);root.appendChild(bp);}
       return;
     }
     root.appendChild(el(&quot;h1&quot;,&quot;&quot;,String(d.name)));
@@ -302,9 +316,15 @@
     root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Install in Claude Code&quot;));
     root.appendChild(commandBlock(String(d.installCommand).split(&quot; &amp;&amp; &quot;),true));
     var status=el(&quot;p&quot;,&quot;status&quot;);status.setAttribute(&quot;role&quot;,&quot;status&quot;);
-    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy install command&quot;,true));
+    root.appendChild(copyButton(String(d.installCommand),status,&quot;Copy both install lines&quot;));
     root.appendChild(status);
-    if(d.invoke){root.appendChild(el(&quot;h2&quot;,&quot;&quot;,&quot;Then run it in Claude Code&quot;));root.appendChild(commandBlock([String(d.invoke)],false));}
+    if(d.invoke){
+      var after=el(&quot;p&quot;,&quot;note&quot;);
+      after.appendChild(document.createTextNode(&quot;Then run &quot;));
+      after.appendChild(el(&quot;span&quot;,&quot;code&quot;,String(d.invoke)));
+      after.appendChild(document.createTextNode(&quot; in Claude Code.&quot;));
+      root.appendChild(after);
+    }
     var docs=link(d.docsUrl,String(d.name)+&quot; docs \u2192&quot;);
     if(docs){var p=el(&quot;p&quot;,&quot;links&quot;);p.appendChild(docs);root.appendChild(p);}
   }
@@ -335,30 +355,32 @@
   .lead{margin:0 0 8px}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
-  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;user-select:all}
+  pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
   .t{white-space:nowrap}
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
   button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
-  button.quiet{background:transparent;color:var(--accent)}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
+  .links{display:flex;flex-wrap:wrap;column-gap:16px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}
+  p{text-wrap:pretty}
   a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
-  .links{margin:16px 0 0}
+  .links{margin:8px 0 0}
   .near{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
   fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
   legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg label{display:inline-flex;align-items:center;min-height:48px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;claude&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then type in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then type in Cursor&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then type in Codex&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;claude&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a new Cursor chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then try it in Codex&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
@@ -368,7 +390,7 @@
   function copyButton(text,status,label,quiet){
     var b=el(&quot;button&quot;,quiet?&quot;quiet&quot;:&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
+      function done(ok){status.textContent=ok?&quot;\u2713 Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
         ta.style.position=&quot;fixed&quot;;ta.style.opacity=&quot;0&quot;;document.body.appendChild(ta);ta.select();
@@ -464,30 +486,32 @@
   .lead{margin:0 0 8px}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
-  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;user-select:all}
+  pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
   .t{white-space:nowrap}
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:&quot;$ &quot;;color:var(--muted);user-select:none}
   button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
-  button.quiet{background:transparent;color:var(--accent)}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
+  .links{display:flex;flex-wrap:wrap;column-gap:16px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}
+  p{text-wrap:pretty}
   a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
-  .links{margin:16px 0 0}
+  .links{margin:8px 0 0}
   .near{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
   fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
   legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg label{display:inline-flex;align-items:center;min-height:48px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:&quot;\2713\00a0&quot;}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
-&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;codex&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then type in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then type in Cursor&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy command&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then type in Codex&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
+&lt;/style&gt;&lt;script&gt;window.openai={toolOutput:{&quot;selected&quot;:&quot;codex&quot;,&quot;hosts&quot;:[{&quot;id&quot;:&quot;claude&quot;,&quot;name&quot;:&quot;Claude Code&quot;,&quot;what&quot;:&quot;Skills, agents and hooks, all inside Claude Code.&quot;,&quot;where&quot;:&quot;Paste in a terminal.&quot;,&quot;commands&quot;:[&quot;claude plugin marketplace add yonatangross/orchestkit&quot;,&quot;claude plugin install ork@orchestkit&quot;],&quot;copy&quot;:&quot;claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in Claude Code&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/claude-code&quot;},{&quot;id&quot;:&quot;cursor&quot;,&quot;name&quot;:&quot;Cursor&quot;,&quot;what&quot;:&quot;Skills, commands and agents in Cursor. Claude Code&#x27;s hooks do not run there.&quot;,&quot;where&quot;:&quot;Settings → Plugins. Paste the repo, enable ork, open a new chat.&quot;,&quot;commands&quot;:[&quot;yonatangross/orchestkit&quot;],&quot;copy&quot;:&quot;yonatangross/orchestkit&quot;,&quot;prompt&quot;:false,&quot;copyLabel&quot;:&quot;Copy repo name&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then run in a new Cursor chat&quot;,&quot;commands&quot;:[&quot;/ork:setup&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/cursor&quot;},{&quot;id&quot;:&quot;codex&quot;,&quot;name&quot;:&quot;Codex&quot;,&quot;what&quot;:&quot;A pack made for Codex. It is separate from the Claude Code plugin.&quot;,&quot;where&quot;:&quot;Paste in a terminal, then restart Codex.&quot;,&quot;commands&quot;:[&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex&quot;,&quot;codex plugin add ork-codex@orchestkit-codex&quot;],&quot;copy&quot;:&quot;codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex &amp;&amp; codex plugin add ork-codex@orchestkit-codex&quot;,&quot;prompt&quot;:true,&quot;copyLabel&quot;:&quot;Copy both commands&quot;,&quot;then&quot;:{&quot;label&quot;:&quot;Then try it in Codex&quot;,&quot;commands&quot;:[&quot;$ork-implement&quot;],&quot;prompt&quot;:false},&quot;docsUrl&quot;:&quot;https://orchestkit.dev/docs/getting-started/codex&quot;}]}}&lt;/script&gt;&lt;/head&gt;
 &lt;body&gt;&lt;main class=&quot;card&quot; id=&quot;root&quot; aria-live=&quot;polite&quot;&gt;&lt;p class=&quot;muted&quot;&gt;Waiting for data from the host…&lt;/p&gt;&lt;/main&gt;
 &lt;script&gt;(function(){
   var root=document.getElementById(&quot;root&quot;);
@@ -497,7 +521,7 @@
   function copyButton(text,status,label,quiet){
     var b=el(&quot;button&quot;,quiet?&quot;quiet&quot;:&quot;&quot;,label);b.type=&quot;button&quot;;b.setAttribute(&quot;data-copy&quot;,text);
     b.addEventListener(&quot;click&quot;,function(){
-      function done(ok){status.textContent=ok?&quot;Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
+      function done(ok){status.textContent=ok?&quot;\u2713 Copied to the clipboard.&quot;:&quot;Copy was blocked here. Select the command and press Ctrl+C.&quot;;}
       function fallback(){
         var ta=document.createElement(&quot;textarea&quot;);ta.value=text;ta.setAttribute(&quot;readonly&quot;,&quot;&quot;);
         ta.style.position=&quot;fixed&quot;;ta.style.opacity=&quot;0&quot;;document.body.appendChild(ta);ta.select();

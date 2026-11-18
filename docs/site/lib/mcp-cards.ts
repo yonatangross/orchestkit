@@ -31,7 +31,7 @@ export type SkillCardData =
 			installCommand: string;
 			docsUrl: string;
 	  }
-	| { found: false; query: string; suggestions: string[] };
+	| { found: false; query: string; suggestions: string[]; browseUrl: string };
 
 export type InstallHostCard = {
 	id: CardHostId;
@@ -116,7 +116,12 @@ export function buildSkillCard(rawName: string): SkillCardData {
 	const key = normalizeSkillName(rawName);
 	const skill = Object.prototype.hasOwnProperty.call(SKILLS, key) ? SKILLS[key] : undefined;
 	if (!skill) {
-		return { found: false, query: rawName.trim(), suggestions: nearestSkillNames(rawName) };
+		return {
+			found: false,
+			query: rawName.trim(),
+			suggestions: nearestSkillNames(rawName),
+			browseUrl: `${SITE.domain}/docs/reference/skills`,
+		};
 	}
 	const plugin: SkillPlugin = skill.plugins[0] === "ork-extras" ? "ork-extras" : "ork";
 	return {
@@ -163,6 +168,14 @@ const CARD_WHAT: Record<CardHostId, string> = {
 	codex: "A pack made for Codex. It is separate from the Claude Code plugin.",
 };
 
+// Claude Code and Cursor have a setup command to run next; Codex has no setup
+// step, only a first skill to try, so it is labelled as an example.
+const CARD_THEN: Record<CardHostId, string> = {
+	claude: "Then run in Claude Code",
+	cursor: "Then run in a new Cursor chat",
+	codex: "Then try it in Codex",
+};
+
 export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 	const hosts = CARD_HOSTS.map((id): InstallHostCard => {
 		const spec = HOST_INSTALL_BY_ID[id];
@@ -180,10 +193,12 @@ export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 			copyLabel:
 				!spec.prompt && spec.commands.length === 1 && !spec.commands[0].includes(" ")
 					? "Copy repo name"
-					: "Copy command",
+					: spec.commands.length > 1
+						? "Copy both commands"
+						: "Copy command",
 			then: spec.then
 				? {
-						label: `Then type in ${spec.name}`,
+						label: CARD_THEN[id],
 						commands: [...spec.then.commands],
 						prompt: spec.then.prompt,
 					}

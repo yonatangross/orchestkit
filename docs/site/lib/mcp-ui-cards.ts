@@ -41,26 +41,28 @@ const CARD_CSS = `
   .lead{margin:0 0 8px}
   .note{margin:12px 0 0;color:var(--muted);font-size:.9rem}
   .code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;background:var(--code-bg);border:1px solid var(--border);border-radius:4px}
-  pre{margin:0 0 12px;padding:12px;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;user-select:all}
+  pre{margin:0 0 12px;padding:12px;min-width:0;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;color:var(--fg);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-x:auto;user-select:all}
   .t{white-space:nowrap}
   .ln{display:block;padding-left:2ch;text-indent:-2ch}
   .ln+.ln{margin-top:4px}
   .ln[data-p]::before{content:"$ ";color:var(--muted);user-select:none}
   button{display:inline-block;min-height:44px;padding:12px 24px;border:2px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;cursor:pointer}
-  button.quiet{background:transparent;color:var(--accent)}
   button:active{transform:translateY(1px)}
   @media (hover:hover){button:hover{filter:brightness(1.08)}}
   a{color:var(--accent);font-weight:600;overflow-wrap:anywhere}
+  .links{display:flex;flex-wrap:wrap;column-gap:16px}
+  .links a{display:inline-flex;align-items:center;min-height:44px}
+  p{text-wrap:pretty}
   a:focus-visible,button:focus-visible,input:focus-visible+label,pre:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .status{margin:8px 0 0;color:var(--muted);font-size:.9rem}
   .status:empty{margin:0}
-  .links{margin:16px 0 0}
+  .links{margin:8px 0 0}
   .near{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
   fieldset{margin:0 0 16px;padding:0;border:0;min-width:0}
   legend{padding:0;margin:0 0 8px;color:var(--muted);font-size:.9rem}
   .seg{display:flex;flex-wrap:wrap;gap:8px}
   .seg input{position:absolute;opacity:0;width:1px;height:1px}
-  .seg label{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
+  .seg label{display:inline-flex;align-items:center;min-height:48px;padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer;font-weight:500}
   .seg input:checked+label{border:2px solid var(--accent);padding:7px 15px;color:var(--accent);font-weight:700}
   .seg input:checked+label::before{content:"\\2713\\00a0"}
   @media (prefers-reduced-motion:no-preference){button{transition:filter .15s}}
@@ -77,7 +79,7 @@ const CARD_RUNTIME = `
   function copyButton(text,status,label,quiet){
     var b=el("button",quiet?"quiet":"",label);b.type="button";b.setAttribute("data-copy",text);
     b.addEventListener("click",function(){
-      function done(ok){status.textContent=ok?"Copied to the clipboard.":"Copy was blocked here. Select the command and press Ctrl+C.";}
+      function done(ok){status.textContent=ok?"\\u2713 Copied to the clipboard.":"Copy was blocked here. Select the command and press Ctrl+C.";}
       function fallback(){
         var ta=document.createElement("textarea");ta.value=text;ta.setAttribute("readonly","");
         ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();
@@ -143,15 +145,15 @@ export const SKILL_CARD_HTML = page(
       var near=Array.isArray(d.suggestions)?d.suggestions:[];
       root.appendChild(el("h1","",near.length?"Did you mean "+String(near[0])+"?":"No such skill"));
       var miss=el("p","sub");
-      miss.appendChild(document.createTextNode("OrchestKit has no skill named \\u201c"));
+      miss.appendChild(document.createTextNode("OrchestKit has no skill named "));
       miss.appendChild(el("span","code",String(d.query)));
-      miss.appendChild(document.createTextNode("\\u201d."));
+      miss.appendChild(document.createTextNode("."));
       root.appendChild(miss);
       if(near.length){
         var row=el("div","near");
         var nstatus=el("p","status");nstatus.setAttribute("role","status");
         near.forEach(function(n){
-          var b=el("button","quiet","Show "+String(n));b.type="button";
+          var b=el("button","","Show "+String(n));b.type="button";
           b.addEventListener("click",function(){
             var asked=askHost("Show me the OrchestKit skill card for "+String(n));
             nstatus.textContent=asked?"Asked. If nothing happens, ask for \\u201c"+String(n)+"\\u201d by name.":"Ask for \\u201c"+String(n)+"\\u201d by name to see its card.";
@@ -162,6 +164,8 @@ export const SKILL_CARD_HTML = page(
       }else{
         root.appendChild(el("p","muted","Nothing close. Search the docs with orchestkit_docs_search."));
       }
+      var all=link(d.browseUrl,"Browse all skills \\u2192");
+      if(all){var bp=el("p","links");bp.appendChild(all);root.appendChild(bp);}
       return;
     }
     root.appendChild(el("h1","",String(d.name)));
@@ -171,9 +175,15 @@ export const SKILL_CARD_HTML = page(
     root.appendChild(el("h2","","Install in Claude Code"));
     root.appendChild(commandBlock(String(d.installCommand).split(" && "),true));
     var status=el("p","status");status.setAttribute("role","status");
-    root.appendChild(copyButton(String(d.installCommand),status,"Copy install command",true));
+    root.appendChild(copyButton(String(d.installCommand),status,"Copy both install lines"));
     root.appendChild(status);
-    if(d.invoke){root.appendChild(el("h2","","Then run it in Claude Code"));root.appendChild(commandBlock([String(d.invoke)],false));}
+    if(d.invoke){
+      var after=el("p","note");
+      after.appendChild(document.createTextNode("Then run "));
+      after.appendChild(el("span","code",String(d.invoke)));
+      after.appendChild(document.createTextNode(" in Claude Code."));
+      root.appendChild(after);
+    }
     var docs=link(d.docsUrl,String(d.name)+" docs \\u2192");
     if(docs){var p=el("p","links");p.appendChild(docs);root.appendChild(p);}
   }

@@ -257,7 +257,7 @@ describe("skill card renders", () => {
 		// Install first, then run: the install block comes before the run block.
 		const installLines = SITE.installCommand.split(" && ");
 		for (const line of installLines) expect(text).toContain(line);
-		expect(text.indexOf("Install in Claude Code")).toBeLessThan(text.indexOf("Then run it in Claude Code"));
+		expect(text.indexOf("Install in Claude Code")).toBeLessThan(text.indexOf("Then run /ork:brainstorm in Claude Code."));
 		expect(text).toContain("/ork:brainstorm");
 		const btn = document.querySelector("button[data-copy]") as HTMLButtonElement | null;
 		expect(btn, "copy button").not.toBeNull();
@@ -272,13 +272,16 @@ describe("skill card renders", () => {
 		const text = document.body.textContent ?? "";
 		// A headline with the answer, the typed name quoted, and a path forward.
 		expect(document.querySelector("h1")?.textContent).toBe("Did you mean brainstorm?");
-		expect(text).toContain("OrchestKit has no skill named “brainstorn”.");
+		expect(text).toContain("OrchestKit has no skill named brainstorn.");
 		expect(document.querySelector("button[data-copy]")).toBeNull();
 		// The suggestion is a real button, and the typed name is set apart in code style.
 		expect(document.querySelector(".code")?.textContent).toBe("brainstorn");
-		const show = document.querySelector("button.quiet") as HTMLButtonElement;
+		const show = document.querySelector(".near button") as HTMLButtonElement;
 		expect(show.tagName).toBe("BUTTON");
 		expect(show.textContent).toBe("Show brainstorm");
+		// A way out when the suggestion is wrong: the full skill list.
+		const all = [...document.querySelectorAll("a")].find((a) => a.textContent?.startsWith("Browse all skills"));
+		expect(all?.getAttribute("href")).toBe(`${SITE.domain}/docs/reference/skills`);
 	});
 
 	it("the suggestion button asks the host for that skill's card, with no request from the frame", async () => {
@@ -286,7 +289,7 @@ describe("skill card renders", () => {
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
 		const sent = vi.fn();
 		(window as unknown as { openai: unknown }).openai = { sendFollowUpMessage: sent };
-		(document.querySelector("button.quiet") as HTMLButtonElement).click();
+		(document.querySelector(".near button") as HTMLButtonElement).click();
 		expect(sent).toHaveBeenCalledWith({ prompt: "Show me the OrchestKit skill card for brainstorm" });
 		expect(document.body.textContent).toContain("Asked.");
 	});
@@ -315,7 +318,27 @@ describe("skill card renders", () => {
 		});
 		expect(document.querySelector("h1")?.textContent).toBe(longName);
 		expect(document.querySelector("button[data-copy]")).not.toBeNull();
-		expect(document.body.textContent).not.toContain("Then run it");
+		expect(document.body.textContent).not.toContain("Then run");
+	});
+
+	it("a command block wraps inside its box instead of running past it (390 px regression)", async () => {
+		for (const uri of [SKILL_URI, PICKER_URI]) {
+			const html = await viewHtml(uri);
+			expect(/pre\{[^}]*white-space:pre-wrap/.test(html), uri).toBe(true);
+			expect(/\.t\{white-space:nowrap\}/.test(html), uri).toBe(true);
+		}
+	});
+
+	it("copying shows a visible confirmation next to the button, with a check mark", async () => {
+		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: {} });
+		mount(await viewHtml(PICKER_URI), call.structuredContent);
+		const writeText = vi.fn(async () => {});
+		Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+		(document.querySelector("button[data-copy]") as HTMLButtonElement).click();
+		await new Promise((r) => setTimeout(r, 0));
+		expect(writeText).toHaveBeenCalledWith(SITE.installCommand);
+		const status = document.querySelector('[role="status"]');
+		expect(status?.textContent).toBe("✓ Copied to the clipboard.");
 	});
 
 	it("a command wraps between words, never inside one: every word is a no-wrap unit", async () => {
@@ -382,8 +405,9 @@ describe("install picker renders", () => {
 		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: {} });
 		const hosts = call.structuredContent.hosts as Array<{ id: string; copyLabel: string }>;
 		expect(hosts.find((h) => h.id === "cursor")!.copyLabel).toBe("Copy repo name");
-		expect(hosts.find((h) => h.id === "claude")!.copyLabel).toBe("Copy command");
-		expect(hosts.find((h) => h.id === "codex")!.copyLabel).toBe("Copy command");
+		// Two lines copy as one && line, and the label says so.
+		expect(hosts.find((h) => h.id === "claude")!.copyLabel).toBe("Copy both commands");
+		expect(hosts.find((h) => h.id === "codex")!.copyLabel).toBe("Copy both commands");
 		mount(await viewHtml(PICKER_URI), { ...call.structuredContent, selected: "cursor" });
 		expect(document.querySelector("button[data-copy]")?.textContent).toBe("Copy repo name");
 	});
