@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ============================================================================
-// ork:freeze end-to-end flow (the skill as Claude Code runs it, no live CC)
+// ork-extras:freeze end-to-end flow (the skill as Claude Code runs it, no live CC)
 // ============================================================================
 // WHAT THIS GUARDS
 //

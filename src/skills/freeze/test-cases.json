@@ -5,7 +5,7 @@
     {
       "id": "trigger-dir",
       "rule": null,
-      "query": "/ork:freeze src/hooks",
+      "query": "/ork-extras:freeze src/hooks",
       "expectedBehavior": [
         "The invocation line records the real path of src/hooks for this session",
         "Reports the freeze line as printed, including NOT changed when the dir is missing"
@@ -23,7 +23,7 @@
     {
       "id": "trigger-off",
       "rule": null,
-      "query": "/ork:freeze off",
+      "query": "/ork-extras:freeze off",
       "expectedBehavior": [
         "Deletes the session state; edits outside the old dir are allowed again"
       ]

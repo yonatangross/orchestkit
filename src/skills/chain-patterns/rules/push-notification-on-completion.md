@@ -17,7 +17,7 @@ When a skill's typical runtime exceeds 5 minutes, fire a `PushNotification` at c
 | 2–5 min | Optional — only if the skill has parallel agents or external I/O that makes timing unpredictable. |
 | > 5 min | **Yes.** Fire a notification at the final synthesis / report step. |
 
-Apply to: `ork:implement`, `ork:audit-full`, `ork:cover`, `ork:demo-producer`, `ork:verify` (runs on large changes), `ork:brainstorm` (deep 7-phase mode).
+Apply to: `ork:implement`, `ork-extras:audit-full`, `ork:cover`, `ork:demo-producer`, `ork:verify` (runs on large changes), `ork:brainstorm` (deep 7-phase mode).
 
 ## Incorrect
 
@@ -68,4 +68,4 @@ Remote Control is opt-in — users who have enabled it have explicitly signaled 
 ## Related
 
 - `chain-patterns/references/monitor-patterns.md` — streaming progress *during* a long run (complements completion notification).
-- `ork:implement`, `ork:audit-full`, `ork:cover`, `ork:demo-producer` — skills that apply this rule.
+- `ork:implement`, `ork-extras:audit-full`, `ork:cover`, `ork:demo-producer` — skills that apply this rule.

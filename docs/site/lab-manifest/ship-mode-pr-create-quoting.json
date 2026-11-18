@@ -1,0 +1,8 @@
+{
+  "slug": "ship-mode-pr-create-quoting",
+  "source": "docs/fix--ship-mode-pr-create-quoting/index.html",
+  "title": "design-to-code ship: a quote in the PR title no longer breaks the command",
+  "description": "design-to-code ship built gh pr create with the title and body inside single quotes, so a name holding a quote or a command substitution broke out. The body now goes through a file and the title is quoted as one shell word. Type a title to see both commands.",
+  "tags": ["skills", "design-to-code", "security"],
+  "date": "2026-11-17"
+}

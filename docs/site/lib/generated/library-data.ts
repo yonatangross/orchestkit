@@ -245,14 +245,10 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
       "architecture-decision-record",
       "architecture-patterns",
       "assess",
-      "audit-activation",
-      "audit-full",
       "auto",
-      "bare-eval",
       "brainstorm",
       "browser-tools",
       "business-case",
-      "careful",
       "chain-patterns",
       "ci-debug",
       "ci-sentinel",
@@ -283,7 +279,6 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
       "expect",
       "explore",
       "fix-issue",
-      "freeze",
       "github-operations",
       "glyph",
       "help",
@@ -305,7 +300,6 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
       "prioritization",
       "product-analytics",
       "product-frameworks",
-      "prompt-focus",
       "python-backend",
       "quality-gates",
       "react-server-components-framework",
@@ -316,7 +310,6 @@ export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "op
       "scope-appropriate-architecture",
       "security-patterns",
       "setup",
-      "swarm-migrate",
       "task-dependency-patterns",
       "telemetry-inspect",
       "testing-e2e",
@@ -527,7 +520,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "name": "audit-full",
     "station": "check",
     "description": "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce.",
-    "command": false,
+    "command": true,
     "scopedHooks": 0
   },
   {
@@ -545,7 +538,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "name": "bare-eval",
     "station": "check",
     "description": "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy.",
-    "command": false,
+    "command": true,
     "scopedHooks": 0
   },
   {
@@ -1184,7 +1177,7 @@ export const LIBRARY_ITEMS: LibraryItem[] = [
     "name": "prompt-focus",
     "station": "remember",
     "description": "Shows where your attention went from your own Claude Code and Codex prompts over 20 weeks, as a local counts-only report. Use when asking where your focus goes.",
-    "command": false,
+    "command": true,
     "scopedHooks": 0
   },
   {

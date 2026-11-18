@@ -2,7 +2,7 @@
 
 Quarterly CODEOWNERS review stamp: `# Last reviewed: 2026-Q2`.
 
-This PR is one of N opened by `/ork:swarm-migrate` from the spec
+This PR is one of N opened by `/ork-extras:swarm-migrate` from the spec
 `swarm-specs/examples/codeowners-quarterly-stamp.yaml`. The transform is
 idempotent — re-running the spec on this repo is a no-op once merged.
 

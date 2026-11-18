@@ -240,7 +240,7 @@ spec/          # Hook-event contract. hook-events.spec.yml is globbed by 4 CI
 vendor/        # Vendored 3rd-party data. sync-vercel-skills.sh reads
                # vercel-skills/mapping.json.
 designs/       # Output dir for /ork:visualize-plan (designs/<branch>.md).
-swarm-specs/   # Input specs for /ork:swarm-migrate (globs swarm-specs/**/*.yaml).
+swarm-specs/   # Input specs for /ork-extras:swarm-migrate (globs swarm-specs/**/*.yaml).
 ```
 
 ### Build System

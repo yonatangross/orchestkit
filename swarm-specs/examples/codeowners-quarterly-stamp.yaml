@@ -3,7 +3,7 @@
 
 # swarm-spec: codeowners-quarterly-stamp
 #
-# WARMUP example for /ork:swarm-migrate. This is the recommended first
+# WARMUP example for /ork-extras:swarm-migrate. This is the recommended first
 # real-world run before doing anything bigger:
 #   1. The transform is trivially reversible (one comment line).
 #   2. There are no dependencies between repos — single wave, max parallel.
@@ -13,9 +13,9 @@
 # Edit the `repos[]` paths to point at YOUR repos before running.
 #
 # Run:
-#   /ork:swarm-migrate swarm-specs/examples/codeowners-quarterly-stamp.yaml --dry-run
+#   /ork-extras:swarm-migrate swarm-specs/examples/codeowners-quarterly-stamp.yaml --dry-run
 #   # confirm the DAG + verify result, then:
-#   /ork:swarm-migrate swarm-specs/examples/codeowners-quarterly-stamp.yaml
+#   /ork-extras:swarm-migrate swarm-specs/examples/codeowners-quarterly-stamp.yaml
 
 name: codeowners-quarterly-stamp-2026q2
 description: |

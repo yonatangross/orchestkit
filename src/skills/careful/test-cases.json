@@ -5,7 +5,7 @@
     {
       "id": "trigger-slash",
       "rule": null,
-      "query": "/ork:careful",
+      "query": "/ork-extras:careful",
       "expectedBehavior": [
         "Registers the PreToolUse Bash hook from the skill frontmatter for the rest of the session",
         "States that careful is on until the session ends and has no off switch"
