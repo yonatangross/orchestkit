@@ -207,7 +207,13 @@ fi
 if [[ "$SHOT" == "yes" ]]; then
   if command -v agent-browser >/dev/null 2>&1; then
     SHOT_PATH="${STATE_DIR}/${NAME}.png"
-    shot_rc=0; shot_out="$(agent-browser open "$URL" 2>&1 && agent-browser screenshot "$SHOT_PATH" 2>&1)" || shot_rc=$?
+    # Redirect to a file with stdin closed, not a $(...) capture: the first open may start
+    # the agent-browser daemon, which would inherit a capture pipe's write end and hold the
+    # reader open (the #5289 hang on native Windows under Git Bash).
+    shot_log="${STATE_DIR}/${NAME}.shot.log"
+    shot_rc=0
+    { agent-browser open "$URL" && agent-browser screenshot "$SHOT_PATH"; } > "$shot_log" 2>&1 < /dev/null || shot_rc=$?
+    shot_out="$(tail -c 200 "$shot_log" 2>/dev/null || true)"
     if [[ "$shot_rc" != "0" || ! -s "$SHOT_PATH" ]]; then
       printf 'serve.sh: screenshot failed (agent-browser rc=%s): %s. The page is still served.\n' "$shot_rc" "${shot_out:0:200}" >&2
       SHOT_PATH=""

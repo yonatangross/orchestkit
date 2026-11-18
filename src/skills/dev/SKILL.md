@@ -27,6 +27,8 @@ One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 
 State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the PIDs and signals SIGTERM in reverse boot order.
 
+> **Load each tool's own guide before driving it by hand, never from memory:** `agent-browser skills get core` for agent-browser, the `portless` skill's `references/upstream.md` for portless, the `emulate-seed` skill's `references/upstream.md` for emulate. Never pipe a command that may start a daemon or server into `tail`, `head` or `grep` (hangs on native Windows under Git Bash): redirect to a file instead, see `browser-tools` `references/ork-delta.md`.
+
 > **Paired with `expect`:** the agent-browser session that `dev` warms is the same one `expect` (and the M125 #2 auto-trigger) attach to — no second startup latency on the first UI test.
 
 ## When to invoke

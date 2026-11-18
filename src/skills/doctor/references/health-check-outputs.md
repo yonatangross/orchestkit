@@ -126,6 +126,12 @@ External Dependencies:
 agent-browser: OK (chrome=128.0.6613.137, net=✓)
 ```
 
+**Older than the minimum (#5289), WARN, doctor keeps going:**
+```
+External Dependencies:
+agent-browser: WARN 0.27.1 is older than the minimum 0.31.1. Upgrade: npm install -g agent-browser@latest (or: agent-browser upgrade)
+```
+
 **Installed but degraded:**
 ```
 External Dependencies:

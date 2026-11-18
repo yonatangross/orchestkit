@@ -1,0 +1,5 @@
+# Shell scripts run under bash (Git Bash on Windows included). A checkout with
+# core.autocrlf=true (the Git for Windows default) would give them CRLF line
+# endings, and bash then fails on the carriage return ("$'\r': command not found",
+# "unexpected end of file"). Keep them LF in the working tree on every OS.
+*.sh text eol=lf
