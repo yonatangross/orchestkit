@@ -5,8 +5,6 @@
 //
 // Plain .mjs so next.config.mjs can import it without a TypeScript step.
 
-import { existsSync, readdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { DEVELOPER_ALIASES } from "./developer-aliases.mjs";
 
 export const CANONICAL_ORIGIN = "https://orchestkit.dev";
@@ -65,8 +63,8 @@ function hostRedirects() {
 // URL on the canonical host. Without them the host 301 lands on a path that
 // redirects again (old /docs -> 301 orchestkit.dev/docs -> 307 overview), a
 // second hop. Kept paths are skipped on the legacy host: they never redirect.
-function hostAliasRedirects(host) {
-	return pathRedirects()
+function hostAliasRedirects(host, skillSlugs) {
+	return pathRedirects(skillSlugs)
 		.filter((rule) => host !== LEGACY_HOST || !isKeptOnLegacyHost(rule.source))
 		.map((rule) => ({
 			source: rule.source,
@@ -86,12 +84,13 @@ function isKeptOnLegacyHost(path) {
 // Order is the contract (first match wins): old-host copies of the path
 // redirects, then the old-host catch-alls, then the path redirects that
 // serve the canonical host.
-export function siteRedirects() {
+// skillSlugs: the skills the build wrote as one page (lib/skill-page-slugs.mjs).
+export function siteRedirects(skillSlugs = []) {
 	return [
-		...hostAliasRedirects(LEGACY_HOST),
-		...hostAliasRedirects(VERCEL_ALIAS_HOST),
+		...hostAliasRedirects(LEGACY_HOST, skillSlugs),
+		...hostAliasRedirects(VERCEL_ALIAS_HOST, skillSlugs),
 		...hostRedirects(),
-		...pathRedirects(),
+		...pathRedirects(skillSlugs),
 	];
 }
 
@@ -103,28 +102,14 @@ const RETIRED_SKILL_PAGES = [
 	["ci-sentinel", "ci-debug"],
 ];
 
-// Slugs of the skill reference pages the build wrote as ONE file. The docs
+// Sub-URLs of the skill reference pages the build wrote as ONE file. The docs
 // generator writes a skill as a folder (index plus references, rules, ...
 // pages) only while the page is over its byte budget, so a skill that shrinks
-// under it drops those sub-URLs and the old links 404. Read from the content
-// folder the build just wrote, so the next skill that shrinks needs no edit
-// here, and a skill that grows back into a folder stops being redirected (a
-// config redirect runs before the file router and would hide its real pages).
-const SKILL_PAGES_DIR = fileURLToPath(
-	new URL("../content/docs/reference/skills/", import.meta.url),
-);
-
-export function singlePageSkillSlugs(dir = SKILL_PAGES_DIR) {
-	if (!existsSync(dir)) return [];
-	return readdirSync(dir)
-		.filter((name) => name.endsWith(".mdx") && name !== "index.mdx")
-		.map((name) => name.slice(0, -".mdx".length))
-		.filter((slug) => /^[a-z0-9][a-z0-9-]*$/.test(slug))
-		.sort();
-}
-
-function singlePageSkillRedirects() {
-	const slugs = singlePageSkillSlugs();
+// under it drops those sub-URLs and the old links 404. The slugs come in as a
+// parameter (next.config.mjs reads them with lib/skill-page-slugs.mjs): this
+// file is also imported by middleware and API routes through lib/constants.ts,
+// whose bundles cannot use node:fs, so it must stay free of Node APIs.
+function singlePageSkillRedirects(slugs) {
 	if (slugs.length === 0) return [];
 	return [
 		{
@@ -139,7 +124,7 @@ function singlePageSkillRedirects() {
 }
 
 // The site's own path redirects (canonical host).
-function pathRedirects() {
+function pathRedirects(skillSlugs = []) {
 	return [
 		{
 			source: "/docs",
@@ -166,7 +151,7 @@ function pathRedirects() {
 			destination: `/docs/reference/skills/${to}`,
 			permanent: false,
 		})),
-		...singlePageSkillRedirects(),
+		...singlePageSkillRedirects(skillSlugs),
 		// Predictable aliases for the developer resources (orank "Developer
 		// resource discoverability": use predictable URLs). Each lands on the
 		// existing product-titled page; no page moves. Temporary for the same

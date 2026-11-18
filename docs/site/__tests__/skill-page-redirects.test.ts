@@ -9,7 +9,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { compile, match } from "next/dist/compiled/path-to-regexp";
-import { singlePageSkillSlugs, siteRedirects } from "@/lib/site-redirects.mjs";
+import { siteRedirects } from "@/lib/site-redirects.mjs";
+import { singlePageSkillSlugs } from "@/lib/skill-page-slugs.mjs";
 
 type Redirect = {
 	source: string;
@@ -22,7 +23,8 @@ const SKILLS = "/docs/reference/skills";
 const CONTENT = join(process.cwd(), "content/docs/reference/skills");
 
 // The canonical-host rules only (no `has` host condition).
-const CANONICAL_RULES = (siteRedirects() as Redirect[]).filter((r) => !r.has);
+// The same call next.config.mjs makes.
+const CANONICAL_RULES = (siteRedirects(singlePageSkillSlugs()) as Redirect[]).filter((r) => !r.has);
 
 function redirectFor(path: string): { to: string; permanent: boolean | undefined } | null {
 	for (const rule of CANONICAL_RULES) {

@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 import { compile, match } from "next/dist/compiled/path-to-regexp";
 import { DEVELOPER_ALIASES } from "@/lib/developer-aliases.mjs";
 import { siteRedirects } from "@/lib/site-redirects.mjs";
+import { singlePageSkillSlugs } from "@/lib/skill-page-slugs.mjs";
 
 type HasHost = { type: "host"; value: string };
 type Redirect = {
@@ -27,7 +28,8 @@ type Redirect = {
 	permanent?: boolean;
 };
 
-const RULES = siteRedirects() as Redirect[];
+// The same call next.config.mjs makes.
+const RULES = siteRedirects(singlePageSkillSlugs()) as Redirect[];
 const CANONICAL = "orchestkit.dev";
 
 type Hop = { host: string; path: string; query: string };
