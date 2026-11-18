@@ -6419,7 +6419,7 @@ export const SKILL_FLOWS: Record<string, SkillFlow> = {
           {
             "num": "4",
             "label": "Read CI",
-            "does": "CI is the only test evidence this skill has: the post gate denies local tests, lint and builds. Read the PR's checks:",
+            "does": "CI is the only test evidence this skill has: the post gate denies local tests, lint and builds, so a proven finding's command is quoted as the reviewer's claim, not as seen. Read the PR's checks:",
             "out": null,
             "tag": null
           },
