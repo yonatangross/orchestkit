@@ -682,6 +682,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.15.0](https://github.com/yonatangross/orchestkit/compare/v10.14.0...v10.15.0)** · 2026-11-18
+
+- **plugins:** move 7 operator skills to ork-extras, slash-only (#5287)
+- **site:** add a skill card and an install picker to the docs MCP app (#5291)
+- **skills:** one design-to-code skill that reads Claude Design exports (#5277)
+- **browser-tools:** Windows no-pipe note, doctor version check (#5290)
+- **design-to-code:** quote the PR title in ship mode, body from a file (#5286)
+- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.14.0](https://github.com/yonatangross/orchestkit/compare/v10.13.0...v10.14.0)** · 2026-11-17
 
 - **cli:** orchestkit install finds the coding agents on this machine (#5267)
@@ -739,14 +748,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** serve the server card media type when a client asks (#5125)
 - **secrets-veil:** keep image URLs on named media hosts readable (#5146)
 - …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.10.5](https://github.com/yonatangross/orchestkit/compare/v10.10.4...v10.10.5)** · 2026-11-08
-
-- Codex hook paths and docs MCP query validation (#5119)
-- **hooks:** state machine audit bundle (#5117)
-- **skills:** bill long Haiku 5.5 prompts on the higher rate card (#5124)
-- **skills:** send the event name from fork skill body loaders (#5122)
-- **skills:** skill quality round 5, pass the fitness checklist (#5104)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
