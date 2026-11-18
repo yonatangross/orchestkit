@@ -32,7 +32,6 @@ skills:
   - write-prd
   - prd-to-goal
   - github-operations
-  - remember
   - memory
 mcpServers: [tavily]
 metadata:

@@ -206,6 +206,9 @@ skills:
       - "search memory for past decisions"
       - "recall what we decided"
       - "check memory for context"
+      - "remember this decision"
+      - "save this to memory"
+      - "remember that we chose postgres"
     should_not_trigger:
       - "implement a feature"
       - "fix this bug"
@@ -220,15 +223,5 @@ skills:
       - "deploy to production"
       - "fix this bug"
       - "run the linter"
-
-  remember:
-    should_trigger:
-      - "remember this decision"
-      - "save this to memory"
-      - "remember that we chose postgres"
-    should_not_trigger:
-      - "implement a feature"
-      - "fix this bug"
-      - "commit my changes"
 
 

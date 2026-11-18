@@ -31,7 +31,6 @@ tools:
 skills:
   - devops-deployment
   - security-patterns
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

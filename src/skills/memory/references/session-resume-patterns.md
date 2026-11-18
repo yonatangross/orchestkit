@@ -6,7 +6,7 @@ At session end, Claude shows resume hints. To maximize resume effectiveness:
 
 ```bash
 # Store key decisions and context
-/ork:remember Key decisions for next session:
+/ork:memory remember Key decisions for next session:
   - Decision 1: [brief]
   - Decision 2: [brief]
   - Next steps: [what remains]
@@ -33,7 +33,7 @@ At session end, Claude shows resume hints. To maximize resume effectiveness:
 Always store investigation findings before session end:
 
 ```bash
-/ork:remember Session summary for {task}:
+/ork:memory remember Session summary for {task}:
   Completed: [what was done]
   Findings: [key discoveries]
   Next steps: [what remains]

@@ -30,7 +30,6 @@ skills:
   - api-design
   - security-patterns
   - performance
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

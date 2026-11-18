@@ -73,7 +73,7 @@ Separate from the graph store above: the harness injects a per-project
 the **first 200 lines OR first 25 KB, whichever comes first** — anything past
 either limit is silently dropped (per code.claude.com/docs/memory). CC gives no
 warning as you approach those caps; this check makes it actionable by pointing
-at the fix (`/ork:dream`). A growing index also busts the prompt cache, since it
+at the fix (`/ork:memory dream`). A growing index also busts the prompt cache, since it
 changes whenever a memory is written.
 
 The index lives under `~/.claude/projects/<encoded-cwd>/memory/MEMORY.md` — the
@@ -92,11 +92,11 @@ if [ -f "$MEM_INDEX" ]; then
   # index lines over ~200 chars are the usual re-bloat cause
   long=$(awk 'length > 200 && /^- \[/' "$MEM_INDEX" | wc -l | tr -d ' ')
   if [ "$bytes" -gt "$BUDGET_BYTES" ]; then
-    echo "WARN: MEMORY.md index ${bytes}B > ${BUDGET_BYTES}B budget — run /ork:dream to consolidate"
+    echo "WARN: MEMORY.md index ${bytes}B > ${BUDGET_BYTES}B budget — run /ork:memory dream to consolidate"
   elif [ "$lines" -gt "$BUDGET_LINES" ]; then
-    echo "WARN: MEMORY.md index ${lines} lines > ${BUDGET_LINES} (CC drops the rest) — run /ork:dream"
+    echo "WARN: MEMORY.md index ${lines} lines > ${BUDGET_LINES} (CC drops the rest) — run /ork:memory dream"
   elif [ "$long" -gt 0 ]; then
-    echo "WARN: ${long} index line(s) > 200 chars — run /ork:dream (re-bloat risk)"
+    echo "WARN: ${long} index line(s) > 200 chars — run /ork:memory dream (re-bloat risk)"
   else
     echo "OK: MEMORY.md index within budget (${bytes}B, ${lines} lines)"
   fi
@@ -111,7 +111,7 @@ fi
 - Index size ≤ 24.4 KB (conservative vs CC's 25 KB load cap)
 - Index ≤ 200 lines total (CC loads the first 200 lines OR 25 KB, whichever first)
 - Every index line ≤ ~200 chars (detail belongs in the linked topic file, not the index)
-- Fix for all three: `/ork:dream` rebuilds the index, capping line length and pruning stale entries
+- Fix for all three: `/ork:memory dream` rebuilds the index, capping line length and pruning stale entries
 
 ## Troubleshooting
 
@@ -122,7 +122,7 @@ fi
 mkdir -p .claude/memory
 ```
 
-The first `/ork:remember` call will create `decisions.jsonl`.
+The first `/ork:memory remember` call will create `decisions.jsonl`.
 
 ### Corrupt JSONL lines
 

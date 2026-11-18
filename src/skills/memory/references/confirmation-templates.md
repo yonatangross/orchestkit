@@ -42,7 +42,7 @@ Append to any template above:
 
 ### Basic Remember (Graph Only)
 
-**Input:** `/remember Cursor-based pagination scales well for large datasets`
+**Input:** `/ork:memory remember Cursor-based pagination scales well for large datasets`
 
 **Output:**
 ```
@@ -54,7 +54,7 @@ Remembered (pagination): "Cursor-based pagination scales well for large datasets
 
 ### Anti-Pattern
 
-**Input:** `/remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
+**Input:** `/ork:memory remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
 
 **Output:**
 ```
@@ -67,7 +67,7 @@ Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tabl
 
 ### Agent-Scoped Memory
 
-**Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
+**Input:** `/ork:memory remember --agent backend-system-architect Use connection pooling with min=5, max=20`
 
 **Output:**
 ```

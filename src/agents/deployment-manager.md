@@ -27,7 +27,6 @@ tools:
 skills:
   - devops-deployment
   - github-operations
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

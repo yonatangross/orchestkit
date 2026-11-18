@@ -182,7 +182,7 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 | 🔴 Production error sweep | clear a backlog of actionable errors | `fix-issue` |
 | 📚 Docs-drift sweep | docs / reference drifted from code | `audit-full` |
 | ⚡ Page-load budget | a page exceeds its latency budget | `performance` |
-| 🧹 Repository cleanup | stale memory / state accumulated | `dream` |
+| 🧹 Repository cleanup | stale memory / state accumulated | `memory dream` |
 | ✅ Quality streak | don't trust a single green (flaky suite) | `verify` |
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `fix-issue` → `create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |

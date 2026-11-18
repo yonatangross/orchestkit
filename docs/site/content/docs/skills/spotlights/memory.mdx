@@ -5,7 +5,7 @@ description: Search, load, sync, and visualize your knowledge graph across sessi
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-The `/ork:memory` command is the read side of OrchestKit's knowledge system. It searches past decisions, loads context at session start, syncs to cloud storage, visualizes the knowledge graph, and reports system health. Paired with `/ork:remember` (the write side), it forms a persistent memory layer that compounds across sessions: every decision you store makes future sessions smarter. This page covers each subcommand, the memory architecture, and patterns for getting the most value from persistent knowledge.
+The `/ork:memory` command is the read side of OrchestKit's knowledge system. It searches past decisions, loads context at session start, syncs to cloud storage, visualizes the knowledge graph, and reports system health. Paired with `/ork:memory remember` (the write side), it forms a persistent memory layer that compounds across sessions: every decision you store makes future sessions smarter. This page covers each subcommand, the memory architecture, and patterns for getting the most value from persistent knowledge.
 
 ## Why This Skill
 
@@ -152,7 +152,7 @@ If your team has already solved a rate limiting problem, the search surfaces the
 Before ending a session, store key findings:
 
 ```bash
-/ork:remember Key decisions for authentication feature:
+/ork:memory remember Key decisions for authentication feature:
   - Chose JWT over session cookies for API auth
   - Using RS256 for token signing
   - Refresh tokens stored in httpOnly cookies
@@ -174,15 +174,15 @@ This produces a Mermaid graph showing all architectural decisions and their rela
 ## Tips and Tricks
 
 <Callout type="info">
-**Memory compounds across sessions.** The more you use `/ork:remember` and `/ork:memory`, the more valuable the knowledge graph becomes. A graph with 5 decisions is mildly useful. A graph with 50 decisions covering technology choices, failed approaches, and team preferences is a powerful accelerator.
+**Memory compounds across sessions.** The more you use `/ork:memory remember` and `/ork:memory`, the more valuable the knowledge graph becomes. A graph with 5 decisions is mildly useful. A graph with 50 decisions covering technology choices, failed approaches, and team preferences is a powerful accelerator.
 </Callout>
 
 <Callout type="info">
-**Use `--global` for universal patterns.** When you discover a pattern that applies to all your projects (not just the current one), store it with `/ork:remember --global`. These surface in any project when you search with `--global`.
+**Use `--global` for universal patterns.** When you discover a pattern that applies to all your projects (not just the current one), store it with `/ork:memory remember --global`. These surface in any project when you search with `--global`.
 </Callout>
 
 <Callout type="info">
-**Pair with `/ork:remember` for complete coverage.** `/ork:memory` reads; `/ork:remember` writes. Use them together: store decisions as you make them with `/ork:remember`, then search and load them in future sessions with `/ork:memory`.
+**Pair with `/ork:memory remember` for complete coverage.** `/ork:memory` reads; `/ork:memory remember` writes. Use them together: store decisions as you make them with `/ork:memory remember`, then search and load them in future sessions with `/ork:memory`.
 </Callout>
 
 ## Related Skills

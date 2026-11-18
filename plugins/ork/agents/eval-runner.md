@@ -39,7 +39,6 @@ skills:
   - testing-llm
   - testing-integration
   - error-analysis
-  - remember
   - memory
 mcpServers: [context7]
 metadata:
@@ -338,6 +337,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |testing-llm:{SKILL.md,references/{healer-agent.md,langfuse-v4.md,ork-delta.md}}|testing,llm,ai,deepeval,ragas,evaluation,mocking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,ork-delta.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
 |error-analysis:{SKILL.md,references/{judge-alignment.md,langfuse-traces.md,method.md}}|error-analysis,evaluation,llm-testing,testing,langfuse,traces,failure-taxonomy,evals,debugging
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

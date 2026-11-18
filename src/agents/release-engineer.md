@@ -29,7 +29,6 @@ tools:
 skills:
   - release-sync
   - github-operations
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

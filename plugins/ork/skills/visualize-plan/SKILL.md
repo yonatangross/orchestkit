@@ -11,7 +11,7 @@ agent: workflow-architect
 model: sonnet
 user-invocable: true
 allowed-tools: "Read Grep Glob Agent TaskCreate TaskUpdate AskUserQuestion Bash Write mcp__memory__search_nodes mcp__memory__create_entities ToolSearch mcp__notebooklm-mcp__studio_create"
-skills: [glyph, explore, architecture-decision-record, memory, remember, page-serve]
+skills: [glyph, explore, architecture-decision-record, memory, page-serve]
 metadata:
   category: document-asset-creation
   mcp-server: memory
@@ -447,4 +447,4 @@ Done means all of these hold:
 - `ork:explore` - Understand current architecture
 - `ork:assess` - Evaluate complexity and risks
 - `ork:memory` - Search prior plan visualizations
-- `ork:remember` - Store plan decisions for future reference
+- `ork:memory remember` - Store plan decisions for future reference

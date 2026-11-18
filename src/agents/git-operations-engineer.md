@@ -28,7 +28,6 @@ tools:
 skills:
   - github-operations
   - architecture-decision-record
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

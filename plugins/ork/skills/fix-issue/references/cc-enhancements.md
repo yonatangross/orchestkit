@@ -40,7 +40,7 @@ When investigating root cause:
 Before ending fix sessions, capture investigation context:
 
 ```bash
-/ork:remember Issue #$ARGUMENTS RCA findings:
+/ork:memory remember Issue #$ARGUMENTS RCA findings:
   Root cause: [one line]
   Confirmed by: [key evidence]
   Fix status: [implemented/pending]

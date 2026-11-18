@@ -21,13 +21,13 @@ trigger_evals:
     should_trigger: true
   - prompt: "recall what patterns we agreed on for error handling"
     should_trigger: true
-  # Should NOT trigger — remember confusion pair (both deal with memory)
+  # Should trigger: a confusion pair before the merge, one skill now
   - prompt: "remember that we chose Postgres over MongoDB"
-    should_trigger: false
+    should_trigger: true
   - prompt: "save this decision: use cursor pagination everywhere"
-    should_trigger: false
+    should_trigger: true
   - prompt: "store this as a best practice for future sessions"
-    should_trigger: false
+    should_trigger: true
   # Should NOT trigger — adjacent tasks
   - prompt: "explore the codebase architecture"
     should_trigger: false
@@ -36,8 +36,55 @@ trigger_evals:
   # Should trigger — terse phrasing
   - prompt: "show memory"
     should_trigger: true
-  # Should NOT trigger — multi-intent, primary is remember
+  # Should trigger: a confusion pair before the merge, one skill now
   - prompt: "remember this pattern and then show me all stored memories"
+    should_trigger: true
+  # Should trigger — direct requests
+  - prompt: "remember that we chose Postgres over MongoDB for this project"
+    should_trigger: true
+  - prompt: "save this decision: always use cursor-based pagination"
+    should_trigger: true
+  - prompt: "store this pattern as a best practice"
+    should_trigger: true
+  # Should trigger — casual/indirect phrasing
+  - prompt: "lets not forget we decided to use JWT for auth"
+    should_trigger: true
+  - prompt: "mark this as an anti-pattern: using offset pagination on large tables"
+    should_trigger: true
+  - prompt: "record that connection pooling with pgbouncer worked well"
+    should_trigger: true
+  # Should trigger: a confusion pair before the merge, one skill now
+  - prompt: "search memory for past database decisions"
+    should_trigger: true
+  - prompt: "what did we decide about caching last time"
+    should_trigger: true
+  - prompt: "show me the knowledge graph visualization"
+    should_trigger: true
+  # Should NOT trigger — adjacent tasks
+  - prompt: "commit my changes with a good message"
+    should_trigger: false
+  # Should trigger — terse phrasing
+  - prompt: "remember this"
+    should_trigger: true
+  # Should trigger: a confusion pair before the merge, one skill now
+  - prompt: "search my memories and remember any new patterns found"
+    should_trigger: true
+  # Should trigger — direct requests
+  - prompt: "consolidate my memory files"
+    should_trigger: true
+  - prompt: "clean up stale memory entries"
+    should_trigger: true
+  - prompt: "run dream to prune old memories"
+    should_trigger: true
+  # Should trigger — casual/indirect phrasing
+  - prompt: "my memory files are a mess, can you tidy them up"
+    should_trigger: true
+  - prompt: "prune memories that reference files that no longer exist"
+    should_trigger: true
+  - prompt: "save this decision about caching"
+    should_trigger: true
+  # Should NOT trigger — adjacent tasks
+  - prompt: "implement the user authentication flow"
     should_trigger: false
 
 quality_evals:
@@ -66,4 +113,44 @@ quality_evals:
       - name: "empty graph handling"
         check: "mentions that an empty graph should show a helpful message rather than an error"
 
-tags: [memory, user-invocable, core]
+  - prompt: |
+      we used Redis with a 5-minute TTL for session caching and it
+      reduced latency by 40%. how would this be stored in the
+      knowledge graph? what entities and relationships would be created?
+    assertions:
+      - name: "entity extraction"
+        check: "identifies Redis, session caching, and latency as entities to store in the knowledge graph"
+      - name: "relationship modeling"
+        check: "describes relationships like project USES Redis, Redis IMPROVES latency"
+      - name: "success categorization"
+        check: "marks or categorizes this as a success pattern or positive outcome"
+      - name: "confirmation step"
+        check: "mentions confirming with the user what was stored, not silently saving"
+
+  - prompt: |
+      using a single global database connection caused connection
+      exhaustion under load. we should have used connection pooling.
+      how do i store this lesson so we don't repeat it?
+    assertions:
+      - name: "anti-pattern storage"
+        check: "recommends storing as a failed/anti-pattern outcome in the knowledge graph"
+      - name: "lesson extraction"
+        check: "captures the corrective lesson: use connection pooling instead of single global connection"
+      - name: "category detection"
+        check: "categorizes as database-related based on content"
+
+  - prompt: |
+      I have about 30 memory files that have accumulated over the last
+      few months. Some reference files that were deleted during a refactor.
+      How would you consolidate them?
+    assertions:
+      - name: "staleness detection"
+        check: "describes checking whether referenced file paths still exist using Glob or filesystem checks"
+      - name: "deterministic approach"
+        check: "emphasizes deterministic verification (file exists, symbol exists) rather than LLM judgment for pruning decisions"
+      - name: "dry run option"
+        check: "mentions or offers a --dry-run flag to preview changes before applying"
+      - name: "index rebuild"
+        check: "mentions rebuilding MEMORY.md index after pruning"
+
+tags: [memory, user-invocable, core, remember, dream, maintenance]

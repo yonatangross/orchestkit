@@ -327,6 +327,6 @@ Load on demand with `Read("references/<file>")`:
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
 - `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
-- `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
+- `ork:memory remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)

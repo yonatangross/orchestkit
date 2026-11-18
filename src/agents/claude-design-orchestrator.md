@@ -30,7 +30,6 @@ skills:
   - design-to-code
   - component-search
   - design-context-extract
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

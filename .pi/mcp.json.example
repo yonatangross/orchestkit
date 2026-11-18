@@ -46,7 +46,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "includeTools": ["search_nodes", "read_graph", "open_nodes"],
-      "$reason": "Read-only slice of the knowledge graph. Withheld: create_entities, create_relations, add_observations, delete_entities, delete_observations, delete_relations. Drop the includeTools line if the pi lane is meant to WRITE memory (/ork:remember)."
+      "$reason": "Read-only slice of the knowledge graph. Withheld: create_entities, create_relations, add_observations, delete_entities, delete_observations, delete_relations. Drop the includeTools line if the pi lane is meant to WRITE memory (/ork:memory remember)."
     },
 
     "sequential-thinking": {

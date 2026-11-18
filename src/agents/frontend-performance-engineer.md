@@ -24,7 +24,6 @@ tools:
   - mcp__context7__query-docs
 skills:
   - performance
-  - remember
   - memory
 mcpServers: [context7]
 background: true

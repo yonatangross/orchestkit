@@ -30,7 +30,6 @@ skills:
   - database-patterns
   - performance
   - python-backend
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

@@ -858,12 +858,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/ci-debug",
     "title": "CI Debug",
-    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed. Not for sweeping all red PRs (use ci-sentinel) or app test failures."
+    "description": "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures."
   },
   {
     "url": "/docs/reference/skills/ci-sentinel",
     "title": "CI Sentinel",
-    "description": "Manually dispatched classifier for every open PR with a failed check: runs ci-debug headless, posts a collapsed verdict per PR. Proposes only, never pushes. Use for all red PRs; for one run, use ci-debug."
+    "description": "Formerly ci-sentinel, now ci-debug sweep. Use when /ork:ci-sentinel is typed to install or check the red-PR sweep. Removed 2027-01-31."
   },
   {
     "url": "/docs/reference/skills/code-review-playbook",
@@ -1123,7 +1123,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/dream",
     "title": "Dream",
-    "description": "Nightly memory consolidation: prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md. Use when memory needs cleanup. To store use remember; to search use memory."
+    "description": "Formerly dream, now memory dream. Use when /ork:dream is typed to tidy and prune memory entries. Removed 2027-01-31."
   },
   {
     "url": "/docs/reference/skills/emulate-seed",
@@ -1268,12 +1268,12 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/memory-fabric",
     "title": "Memory Fabric",
-    "description": "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory; entry storage to remember; consolidation to dream."
+    "description": "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory search; entry storage to memory remember; consolidation to memory dream."
   },
   {
     "url": "/docs/reference/skills/memory",
     "title": "Memory",
-    "description": "Read-side memory: search past decisions, load context, timelines and graph views. Use when finding what memory holds. To store use remember; to clean up use dream."
+    "description": "Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream (consolidate stale memory files). Use when storing, finding or cleaning up what was learned or decided."
   },
   {
     "url": "/docs/reference/skills/monitoring-observability",
@@ -1373,7 +1373,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/reference/skills/remember",
     "title": "Remember",
-    "description": "Write-side memory: stores decisions, patterns and outcomes in the knowledge graph. Use when something worth keeping was learned or decided. To search use memory; to consolidate use dream."
+    "description": "Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. Removed 2027-01-31."
   },
   {
     "url": "/docs/reference/skills/responsive-patterns",
