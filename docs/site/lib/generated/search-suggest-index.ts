@@ -4211,6 +4211,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "References (6)",
       "Browser Tools: the OrchestKit delta over agent-browser",
       "Nothing checks agent-browser any more: the rules are yours to follow",
+      "Windows (Git Bash) and piping: never pipe a command that may start the daemon",
       "Pace requests per host across every session, by hand",
       "Local targets: name them with portless, not a port",
       "Keep page-derived output targeted, verified, and out of the repo",
