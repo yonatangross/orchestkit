@@ -263,7 +263,7 @@ function main() {
   const queueRecords = readJsonl(queuePath);
 
   if (records.length === 0) {
-    console.log('No memories stored yet. Use `/ork:remember` to start building your knowledge graph.');
+    console.log('No memories stored yet. Use `/ork:memory remember` to start building your knowledge graph.');
     process.exit(0);
   }
 

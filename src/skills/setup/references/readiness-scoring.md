@@ -25,7 +25,7 @@ OrchestKit Readiness Score: 7.2 / 10  (stable channel, v7.0.0)
   Custom Skills   ██░░░░░░░░  2/10  0/3 suggested skills created
   Agent Utilization ████████░░  8/10  36 agents available
 
-  Top improvement: Add /ork:remember patterns → +1.5 points
+  Top improvement: Add /ork:memory remember patterns → +1.5 points
 ```
 
 ## Memory Integration
@@ -48,7 +48,7 @@ mcp__memory__create_entities(entities=[{
 
 Generate prioritized, **runnable** recommendations in 3 tiers:
 
-- **P0 (do now)**: Seed knowledge graph with `/ork:remember` patterns
+- **P0 (do now)**: Seed knowledge graph with `/ork:memory remember` patterns
 - **P1 (this week)**: Configure recommended MCPs, create custom skills for repeated patterns
 - **P2 (ongoing)**: Run `/ork:explore architecture`, rescan with `/ork:setup --rescan` in 2 weeks
 

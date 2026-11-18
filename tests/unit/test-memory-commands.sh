@@ -3,7 +3,7 @@
 # Memory Commands Unit Tests
 # ============================================================================
 # Tests for memory slash commands (CC 2.1.3 merged with skills):
-# - /remember (skills/remember/SKILL.md)
+# - /remember (skills/memory/SKILL.md)
 # - /ork:memory search (skills/memory/SKILL.md)
 # Plus the memory and feedback JSON schemas under .claude/schemas/.
 # ============================================================================
@@ -32,15 +32,15 @@ SKILLS_DIR="$PROJECT_ROOT/src/skills"
 describe "Command: /remember"
 
 test_remember_command_exists() {
-    assert_file_exists "$SKILLS_DIR/remember/SKILL.md"
+    assert_file_exists "$SKILLS_DIR/memory/SKILL.md"
 }
 
 test_remember_has_usage_section() {
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Usage"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "## Usage"
 }
 
 test_remember_has_categories() {
-    local file="$SKILLS_DIR/remember/SKILL.md"
+    local file="$SKILLS_DIR/memory/SKILL.md"
 
     assert_file_contains "$file" "decision"
     assert_file_contains "$file" "architecture"
@@ -51,16 +51,16 @@ test_remember_has_categories() {
 
 test_remember_references_memory_tool() {
     # Check for graph memory MCP reference
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "memory"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "memory"
 }
 
 test_remember_has_workflow() {
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Workflow"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "## Workflow"
 }
 
 test_remember_has_when_to_use() {
     # Overview is optional if description has trigger phrases (standardized in #179)
-    local file="$SKILLS_DIR/remember/SKILL.md"
+    local file="$SKILLS_DIR/memory/SKILL.md"
     if grep -q "## Overview" "$file"; then
         # Has Overview - OK
         return 0
@@ -73,12 +73,12 @@ test_remember_has_when_to_use() {
 }
 
 test_remember_has_auto_detect_logic() {
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "Auto-Detect"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "Auto-Detect"
 }
 
 test_remember_specifies_user_id_format() {
     # Should specify the user_id format for mem0
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "user_id"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "user_id"
 }
 
 # ============================================================================

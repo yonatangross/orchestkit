@@ -5,7 +5,7 @@
  * Session Summary - Stop Hook
  *
  * Runs at session end. Only fires when session had meaningful work (>=20 tool calls).
- * Builds a graph entity suggestion via additionalContext and nudges /ork:remember
+ * Builds a graph entity suggestion via additionalContext and nudges /ork:memory remember
  * for high-activity sessions (>50 tool calls).
  *
  * Graph-first replacement for memory-capture.ts — no local file writes.
@@ -78,7 +78,7 @@ export function sessionSummary(input: HookInput, ctx: HookContext = NOOP_CTX): H
   ];
 
   if (totalTools > 50) {
-    lines.push('Consider running /ork:remember to save patterns from this session');
+    lines.push('Consider running /ork:memory remember to save patterns from this session');
   }
 
   const additionalContext = lines.join('\n');

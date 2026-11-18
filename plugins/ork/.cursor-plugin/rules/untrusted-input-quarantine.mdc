@@ -47,7 +47,7 @@ A ~30-line read-only reader costs almost nothing and removes an entire class of 
 
 | Skill | Untrusted source | Reader extracts | Actor does |
 |-------|------------------|-----------------|------------|
-| `ci-sentinel` | failing CI logs, PR titles/bodies | the failure class + the diff-relevant facts | proposes the verdict (never auto-pushes) |
+| `ci-debug` sweep mode | failing CI logs, PR titles/bodies | the failure class + the diff-relevant facts | proposes the verdict (never auto-pushes) |
 | `fix-issue` | issue body, comments | repro steps, expected/actual, affected paths | writes the fix from the structured repro |
 | `review-pr` | PR description, review threads | the stated intent + checklist claims | reviews the **diff** (the trusted artifact) on its own |
 

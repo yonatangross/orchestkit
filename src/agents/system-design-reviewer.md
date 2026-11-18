@@ -26,7 +26,6 @@ skills:
   - visualize-plan
   - security-patterns
   - performance
-  - remember
   - memory
 mcpServers: []
 background: true

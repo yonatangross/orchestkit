@@ -36,7 +36,7 @@ Agent tool results include `token_count`, `tool_uses`, and `duration_ms`. Report
 Before ending PR creation sessions, store context for future sessions:
 
 ```bash
-/ork:remember PR #123 created: [brief description], pending review from [team]
+/ork:memory remember PR #123 created: [brief description], pending review from [team]
 ```
 
 ## Post-Creation Verification

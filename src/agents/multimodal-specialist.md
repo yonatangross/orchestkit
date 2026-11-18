@@ -28,7 +28,6 @@ tools:
 skills:
   - api-design
   - memory
-  - remember
 mcpServers: [context7]
 metadata:
   category: "llm"

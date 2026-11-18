@@ -19,7 +19,7 @@ Maps detected technologies to recommended OrchestKit skills.
 | Test frameworks | `testing-unit`, `testing-e2e`, `testing-integration`, `golden-dataset` |
 | Security concerns | `security-patterns` |
 
-**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `remember`, `brainstorm`, `help`
+**All stacks get**: `explore`, `implement`, `verify`, `commit`, `review-pr`, `fix-issue`, `doctor`, `memory`, `brainstorm`, `help`
 
 ## MCP Recommendation Matrix
 

@@ -110,11 +110,11 @@ Run `/ork:memory status` for the skill-side health view.
 
 ## Synchronization Between Local and Graph
 
-There is no `memory-writer.ts` and no live `graph-queue-sync` stop hook. The primary write path is `/ork:remember` calling `mcp__memory__*` directly (validated by `memory-validator`). Local JSONL under `.claude/memory/` is an optional artifact surface, not an automatic write-ahead queue flushed by OrchestKit hooks.
+There is no `memory-writer.ts` and no live `graph-queue-sync` stop hook. The primary write path is `/ork:memory remember` calling `mcp__memory__*` directly (validated by `memory-validator`). Local JSONL under `.claude/memory/` is an optional artifact surface, not an automatic write-ahead queue flushed by OrchestKit hooks.
 
 | Stage | Target | Timing |
 |---|---|---|
-| **`/ork:remember` (skill)** | Knowledge graph via MCP | On explicit invoke |
+| **`/ork:memory remember` (skill)** | Knowledge graph via MCP | On explicit invoke |
 | **Agent Edit/Write** | `MEMORY.md` or local memory files when chosen | On explicit edit |
 | **`pre-compact-saver`** | Session state snapshot of local + logs | On compaction |
 | **`session-summary`** | Graph capture *suggestion* via additionalContext | On stop (busy sessions) |

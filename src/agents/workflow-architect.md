@@ -27,7 +27,6 @@ tools:
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
 skills:
-  - remember
   - memory
 mcpServers: [context7]
 metadata:

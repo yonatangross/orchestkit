@@ -35,7 +35,6 @@ tools:
   - mcp__context7__query-docs
 skills:
   - browser-tools
-  - remember
   - memory
 mcpServers: [tavily, context7]
 metadata:

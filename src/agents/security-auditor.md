@@ -30,7 +30,6 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - security-patterns
-  - remember
   - memory
 mcpServers: [context7]
 background: true

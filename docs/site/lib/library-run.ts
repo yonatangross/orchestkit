@@ -43,7 +43,7 @@ export const RUN: readonly RunLine[] = [
   { kind: "skill", name: "verify", note: "grades the work for merge", station: "check" },
   { kind: "skill", name: "commit", note: "writes a Conventional Commit", station: "ship" },
   { kind: "hook", name: "task-completion-check", event: "Stop", label: "Stop", note: "confirms the task is complete", station: "ship" },
-  { kind: "skill", name: "remember", note: "stores the decision", station: "remember" },
+  { kind: "skill", name: "memory", note: "stores the decision", station: "remember" },
   { kind: "hook", name: "session-handoff-generator", event: "SessionEnd", label: "SessionEnd", note: "writes the handoff for next time", station: "remember" },
 ];
 
