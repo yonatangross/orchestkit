@@ -1,0 +1,12 @@
+{
+  "slug": "memlens-quiet-recall-row",
+  "source": "docs/fix--memlens-pane-noise/recall-row.html",
+  "title": "memory-lens: recall goes to Claude, not to your pane",
+  "description": "Toggle before and after to see that memory-lens still hands Claude its recalled memories but no longer draws a recall line under every prompt.",
+  "tags": [
+    "mods",
+    "memory-lens",
+    "recall"
+  ],
+  "date": "2026-11-19"
+}
