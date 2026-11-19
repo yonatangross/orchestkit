@@ -194,11 +194,13 @@ export function register(on: (event: string, matcherOrHook: unknown, hook?: unkn
       if (!ctx || typeof r.text !== 'string' || r.drop !== undefined) return result;
       lastHits = hits;
       for (const h of hits) recalled.add(h.doc.id);
-      // One call, rows joined on one line: measured in the 2.1.283 TUI, a
-      // newline inside a log call renders as a replacement glyph, and a second
-      // $.ui.log in the same hook call never drew (the hook settled at once).
+      // The model gets the context; the person's pane gets nothing drawn. A plain
+      // $.ui.log put a dim "memory-lens: 1/3 ... | 2/3 ..." row under every prompt,
+      // about 40 % of a busy conductor pane (pane-noise-1, 2026-11-19). The same
+      // row goes to the debug log only (still one call, no newline, the client
+      // titles stay hidden); `/memory-lens show <n>` prints a memory on request.
       try {
-        await $.ui.log(screenLines(hits, priv, home).join('  │  '));
+        await $.ui.log(screenLines(hits, priv, home).join('  │  '), { to: 'debug' });
       } catch {
         // no log surface: the context still went to the model
       }

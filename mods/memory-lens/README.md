@@ -1,6 +1,6 @@
 # memory-lens
 
-Recalls the few memories related to each prompt. The model gets them as one context entry; you see one line under your prompt with what was recalled and why.
+Recalls the few memories related to each prompt. The model gets them as one context entry; your pane shows nothing. `/memory-lens show <n>` prints a recalled memory when you want it.
 
 ## Minimum CC version
 
@@ -28,7 +28,7 @@ Requires Claude Code 2.1.283 or later (the `prompt.submit` answer shape below wa
 
 - **Index at session start**: reads `~/.claude/projects/<project>/memory/*.md` (Claude Code's own memory files) in the background. A worktree under `<repo>/.worktrees/<name>` maps to its parent repo's folder, because a worktree's own folder is usually empty. `MEMORY.md` index files are never recalled.
 - **Recall on each prompt**: BM25 over each memory's name, description and the start of its body. At most 3 memories, only above a score floor, so a vague prompt ("fix all") shows nothing instead of noise. Session digests and index hubs count half.
-- **Two surfaces**: the model gets one context entry of about 250 tokens (capped near 600), with each memory's name, description and path. You get one line: `n/3 title · match words`, memories joined by a bar. The file name stays in the model's context only.
+- **Two surfaces**: the model gets one context entry of about 250 tokens (capped near 600), with each memory's name, description and path. You get nothing drawn (a plain log row under every prompt filled a busy pane, 2026-11-19); the `n/3 title · match words` row goes to the debug log only. The file name stays in the model's context only.
 - **Your turns only**: recall runs on a prompt you sent (terminal, desktop app, Remote Control). Task notifications, peer messages, schedules and slash commands recall nothing.
 - **No mid-task recall**: file tool calls are not queries. Measured 2026-10-23, about 9 of 10 path recalls were off-topic and some carried client memories into unrelated work.
 - **Fresh after a write**: a Write or Edit under the memory folder re-indexes that file, so the next prompt can find it.
@@ -56,7 +56,7 @@ Secret-shaped text (key prefixes, PEM headers) reaches neither the screen nor th
 ### Calls
 
 - `$.env.get('HOME')`, `$.fs.list`, `$.fs.read`: the memory folder and the two optional files
-- `$.ui.log`: the screen line (and one debug line with the index size)
+- `$.ui.log` with `{ to: 'debug' }`: the recall row and one line with the index size (nothing is drawn in the pane)
 - `$.clock.after`: caps the first prompt's wait for the index at 2 s
 - `$.command.register`: `/memory-lens`
 

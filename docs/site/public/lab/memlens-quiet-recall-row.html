@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>memory-lens: recall goes to Claude, not to your pane</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;margin:8px 0}
+.dim{color:#8b93a1}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#58606e;margin:14px 0 4px}
+button{font:inherit;border:1px solid #c9ced6;background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="memory-lens: recall goes to Claude, not to your pane"><meta property="og:description" content="Toggle before and after to see that memory-lens still hands Claude its recalled memories but no longer draws a recall line under every prompt."><meta property="og:url" content="https://orchestkit.dev/lab/memlens-quiet-recall-row.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="memory-lens: recall goes to Claude, not to your pane"><meta name="twitter:description" content="Toggle before and after to see that memory-lens still hands Claude its recalled memories but no longer draws a recall line under every prompt."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>memory-lens: recall goes to Claude, not to your pane</h1>
+<p>memory-lens recalls the few memories related to each prompt and hands them to Claude as context. Before this change it also drew one line under every prompt listing what it recalled. On a busy session those lines add up. Now the line is written to the debug log only; Claude still gets the same context, and <code>/memory-lens show &lt;n&gt;</code> prints a recalled memory whenever you ask.</p>
+<div class="card">
+<fieldset>version
+<label><input type="radio" name="v" value="old"> before</label>
+<label><input type="radio" name="v" value="new" checked> this change</label>
+</fieldset>
+<fieldset>prompts in a row
+<label><input type="radio" name="n" value="1"> 1</label>
+<label><input type="radio" name="n" value="3" checked> 3</label>
+<label><input type="radio" name="n" value="6"> 6</label>
+</fieldset>
+<h2>what your pane draws</h2>
+<div class="term" id="pane"></div>
+<h2>what Claude receives</h2>
+<div class="term" id="model"></div>
+<p id="count" class="dim"></p>
+<button id="copy" type="button">copy as prompt</button>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+const TITLES=['Use the staging runbook for deploys','Prefer small reviewed commits','Tests run before every push','Keep notes short and dated','Ask before anything outward-facing','Write the file, then summarize it'];
+function run(){
+  const v=pick('v'), n=+pick('n'), pane=[], model=[];
+  for(let i=0;i<n;i++){
+    pane.push('❯ prompt '+(i+1));
+    if(v==='old') pane.push('  memory-lens: 1/3 '+TITLES[i%6]+' · match words  |  2/3 '+TITLES[(i+1)%6]+' · match words');
+    model.push('prompt '+(i+1)+': context entry with up to 3 memories (name, description, path)');
+  }
+  document.getElementById('pane').textContent=pane.join('\n');
+  document.getElementById('model').textContent=model.join('\n');
+  const shown=v==='old'?n:0;
+  document.getElementById('count').textContent=shown+' recall line'+(shown===1?'':'s')+' in your pane, '+n+' context entr'+(n===1?'y':'ies')+' for Claude.';
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+document.getElementById('copy').onclick=()=>{
+  const t='memory-lens: draw no recall line under the prompt (log it with { to: \'debug\' }); keep the context entry for Claude unchanged; /memory-lens show <n> stays.';
+  if(navigator.clipboard) navigator.clipboard.writeText(t);
+};
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
