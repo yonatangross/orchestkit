@@ -63,8 +63,8 @@ function hostRedirects() {
 // URL on the canonical host. Without them the host 301 lands on a path that
 // redirects again (old /docs -> 301 orchestkit.dev/docs -> 307 overview), a
 // second hop. Kept paths are skipped on the legacy host: they never redirect.
-function hostAliasRedirects(host) {
-	return pathRedirects()
+function hostAliasRedirects(host, skillSlugs) {
+	return pathRedirects(skillSlugs)
 		.filter((rule) => host !== LEGACY_HOST || !isKeptOnLegacyHost(rule.source))
 		.map((rule) => ({
 			source: rule.source,
@@ -84,12 +84,15 @@ function isKeptOnLegacyHost(path) {
 // Order is the contract (first match wins): old-host copies of the path
 // redirects, then the old-host catch-alls, then the path redirects that
 // serve the canonical host.
-export function siteRedirects() {
+/**
+ * @param {string[]} [skillSlugs] the skills the build wrote as one page (lib/skill-page-slugs.mjs)
+ */
+export function siteRedirects(skillSlugs = []) {
 	return [
-		...hostAliasRedirects(LEGACY_HOST),
-		...hostAliasRedirects(VERCEL_ALIAS_HOST),
+		...hostAliasRedirects(LEGACY_HOST, skillSlugs),
+		...hostAliasRedirects(VERCEL_ALIAS_HOST, skillSlugs),
 		...hostRedirects(),
-		...pathRedirects(),
+		...pathRedirects(skillSlugs),
 	];
 }
 
@@ -101,8 +104,29 @@ const RETIRED_SKILL_PAGES = [
 	["ci-sentinel", "ci-debug"],
 ];
 
+// Sub-URLs of the skill reference pages the build wrote as ONE file. The docs
+// generator writes a skill as a folder (index plus references, rules, ...
+// pages) only while the page is over its byte budget, so a skill that shrinks
+// under it drops those sub-URLs and the old links 404. The slugs come in as a
+// parameter (next.config.mjs reads them with lib/skill-page-slugs.mjs): this
+// file is also imported by middleware and API routes through lib/constants.ts,
+// whose bundles cannot use node:fs, so it must stay free of Node APIs.
+function singlePageSkillRedirects(slugs) {
+	if (slugs.length === 0) return [];
+	return [
+		{
+			// One rule for all of them: Vercel caps a project at 1024 redirects and
+			// this list is copied for two old hosts. Permanent, unlike the rules
+			// above: the folder is gone for good, not merged into another skill.
+			source: `/docs/reference/skills/:slug(${slugs.join("|")})/:path+`,
+			destination: "/docs/reference/skills/:slug",
+			permanent: true,
+		},
+	];
+}
+
 // The site's own path redirects (canonical host).
-function pathRedirects() {
+function pathRedirects(skillSlugs = []) {
 	return [
 		{
 			source: "/docs",
@@ -129,6 +153,7 @@ function pathRedirects() {
 			destination: `/docs/reference/skills/${to}`,
 			permanent: false,
 		})),
+		...singlePageSkillRedirects(skillSlugs),
 		// Predictable aliases for the developer resources (orank "Developer
 		// resource discoverability": use predictable URLs). Each lands on the
 		// existing product-titled page; no page moves. Temporary for the same

@@ -167,6 +167,76 @@ echo 'not json' > "$TMP/allow-broken.json"
 check "an unreadable allowlist exits 2"             "$(run_audit --dir "$TMP/trees/hit" --allowlist "$TMP/allow-broken.json")" "2"
 check "an unknown level is refused with 2"          "$(run_audit --dir "$TMP/trees/clean" --level nope)" "2"
 
+# The refusal must NAME its reason. npm's report for a failed registry request keeps the reason in
+# .message and leaves .error.summary and .error.detail as EMPTY STRINGS. An empty string is not null,
+# so jq's // never falls through it: the reason is the first NON-EMPTY of .message, .error.code,
+# .error.summary, .error.detail. NETWORK_REPORT is the exact shape npm prints when the TLS handshake drops.
+NETWORK_REPORT='{"message": "request to https://registry.npmjs.org/-/npm/v1/security/advisories/bulk failed, reason: Client network socket disconnected before secure TLS connection was established", "error": {"summary": "", "detail": ""}}'
+for d in tlsdrop errsummary errdetail errempty; do
+  mkdir -p "$TMP/trees/$d"
+  echo '{}' > "$TMP/trees/$d/package-lock.json"
+done
+echo "$NETWORK_REPORT" > "$STUB_REPORTS/tlsdrop.raw"
+echo '{"error":{"summary":"audit endpoint returned 503","detail":"try again later"}}' > "$STUB_REPORTS/errsummary.raw"
+echo '{"error":{"summary":"","detail":"only the detail says why"}}' > "$STUB_REPORTS/errdetail.raw"
+echo '{"error":{"summary":"","detail":""}}' > "$STUB_REPORTS/errempty.raw"
+check "a network-error report exits 2"              "$(run_audit --dir "$TMP/trees/tlsdrop")" "2"
+check "the error names the reason held in .message" "$(jq -r '.errors[0].message | test("socket disconnected before secure TLS connection was established")' "$TMP/summary.json")" "true"
+check "the refusal line carries that reason"        "$(count_lines "$TMP/audit.out" 'npm audit reported an error: request to https://registry.npmjs.org/-/npm/v1/security/advisories/bulk failed')" "1"
+check "with no message or code, the summary is the reason" "$(run_audit --dir "$TMP/trees/errsummary" > /dev/null; jq -r '.errors[0].message' "$TMP/summary.json")" "npm audit reported an error: audit endpoint returned 503"
+check "an empty summary falls through to the detail" "$(run_audit --dir "$TMP/trees/errdetail" > /dev/null; jq -r '.errors[0].message' "$TMP/summary.json")" "npm audit reported an error: only the detail says why"
+check "an error with nothing to say reads unknown, never blank" "$(run_audit --dir "$TMP/trees/errempty" > /dev/null; jq -r '.errors[0].message' "$TMP/summary.json")" "npm audit reported an error: unknown"
+
+# The same failure through the REAL wrapper (.github/scripts/npm-audit-with-retry.sh) and a fake npm on
+# PATH: the wrapper is the one retry layer, this script only names the reason. Attempt N of the fake
+# npm prints $FAKE_NPM_DIR/N.json and exits 1 when that report is an error or lists vulnerabilities,
+# as npm does.
+FAKEBIN="$TMP/fakebin"
+export FAKE_NPM_DIR="$TMP/fake-npm"
+mkdir -p "$FAKEBIN" "$FAKE_NPM_DIR" "$TMP/trees/flaky"
+echo '{}' > "$TMP/trees/flaky/package-lock.json"
+cat > "$FAKEBIN/npm" <<'EOF'
+#!/usr/bin/env bash
+count=0
+[[ -f "$FAKE_NPM_DIR/count" ]] && count="$(cat "$FAKE_NPM_DIR/count")"
+count=$((count + 1))
+echo "$count" > "$FAKE_NPM_DIR/count"
+report="$FAKE_NPM_DIR/$count.json"
+[[ -f "$report" ]] || exit 1
+cat "$report"
+if jq -e 'has("error") or ((.metadata.vulnerabilities.total // 0) > 0)' "$report" > /dev/null; then exit 1; fi
+exit 0
+EOF
+chmod +x "$FAKEBIN/npm"
+# fake_npm_reports <attempt 1 report file> [attempt 2] [attempt 3]: what each attempt will print
+fake_npm_reports() {
+    local n=0 f
+    rm -f "$FAKE_NPM_DIR"/*.json "$FAKE_NPM_DIR/count"
+    for f in "$@"; do
+        n=$((n + 1))
+        cp "$f" "$FAKE_NPM_DIR/$n.json"
+    done
+}
+# run_audit_real_wrapper <extra args...>: like run_audit, but nothing replaces the wrapper
+run_audit_real_wrapper() {
+    local rc=0
+    env -u ORK_AUDIT_WRAPPER PATH="$FAKEBIN:$PATH" NPM_AUDIT_MAX_ATTEMPTS=3 NPM_AUDIT_RETRY_DELAY_SECONDS=0 NPM_AUDIT_TIMEOUT_SECONDS=20 \
+        bash "$AUDIT" --summary-out "$TMP/summary.json" "$@" > "$TMP/audit.out" 2>&1 || rc=$?
+    echo "$rc"
+}
+fake_npm_reports "$STUB_REPORTS/tlsdrop.raw" "$STUB_REPORTS/clean.json"
+check "one dropped handshake, then a clean report: exits 0" "$(run_audit_real_wrapper --dir "$TMP/trees/flaky")" "0"
+check "...after exactly one retry"                  "$(cat "$FAKE_NPM_DIR/count")" "2"
+check "...and the clean report is the one counted"  "$(jq -r '.examined' "$TMP/summary.json")" "5"
+fake_npm_reports "$STUB_REPORTS/tlsdrop.raw" "$STUB_REPORTS/tlsdrop.raw" "$STUB_REPORTS/tlsdrop.raw"
+check "a network error on every attempt exits 2"    "$(run_audit_real_wrapper --dir "$TMP/trees/flaky")" "2"
+check "...after a bounded three attempts"           "$(cat "$FAKE_NPM_DIR/count")" "3"
+check "...and the refusal names the reason"         "$(jq -r '.errors[0].message | test("socket disconnected before secure TLS connection was established")' "$TMP/summary.json")" "true"
+fake_npm_reports "$STUB_REPORTS/hit.json" "$STUB_REPORTS/clean.json"
+check "a real advisory is still a HIT (exit 1)"     "$(run_audit_real_wrapper --dir "$TMP/trees/flaky")" "1"
+check "...and it is never retried into a clean run" "$(cat "$FAKE_NPM_DIR/count")" "1"
+check "...the hit is advisory 111"                  "$(jq -r '.hits[0].id' "$TMP/summary.json")" "111"
+
 # Whole tree: with no --dir the script walks every tracked lockfile of this repo (default.json = all clean).
 clean_report 3 > "$STUB_REPORTS/default.json"
 check "discovery run exits 0 on all-clean stubs"    "$(run_audit)"                           "0"

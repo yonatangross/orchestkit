@@ -1,6 +1,7 @@
 import { createMDX } from "fumadocs-mdx/next";
 import { withSourceMapUpload } from "./lib/posthog-sourcemaps.mjs";
 import { siteRedirects } from "./lib/site-redirects.mjs";
+import { singlePageSkillSlugs } from "./lib/skill-page-slugs.mjs";
 
 const withMDX = createMDX();
 
@@ -174,7 +175,7 @@ const config = {
 			destination: "/api/openapi-yaml",
 		},
 	],
-	redirects: async () => siteRedirects(),
+	redirects: async () => siteRedirects(singlePageSkillSlugs()),
 	headers: async () => [
 		{
 			source: "/(.*)",

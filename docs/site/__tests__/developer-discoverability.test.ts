@@ -319,7 +319,7 @@ describe("predictable developer URLs", () => {
 
 	it("next.config.mjs wires the aliases as redirects", async () => {
 		const cfg = readFileSync(resolve(__dirname, "../next.config.mjs"), "utf8");
-		expect(cfg).toContain("redirects: async () => siteRedirects()");
+		expect(cfg).toContain("redirects: async () => siteRedirects(singlePageSkillSlugs())");
 		const { siteRedirects } = await import("@/lib/site-redirects.mjs");
 		const rules = siteRedirects() as Array<{ source: string; destination: string }>;
 		for (const [source, destination] of DEVELOPER_ALIASES) {
