@@ -5,6 +5,14 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.15.1](https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **memory-lens:** show no recall line, context to the model only ([#5296](https://github.com/yonatangross/orchestkit/issues/5296)) ([b92109f](https://github.com/yonatangross/orchestkit/commit/b92109f2b646cda7d81dbc9681aed9efc4d317e7))
+* **site,ci:** redirect skill sub-URLs, retry dropped npm audit requests ([#5295](https://github.com/yonatangross/orchestkit/issues/5295)) ([9c00ca2](https://github.com/yonatangross/orchestkit/commit/9c00ca2056977ad53da1c203ce9bd52cf29d4b6e))
+
 ## [10.15.0](https://github.com/yonatangross/orchestkit/compare/v10.14.0...v10.15.0) (2026-11-18)
 
 
