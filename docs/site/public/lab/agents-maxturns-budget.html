@@ -47,7 +47,7 @@
   <p><code>tests/agents/test-agent-maxturns-budget.sh</code>: every agent whose body carries the build-result contract (<code>committed_sha</code>) must have <code>maxTurns</code> at least the upper bound of its second Resource Scaling tier, plus 5.</p>
 
   <h2>Not covered</h2>
-  <p>The 50-80 tier of ci-cd-engineer still exceeds 60. The same rule is a warning-only follow-up for the other under-budget agents. The Workflow <code>agent()</code> call has no per-call <code>maxTurns</code> override, so the frontmatter value is the only lever.</p>
+  <p>The 50-80 tier of ci-cd-engineer still exceeds 60. The same rule is a warning-only follow-up for the other under-budget agents. The Workflow <code>agent()</code> call has no per-call <code>maxTurns</code> override, so the frontmatter value is the only lever. Superseded by #5199: 85.</p>
 
   <footer>Generated for PR #5192.</footer>
 </main>
