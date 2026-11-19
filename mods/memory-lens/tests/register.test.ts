@@ -72,18 +72,15 @@ describe('memory-lens hooks', () => {
     expect(Object.keys(hooks).sort()).toEqual(['command.run', 'prompt.submit', 'session.start', 'tool.call']);
   });
 
-  test('a matching prompt gets one context entry and one transcript line', async () => {
+  test('a matching prompt gets one context entry and no line in the pane', async () => {
     const r = (await hooks['prompt.submit'](f.$, { text: 'why not do it yourself with agent-browser' }, async (e: unknown) => e)) as { text: string; context: string[] };
     expect(r.text).toBe('why not do it yourself with agent-browser');
     expect(r.context).toHaveLength(1);
     expect(r.context[0]).toContain('feedback_portless');
     expect(r.context[0]).not.toContain('MEMORY.md');
-    const shown = f.logs.filter((l) => l.to !== 'debug').map((l) => l.text).join('\n');
-    expect(shown).toContain('1/1 ');
-    const rows = f.logs.filter((l) => l.to !== 'debug');
-    // one log call per prompt, no newline inside it (2.1.283 TUI draws only the first call)
-    expect(rows).toHaveLength(1);
-    expect(rows[0].text).not.toContain('\n');
+    // pane-noise-1 (2026-11-19): the model gets the context, the person's pane gets nothing drawn.
+    // Only a debug log is allowed; `/memory-lens show` still prints a recalled memory on request.
+    expect(f.logs.filter((l) => l.to !== 'debug')).toHaveLength(0);
   });
 
   test('context from an earlier hook is kept, not replaced', async () => {
@@ -105,9 +102,9 @@ describe('memory-lens hooks', () => {
   test('client memories reach the model but not the screen', async () => {
     const r = (await hooks['prompt.submit'](f.$, { text: 'show me the acme roadmap this week' }, async (e: unknown) => e)) as { context: string[] };
     expect(r.context[0]).toContain('project_acme_lane');
-    const shown = f.logs.filter((l) => l.to !== 'debug').map((l) => l.text).join('\n');
-    expect(shown).not.toMatch(/acme/i);
-    expect(shown).toContain('client memory (title hidden)');
+    // nothing is drawn, and no log of any kind (debug included) carries the client name
+    expect(f.logs.filter((l) => l.to !== 'debug')).toHaveLength(0);
+    expect(f.logs.map((l) => l.text).join('\n')).not.toMatch(/acme/i);
   });
 
   test('mirrored remote titles are recalled with their store id', async () => {
