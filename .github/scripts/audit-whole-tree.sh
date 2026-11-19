@@ -177,7 +177,15 @@ for dir in ${DIRS[@]+"${DIRS[@]}"} ${FIXTURE_DIR:+"$FIXTURE_DIR"}; do
     continue
   fi
   if jq -e 'has("error")' "$report" > /dev/null; then
-    record_error "$label" "npm audit reported an error: $(jq -r '.error.code // .error.summary // "unknown"' "$report")"
+    # Name the reason: the first NON-EMPTY of .message, .error.code, .error.summary, .error.detail.
+    # npm's report for a failed registry request keeps its reason in .message and leaves the
+    # summary and detail as empty strings, and jq's // does not fall through an empty string, so
+    # ".error.code // .error.summary" printed nothing for exactly the failure that most needs a name.
+    # The wrapper has already retried a network-class report; this script only names what is left.
+    record_error "$label" "npm audit reported an error: $(jq -r '
+      [.message, (.error | if type == "object" then (.code, .summary, .detail) else . end)]
+      | map(select(. != null) | if type == "string" then . else tojson end | select(length > 0))
+      | first // "unknown"' "$report")"
     continue
   fi
   if ! jq -e '.metadata.vulnerabilities | type == "object"' "$report" > /dev/null; then
