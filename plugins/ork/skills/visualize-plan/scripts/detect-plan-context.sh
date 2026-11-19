@@ -6,16 +6,43 @@
 # Usage: bash detect-plan-context.sh [issue_number]
 set -euo pipefail
 
-# Detect base branch
-BASE_BRANCH="main"
-if git rev-parse --verify dev &>/dev/null; then
-  # Check if current branch was created from dev
-  MERGE_BASE_MAIN=$(git merge-base HEAD main 2>/dev/null || echo "")
-  MERGE_BASE_DEV=$(git merge-base HEAD dev 2>/dev/null || echo "")
-  if [ -n "$MERGE_BASE_DEV" ] && [ "$MERGE_BASE_DEV" != "$MERGE_BASE_MAIN" ]; then
-    BASE_BRANCH="dev"
+# Resolve a branch name to its freshest form: the remote-tracking branch when
+# it exists (worktrees rarely pull the local branch, so it is often stale),
+# else the local branch. Prints nothing when neither exists.
+# --quiet makes git print nothing on a miss, so no stderr needs discarding.
+resolve_ref() {
+  if [ -n "$(git rev-parse --verify --quiet "origin/$1^{commit}")" ]; then
+    echo "origin/$1"
+  elif [ -n "$(git rev-parse --verify --quiet "$1^{commit}")" ]; then
+    echo "$1"
+  fi
+}
+
+# Detect base branch: origin/main, else main, else the remote default branch
+# (refs/remotes/origin/HEAD), else main as a last resort.
+BASE_BRANCH=$(resolve_ref main)
+if [ -z "$BASE_BRANCH" ]; then
+  DEFAULT_REF=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo "")
+  if [ -n "$DEFAULT_REF" ] && [ -n "$(git rev-parse --verify --quiet "${DEFAULT_REF}^{commit}")" ]; then
+    BASE_BRANCH="$DEFAULT_REF"
+  else
+    BASE_BRANCH="main"
   fi
 fi
+# A branch created from dev is compared against dev (same freshness rule).
+DEV_REF=$(resolve_ref dev)
+if [ -n "$DEV_REF" ]; then
+  MERGE_BASE_MAIN=$(git merge-base HEAD "$BASE_BRANCH" || echo "")
+  MERGE_BASE_DEV=$(git merge-base HEAD "$DEV_REF" || echo "")
+  if [ -n "$MERGE_BASE_DEV" ] && [ "$MERGE_BASE_DEV" != "$MERGE_BASE_MAIN" ]; then
+    BASE_BRANCH="$DEV_REF"
+  fi
+fi
+
+# Everything below measures from the merge base, so commits that landed on the
+# base after this branch was cut never count.
+MERGE_BASE=$(git merge-base HEAD "$BASE_BRANCH" || echo "")
+RANGE_BASE="${MERGE_BASE:-$BASE_BRANCH}"
 
 # Current branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
@@ -30,22 +57,22 @@ if [ -z "$ISSUE_REF" ]; then
 fi
 
 # Plan name from branch
-PLAN_NAME=$(echo "$BRANCH" | sed -E 's|^feat/||;s|^fix/||;s|^chore/||;s|^refactor/||;s|^docs/||' | tr '-' ' ' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+PLAN_NAME=$(echo "$BRANCH" | sed -E 's,^(feat|fix|chore|refactor|docs)/,,' | tr '-' ' ' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
 
 # Commit count since divergence
-COMMIT_COUNT=$(git rev-list --count "${BASE_BRANCH}..HEAD" 2>/dev/null || echo "0")
+COMMIT_COUNT=$(git rev-list --count "${RANGE_BASE}..HEAD" 2>/dev/null || echo "0")
 
 # File change summary
-DIFF_STAT=$(git diff --stat "${BASE_BRANCH}...HEAD" 2>/dev/null || echo "No changes detected")
+DIFF_STAT=$(git diff --stat "${RANGE_BASE}...HEAD" 2>/dev/null || echo "No changes detected")
 
 # Files by action
-FILES_ADDED=$(git diff --diff-filter=A --name-only "${BASE_BRANCH}...HEAD" 2>/dev/null | wc -l | tr -d ' ')
-FILES_MODIFIED=$(git diff --diff-filter=M --name-only "${BASE_BRANCH}...HEAD" 2>/dev/null | wc -l | tr -d ' ')
-FILES_DELETED=$(git diff --diff-filter=D --name-only "${BASE_BRANCH}...HEAD" 2>/dev/null | wc -l | tr -d ' ')
+FILES_ADDED=$(git diff --diff-filter=A --name-only "${RANGE_BASE}...HEAD" 2>/dev/null | wc -l | tr -d ' ')
+FILES_MODIFIED=$(git diff --diff-filter=M --name-only "${RANGE_BASE}...HEAD" 2>/dev/null | wc -l | tr -d ' ')
+FILES_DELETED=$(git diff --diff-filter=D --name-only "${RANGE_BASE}...HEAD" 2>/dev/null | wc -l | tr -d ' ')
 FILES_TOTAL=$((FILES_ADDED + FILES_MODIFIED + FILES_DELETED))
 
 # Line counts
-LINES=$(git diff --numstat "${BASE_BRANCH}...HEAD" 2>/dev/null | awk '{a+=$1; r+=$2} END {printf "+%d -%d", a, r}' || echo "+0 -0")
+LINES=$(git diff --numstat "${RANGE_BASE}...HEAD" 2>/dev/null | awk '{a+=$1; r+=$2} END {printf "+%d -%d", a, r}' || echo "+0 -0")
 
 # Issue title (if gh available and issue detected)
 ISSUE_TITLE=""
