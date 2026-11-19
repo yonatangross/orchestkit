@@ -682,6 +682,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.15.1](https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1)** · 2026-11-19
+
+- **memory-lens:** show no recall line, context to the model only (#5296)
+- **site,ci:** redirect skill sub-URLs, retry dropped npm audit requests (#5295)
+
 **[v10.15.0](https://github.com/yonatangross/orchestkit/compare/v10.14.0...v10.15.0)** · 2026-11-18
 
 - **plugins:** move 7 operator skills to ork-extras, slash-only (#5287)
@@ -738,15 +743,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **deps-dev:** bump @biomejs/biome (#5153)
 - **deps-dev:** bump @sanity/client (#5154)
 - **deps:** bump @anthropic-ai/sdk (#5151)
-- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.10.6](https://github.com/yonatangross/orchestkit/compare/v10.10.5...v10.10.6)** · 2026-11-09
-
-- **ci-sentinel:** refresh drifted skill text (#5147)
-- **ci:** remove the ci-sentinel ceiling that could never fire (#5141), closes [#5138](https://github.com/yonatangross/orchestkit/issues/5138)
-- **ci:** tell claude-triage the repo so it stops running out of turns (#5143), closes [#5142](https://github.com/yonatangross/orchestkit/issues/5142)
-- **docs:** serve the server card media type when a client asks (#5125)
-- **secrets-veil:** keep image URLs on named media hosts readable (#5146)
 - …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._

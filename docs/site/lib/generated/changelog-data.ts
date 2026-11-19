@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.15.1",
+    "date": "2026-11-19",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**memory-lens:** show no recall line, context to the model only ([#5296](https://github.com/yonatangross/orchestkit/issues/5296)) ([b92109f](https://github.com/yonatangross/orchestkit/commit/b92109f2b646cda7d81dbc9681aed9efc4d317e7))",
+          "**site,ci:** redirect skill sub-URLs, retry dropped npm audit requests ([#5295](https://github.com/yonatangross/orchestkit/issues/5295)) ([9c00ca2](https://github.com/yonatangross/orchestkit/commit/9c00ca2056977ad53da1c203ce9bd52cf29d4b6e))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.15.0",
     "date": "2026-11-18",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.14.0...v10.15.0",
