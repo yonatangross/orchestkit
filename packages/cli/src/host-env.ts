@@ -1,7 +1,7 @@
 // The real machine's HostEnv: this process's environment and its PATH. Kept
 // apart from hosts.ts so detection logic stays pure and testable; only the bin
 // (src/cli.ts) builds this.
-import { accessSync, constants } from "node:fs";
+import { accessSync, constants, statSync } from "node:fs";
 import { delimiter, join } from "node:path";
 import type { HostEnv } from "./hosts.js";
 
@@ -13,9 +13,10 @@ export function realHostEnv(env: NodeJS.ProcessEnv = process.env): HostEnv {
 		hasBin: (bin) =>
 			dirs.some((dir) =>
 				exts.some((ext) => {
+					const candidate = join(dir, bin + ext);
 					try {
-						accessSync(join(dir, bin + ext), constants.X_OK);
-						return true;
+						accessSync(candidate, constants.X_OK);
+						return statSync(candidate).isFile();
 					} catch {
 						return false;
 					}

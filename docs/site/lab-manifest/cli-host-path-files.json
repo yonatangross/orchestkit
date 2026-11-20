@@ -1,0 +1,8 @@
+{
+  "slug": "cli-host-path-files",
+  "source": "docs/fix--cli-host-path-files/index.html",
+  "title": "What counts as a coding agent?",
+  "description": "Compare recorded CLI host detection for a directory and a linked executable named claude on PATH.",
+  "tags": ["cli", "testing"],
+  "date": "2026-11-20"
+}
