@@ -1,0 +1,8 @@
+{
+  "slug": "docs-site-public-install",
+  "source": "docs/fix--docs-site-public-install-v2/index.html",
+  "title": "Public docs installs, without a token",
+  "description": "Trace the shared docs installer through a public checkout, registry access, production refusal, and manifest restoration.",
+  "tags": ["docs", "ci", "analytics"],
+  "date": "2026-11-20"
+}

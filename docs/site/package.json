@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
+		"setup": "bash scripts/install-deps.sh",
 		"predev": "node ../../scripts/generate-docs-data.js && node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",
 		"dev": "next dev",
 		"prebuild": "node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",

@@ -187,45 +187,11 @@ jobs:
         # pull_request run, fork OR same-repo. Previously same-repo PRs ran
         # PR-author code (npm ci + a postinstall) with the token live in env; that
         # exposure is now removed. On push to main/dev the token has full scope and
-        # npm ci installs the real package; on every PR the token is '' → npm ci
-        # hits 401 Unauthorized, which we detect and fall back to the local stub
-        # under docs/stubs/analytics-stub/.
-        #
-        # Use PIPESTATUS to capture npm's real exit code — `npm ci | tee`
-        # would otherwise return tee's exit (always 0), masking npm failures
-        # and leaving an incomplete node_modules that breaks the build step.
+        # npm ci installs the real package; on every PR the shared installer
+        # falls back to docs/stubs/analytics-stub/ on an auth failure.
         run: |
-          set +e
-          npm ci 2>&1 | tee /tmp/npm-ci.log
-          npm_exit=${PIPESTATUS[0]}
-          set -e
-
-          if [[ $npm_exit -eq 0 ]]; then
-            echo "::notice::@yonatan-hq/analytics installed from private registry"
-            exit 0
-          fi
-
-          if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
-            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit): reconciling the local stub with the existing lockfile"
-            # Keep the locked dependency graph when replacing analytics with
-            # the local stub, as the MDX compile guard already does.
-            # Once analytics points at a file: path, no @yonatan-hq registry
-            # lookups happen — so the .npmrc auth requirement no longer applies
-            # and `npm install` succeeds without NPM_TOKEN. `--ignore-scripts`
-            # skips the fumadocs-mdx postinstall (it would fail at the
-            # lockfile-only stage with no node_modules yet).
-            #
-            # Replaces the legacy "cp package-lock.stub.json package-lock.json"
-            # pattern, which trapped every dependabot bump because the
-            # committed stub diverged whenever a dep version moved (#1630).
-            npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-            npm install --no-audit --no-fund --package-lock-only --ignore-scripts
-            npm ci --no-audit --no-fund
-            npm ls mdast-util-to-markdown
-          else
-            echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
-            exit "$npm_exit"
-          fi
+          npm run setup
+          npm ls mdast-util-to-markdown
         env:
           # Gated to `push` (#2536): NEVER present on a pull_request run, fork OR
           # same-repo. On PRs this resolves to '' → npm ci hits 401 → stub fallback.
