@@ -1,0 +1,8 @@
+{
+  "slug": "skill-description-byte-budget",
+  "source": "docs/docs-5150-skill-description-byte-cap/index.html",
+  "title": "Skill descriptions: budget in bytes, not words",
+  "description": "An interactive UTF-8 byte budget checker for description plus when_to_use. Compare the old word guidance with the enforced 260-byte cap, and try a 50-word example that exceeds it.",
+  "tags": ["skills", "docs", "token-budget", "tests"],
+  "date": "2026-11-20"
+}
