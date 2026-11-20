@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>CLI search: keep the words, not just the URLs</title>
+<meta name="description" content="Real before and after CLI search output, with regression coverage for page titles, headings and text snippets.">
+<style>
+  :root { color-scheme:light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 system-ui,sans-serif; }
+  main { max-width:1320px; margin:auto; padding:36px 28px; }
+  .eyebrow { font-size:.75rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(2rem,4vw,3rem); line-height:1.1; margin:12px 0 16px; letter-spacing:-.035em; }
+  h2 { font-size:1.1rem; margin:0 0 12px; }
+  p { margin:10px 0; }
+  .muted { color:var(--muted); }
+  .columns { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px; }
+  article { min-width:0; padding:20px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  .before { border-top:4px solid var(--bad); }
+  .after { border-top:4px solid var(--good); }
+  .before h2 { color:var(--bad); } .after h2 { color:var(--good); }
+  code,pre { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  pre { margin:0; padding:16px; border-radius:6px; background:#edf1ee; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.77rem; line-height:1.65; }
+  .command { margin-top:20px; font-size:.9rem; color:#fff; background:var(--ink); }
+  section { margin-top:26px; padding-top:22px; border-top:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; }
+  .summary { display:flex; flex-wrap:wrap; gap:12px 28px; margin-top:16px; font-size:.85rem; color:var(--good); }
+  footer { margin-top:24px; font-size:.8rem; color:var(--muted); }
+  @media(max-width:760px) { .columns { grid-template-columns:1fr; } main { padding:28px 16px; } th,td { padding:8px 4px; } }
+</style>
+</head>
+<body><main>
+<header>
+  <div class="eyebrow">OrchestKit / CLI search / captured evidence</div>
+  <h1>Keep the words, not just the URLs.</h1>
+  <p>The API already returns the title or snippet in <code>content</code>. The CLI ignored it.</p>
+  <p class="muted">One formatter fallback fixes page, heading and text rows. The API response and JSON output stay unchanged.</p>
+</header>
+<pre class="command" aria-label="CLI command">ork search 'parallel agents' --limit 3</pre>
+<p class="muted">Real public API captures, 2026-11-20. Executed through <code>node packages/cli/dist/cli.js</code>, the built entry behind <code>ork</code>. These are recorded outputs, not a live search.</p>
+<div class="columns">
+  <article class="before">
+    <h2>Before / text discarded</h2>
+    <pre aria-label="Before CLI output">  1. /docs/foundations/skills-agents-hooks
+     https://orchestkit.dev/docs/foundations/skills-agents-hooks
+  2. /docs/foundations/skills-agents-hooks#parallel-agents
+     https://orchestkit.dev/docs/foundations/skills-agents-hooks#parallel-agents
+  3. /docs/foundations/skills-agents-hooks#parallel-agents
+     https://orchestkit.dev/docs/foundations/skills-agents-hooks#parallel-agents
+
+119/120 requests left in this window (resets in 60s).
+</pre>
+  </article>
+  <article class="after">
+    <h2>After / real titles and snippet</h2>
+    <pre aria-label="After CLI output">  1. The 3 Building Blocks
+     https://orchestkit.dev/docs/foundations/skills-agents-hooks
+  2. Parallel Agents
+     https://orchestkit.dev/docs/foundations/skills-agents-hooks#parallel-agents
+  3. Some commands spawn **multiple agents in parallel**. When you run `/ork:review-pr`, three agents work simultaneously:
+     https://orchestkit.dev/docs/foundations/skills-agents-hooks#parallel-agents
+
+119/120 requests left in this window (resets in 60s).
+</pre>
+  </article>
+</div>
+<section aria-labelledby="coverage">
+  <h2 id="coverage">Regression cases / real response shape</h2>
+  <p class="muted">The new unit test supplies three API rows and asserts each visible label below. Before the fix, its first assertion failed on a URL instead of the page title.</p>
+  <table>
+    <thead><tr><th scope="col">API row type</th><th scope="col">content fixture</th><th scope="col">Expected CLI label</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>The 3 Building Blocks</td><td>1. The 3 Building Blocks</td></tr>
+      <tr><td><code>heading</code></td><td>Parallel Agents</td><td>2. Parallel Agents</td></tr>
+      <tr><td><code>text</code></td><td>Multiple agents work simultaneously.</td><td>3. Multiple agents work simultaneously.</td></tr>
+    </tbody>
+  </table>
+  <div class="summary"><span>Before: 1 failed, 24 passed</span><span>After: 60 passed across 4 CLI test files</span><span>CLI build + typecheck: passed</span></div>
+</section>
+<section aria-labelledby="fix">
+  <h2 id="fix">Minimal change / same contract</h2>
+  <p><code>title ?? url</code> becomes <code>title ?? content ?? url</code> in <code>packages/cli/src/cli-core.ts</code>.</p>
+  <p class="muted">Explicit titles still take precedence; descriptions and URL fallback are unchanged. Existing tests cover empty results and API errors. No MCP change is needed: it returns the raw response.</p>
+</section>
+<footer>Static evidence, no external assets. Search ranking and rate-limit values may differ on future requests. Test fixture text is intentionally shorter than the captured live snippet.</footer>
+</main></body>
+</html>
