@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Compare real npm output before and after forwarding the quick-test flag with the argument separator.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Two hyphens. The right test suite.</title>
+<style>
+  :root { color-scheme: dark; --pg-bg: hsl(232 26% 7%); --pg-panel: hsl(232 22% 12%); --pg-ink: hsl(220 18% 93%); --pg-muted: hsl(220 14% 72%); --pg-line: hsl(220 20% 30%); --pg-accent: hsl(173 65% 68%); --pg-warning: hsl(35 95% 72%); --pg-mono: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 48px 24px; background: var(--pg-bg); color: var(--pg-ink); font: 16px/1.6 system-ui, sans-serif; }
+  main { max-inline-size: 920px; margin-inline: auto; }
+  header { border-block-end: 1px solid var(--pg-line); padding-block-end: 24px; }
+  .eyebrow { color: var(--pg-accent); font: 12px var(--pg-mono); letter-spacing: .12em; text-transform: uppercase; }
+  h1 { font-size: clamp(32px, 6vw, 56px); line-height: 1.1; letter-spacing: -.04em; margin-block: 16px; }
+  h2 { font-size: 20px; margin-block: 0 16px; }
+  p { margin-block: 12px; }
+  .muted, footer { color: var(--pg-muted); }
+  fieldset { border: 0; padding: 0; margin-block: 24px; }
+  legend { margin-block-end: 12px; font-weight: 600; }
+  label { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px solid var(--pg-line); border-radius: 8px; cursor: pointer; margin-inline-end: 8px; margin-block-end: 8px; }
+  input { accent-color: var(--pg-accent); }
+  label:has(input:checked) { border-color: var(--pg-accent); background: var(--pg-panel); }
+  :focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 4px; }
+  .panel { padding: 24px; border: 1px solid var(--pg-line); border-radius: 16px; background: var(--pg-panel); }
+  code, pre { font-family: var(--pg-mono); }
+  .command { font-size: clamp(18px, 4vw, 28px); overflow-wrap: anywhere; }
+  .command strong { color: var(--pg-accent); }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 24px; background: var(--pg-bg); border: 1px solid var(--pg-line); border-radius: 8px; font-size: 13px; line-height: 1.8; }
+  .warning { color: var(--pg-warning); }
+  .good { color: var(--pg-accent); }
+  .flow { font-family: var(--pg-mono); font-size: 13px; color: var(--pg-muted); }
+  button { font: inherit; color: var(--pg-bg); background: var(--pg-accent); border: 0; border-radius: 8px; padding: 12px 16px; cursor: pointer; }
+  .note { margin-block: 24px; padding-inline-start: 16px; border-inline-start: 2px solid var(--pg-accent); }
+  footer { margin-block-start: 32px; font-size: 13px; }
+  @media (max-width: 600px) { body { padding: 24px 16px; } .panel, pre { padding: 16px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Two hyphens. The right test suite."><meta property="og:description" content="Compare captured npm output to see why the quick-test flag needs an argument separator."><meta property="og:url" content="https://orchestkit.dev/lab/fix-quick-test-command.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Two hyphens. The right test suite."><meta name="twitter:description" content="Compare captured npm output to see why the quick-test flag needs an argument separator."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit / PR #5311 / argument forwarding</p>
+    <h1>Two hyphens.<br>The right test suite.</h1>
+    <p class="muted">The quick-test flag belongs to the test runner, not npm. Put an argument separator between them.</p>
+  </header>
+  <fieldset>
+    <legend>Compare the captured runs</legend>
+    <label><input type="radio" name="mode" value="before">Before: flag swallowed</label>
+    <label><input type="radio" name="mode" value="after" checked>After: flag forwarded</label>
+  </fieldset>
+  <section class="panel" id="after" aria-labelledby="after-title">
+    <h2 id="after-title" class="good">After / quick mode</h2>
+    <p class="command"><code>npm test <strong>--</strong> --quick</code></p>
+    <p class="flow">npm → argument separator → runner receives --quick</p>
+    <pre aria-label="Captured after output">&gt; orchestkit@10.15.1 test
+&gt; bash tests/run-all-tests.sh --quick</pre>
+    <p>The runner sees <code>--quick</code> and skips <strong>integration, E2E, and performance</strong> tests.</p>
+  </section>
+  <section class="panel" id="before" aria-labelledby="before-title" hidden>
+    <h2 id="before-title" class="warning">Before / default full-suite mode</h2>
+    <p class="command"><code>npm test --quick</code></p>
+    <p class="flow">npm consumes --quick → runner receives no arguments</p>
+    <pre aria-label="Captured before output"><span class="warning">npm warn Unknown cli config "--quick". This will stop working in the next major version of npm.</span>
+
+&gt; orchestkit@10.15.1 test
+&gt; bash tests/run-all-tests.sh</pre>
+    <p>npm treats <code>--quick</code> as its own configuration flag. The runner starts with its default full-suite settings.</p>
+  </section>
+  <p class="note">The separator <code>--</code> tells npm to pass the remaining arguments to its script. Only the documented invocation changes; test-runner code is unchanged.</p>
+  <button type="button" id="copy-prompt">Copy verification prompt</button>
+  <p id="copy-status" role="status" class="muted"></p>
+  <footer>Evidence: Node v24.22.3, npm 11.19.1. Both runs used <code>env -u DISPLAY</code> from the repo root. Captured startup output proves forwarding, not suite success. The full run was stopped after 25 seconds and the quick run after 180 seconds; neither completed.</footer>
+</main>
+<script>
+  for (const input of document.querySelectorAll('input[name="mode"]')) {
+    input.addEventListener('change', () => {
+      document.getElementById('before').hidden = input.value !== 'before';
+      document.getElementById('after').hidden = input.value !== 'after';
+    });
+  }
+  document.getElementById('copy-prompt').addEventListener('click', async () => {
+    const status = document.getElementById('copy-status');
+    const prompt = 'From the OrchestKit repo root, compare env -u DISPLAY npm test --quick with env -u DISPLAY npm test -- --quick. Verify that only the latter forwards --quick to tests/run-all-tests.sh. Stop long runs and report startup output separately from suite success.';
+    try {
+      await navigator.clipboard.writeText(prompt);
+      status.textContent = 'Verification prompt copied.';
+    } catch {
+      status.textContent = 'Clipboard unavailable. Select and copy this prompt: ' + prompt;
+    }
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
