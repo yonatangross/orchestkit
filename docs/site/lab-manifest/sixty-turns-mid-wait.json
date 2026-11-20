@@ -1,0 +1,13 @@
+{
+  "slug": "sixty-turns-mid-wait",
+  "source": "docs/fix--5199-maxturns-85/index.html",
+  "title": "Sixty turns runs out mid-wait",
+  "description": "PR #5299 raises maxTurns from 60 to 85 on ci-cd-engineer and frontend-ui-developer, the two agents whose real runs outgrew the shared budget. Pick an agent and a workload, watch turns drain against the old cap and the new one, and see exactly where 60 truncated the run.",
+  "tags": [
+    "agents",
+    "maxturns",
+    "ci-cd",
+    "frontend"
+  ],
+  "date": "2026-11-20"
+}

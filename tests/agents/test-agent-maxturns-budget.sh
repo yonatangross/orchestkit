@@ -11,10 +11,12 @@
 # Rule: for every agent whose body carries the build-result contract
 # (mentions committed_sha), maxTurns >= upper bound of the second
 # "N-M tool calls" line in its Resource Scaling section + HEADROOM.
+# Top-tier rule (#5199): ci-cd-engineer and frontend-ui-developer also need
+# maxTurns >= the max "N-M tool calls" upper bound in the file + HEADROOM.
 
 set -euo pipefail
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/src/agents"
 HEADROOM=5
 
@@ -44,6 +46,21 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     FAILED=1
   else
     echo "PASS: $name: maxTurns $max_turns >= $need"
+  fi
+done
+
+for name in ci-cd-engineer frontend-ui-developer; do
+  agent_file="$AGENTS_DIR/$name.md"
+  max_turns=$(awk '/^---$/ {fm++; next} fm == 1 && /^maxTurns:/ {sub(/^maxTurns:[ \t]*/, ""); print; exit}' "$agent_file")
+  upper=$(awk 'match($0, /[0-9]+-[0-9]+ tool calls/) {s = substr($0, RSTART, RLENGTH); sub(/^[0-9]+-/, "", s); sub(/ .*/, "", s); if (s+0 > max) max=s+0} END {if (max) print max}' "$agent_file")
+  if [[ ! "$max_turns" =~ ^[0-9]+$ || ! "$upper" =~ ^[0-9]+$ ]]; then
+    echo "FAIL: $name: cannot read maxTurns or top tier"
+    FAILED=1
+  elif (( max_turns < upper + HEADROOM )); then
+    echo "FAIL: $name: maxTurns $max_turns < $((upper + HEADROOM)) (top tier $upper + $HEADROOM headroom)"
+    FAILED=1
+  else
+    echo "PASS: $name: maxTurns $max_turns >= $((upper + HEADROOM)) (top tier)"
   fi
 done
 

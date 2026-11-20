@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sixty turns runs out mid-wait</title>
+<meta name="description" content="PR #5299 raises maxTurns from 60 to 85 on ci-cd-engineer and frontend-ui-developer, the two agents whose real runs outgrew the shared budget. Pick an agent and a workload, watch turns drain against the old cap and the new one, and see exactly where 60 truncated the run.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;
+    --ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;overflow-x:auto;font-size:.79rem;margin:.6rem 0 0;line-height:1.45}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+  .pick{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .8rem}
+  .pick button{font:inherit;font-size:.8rem;padding:.4rem .7rem;border-radius:8px;cursor:pointer;background:#0b0d13;color:var(--ink);border:1px solid var(--edge)}
+  .pick button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  .bar{height:26px;border:1px solid var(--edge);border-radius:8px;background:#0b0d13;position:relative;overflow:hidden;margin-top:.5rem}
+  .bar i{position:absolute;inset-block:0;inset-inline-start:0;background:var(--accent);opacity:.75;transition:width .3s}
+  .bar.over i{background:var(--bad)}
+  .bar .cap{position:absolute;inset-block:0;border-inline-start:2px dashed var(--warn)}
+  .barlab{display:flex;justify-content:space-between;font-size:.75rem;color:var(--dim);margin-top:.25rem}
+  .out{font-size:1rem;font-weight:700;padding:.6rem .8rem;border-radius:8px;border:1px solid var(--edge);background:#0b0d13;margin-top:.6rem}
+  .out.ok{color:var(--ok);border-color:var(--ok)} .out.bad{color:var(--bad)}
+  .why{font-size:.8rem;color:var(--dim);margin-top:.4rem;min-height:2.4em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .diff del{color:var(--bad)} .diff ins{color:var(--ok);text-decoration:none}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  td,th{text-align:start;padding:.35rem .5rem;border-block-end:1px solid var(--edge)}
+  th{color:var(--dim);font-weight:400;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em}
+  .steps{font-size:.8rem;color:var(--dim)}
+  .steps li{margin:.2rem 0}
+  .steps li b{color:var(--ink)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Sixty turns runs out mid-wait"><meta property="og:description" content="PR #5299 raises maxTurns from 60 to 85 on ci-cd-engineer and frontend-ui-developer, the two agents whose real runs outgrew the shared budget. Pick an agent and a workload, watch turns drain against the old cap and the new one, and see exactly where 60 truncated the run."><meta property="og:url" content="https://orchestkit.dev/lab/sixty-turns-mid-wait.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Sixty turns runs out mid-wait"><meta name="twitter:description" content="PR #5299 raises maxTurns from 60 to 85 on ci-cd-engineer and frontend-ui-developer, the two agents whose real runs outgrew the shared budget. Pick an agent and a workload, watch turns drain against the old cap and the new one, and see exactly where 60 truncated the run."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Sixty turns runs out mid-wait</h1>
+  <p class="sub">#5299: <code>maxTurns 60 &rarr; 85</code> on ci-cd-engineer and frontend-ui-developer only. The shared 60 was sized for a typical run; these two agents have a measured class of run that genuinely needs more.</p>
+
+  <section>
+    <h2>1. The change</h2>
+    <div class="pick" id="agentPick" role="group" aria-label="Agent">
+      <button data-agent="ci" aria-pressed="true">ci-cd-engineer</button>
+      <button data-agent="fe" aria-pressed="false">frontend-ui-developer</button>
+    </div>
+    <pre class="diff" id="diffView"></pre>
+    <p class="why" id="diffWhy"></p>
+  </section>
+
+  <section>
+    <h2>2. Spend the budget</h2>
+    <div class="pick" id="loadPick" role="group" aria-label="Workload">
+      <button data-load="typical" aria-pressed="true">typical run</button>
+      <button data-load="heavy" aria-pressed="false">heavy run</button>
+    </div>
+    <ol class="steps" id="stepList"></ol>
+    <div class="bar" id="bar"><i style="width:0%"></i><div class="cap" id="capMark"></div></div>
+    <div class="barlab"><span id="spent">0 turns used</span><span id="caplab">dashed line = old cap 60</span></div>
+    <div class="out" id="verdict">—</div>
+    <div class="note"><strong>Why 85:</strong> the budget is a truncation guard, not a target. A run that needs 61 turns under the old cap dies at 60 with work half-applied and a report nobody can act on. 85 covers the measured heavy tail with headroom, and the unused tail costs nothing.</div>
+  </section>
+
+  <section>
+    <h2>3. Who keeps 60</h2>
+    <table>
+      <tr><th>agent</th><th>maxTurns</th><th>why unchanged</th></tr>
+      <tr><td>34 other agents</td><td>60</td><td>typical runs fit; raising the shared budget invites drift</td></tr>
+      <tr><td>ci-cd-engineer</td><td><b>85</b></td><td>CI-watch turns pile up while polling checks and re-running</td></tr>
+      <tr><td>frontend-ui-developer</td><td><b>85</b></td><td>iterate-screenshot-fix loops burn turns on real renders</td></tr>
+    </table>
+    <div class="note"><strong>Test that pins it:</strong> <code>tests/agents/test-agent-maxturns-budget.sh</code> recomputes the floor from each agent's Resource Scaling section plus headroom, so the raise is asserted, not just written.</div>
+  </section>
+</main>
+<script>
+const DIFFS = {
+  ci: `-maxTurns: 60
++maxTurns: 85
+ effort: medium
+ color: orange
+ memory: project
+ name: ci-cd-engineer`,
+  fe: `-maxTurns: 60
++maxTurns: 85
+ effort: medium
+ color: purple
+ memory: project
+ name: frontend-ui-developer`
+};
+const WHYS = {
+  ci: "The CI engineer watches pipelines: every poll, every re-run of a flaky job, every 'wait for the next check' is a spent turn. A pipeline with a slow job queue eats the 60-cap before the review even starts.",
+  fe: "The frontend developer iterates on rendered output: change, screenshot, compare, fix. Each visual loop is several turns and a real page does not converge in one pass."
+};
+const LOADS = {
+  typical: [
+    "read the brief and locate the files", "make the first change",
+    "run the focused test", "read the failure", "fix the failure",
+    "re-run the test, green", "write the report"
+  ],
+  heavy_ci: [
+    "read the brief", "find the pipeline config", "edit the workflow",
+    "push and wait for CI (x12 poll turns)", "a job flakes, re-run it (x8)",
+    "a second job is slow, keep polling (x10)", "checks green, inspect diff",
+    "fix one more red (x8)", "re-run, confirm green", "write the report"
+  ],
+  heavy_fe: [
+    "read the brief", "inspect the component", "write the first pass",
+    "render + screenshot (x9)", "compare against the spec (x6)",
+    "fix spacing, re-render (x9)", "fix contrast, re-render (x7)",
+    "responsive pass (x8)", "a11y pass (x6)", "final render check (x5)",
+    "write the report"
+  ]
+};
+const LOAD_COST = { typical: 34, heavy: 71 };
+const CAP_OLD = 60, CAP_NEW = 85;
+
+const agentPick = document.getElementById('agentPick');
+const loadPick = document.getElementById('loadPick');
+const diffView = document.getElementById('diffView');
+const diffWhy = document.getElementById('diffWhy');
+const stepList = document.getElementById('stepList');
+const bar = document.getElementById('bar').querySelector('i');
+const capMark = document.getElementById('capMark');
+const barEl = document.getElementById('bar');
+const spent = document.getElementById('spent');
+const verdict = document.getElementById('verdict');
+let agent = 'ci', load = 'typical';
+
+capMark.style.insetInlineStart = (CAP_OLD / CAP_NEW * 100) + '%';
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function paint(){
+  diffView.innerHTML = DIFFS[agent].split('\n').map(l =>
+    l.startsWith('-') ? '<del>'+esc(l)+'</del>' :
+    l.startsWith('+') ? '<ins>'+esc(l)+'</ins>' : esc(l)).join('\n');
+  diffWhy.textContent = WHYS[agent];
+  const steps = load === 'typical' ? LOADS.typical
+              : agent === 'ci' ? LOADS.heavy_ci : LOADS.heavy_fe;
+  stepList.innerHTML = steps.map(s => '<li>'+esc(s)+'</li>').join('');
+  const cost = load === 'typical' ? LOAD_COST.typical : LOAD_COST.heavy;
+  const pct = Math.min(cost / CAP_NEW * 100, 100);
+  bar.style.width = pct + '%';
+  barEl.classList.toggle('over', cost > CAP_OLD);
+  spent.textContent = cost + ' turns used';
+  if (cost <= CAP_OLD) {
+    verdict.textContent = 'fits inside 60 - budget untouched';
+    verdict.className = 'out ok';
+  } else if (cost <= CAP_NEW) {
+    verdict.textContent = 'dies at 60, completes at 85 - this run is the reason';
+    verdict.className = 'out bad';
+  } else {
+    verdict.textContent = 'over 85 too - cap is a floor guard, not a promise';
+    verdict.className = 'out bad';
+  }
+}
+agentPick.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  agent = b.dataset.agent;
+  agentPick.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  paint();
+});
+loadPick.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  load = b.dataset.load;
+  loadPick.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  paint();
+});
+paint();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
