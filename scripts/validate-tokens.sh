@@ -35,6 +35,8 @@ token_chars=$(jq -r '
   + [ .arrows[]? | (.right // empty), (.left // empty), (.up // empty), (.down // empty) ]
   + [ .fills | (.high // empty), (.med // empty), (.low // empty), (.full // empty) ]
   + (.fills.bars // [])
+  + [ .profiles[]? | objects | .fills | (.high // empty), (.med // empty), (.low // empty), (.full // empty) ]
+  + [ .profiles[]? | objects | .fills.bars[]? ]
   | .[] | select(. != null and . != " ")
 ' "$TOKENS" | sort -u)
 

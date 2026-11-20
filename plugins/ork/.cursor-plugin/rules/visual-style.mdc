@@ -73,6 +73,9 @@ requires a PR that also updates `bin/validate-visual-style.py`.
 | ⚡ | hook | references to hooks, fast/automated paths |
 | ℹ️ | caveat | the line under a render for a number that lies |
 
+Session hosts apply `tokens.json` `profiles` overrides over this list: under
+`devin-safe` the waiting pair is `|| waiting`, not `⏸`.
+
 Risk and ranking glyphs (always paired, never solo):
 
 - Risk: 🟢 low · 🟡 medium · 🔴 high

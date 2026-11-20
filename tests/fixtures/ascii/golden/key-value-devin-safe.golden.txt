@@ -1,0 +1,3 @@
+ingest   ✅ healthy, 0 retries
+reindex  || waiting, scheduled tonight
+api      🟡 degraded, p95 2.1s

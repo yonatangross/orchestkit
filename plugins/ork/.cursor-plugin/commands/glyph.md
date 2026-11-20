@@ -142,6 +142,14 @@ Tokens live in `tokens.json`. Names describe USE not APPEARANCE.
 
 Rename codemod (D8): old `light/heavy/double/rounded/ascii-fallback` → new names above. Old names accepted with warning for one minor release.
 
+### Engine profiles
+
+`tokens.json` `profiles` maps a session host to token overrides applied on
+top of the base vocabulary. `devin-safe` exists because the Devin TUI renders
+`▓▒░` as identical slabs and `⏸` as a quote glyph: it swaps fills to the
+ASCII ramp (`.` `:` `-` `=` `+` `*` `#` `@`) and `waiting` to `||`. Apply it
+when the session host is Devin; box sets, arrows and emoji are unchanged.
+
 ### Status Glyph Vocabulary
 
 Closed-set v1 of 11 semantic glyphs (`●○✓✗⚠◆◇▶▷ ↑↓→ ▓▒░`). Single source of truth: see `skills/glyph/rules/status-glyph-vocabulary.md`. Add-a-glyph process in `CONTRIBUTING.md`.

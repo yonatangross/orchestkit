@@ -5,7 +5,9 @@
 # Snapshot tests for render-ascii.sh patterns × char-sets.
 # Update goldens with: UPDATE_SNAPSHOTS=1 bash tests/unit/test-ascii-snapshots.sh
 #
-# Coverage: 4 implemented patterns × 5 sets = 20 goldens.
+# Coverage: 4 implemented patterns × 5 sets = 20 goldens, plus
+# 5 goldens for the devin-safe engine profile (tokens.json profiles.*):
+# box, progress-bar, sparkline, tree, key-value.
 
 set -euo pipefail
 
@@ -36,29 +38,54 @@ render_one() {
 
 PATTERNS=(box progress-bar sparkline tree)
 SETS=(default emphasis title soft portable)
+PROFILES=(devin-safe)
+
+check() {
+  local name="$1" actual="$2" golden expected diff_out
+  golden="$GOLDEN_DIR/${name}.golden.txt"
+  if [ "$UPDATE" = "1" ] || [ ! -f "$golden" ]; then
+    printf '%s\n' "$actual" > "$golden"
+    printf '⊕ wrote %s\n' "$name"
+    updated=$((updated + 1))
+    return 0
+  fi
+  expected=$(cat "$golden")
+  if [ "$actual" = "$expected" ]; then
+    pass=$((pass + 1))
+  else
+    printf '✗ %s drift\n' "$name"
+    # silent: best-effort (diff exits 1 when differences exist; we want to print and continue)
+    diff_out=$(diff <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") | head -10) || true
+    printf '%s\n' "$diff_out"
+    fail=$((fail + 1))
+  fi
+}
+
+# Engine profiles (tokens.json profiles.*): rendered on the default set,
+# since devin-safe overrides fills and icons, not box drawing. key-value
+# joins PATTERNS here because its fixture rows exercise the waiting icon.
+render_one_profile() {
+  local pattern="$1" profile="$2"
+  case "$pattern" in
+    box)          "$RENDER" box          --set default --profile "$profile" --width 40 --label "Backend service" ;;
+    progress-bar) "$RENDER" progress-bar --set default --profile "$profile" --width 40 --label 75 ;;
+    sparkline)    "$RENDER" sparkline    --set default --profile "$profile" --values "1,3,2,5,4,7,6,8" --label "cache" ;;
+    tree)         "$RENDER" tree         --set default --profile "$profile" < "$TREE_FIXTURE" ;;
+    key-value)    printf 'ingest|✅ healthy, 0 retries\nreindex|⏸ waiting, scheduled tonight\napi|🟡 degraded, p95 2.1s\n' \
+                    | "$RENDER" key-value --mode narrow --width 40 --profile "$profile" ;;
+    *)            echo "unknown pattern: $pattern" >&2; return 1 ;;
+  esac
+}
 
 for pattern in "${PATTERNS[@]}"; do
   for set in "${SETS[@]}"; do
-    golden="$GOLDEN_DIR/${pattern}-${set}.golden.txt"
-    actual=$(render_one "$pattern" "$set")
+    check "${pattern}-${set}" "$(render_one "$pattern" "$set")"
+  done
+done
 
-    if [ "$UPDATE" = "1" ] || [ ! -f "$golden" ]; then
-      printf '%s\n' "$actual" > "$golden"
-      printf '⊕ wrote %s-%s\n' "$pattern" "$set"
-      updated=$((updated + 1))
-      continue
-    fi
-
-    expected=$(cat "$golden")
-    if [ "$actual" = "$expected" ]; then
-      pass=$((pass + 1))
-    else
-      printf '✗ %s-%s drift\n' "$pattern" "$set"
-      # silent: best-effort (diff exits 1 when differences exist; we want to print and continue)
-      diff_out=$(diff <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") | head -10) || true
-      printf '%s\n' "$diff_out"
-      fail=$((fail + 1))
-    fi
+for pattern in "${PATTERNS[@]}" key-value; do
+  for profile in "${PROFILES[@]}"; do
+    check "${pattern}-${profile}" "$(render_one_profile "$pattern" "$profile")"
   done
 done
 
