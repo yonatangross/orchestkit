@@ -4,7 +4,6 @@ seoTitle: "ork-extras: opt-in OrchestKit reference skills"
 description: "33 library, engineering and operator skills moved from core ork to the opt-in ork-extras plugin. How to install it, new /ork-extras: names, what each host gets."
 ---
 
-import { Callout } from 'fumadocs-ui/components/callout';
 import { Count } from '@/components/count';
 
 ## What changed
@@ -27,7 +26,7 @@ The 33 that moved (26 in the first split, 7 more in the second):
 /plugin install ork-extras@orchestkit
 ```
 
-It installs next to `ork` and adds skills only: no agents, no hooks, no settings. Remove it with `/plugin uninstall ork-extras` and core is unchanged.
+It installs next to `ork` and adds skills only: no agents, no hooks, no settings. Remove it with `/plugin uninstall ork-extras` and core is unchanged. Both marketplace entries are pinned to the same release tag, so `ork-extras` always matches your stable `ork`.
 
 ## The names change
 
@@ -46,14 +45,6 @@ A moved skill is now namespaced by its new plugin:
 | `/ork:swarm-migrate` | `/ork-extras:swarm-migrate` |
 
 The 7 operator tools are slash-only: the model does not start them on its own, you type the command. They load no description into the model's skill listing, which is why they could move without raising the ork-extras listing size. The workflows `ork:audit-full-mapreduce` and `ork:skill-fitness` stay registered in core `ork` and still launch by name. Of the other 26, only design-stylecards is user-invocable; the rest load when a task matches their description, so most people never type the name. If a script, prompt or CLAUDE.md of yours names `/ork:<moved skill>`, change it to `/ork-extras:<moved skill>`.
-
-## Version skew for one release
-
-<Callout type="warn">
-The stable `ork` marketplace entry is pinned to a release tag. `ork-extras` cannot be pinned to a tag until a release that contains it exists, so until then it tracks the `main` branch. For that one release window, `ork-extras` can carry skill changes newer than your stable `ork`. From the next release on, the release step pins both entries to the same tag.
-</Callout>
-
-Until you update `ork` past that release, your installed stable `ork` still carries all 33 skills itself, so installing `ork-extras` early only adds a second copy under the new names.
 
 ## Other hosts
 

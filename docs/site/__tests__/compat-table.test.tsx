@@ -64,6 +64,15 @@ describe("CompatTable", () => {
 		expect(items[2].textContent).toContain("Agents 4 roles");
 	});
 
+	it("shows core skills with the opt-in ork-extras count beside them, never the total", () => {
+		render(<CompatTable />);
+		const claude = COMPAT_ROWS.find((r) => r.id === "claude");
+		const row = screen.getByRole("rowheader", { name: rowName("Claude Code") }).closest("tr") as HTMLElement;
+		const cell = row.querySelector("td") as HTMLElement;
+		expect(cell.textContent).toBe(`${claude?.skills} + ${claude?.extraSkills} ork-extras`);
+		expect(screen.getAllByText(/opt-in second plugin, installed on its own/i).length).toBeGreaterThan(0);
+	});
+
 	it("explains the open issues column instead of leaving bare ?", () => {
 		render(<CompatTable />);
 		expect(screen.getAllByText(/counted once each host's issues are labelled/i).length).toBeGreaterThan(0);

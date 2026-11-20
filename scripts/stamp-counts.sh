@@ -26,6 +26,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # ── Compute canonical counts ────────────────────────────────────────────────
 
 SKILLS=$(find "$PROJECT_ROOT/src/skills" -mindepth 1 -maxdepth 1 -type d -not -name shared | wc -l | tr -d ' ')
+# The ork-extras split (#5220): core ork ships every skill except the ones ork-extras takes.
+SKILLS_EXTRAS=$(jq '.skills | length' "$PROJECT_ROOT/manifests/ork-extras.json")
+SKILLS_CORE=$((SKILLS - $(jq '.skillsExclude | length' "$PROJECT_ROOT/manifests/ork.json")))
 AGENTS=$(find "$PROJECT_ROOT/src/agents" -maxdepth 1 -name '*.md' | grep -viE '/(README|INDEX|CONTRIBUTING)\.md$' | wc -l | tr -d ' ')
 eval "$("$PROJECT_ROOT/bin/count-hooks.sh")"
 HOOKS=$TOTAL  # TOTAL set by count-hooks.sh
@@ -71,6 +74,8 @@ stamp_marker() {
 stamp_file() {
   local file="$1"
   stamp_marker "$file" "skills" "$SKILLS"
+  stamp_marker "$file" "skills-core" "$SKILLS_CORE"
+  stamp_marker "$file" "skills-extras" "$SKILLS_EXTRAS"
   stamp_marker "$file" "agents" "$AGENTS"
   stamp_marker "$file" "hooks" "$HOOKS"
   stamp_marker "$file" "hooks-global" "$HOOKS_GLOBAL"
