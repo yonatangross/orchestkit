@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit CLI: help and version flags</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+  main { max-width: 65rem; margin: 2rem auto; padding: 0 1rem; }
+  select { font: inherit; max-width: 100%; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 1rem; }
+  pre { border: 1px solid; padding: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<main>
+  <h1>Do --help and --version work after a command?</h1>
+  <p>Pick a command to compare captured output from the built CLI. Network calls went to a fixture, not the live API; lines starting with [network] are requests the CLI made.</p>
+  <label for="command">Command arguments</label>
+  <select id="command">
+    <option value="0">orchestkit read --help</option>
+    <option value="1">orchestkit install --help</option>
+    <option value="2">orchestkit search agents -h</option>
+    <option value="3">orchestkit mcp --version</option>
+    <option value="4">orchestkit install claude -v</option>
+    <option value="5">orchestkit --help --version</option>
+    <option value="6">orchestkit --version</option>
+    <option value="7">orchestkit install --all</option>
+  </select>
+  <div class="results" aria-live="polite">
+    <section><h2>Before</h2><pre id="before"></pre></section>
+    <section><h2>After</h2><pre id="after"></pre></section>
+  </div>
+</main>
+<script>
+  const output = {
+  "0": [
+    "[network] GET https://orchestkit.dev/docs/--help.md\n# A doc\nexit: 0",
+    "orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for\nClaude Code, Cursor, Codex and five more coding agents\n\n... (27 more lines)\nexit: 0"
+  ],
+  "1": [
+    "Unknown host \"--help\". Use one of: claude, cursor, codex, devin, opencode, muse, pi, agy.\nexit: 2",
+    "orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for\nClaude Code, Cursor, Codex and five more coding agents\n\n... (27 more lines)\nexit: 0"
+  ],
+  "2": [
+    "[network] GET https://orchestkit.dev/api/search?query=agents+-h&limit=5\n  1. A doc\n     https://orchestkit.dev/docs/x\n\n118/120 requests left in this window (resets in 60s).\nexit: 0",
+    "orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for\nClaude Code, Cursor, Codex and five more coding agents\n\n... (27 more lines)\nexit: 0"
+  ],
+  "3": [
+    "{\n  \"mcpServers\": {\n    \"orchestkit\": {\n... (5 more lines)\nexit: 0",
+    "0.1.0\nexit: 0"
+  ],
+  "4": [
+    "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n... (2 more lines)\nexit: 0",
+    "0.1.0\nexit: 0"
+  ],
+  "5": [
+    "orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for\nClaude Code, Cursor, Codex and five more coding agents\n\n... (27 more lines)\nexit: 0",
+    "orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for\nClaude Code, Cursor, Codex and five more coding agents\n\n... (27 more lines)\nexit: 0"
+  ],
+  "6": [
+    "0.1.0\nexit: 0",
+    "0.1.0\nexit: 0"
+  ],
+  "7": [
+    "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n... (29 more lines)\nexit: 0",
+    "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n... (29 more lines)\nexit: 0"
+  ]
+};
+  const command = document.getElementById("command");
+  function render() {
+    const [before, after] = output[command.value];
+    document.getElementById("before").textContent = before;
+    document.getElementById("after").textContent = after;
+  }
+  command.addEventListener("change", render);
+  render();
+</script>
+</html>

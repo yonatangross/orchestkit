@@ -1,0 +1,10 @@
+{
+  "slug": "cli-help-version-flags",
+  "source": "docs/fix--cli-help-version-flags/index.html",
+  "title": "OrchestKit CLI: help and version flags",
+  "description": "Compare CLI output when --help or --version follows a command, before and after the fix.",
+  "tags": [
+    "cli"
+  ],
+  "date": "2026-11-20"
+}
