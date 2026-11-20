@@ -45,7 +45,7 @@ const commonBuildOptions = {
   platform: 'node',
   target: 'node20',
   minify: !isWatch,
-  sourcemap: true,
+  sourcemap: 'external',
   metafile: true,
   // No `external` deps (#2017): hooks ship WITHOUT node_modules, so every dep
   // must be inlined or a node: builtin — an external would throw

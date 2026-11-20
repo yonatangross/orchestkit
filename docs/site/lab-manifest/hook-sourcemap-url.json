@@ -1,0 +1,8 @@
+{
+  "slug": "hook-sourcemap-url",
+  "source": "docs/fix--hook-sourcemap-url/index.html",
+  "title": "Hook sourcemaps: 11 dangling references to zero",
+  "description": "Measured before and after evidence for removing sourceMappingURL comments from shipped hook bundles, with the exact warning and a regression-test command.",
+  "tags": ["hooks", "build", "sourcemaps", "vitest"],
+  "date": "2026-11-20"
+}
