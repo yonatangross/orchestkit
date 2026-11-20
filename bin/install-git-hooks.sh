@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install git hooks from bin/git-hooks to .git/hooks
+# Install git hooks from bin/git-hooks to Git's hooks directory
 # Run this after cloning the repo
 
 set -euo pipefail
@@ -7,7 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 HOOKS_SRC="$PROJECT_ROOT/bin/git-hooks"
-HOOKS_DST="$PROJECT_ROOT/.git/hooks"
+HOOKS_DST="$(git -C "$PROJECT_ROOT" rev-parse --path-format=absolute --git-path hooks)"
+mkdir -p "$HOOKS_DST"
 
 echo "Installing git hooks..."
 
