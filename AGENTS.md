@@ -32,7 +32,7 @@ rebuilds those bundles, and CI fails a feature PR that commits them (#3578).
 ```bash
 npm run build            # assemble plugins/ from src/ — required after editing src/
 npm test                 # full suite (lint + unit + security + integration + e2e)
-npm test --quick         # skip integration/e2e/performance
+npm test -- --quick      # skip integration/e2e/performance
 npm run test:skills      # skill structure validation
 npm run test:agents      # agent frontmatter validation
 npm run test:security    # security tests — MUST pass, gates push
