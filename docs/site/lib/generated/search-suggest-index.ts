@@ -399,9 +399,9 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
     "url": "/docs/foundations/choosing-a-plugin",
     "title": "Plugin Architecture",
     "headings": [
-      "One Plugin, Everything Included",
+      "Core Plugin, Opt-in Extras",
       "What Loads When",
-      "Why One Plugin",
+      "Why One Core Plugin",
       "Next Steps"
     ]
   },
@@ -620,7 +620,6 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "What changed",
       "Install it (Claude Code)",
       "The names change",
-      "Version skew for one release",
       "Other hosts"
     ]
   },

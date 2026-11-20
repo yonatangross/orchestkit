@@ -1,0 +1,12 @@
+{
+  "slug": "compat-core-vs-extras-skills",
+  "source": "docs/fix--compat-core-vs-extras-skills/index.html",
+  "title": "Core ork and ork-extras skill counts, before and after",
+  "description": "Pick a host and an install and compare the skill count the docs showed before and after splitting core ork from the opt-in ork-extras plugin.",
+  "tags": [
+    "docs",
+    "ork-extras",
+    "compat"
+  ],
+  "date": "2026-11-20"
+}

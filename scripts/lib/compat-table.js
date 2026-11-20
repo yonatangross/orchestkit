@@ -5,7 +5,7 @@
 // Sources:
 //   hosts, order, names   docs/site/lib/host-installs.ts (HOST_INSTALLS)
 //   per-host sets         scripts/lib/library-hosts.js (the pack manifests)
-//   Claude Code skills    plugins/ork/skills + plugins/ork-extras/skills
+//   Claude Code skills    plugins/ork/skills, plus plugins/ork-extras/skills as extraSkills
 //   Claude Code agents    plugins/ork/agents/*.md
 //   Claude Code hooks     the README's stamped ork:hooks marker (bin/count-hooks.sh via stamp-counts.sh)
 //   minimum version       shared/cc-support.json supported_floor (Claude Code only)
@@ -84,15 +84,25 @@ const HOOKS_NOT_YET = { cursor: 4004, codex: 4004, pi: 4004 };
 // Agents: only Cursor's marketplace (ork, ork-extras) and Codex's roles are read from a pack.
 const AGENTS_READ = new Set(['cursor', 'codex']);
 
+function skillNames(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('.')).map((e) => e.name);
+  } catch {
+    return [];
+  }
+}
+
+// skills is what the host's core install gives; extraSkills is what the opt-in ork-extras plugin
+// adds on top (null where the host has no ork-extras), so a core install is never shown the total.
 function buildCompatRows(root) {
   const sets = buildLibraryHosts(root);
-  const ork = countDirs(path.join(root, 'plugins/ork/skills'));
-  const extras = countDirs(path.join(root, 'plugins/ork-extras/skills'));
+  const extrasNames = new Set(skillNames(path.join(root, 'plugins/ork-extras/skills')));
   return hostOrder(root).map(({ id, name }) => {
     const s = sets[id] || { skills: null, agents: null, hooks: 'unknown' };
-    const row = { id, name, route: ROUTE[id] || '?', minVersion: null, roles: null, hooksIssue: null };
+    const row = { id, name, route: ROUTE[id] || '?', minVersion: null, roles: null, hooksIssue: null, extraSkills: null };
     if (id === 'claude') {
-      row.skills = ork === null || extras === null ? null : ork + extras;
+      row.skills = countDirs(path.join(root, 'plugins/ork/skills'));
+      row.extraSkills = extrasNames.size || null;
       row.agents = countFiles(path.join(root, 'plugins/ork/agents'), '.md');
       row.hooks = stampedHooks(root);
       row.minVersion = ccFloor(root);
@@ -109,7 +119,10 @@ function buildCompatRows(root) {
       row.agents = null;
       row.hooks = null;
     } else {
-      row.skills = size(s.skills);
+      // Only Cursor installs ork-extras as its own plugin; a skills.sh starter is one install.
+      const extra = id === 'cursor' && Array.isArray(s.skills) ? s.skills.filter((n) => extrasNames.has(n)).length : 0;
+      row.skills = Array.isArray(s.skills) ? s.skills.length - extra : null;
+      row.extraSkills = extra || null;
       row.roles = Array.isArray(s.roles) && s.roles.length ? s.roles.length : null;
       row.agents = AGENTS_READ.has(id) && !row.roles ? size(s.agents) : null;
       row.hooks = HOOKS_NOT_YET[id] ? 'not yet' : null;
@@ -124,6 +137,10 @@ function cell(v) {
   return String(v);
 }
 
+function skillsCell(r) {
+  return r.extraSkills ? `${cell(r.skills)} + ${r.extraSkills} ork-extras` : cell(r.skills);
+}
+
 function hooksCell(r) {
   return r.hooks === 'not yet' && r.hooksIssue ? `not yet (#${r.hooksIssue})` : cell(r.hooks);
 }
@@ -136,10 +153,10 @@ function renderCompatMarkdown(rows) {
   for (const r of rows) {
     const agents = r.roles ? `${r.roles} roles` : cell(r.agents);
     const needs = r.minVersion ? `${r.name} ${r.minVersion} or newer` : '';
-    lines.push(`| ${r.name} | ${cell(r.skills)} | ${agents} | ${hooksCell(r)} | ${r.route} | ${needs} |`);
+    lines.push(`| ${r.name} | ${skillsCell(r)} | ${agents} | ${hooksCell(r)} | ${r.route} | ${needs} |`);
   }
   lines.push('');
-  lines.push('`?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.');
+  lines.push('`+ N ork-extras` is the opt-in second plugin, installed on its own. `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.');
   return lines.join('\n');
 }
 
