@@ -703,10 +703,20 @@ If your SKILL.md uses ALWAYS or NEVER in caps, reframe with reasoning so the mod
 
 #### Description Requirements
 
-Skill descriptions must be **50-200 words** and include:
+For every model-facing skill, `description` + `when_to_use` must total **at most 260 bytes**
+(UTF-8, parsed YAML values), as enforced by Test 4b in
+`tests/performance/test-token-overhead.sh`. There is no word minimum. Include:
 - **WHAT** the skill does (capabilities)
 - **WHEN** to use it (trigger conditions, in third person)
 - **Negative boundary**: "Do NOT use for..." to prevent false triggers
+
+The listing total (name + description + when_to_use) must also fit the down-only
+ceiling in `tests/performance/skill-listing-ratchet.txt`. Do not raise it to fit longer text.
+Measure the combined parsed values for a skill before submitting:
+
+```bash
+python3 -c 'import sys,yaml; d=yaml.safe_load(open(sys.argv[1]).read().split("---",2)[1]); print(sum(len((d.get(k) or "").encode("utf-8")) for k in ("description","when_to_use")))' src/skills/my-skill/SKILL.md
+```
 
 #### Running Evals Locally (CC Max)
 
