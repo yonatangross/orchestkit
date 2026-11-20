@@ -38,6 +38,15 @@ describe("parseArgs", () => {
 		expect(parseArgs([]).command).toBe("help");
 	});
 
+	it("reads help and version as flags, never as positional words", () => {
+		expect(parseArgs(["read", "--help", "x", "-v"])).toMatchObject({
+			command: "help",
+			help: true,
+			version: true,
+		});
+		expect(parseArgs(["mcp", "-v"]).command).toBe("version");
+	});
+
 	it("collects the command and its positional words", () => {
 		const args = parseArgs(["search", "parallel", "agents"]);
 		expect(args.command).toBe("search");
@@ -108,6 +117,61 @@ describe("offline commands", () => {
 
 	it("search with no query is a usage error, not an empty search", async () => {
 		expect((await run(["search"], { version: "1.2.3" })).exitCode).toBe(2);
+	});
+});
+
+describe("help and version flags", () => {
+	// Any fetch here is a bug: an information flag must never become a query,
+	// a page slug or a host name.
+	function forbidFetch() {
+		return stubFetch((url) => {
+			throw new Error(`unexpected fetch: ${url}`);
+		});
+	}
+
+	it.each([
+		["read", "--help"],
+		["install", "--help"],
+		["search", "agents", "-h"],
+		["ask", "what", "is", "ork", "--help"],
+		["mcp", "stdio", "-h"],
+		["--help", "--version"],
+		["--version", "--help"],
+	])("%j prints help without running the command", async (...argv) => {
+		const restore = forbidFetch();
+		try {
+			expect(await run(argv, { version: "1.2.3" })).toEqual({
+				stdout: HELP,
+				stderr: "",
+				exitCode: 0,
+			});
+		} finally {
+			restore();
+		}
+	});
+
+	it.each([
+		["mcp", "--version"],
+		["install", "claude", "-v"],
+		["read", "foundations/overview", "--version"],
+		["search", "--json", "x", "-v"],
+	])("%j prints the version without running the command", async (...argv) => {
+		const restore = forbidFetch();
+		try {
+			expect(await run(argv, { version: "1.2.3" })).toEqual({
+				stdout: "1.2.3\n",
+				stderr: "",
+				exitCode: 0,
+			});
+		} finally {
+			restore();
+		}
+	});
+
+	it("keeps install --all as a host selector, not a flag", async () => {
+		const res = await run(["install", "--all"], { version: "1.2.3" });
+		expect(res.exitCode).toBe(0);
+		expect(res.stdout).toContain(PLUGIN_INSTALL_COMMAND);
 	});
 });
 

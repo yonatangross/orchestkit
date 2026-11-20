@@ -55,6 +55,21 @@ describe.skipIf(!built)("built binary, direct exec", () => {
 		expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+/);
 	});
 
+	it("a subcommand --help prints help instead of running the command", async () => {
+		const { stdout, stderr, code } = await spawnBin(["install", "--help"]);
+		expect(code).toBe(0);
+		expect(stderr).toBe("");
+		expect(stdout).toContain("orchestkit <command>");
+	});
+
+	it("a subcommand --version prints the version instead of running the command", async () => {
+		const { stdout, stderr, code } = await spawnBin(["mcp", "--version"]);
+		expect(code).toBe(0);
+		expect(stderr).toBe("");
+		expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+/);
+		expect(stdout).not.toContain("mcpServers");
+	});
+
 	it("mcp stdio emits parseable client config", async () => {
 		const { stdout, code } = await spawnBin(["mcp", "stdio"]);
 		expect(code).toBe(0);

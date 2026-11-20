@@ -58,6 +58,7 @@ export type ParsedArgs = {
 	limit: number;
 	json: boolean;
 	baseUrl?: string;
+	help: boolean;
 	version: boolean;
 };
 
@@ -71,12 +72,14 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
 	let limit = 5;
 	let json = false;
+	let help = false;
 	let version = false;
 	let baseUrl: string | undefined;
 
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i] as string;
 		if (arg === "--json") json = true;
+		else if (arg === "--help" || arg === "-h") help = true;
 		else if (arg === "--version" || arg === "-v") version = true;
 		else if (arg === "--limit" || arg === "--base-url") {
 			const value = argv[i + 1];
@@ -96,8 +99,13 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 		else positional.push(arg);
 	}
 
-	const command = positional.shift() ?? (version ? "version" : "help");
-	return { command, positional, limit, json, baseUrl, version };
+	// Help and version answer before any command, wherever they appear, and help
+	// wins when both are given.
+	let command: string;
+	if (help) command = "help";
+	else if (version) command = "version";
+	else command = positional.shift() ?? "help";
+	return { command, positional, limit, json, baseUrl, help, version };
 }
 
 export type RunResult = { stdout: string; stderr: string; exitCode: number };
@@ -148,12 +156,9 @@ export async function run(
 
 		switch (args.command) {
 			case "help":
-			case "--help":
-			case "-h":
 				return ok(HELP);
 
 			case "version":
-			case "--version":
 				return ok(`${deps.version}\n`);
 
 			case "install": {
