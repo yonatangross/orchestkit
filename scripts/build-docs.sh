@@ -22,26 +22,39 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_SRC="$PROJECT_ROOT/src/skills"
 AGENTS_SRC="$PROJECT_ROOT/src/agents"
 HOOKS_JSON="$PROJECT_ROOT/src/hooks/hooks.json"
-DOCS_OUT="$PROJECT_ROOT/docs/site/content/docs/reference"
+DOCS_SITE="$PROJECT_ROOT/docs/site"
+DOCS_ROOT="$DOCS_SITE/content/docs"
 
+if ! command -v python3 >/dev/null || ! python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+    echo "Error: generating reference docs requires Python 3.11 or newer (python3 on PATH)." >&2
+    exit 1
+fi
+
+# Generate separately so a failed generator cannot alter the last good docs.
+mkdir -p "$DOCS_SITE"
+STAGING_DIR=$(mktemp -d "$DOCS_SITE/.build-docs.XXXXXX")
+trap 'rm -rf "$STAGING_DIR"' EXIT
+
+DOCS_OUT="$STAGING_DIR/reference"
 SKILLS_OUT="$DOCS_OUT/skills"
 AGENTS_OUT="$DOCS_OUT/agents"
 HOOKS_OUT="$DOCS_OUT/hooks"
-
-# Category index pages (lives under skills section, not reference)
-CATEGORIES_OUT="$PROJECT_ROOT/docs/site/content/docs/skills/by-category"
-
-# Reference-skills narrative page (generated from frontmatter, #2120)
-REFSKILLS_OUT="$PROJECT_ROOT/docs/site/content/docs/skills/reference-skills.mdx"
-
-# -- Clean output directories ------------------------------------------------
-echo "Cleaning output directories..."
-rm -rf "$SKILLS_OUT" "$AGENTS_OUT" "$HOOKS_OUT" "$CATEGORIES_OUT"
+CATEGORIES_OUT="$STAGING_DIR/skills/by-category"
+REFSKILLS_OUT="$STAGING_DIR/skills/reference-skills.mdx"
 mkdir -p "$SKILLS_OUT" "$AGENTS_OUT" "$HOOKS_OUT" "$CATEGORIES_OUT"
 
-# -- Run Python generator (handles all three: skills, agents, hooks) ---------
 export PROJECT_ROOT SKILLS_SRC AGENTS_SRC HOOKS_JSON DOCS_OUT SKILLS_OUT AGENTS_OUT HOOKS_OUT CATEGORIES_OUT REFSKILLS_OUT
 python3 "$PROJECT_ROOT/scripts/_build-docs-generate.py"
+
+# Replace only generator-owned paths, removing stale pages on success.
+mkdir -p "$DOCS_ROOT/reference" "$DOCS_ROOT/skills"
+for dir in reference/skills reference/agents reference/hooks skills/by-category; do
+    rm -rf "${DOCS_ROOT:?}/$dir"
+    mv "$STAGING_DIR/$dir" "$DOCS_ROOT/$dir"
+done
+for file in reference/meta.json skills/reference-skills.mdx skills/command-skills.mdx; do
+    mv -f "$STAGING_DIR/$file" "$DOCS_ROOT/$file"
+done
 
 # -- Timing -------------------------------------------------------------------
 END_TIME=$(date +%s)

@@ -665,6 +665,8 @@ Complementary, not a rival listing. Superpowers (official Anthropic marketplace)
 
 ## Development
 
+The build requires Python 3.11 or newer as `python3` on your PATH to generate the reference docs.
+
 ```bash
 npm run build      # Build plugins from src/
 npm test           # Run all tests

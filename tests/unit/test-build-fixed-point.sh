@@ -57,8 +57,9 @@ git -C "$FIXTURE" -c user.name='Fixed Point Test' \
   -c user.email='fixed-point@example.invalid' -c commit.gpgsign=false commit --quiet -m 'test: fixture source'
 
 # The archive intentionally starts at HEAD so it is a clean Git baseline.
-# Overlay the script under test so local runs exercise an uncommitted build-order fix too.
+# Overlay the scripts under test so local runs exercise uncommitted changes too.
 cp "$BUILD_SCRIPT_UNDER_TEST" "$FIXTURE/scripts/build-plugins.sh"
+cp "$REPO_ROOT/scripts/"{build-docs.sh,_build-docs-generate.py} "$FIXTURE/scripts/"
 
 # Alter an existing skill instead of adding one. Adding a skill would also
 # change the manifest description after plugin assembly, introducing unrelated
@@ -196,3 +197,21 @@ if [[ -n "$SECOND_STATUS" ]]; then
 fi
 
 echo "PASS: production docs sequence reaches a fixed point after regenerated MDX and stamped counts"
+
+echo "Checking that a failed generator preserves the last good docs..."
+# Hook definitions are read after the generator has written skills and agents.
+# Force a failure mid-generation, not just before Python starts.
+printf 'invalid JSON\n' > "$FIXTURE/src/hooks/hooks.json"
+if bash "$FIXTURE/scripts/build-docs.sh" > "$FIXTURE_PARENT/failed-build.log" 2>&1; then
+  fail "reference build reported success with invalid hook definitions"
+fi
+grep -q 'JSONDecodeError' "$FIXTURE_PARENT/failed-build.log" || {
+  cat "$FIXTURE_PARENT/failed-build.log" >&2
+  fail "generator error was not visible"
+}
+DOCS_STATUS="$(git -C "$FIXTURE" status --porcelain -- docs/site)"
+if [[ -n "$DOCS_STATUS" ]]; then
+  printf '%s\n' "$DOCS_STATUS" >&2
+  fail "failed reference build changed the last good docs"
+fi
+echo "PASS: failed reference build leaves the last good docs unchanged"
