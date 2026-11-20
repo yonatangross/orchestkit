@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Docs Markdown, whatever the line endings</title>
+<meta name="description" content="Recorded /api/md output for one docs page saved with LF and with CRLF line endings, before and after the frontmatter fix.">
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#f7f6f2;color:#202b35;font:16px/1.6 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:48px 24px}header{max-width:760px}.eyebrow{color:#456658;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.04em;line-height:1.1;margin:16px 0}p{color:#53606a}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{overflow-wrap:anywhere;font-size:.9em}.controls{display:flex;gap:8px;margin:28px 0 12px}button{font:inherit;font-weight:600;border:1px solid #a7b1ac;border-radius:8px;padding:10px 24px;color:#243b32;background:transparent;cursor:pointer}button[aria-pressed="true"]{background:#243b32;color:white;border-color:#243b32}button:focus-visible{outline:3px solid #3574a8;outline-offset:3px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}article{background:white;border:1px solid #d7ddd9;border-radius:12px;overflow:hidden}h2{font-size:18px;margin:0}.card-head{padding:18px 20px;border-bottom:1px solid #d7ddd9;display:flex;justify-content:space-between;gap:10px;align-items:center}.status{font-size:12px;font-weight:700;white-space:nowrap;padding:3px 9px;border-radius:20px;background:#e8f3ec;color:#245235}.status.bad{background:#fce9e6;color:#973425}pre{margin:0;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8;min-height:420px;color:#203a31}.leak{background:#fce9e6;color:#973425;display:block}.cr{color:#9aa6ae}.note{font-size:13px;margin-top:20px}footer{margin-top:28px;border-top:1px solid #d7ddd9;padding-top:20px;font-size:14px}#summary{min-height:52px;margin:0} @media(max-width:650px){main{padding:28px 16px}.grid{grid-template-columns:1fr}pre{min-height:0;padding:16px}.card-head{padding:14px 16px}h2{font-size:16px}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Docs site / agent Markdown</div>
+    <h1>Docs Markdown, whatever the line endings.</h1>
+    <p><code>/api/md</code>, <code>/api/md/batch</code> and <code>/llms-full.txt</code> serve each page's MDX body with its YAML frontmatter removed. The strip only matched <code>\n</code>, so a page saved with Windows <code>\r\n</code> endings leaked its whole frontmatter block into the body.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Helper version">
+    <button type="button" id="before" aria-pressed="true">Before</button>
+    <button type="button" id="after" aria-pressed="false">After</button>
+  </div>
+  <p id="summary" aria-live="polite">Before: the CRLF copy of the page carries its raw frontmatter (title, seoTitle, description) inside the body.</p>
+  <div class="grid">
+    <article aria-labelledby="lf-title">
+      <div class="card-head"><h2 id="lf-title">installation.mdx, LF</h2><span class="status">Body clean</span></div>
+      <pre id="lf-output">---
+title: "OrchestKit Installation and Setup"
+description: "Copy one install command for your host: ..."
+canonical: "https://orchestkit.dev/docs/getting-started/installation"
+---
+
+# OrchestKit Installation and Setup
+
+Copy one install command for your host: ...
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { LazySetupWizard } from '@/components/lazy';
+import { Count } from '@/components/count';
+import { HostInstallGrid } from '@/components/host-install';
+
+## Choose your host</pre>
+    </article>
+    <article aria-labelledby="crlf-title">
+      <div class="card-head"><h2 id="crlf-title">installation.mdx, CRLF</h2><span id="crlf-status" class="status bad">Frontmatter leaked</span></div>
+      <pre id="crlf-before" hidden>---
+title: "OrchestKit Installation and Setup"
+description: "Copy one install command for your host: ..."
+canonical: "https://orchestkit.dev/docs/getting-started/installation"
+---
+
+# OrchestKit Installation and Setup
+
+Copy one install command for your host: ...
+
+<span class="leak">---<span class="cr">&#x240D;</span>
+title: OrchestKit Installation and Setup<span class="cr">&#x240D;</span>
+seoTitle: "Install OrchestKit: Claude Code, Cursor, Codex and More"<span class="cr">&#x240D;</span>
+description: "Copy one install command for your host: ..."<span class="cr">&#x240D;</span>
+---<span class="cr">&#x240D;</span></span><span class="cr">&#x240D;</span>
+import { Callout } from 'fumadocs-ui/components/callout';<span class="cr">&#x240D;</span>
+import { LazySetupWizard } from '@/components/lazy';<span class="cr">&#x240D;</span>
+import { Count } from '@/components/count';<span class="cr">&#x240D;</span>
+import { HostInstallGrid } from '@/components/host-install';<span class="cr">&#x240D;</span>
+<span class="cr">&#x240D;</span>
+## Choose your host<span class="cr">&#x240D;</span></pre>
+      <pre id="crlf-after" hidden>---
+title: "OrchestKit Installation and Setup"
+description: "Copy one install command for your host: ..."
+canonical: "https://orchestkit.dev/docs/getting-started/installation"
+---
+
+# OrchestKit Installation and Setup
+
+Copy one install command for your host: ...
+
+import { Callout } from 'fumadocs-ui/components/callout';<span class="cr">&#x240D;</span>
+import { LazySetupWizard } from '@/components/lazy';<span class="cr">&#x240D;</span>
+import { Count } from '@/components/count';<span class="cr">&#x240D;</span>
+import { HostInstallGrid } from '@/components/host-install';<span class="cr">&#x240D;</span>
+<span class="cr">&#x240D;</span>
+## Choose your host<span class="cr">&#x240D;</span></pre>
+    </article>
+  </div>
+  <p class="note">Static evidence, not a live server. Both panes are the first lines of real <code>GET /api/md/getting-started/installation</code> responses from <code>next dev</code>, with the page file saved as LF and as CRLF. <span class="cr">&#x240D;</span> marks a carriage return kept from the file. Long description lines are shortened with "...".</p>
+  <footer><strong>The fix:</strong> the frontmatter pattern in <code>stripFrontmatter</code> accepts an optional <code>\r</code> before each fence newline. After it, the CRLF body equals the LF body once line endings are normalized (2,645 characters each). Unterminated fences and pages without frontmatter are still returned unchanged.</footer>
+</main>
+<script>
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  const leaked = document.getElementById('crlf-before');
+  const clean = document.getElementById('crlf-after');
+  const status = document.getElementById('crlf-status');
+  const summary = document.getElementById('summary');
+  function show(fixed) {
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    leaked.hidden = fixed;
+    clean.hidden = !fixed;
+    status.textContent = fixed ? 'Body clean' : 'Frontmatter leaked';
+    status.classList.toggle('bad', !fixed);
+    summary.textContent = fixed ? 'After: the CRLF page serves the same body as the LF page. Only the generated frontmatter block remains.' : 'Before: the CRLF copy of the page carries its raw frontmatter (title, seoTitle, description) inside the body.';
+  }
+  before.addEventListener('click', () => show(false));
+  after.addEventListener('click', () => show(true));
+  show(false);
+</script>
+</body>
+</html>
