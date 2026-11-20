@@ -61,6 +61,12 @@ export type ParsedArgs = {
 	version: boolean;
 };
 
+class UsageError extends Error {}
+
+function isOptionToken(value: string): boolean {
+	return value.startsWith("--") || value === "-h" || value === "-v";
+}
+
 export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
 	let limit = 5;
@@ -72,13 +78,21 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 		const arg = argv[i] as string;
 		if (arg === "--json") json = true;
 		else if (arg === "--version" || arg === "-v") version = true;
-		else if (arg === "--limit") {
-			const next = Number.parseInt(argv[++i] ?? "", 10);
-			// A bad --limit silently falling back to the default would hide the typo
-			// in a script; clamping to a sane range is the honest middle ground.
-			if (Number.isFinite(next)) limit = Math.min(Math.max(next, 1), 50);
-		} else if (arg === "--base-url") baseUrl = argv[++i];
-		else if (arg.startsWith("-")) positional.push(arg);
+		else if (arg === "--limit" || arg === "--base-url") {
+			const value = argv[i + 1];
+			if (value === undefined || isOptionToken(value)) {
+				throw new UsageError(`${arg} requires a value.`);
+			}
+			i++;
+			if (arg === "--limit") {
+				if (!/^[+-]?\d+$/.test(value)) {
+					throw new UsageError("--limit requires an integer.");
+				}
+				limit = Math.min(Math.max(Number(value), 1), 50);
+			} else {
+				baseUrl = value;
+			}
+		} else if (arg.startsWith("-")) positional.push(arg);
 		else positional.push(arg);
 	}
 
@@ -127,11 +141,11 @@ export async function run(
 		version: "0.0.0",
 	},
 ): Promise<RunResult> {
-	const args = parseArgs(argv);
-	const makeClient = deps.clientFactory ?? createClient;
-	const client = makeClient({ baseUrl: args.baseUrl });
-
 	try {
+		const args = parseArgs(argv);
+		const makeClient = deps.clientFactory ?? createClient;
+		const client = makeClient({ baseUrl: args.baseUrl });
+
 		switch (args.command) {
 			case "help":
 			case "--help":
@@ -222,6 +236,7 @@ export async function run(
 				return fail(`Unknown command "${args.command}".\n\n${HELP}`, 2);
 		}
 	} catch (err) {
+		if (err instanceof UsageError) return fail(`${err.message}\n`, 2);
 		if (err instanceof ApiError) {
 			const retry =
 				err.retryAfter !== null ? ` Retry after ${err.retryAfter}s.` : "";

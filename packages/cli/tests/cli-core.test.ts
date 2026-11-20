@@ -47,8 +47,13 @@ describe("parseArgs", () => {
 		expect(parseArgs(["search", "x", "--limit", "3"]).limit).toBe(3);
 		expect(parseArgs(["search", "x", "--limit", "9999"]).limit).toBe(50);
 		expect(parseArgs(["search", "x", "--limit", "0"]).limit).toBe(1);
-		// A non-numeric value keeps the default rather than becoming NaN.
-		expect(parseArgs(["search", "x", "--limit", "abc"]).limit).toBe(5);
+		expect(parseArgs(["search", "x", "--limit", "-3"]).limit).toBe(1);
+	});
+
+	it.each(["abc", "3abc", "", " 3 "])("rejects an invalid --limit value (%j)", (value) => {
+		expect(() => parseArgs(["search", "x", "--limit", value])).toThrow(
+			"--limit requires an integer",
+		);
 	});
 });
 
