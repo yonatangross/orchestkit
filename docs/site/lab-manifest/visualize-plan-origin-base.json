@@ -1,0 +1,12 @@
+{
+  "slug": "visualize-plan-origin-base",
+  "source": "docs/fix--5194-visualize-plan-origin-base/stale-base.html",
+  "title": "visualize-plan: count your branch, not the commits main never pulled",
+  "description": "Toggle before and after: with local main 40 commits behind origin, visualize-plan reported 41 commits and 842 files for a one-file branch. It now measures against origin/main.",
+  "tags": [
+    "skills",
+    "visualize-plan",
+    "git"
+  ],
+  "date": "2026-11-20"
+}
