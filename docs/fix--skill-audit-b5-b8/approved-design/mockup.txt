@@ -1,0 +1,34 @@
+┌ ○ ○ ○ ── docs/fix--skill-audit-b5-b8/index.html ── light · dark ◐ ───┐
+│ SKILL AUDIT B5 TO B8: FOUR CLAIMS THE INSTALLED PLUGIN CANNOT KEEP   │
+│ 4 skills fixed · 8 files · +30 / -22 · no behavior change            │
+│ ┌ 4 ──────┐ ┌ 3 ───────┐ ┌ 1 ──────┐ ┌ 0 ────────┐                   │
+│ │ claims  │ │ text only│ │ build   │ │ new hooks │                   │
+│ └─────────┘ └──────────┘ └─────────┘ └───────────┘                   │
+│ 01 / BEFORE ──▶ AFTER   [ all ] [ links ] [ promises ] [ build ]     │
+│ ┌ B5 telemetry-inspect ────────┬──────────────────────────────────┐  │
+│ │ ✗ link to metrics-collection │ ✓ path fixed (one ../ short)     │  │
+│ └──────────────────────────────┴──────────────────────────────────┘  │
+│ ┌ B6 remember ─────────────────┬──────────────────────────────────┐  │
+│ │ ✗ "FREE, zero-config,        │ ✓ names the memory MCP server it │  │
+│ │    always works"             │   needs and how to confirm it    │  │
+│ └──────────────────────────────┴──────────────────────────────────┘  │
+│ ┌ B7 doctor ───────────────────┬──────────────────────────────────┐  │
+│ │ ✗ check 10 reads             │ ✓ build-plugins.sh ships it;     │  │
+│ │   shared/cc-support.json,    │   plugins/ork/shared/ has it     │  │
+│ │   absent from the plugin     │                                  │  │
+│ └──────────────────────────────┴──────────────────────────────────┘  │
+│ ┌ B8 browser-tools ────────────┬──────────────────────────────────┐  │
+│ │ ✗ promises URL blocklist,    │ ✓ safety rules only; URL policy  │  │
+│ │   rate limits, robots.txt    │   enforced upstream              │  │
+│ │   (hook retired 2026-08-31)  │                                  │  │
+│ │ ✗ env table: 6 variables     │ ✓ only variables the CLI reads   │  │
+│ │   nothing reads              │                                  │  │
+│ └──────────────────────────────┴──────────────────────────────────┘  │
+│   each card: [ show diff ▾ ] opens the exact - / + lines             │
+│ 02 / HOW TO CHECK ───────────────────────────────────────────────    │
+│ ☐ B5 open the link      ☐ B7 ls plugins/ork/shared/cc-support.json   │
+│ ☐ B6 read the setup     ☐ B8 grep the env table against the CLI      │
+│ [ copy checklist as prompt ]                     0 / 4 checked       │
+└──────────────────────────────────────────────────────────────────────┘
+ self-contained HTML · no network · section rail (2 sections: exempt)
+ data inline · filter chips hide cards · diff text from the real commit

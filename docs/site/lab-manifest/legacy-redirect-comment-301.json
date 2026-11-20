@@ -1,0 +1,8 @@
+{
+  "slug": "legacy-redirect-comment-301",
+  "source": "docs/fix--legacy-redirect-comment-301/index.html",
+  "title": "The legacy host comment now says 301, like the code",
+  "description": "A comment in docs/site/lib/constants.ts said the legacy host redirect is a 308; middleware.ts sends a 301. The comment now matches.",
+  "tags": ["docs-site", "redirects"],
+  "date": "2026-10-30"
+}

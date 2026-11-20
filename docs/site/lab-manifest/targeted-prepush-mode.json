@@ -1,0 +1,8 @@
+{
+  "slug": "targeted-prepush-mode",
+  "source": "docs/feat--ork-0p-targeted-prepush/index.html",
+  "title": "Targeted pre-push mode with a 2-slot governor",
+  "description": "ORK_PRE_PUSH_MODE=targeted selects unit tests by diff, gates security and tsc+build by path class, and defers the rest to CI. The default stays the full suite.",
+  "tags": ["git-hooks", "pre-push", "ci", "4238"],
+  "date": "2026-09-23"
+}

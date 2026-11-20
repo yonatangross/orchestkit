@@ -206,12 +206,12 @@ Teams using OrchestKit lose context when discussing analyses outside the platfor
 **Day 1: WebSocket Infrastructure**
 - [ ] Add `fastapi-websockets` dependency
 - [ ] Create `ConnectionManager` for presence tracking
-- [ ] Add `/ws/analysis/\{id\}/presence` endpoint
+- [ ] Add `/ws/analysis/{id}/presence` endpoint
 - [ ] Redis pub/sub for multi-server scaling
 
 **Day 2: Comment System**
 - [ ] Database schema: `comments` table (analysis_id, user_id, section_id, content, created_at)
-- [ ] REST endpoints: POST/GET/PATCH/DELETE `/api/v1/analyses/\{id\}/comments`
+- [ ] REST endpoints: POST/GET/PATCH/DELETE `/api/v1/analyses/{id}/comments`
 - [ ] WebSocket events: `comment.created`, `comment.updated`, `comment.deleted`
 
 **Day 3: Presence Logic**

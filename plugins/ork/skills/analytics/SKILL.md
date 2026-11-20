@@ -1,21 +1,20 @@
 ---
 name: analytics
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-author: OrchestKit
-description: "Queries local analytics across OrchestKit projects for agent usage, skill frequency, hook timing, team activity, session replay, cost estimation, and model delegation trends. Privacy-safe with hashed project IDs. Supports time-range filtering and comparative analysis. Use when reviewing performance, estimating costs, or understanding usage patterns."
+compatibility: "Claude Code 2.1.277+."
+description: "Local OrchestKit usage analytics: agent and skill frequency, hook timing, session replay, cost estimates, model delegation trends. Use when reviewing usage, performance or costs."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
 context: inherit
-version: 2.1.0
-tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation]
 user-invocable: false
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
-complexity: low
-persuasion-type: collaborative
+allowed-tools: "Bash Read Grep Glob AskUserQuestion"
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets, session, cost, tokens, model-delegation"
 ---
 
 # Cross-Project Analytics
@@ -39,7 +38,7 @@ Parse the user's argument to determine which report to show. If no argument prov
 | `cost` | Token cost estimation with cache savings | `stats-cache.json` | `references/cost-estimation.md` |
 | `trends` | Daily activity, model delegation, peak hours | `stats-cache.json` | `references/trends-analysis.md` |
 | `summary` | Unified view of all categories | All files | `references/jq-queries.md` |
-| `otel` | CC 2.1.117 + 2.1.122 + 2.1.126 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation, skill activation by trigger type, most-mentioned `@` targets | `~/.claude/otel/*.jsonl` | `references/otel-fields.md` |
+| `otel` | CC 2.1.117 + 2.1.122 + 2.1.126 OTEL enrichments: top slash commands (user vs model), per-effort cost, effort-vs-success correlation, skill activation by trigger type, most-mentioned `@` targets | `~/.claude/otel/*.jsonl`, or user-named Loki + Prometheus endpoints after schema discovery | `references/otel-fields.md`, `references/otel-gateway-source.md` |
 
 ### Quick Start Example
 
@@ -139,5 +138,6 @@ Present results as clean markdown tables. Include counts, percentages, and avera
 ## Related Skills
 
 - `ork:explore` - Codebase exploration and analysis
-- `ork:remember` - Store project knowledge
+- `ork:memory remember` - Store project knowledge
 - `ork:doctor` - Health check diagnostics
+- `ork-extras:prompt-focus` - Where the user's own attention went, from their prompts (the user's own prompts, not tool telemetry)

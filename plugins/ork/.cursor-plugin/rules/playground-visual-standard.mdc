@@ -25,8 +25,8 @@ falsifiable value — a rule without a measurable threshold is not shippable.
 
 Reference exemplars (read the one matching your archetype before building):
 `shared/assets/playground-exemplars/`
-- `homeos-arieh.html` — canonical gold standard (user-story player, RTL Hebrew). Study the bar.
-- `user-story-player.template.html` — generalized player scaffold (device mockup + transport + flow).
+- `user-story-player.template.html` — canonical gold standard and generalized player scaffold
+  (device mockup + transport + flow, RTL-ready). Study the bar.
 - `decision-board.template.html` — drag-and-drop prioritization toolkit (the decision archetype).
 - `release-notes-player.template.html` — player *recipe* for release / changelog notes (release-feed
   chrome + per-step impact card). A specialization of the player archetype, not a new one: route
@@ -91,7 +91,7 @@ Aesthetic primes emotion in <100ms, before content is read. The frame's persona 
 *functional* decision.
 
 - **warm-glass** ("warm intelligence") — amber/emerald accents, frosted surfaces, rounded. Default
-  for consumer/family/approachable products. Matches the HomeOS reference.
+  for consumer/family/approachable products. Matches the user-story player exemplar.
 - **cool-glass** ("technical precision") — indigo/violet/teal accents, tighter radii. For
   developer/enterprise/data products.
 

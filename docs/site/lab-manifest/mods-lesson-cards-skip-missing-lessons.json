@@ -1,0 +1,8 @@
+{
+  "slug": "mods-lesson-cards-skip-missing-lessons",
+  "source": "docs/fix--lesson-cards-skip-missing-lessons/skip-missing-lessons.html",
+  "title": "lesson-cards 1.1.1: no failed stat for a floor dir without lessons.md",
+  "description": "lesson-cards asks fs.exists before fs.stat, so a floor with many dirs and few lessons.md files no longer logs one ENOENT per dir at session start. Move the sliders to compare 1.1.0 and 1.1.1.",
+  "tags": ["mods", "lesson-cards", "noise"],
+  "date": "2026-10-20"
+}

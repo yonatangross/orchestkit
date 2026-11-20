@@ -333,7 +333,7 @@ describe("the 401 hint is raised only where it is true", () => {
 		expect(md).not.toMatch(/never (a|returns?) `?401/i);
 		expect(md).toContain("When you will see a 401");
 		expect(md).toContain('error="invalid_token"');
-		expect(md).toContain("GET https://orchestkit.yonyon.ai/agent/identity");
+		expect(md).toContain("GET https://orchestkit.dev/agent/identity");
 		expect(md).toMatch(/Identity is optional/);
 	});
 });

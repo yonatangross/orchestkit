@@ -1,0 +1,8 @@
+{
+  "slug": "stable-ork-count-stamp",
+  "source": "docs/fix--sc47-f25-stable-marketplace-stamp/index.html",
+  "title": "Stable ork count stamp no longer rewrites the pin",
+  "description": "F25: marketplace count stamper rewrote the pinned stable ork entry with beta counts. Fixed by selecting source.ref == main only.",
+  "tags": ["release", "marketplace", "stamp-counts", "channels"],
+  "date": "2026-09-22"
+}

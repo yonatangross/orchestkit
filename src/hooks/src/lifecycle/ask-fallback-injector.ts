@@ -29,8 +29,9 @@ import { NOOP_CTX } from '../lib/context.js';
 
 const HOOK_NAME = 'lifecycle/ask-fallback-injector';
 
+// Plain text: CC wraps additionalContext itself, and since 2.1.292 it
+// escapes a literal system-reminder tag in hook output (#4689).
 const FALLBACK_REMINDER =
-  '<system-reminder>\n' +
   '[ORK_ASK_FALLBACK=text] The AskUserQuestion picker is disabled this session ' +
   '(CC 2.1.139 input bug — see orchestkit#1795). Do not call AskUserQuestion. ' +
   'Instead, pose options inline as a numbered list and ask the user to reply ' +
@@ -41,8 +42,7 @@ const FALLBACK_REMINDER =
   '  >   3. OAuth-only (delegate to provider)\n' +
   '  > Reply with 1, 2, or 3.\n\n' +
   'Keep options to 2–4 to match picker affordances. Unset ORK_ASK_FALLBACK ' +
-  'to restore picker mode once CC ships an upstream fix.\n' +
-  '</system-reminder>';
+  'to restore picker mode once CC ships an upstream fix.';
 
 export function askFallbackInjector(
   _input: HookInput,

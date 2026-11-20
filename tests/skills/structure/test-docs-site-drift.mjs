@@ -162,6 +162,7 @@ const KNOWN_ABSENT = new Map([
   ['scaffold', 'illustrative failure case — merged into `implement` in v7.2.0'],
   ['build-optimizer', 'demo-config example in demo-producer, not a real command'],
   ['code-walkthrough', 'demo-config example in demo-producer, not a real command'],
+  ['comments', 'the `<!-- ork:comments -->` marker that opens a task artifact\'s comment block (create-plan references/artifact-layout.md), an HTML comment, not a command'],
 ]);
 
 const PLACEHOLDER = new Set([
@@ -189,6 +190,25 @@ const TOTAL_CLAIM = [
   // of the patterns above reached it, and it sat stale in the SAME file this
   // gate's own header cites for the "183 hooks (actual 218)" miss (#3354).
   /\*\*(\d{2,4})\s*(skills|agents|hooks)\*\*\s+across\s+\d+\s+categor/i,
+];
+
+// --- the command / reference split -----------------------------------------
+// TOTAL_CLAIM only knew skills, agents and hooks, so the split of the skill
+// total went unchecked: on 2026-09-25 /docs/reference said "35 commands + 70
+// auto-injected references" (sum 105, actual 36 + 72) and the command-skills
+// title said 18 while its body said 35. Each shape below is a claim about the
+// WHOLE split, never a subset ("48 reference skills are hidden" stays legal).
+const TRUTH_SPLIT = { commands: invocable.size, references: skills.size - invocable.size };
+const SPLIT_CLAIM = [
+  [/\b(\d{1,3})\s+Commands You Can Invoke\b/, 'commands'],
+  [/\b(\d{1,3})\s+commands?\s*(?:\+|and|plus)\s*\d{1,3}\s+(?:auto-injected\s+)?references?\b/i, 'commands'],
+  [/\b\d{1,3}\s+commands?\s*(?:\+|and|plus)\s*(\d{1,3})\s+(?:auto-injected\s+)?references?\b/i, 'references'],
+  [/\b(?:all|every)\s+(\d{1,3})\s+(?:user-invocable\s+)?command skills\b/i, 'commands'],
+  [/\bthe\s+(?:\*\*)?(\d{1,3})\s+skills(?:\*\*)?\s+with\s+`user-invocable: true`/i, 'commands'],
+  [/\bthe\s+(?:\*\*)?(\d{1,3})\s+skills(?:\*\*)?\s+with\s+`user-invocable: false`/i, 'references'],
+  [/\bThe\s+(\d{1,3})\s+user-invocable:false skills\b/, 'references'],
+  [/\[(\d{1,3})\s+Reference Skills\]/, 'references'],
+  [/\[(\d{1,3})\s+Commands?\b[^\]]*\]/, 'commands'],
 ];
 
 const REF = /\/?\bork:([a-z0-9][a-z0-9-]*)/g;
@@ -246,13 +266,23 @@ for (const path of files) {
       }
       break;
     }
+
+    for (const [re, noun] of SPLIT_CLAIM) {
+      const c = line.match(re);
+      if (!c) continue;
+      const n = Number(c[1]);
+      if (n !== TRUTH_SPLIT[noun]) {
+        staleCounts.push({ rel, line: idx + 1, said: n, noun, actual: TRUTH_SPLIT[noun], text: line.trim().slice(0, 110) });
+      }
+    }
   });
 }
 
 console.log(`Docs-site drift: ${files.length} MDX files`);
 console.log(
   `Ground truth (derived): ${TRUTH.skills} skills, ${TRUTH.agents} agents, ` +
-    `${TRUTH.hooks ?? 'hooks UNAVAILABLE (count-hooks.sh failed)'} hooks\n`,
+    `${TRUTH.hooks ?? 'hooks UNAVAILABLE (count-hooks.sh failed)'} hooks; ` +
+    `${TRUTH_SPLIT.commands} commands + ${TRUTH_SPLIT.references} references\n`,
 );
 console.log(
   `Non-invocable /ork: commands: ${nonInvocable.length} (baseline ${NON_INVOCABLE_BASELINE})`,

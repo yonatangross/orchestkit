@@ -1,0 +1,12 @@
+{
+  "slug": "skills-auto-routes-fork-fanout",
+  "source": "docs/feat--skills-auto-routes-fork-fanout/index.html",
+  "title": "ork:auto routes setup and swarm-migrate",
+  "description": "setup and swarm-migrate were reachable only by description or a typed command. ork:auto now routes to both. Pick a benchmark goal to see its route and the edge rule that decides it, including the look-alikes that must stay build.",
+  "tags": [
+    "skills",
+    "routing",
+    "auto"
+  ],
+  "date": "2026-11-02"
+}

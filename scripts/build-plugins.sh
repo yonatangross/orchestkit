@@ -269,14 +269,30 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Copy skills
     if [[ "$SKILLS_MODE" == "all" ]]; then
         cp -R "$SRC_DIR/skills" "$PLUGIN_DIR/"
+        # skillsExclude (#4936): skills that ship in another plugin instead
+        # (ork-extras). An exclude list rather than an array of everything
+        # else, so a new skill lands in core by default. A name that is not a
+        # skill directory is a typo that would silently ship the skill, so it
+        # fails the build.
+        while IFS= read -r skill; do
+            [[ -z "$skill" ]] && continue
+            if [[ ! -d "$PLUGIN_DIR/skills/$skill" ]]; then
+                echo -e "${RED}  ERROR: $PLUGIN_NAME skillsExclude names unknown skill: $skill${NC}"
+                exit 1
+            fi
+            rm -rf "${PLUGIN_DIR:?}/skills/$skill"
+        done < <(jq -r '.skillsExclude[]?' "$manifest")
         skill_count=$(find "$PLUGIN_DIR/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
     elif [[ "$SKILLS_MODE" == "array" ]]; then
         mkdir -p "$PLUGIN_DIR/skills"
         while IFS= read -r skill; do
-            if [[ -n "$skill" ]] && [[ -d "$SRC_DIR/skills/$skill" ]]; then
-                cp -R "$SRC_DIR/skills/$skill" "$PLUGIN_DIR/skills/"
-                skill_count=$((skill_count + 1))
+            [[ -z "$skill" ]] && continue
+            if [[ ! -d "$SRC_DIR/skills/$skill" ]]; then
+                echo -e "${RED}  ERROR: $PLUGIN_NAME skills names unknown skill: $skill${NC}"
+                exit 1
             fi
+            cp -R "$SRC_DIR/skills/$skill" "$PLUGIN_DIR/skills/"
+            skill_count=$((skill_count + 1))
         done < <(jq -r '.skills[]?' "$manifest")
     fi
 
@@ -287,6 +303,28 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # strict (no .jsonl carve-out needed in test-packaging-leaks.sh). #2555
     if [[ -d "$PLUGIN_DIR/skills" ]]; then
         find "$PLUGIN_DIR/skills" -type d -name evals -prune -exec rm -rf {} +
+    fi
+
+    # Drop the object-shaped `triggers` frontmatter key from the BUILT copy
+    # only. Devin's plugin loader silently drops any skill whose SKILL.md
+    # carries it (31 of 107 at last count, #4147). Every consumer of the key
+    # (eval-coverage, trigger/coverage tests, command passthrough) reads the
+    # source under src/skills/, which stays untouched. The transform deletes
+    # the `triggers:` line plus its indented block children, inside the
+    # frontmatter fence only. The awk lives in scripts/lib/ so the Build drift
+    # test normalizes the src side with the identical rules.
+    if [[ -d "$PLUGIN_DIR/skills" ]]; then
+        for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
+            [[ -f "$skill_md" ]] || continue
+            grep -q '^triggers:' "$skill_md" || continue
+            if ! awk -f "$PROJECT_ROOT/scripts/lib/strip-skill-triggers.awk" \
+                "$skill_md" > "$skill_md.tmp"; then
+                rm -f "$skill_md.tmp"
+                echo -e "    ${RED}Failed to strip triggers from $skill_md${NC}"
+                exit 1
+            fi
+            mv "$skill_md.tmp" "$skill_md"
+        done
     fi
 
     # Generate command wrappers from user-invocable skills, FOR THE CURSOR HOST ONLY.
@@ -319,8 +357,18 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # Hard-fail, deliberately. A warn-and-continue here ships a Cursor plugin
     # whose command palette is full of paths nobody can open, and the build still
     # prints BUILD COMPLETE, the same shape #2360 fixed for stale hook bundles.
+    # shared (#4936): a manifest with "shared": false is a skills-only add-on
+    # that installs next to ork. It ships no copy of src/shared and no Cursor
+    # rules, which ork already carries; shipping them again loads every
+    # Cursor rule twice. Absent means true, so ork is unchanged.
+    SHIPS_SHARED=$(jq -r 'if has("shared") then .shared else true end' "$manifest")
+    CURSOR_EXPORT_FLAGS=()
+    if [[ "$SHIPS_SHARED" == "false" ]]; then
+        CURSOR_EXPORT_FLAGS+=(--no-rules)
+    fi
+
     if [[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]]; then
-        python3 "$SCRIPT_DIR/_cursor-export.py" "$PLUGIN_DIR" "$SRC_DIR" || {
+        python3 "$SCRIPT_DIR/_cursor-export.py" ${CURSOR_EXPORT_FLAGS[@]+"${CURSOR_EXPORT_FLAGS[@]}"} "$PLUGIN_DIR" "$SRC_DIR" || {
             echo -e "${RED}  ERROR: Cursor export failed, aborting (#3941)${NC}"
             exit 1
         }
@@ -433,17 +481,41 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
             echo -e "    ${GREEN}Stripped devDependencies from hooks/package.json${NC}"
         fi
 
-        # Inject plugin version into stop-uncommitted-check.mjs
-        PLUGIN_VERSION=$(jq -r '.version' "$manifest")
-        STOP_HOOK="$PLUGIN_DIR/hooks/bin/stop-uncommitted-check.mjs"
-        if [[ -f "$STOP_HOOK" ]] && [[ -n "$PLUGIN_VERSION" ]]; then
-            # Cross-platform sed -i (macOS needs '' arg, Linux doesn't)
-            if [[ "$(uname)" == "Darwin" ]]; then
-                sed -i '' "s/__PLUGIN_VERSION__/${PLUGIN_VERSION}/g" "$STOP_HOOK"
-            else
-                sed -i "s/__PLUGIN_VERSION__/${PLUGIN_VERSION}/g" "$STOP_HOOK"
-            fi
+        # Ship the one-process tool dispatchers as the default. The rsync
+        # above copied the per-handler registry (src/hooks/hooks.json, which
+        # route tables and tests keep reading); Claude Code starts one process
+        # per matching entry of THE SHIPPED FILE, so that copy is rewritten to
+        # PreToolUse + PostToolUse dispatcher entries, PostToolBatch dropped
+        # and every other event kept as is (the unifiedToolHooks form, no
+        # --shipped). PostToolBatch's only listener, tool-batch-observer, was
+        # one log line per batch that nothing read; dropping it takes a
+        # successful tool call from 3 hook processes to 2 (operator yes
+        # 2026-11-11). The registry keeps it: to restore, add --shipped back.
+        # scripts/unified-pretool-hooks.mjs, #4962/#4971. Only the shipped
+        # copy changes. Pinned by
+        # src/__tests__/shipped-dispatchers.test.ts and measured by
+        # scripts/spawn-ratchet.mjs.
+        # Delete the rsync'd per-handler copy first, then require a written
+        # file: a generator that exits 0 without writing (its main-module
+        # guard missed under a symlinked path, #5004) must fail the build, not
+        # ship the stale per-handler registry.
+        rm -f "$PLUGIN_DIR/hooks/hooks.json"
+        node "$SRC_DIR/hooks/scripts/unified-pretool-hooks.mjs" \
+            --in "$SRC_DIR/hooks/hooks.json" \
+            --out "$PLUGIN_DIR/hooks/hooks.json" >/dev/null || {
+            echo -e "    ${RED}Failed to write the dispatcher hooks.json${NC}"
+            exit 1
+        }
+        if [[ ! -s "$PLUGIN_DIR/hooks/hooks.json" ]]; then
+            echo -e "    ${RED}Dispatcher hooks.json generator exited 0 but wrote nothing (#5004)${NC}"
+            exit 1
         fi
+        echo -e "    ${GREEN}Wrote dispatcher hooks.json (shippedToolHooks, PostToolBatch kept)${NC}"
+
+        # stop-uncommitted-check.mjs reads plugin.json at runtime (no
+        # __PLUGIN_VERSION__ stamp). Keeping src and plugins copies
+        # byte-identical avoids release-PR Build drift after the file left
+        # release-please extra-files (#4367).
     fi
 
     # MCP server build + copy phases removed with the ork-elicit retirement
@@ -453,9 +525,28 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     # directory existing, so they would have skipped silently forever — dead
     # build machinery that reads as "OrchestKit ships an MCP server".
 
-    # Copy shared resources if they exist
-    if [[ -d "$SRC_DIR/shared" ]]; then
+    # Copy shared resources if they exist (not for a "shared": false add-on,
+    # see SHIPS_SHARED above; cc-support.json below then skips too, since it
+    # is gated on the shared/ dir existing)
+    if [[ -d "$SRC_DIR/shared" && "$SHIPS_SHARED" != "false" ]]; then
         cp -R "$SRC_DIR/shared" "$PLUGIN_DIR/"
+    fi
+    # doctor check 10 tells the model to read shared/cc-support.json as the
+    # single source for the supported CC floor; it lives in the repo-root
+    # shared/, not src/shared, so ship it explicitly (skills audit B7).
+    if [[ -d "$PLUGIN_DIR/shared" && -f "$PROJECT_ROOT/shared/cc-support.json" ]]; then
+        cp "$PROJECT_ROOT/shared/cc-support.json" "$PLUGIN_DIR/shared/"
+    fi
+
+    # Listing icon for the Claude plugin directory: a square PNG, 512 to 2048 px,
+    # under 2 MB, inside the plugin folder and named by `icon` in plugin.json.
+    # The directory takes it as the listing icon only the first time the plugin
+    # is saved or submitted in the portal, so it ships before that first save.
+    PLUGIN_ICON_SRC="$PROJECT_ROOT/design/plugin-icon/icon-512.png"
+    HAS_ICON=false
+    if [[ -f "$PLUGIN_ICON_SRC" ]]; then
+        cp "$PLUGIN_ICON_SRC" "$PLUGIN_DIR/.claude-plugin/icon.png"
+        HAS_ICON=true
     fi
 
     # Generate plugin.json using jq for consistent formatting.
@@ -468,7 +559,9 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         --arg desc "$PLUGIN_DESC" \
         --argjson has_skills "$([[ -d "$PLUGIN_DIR/skills" ]] && echo true || echo false)" \
         --argjson has_workflows "$([[ -d "$PLUGIN_DIR/workflows" ]] && echo true || echo false)" \
+        --argjson has_icon "$HAS_ICON" \
         --argjson deps "$(jq -c '.dependencies // null' "$manifest")" \
+        --argjson ucfg "$(jq -c '.userConfig // null' "$manifest")" \
         '{
           name: $name,
           version: $version,
@@ -481,14 +574,23 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
           homepage: "https://github.com/yonatangross/orchestkit",
           repository: "https://github.com/yonatangross/orchestkit",
           license: "MIT",
-          keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"]
+          keywords: ["ai-development","langgraph","fastapi","react","typescript","python","multi-agent"],
+          documentationUrl: "https://orchestkit.dev",
+          supportUrl: "https://github.com/yonatangross/orchestkit/issues",
+          privacyPolicyUrl: "https://orchestkit.dev/privacy"
         }
+        + if $has_icon then {icon: "./.claude-plugin/icon.png"} else {} end
         + if $has_skills then {skills: "./skills/"} else {} end
         # #3326: CC owns `dependencies` (plugin names, or {name, version}); pass
         # it through verbatim. CC installs them transitively at enable time and
         # refuses to enable/disable when unsatisfied, which the retired Phase 5
         # check only approximated by looking for a sibling manifest file.
         + if $deps != null then {dependencies: $deps} else {} end
+        # #1270: pass manifest.userConfig through verbatim — CC injects each
+        # key into hook processes as CLAUDE_PLUGIN_OPTION_<KEY> (sensitive
+        # values are keychain-backed). Without this the block in
+        # manifests/ork.json was dead config that never reached the install.
+        + if $ucfg != null then {userConfig: $ucfg} else {} end
         + if $has_workflows then {workflows: "./workflows/"} else {} end' \
         > "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
@@ -508,7 +610,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
     jq --argjson has_agents "$([[ -d "$PLUGIN_DIR/agents" ]] && echo true || echo false)" \
        --argjson has_commands "$([[ -d "$PLUGIN_DIR/.cursor-plugin/commands" ]] && echo true || echo false)" \
        --argjson has_rules "$([[ -d "$PLUGIN_DIR/.cursor-plugin/rules" ]] && echo true || echo false)" \
-      'del(.workflows, .dependencies) + (if $has_agents then {agents: "./agents/"} else {} end)
+      'del(.workflows, .dependencies, .userConfig, .icon, .documentationUrl, .supportUrl, .privacyPolicyUrl) + (if $has_agents then {agents: "./agents/"} else {} end)
                        + (if $has_commands then {commands: "./.cursor-plugin/commands/"} else {} end)
                        + (if $has_rules then {rules: "./.cursor-plugin/rules/"} else {} end)' \
       "$PLUGIN_DIR/.claude-plugin/plugin.json" \
@@ -732,11 +834,10 @@ echo ""
 # ============================================================================
 echo -e "${BLUE}[8/10] Regenerating docs reference pages...${NC}"
 
-if [[ -x "$SCRIPT_DIR/build-docs.sh" ]]; then
-    bash "$SCRIPT_DIR/build-docs.sh" 2>/dev/null || echo -e "${YELLOW}  build-docs.sh failed, skipping${NC}"
-else
-    echo -e "${YELLOW}  build-docs.sh not found or not executable, skipping${NC}"
-fi
+bash "$SCRIPT_DIR/build-docs.sh" || {
+    echo "Error: reference docs generation failed; build aborted." >&2
+    exit 1
+}
 
 # Generate changelog timeline data
 if [[ -f "$SCRIPT_DIR/generate-changelog-data.js" ]]; then
@@ -801,6 +902,8 @@ echo ""
 echo "Stamping counts and version markers…"
 bash "$(dirname "$0")/stamp-counts.sh"
 node "$(dirname "$0")/stamp-whats-new.mjs"
+# After stamp-counts: the compatibility table reads the stamped hooks count (README, docs guide).
+node "$(dirname "$0")/stamp-compat-table.js"
 
 # Docs site data includes the manifest version, synchronized by stamp-counts.
 if [[ -f "$SCRIPT_DIR/generate-docs-data.js" ]]; then

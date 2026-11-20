@@ -1,20 +1,13 @@
 ---
 name: mcp-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-author: OrchestKit
-description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth authentication, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
-version: 3.1.0
-tags: [mcp, server, tools, resources, security, prompt-injection, oauth, elicitation, sampling, mcp-apps, fastmcp]
+compatibility: "Claude Code 2.1.277+."
+description: MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool handlers, choosing a transport, adding OAuth, wiring MCP Apps UI with @mcp-ui, hardening MCP security, or debugging MCP integrations.
 user-invocable: false
-disable-model-invocation: true
-context: fork
-complexity: high
-persuasion-type: reference
 effort: high
 targets:
   - library: "@modelcontextprotocol/sdk"
-    version: ">=1.29.0"
+    version: ">=1.31.0"
   # Upper bound is deliberate, not a lag. `pip install mcp` now resolves to 2.x,
   # and the 2.0 README says to keep a `<2` bound until you have migrated. Every
   # Python snippet in this skill is v1 (`from mcp.server.fastmcp import FastMCP`),
@@ -23,14 +16,14 @@ targets:
   - library: "mcp"
     version: ">=1.28.0,<2.0.0"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: mcp-enhancement
   spec-version: "2025-11-25"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "3.1.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "mcp, server, tools, resources, security, prompt-injection, oauth, elicitation, sampling, mcp-apps, fastmcp"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths:
   - ".mcp.json"
   - "**/*.mcp.json"
@@ -219,6 +212,6 @@ async def search(query: str) -> str:
 
 ## Related Skills
 
-- `ork:llm-integration` — LLM function calling patterns
+- `ork-extras:llm-integration` — LLM function calling patterns
 - `ork:security-patterns` — General input sanitization and layered security
 - `ork:api-design` — REST/GraphQL API design patterns

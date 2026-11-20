@@ -1,0 +1,12 @@
+{
+  "slug": "restricted-nested-claude",
+  "source": "docs/fix--restricted-nested-claude/index.html",
+  "title": "A Hook That Spawned an Unrestricted Claude",
+  "description": "Under claude --restricted, the session-identity hook started a nested claude -p to title the session, and that child still offered Bash and WebFetch. The restricted smoke checked only the first request, so it went red about one run in five. The child now gets --tools \"\" and the smoke checks every request.",
+  "tags": [
+    "hooks",
+    "security",
+    "false-signals"
+  ],
+  "date": "2026-10-25"
+}

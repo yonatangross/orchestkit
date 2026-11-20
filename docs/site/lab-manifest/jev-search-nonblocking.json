@@ -1,0 +1,14 @@
+{
+  "slug": "jev-search-nonblocking",
+  "source": "docs/feat--site-jev-search-nonblocking/index.html",
+  "title": "Typeahead Suggestions That Never Wait on the Network",
+  "description": "The search dialog builds its suggestions locally and paints them as soon as you type. An optional server request can supply a different order for the same shortlist, but it never blocks: it goes out after a typing pause, it is applied only if the same query is still on screen, and a late answer for a query you have typed past is discarded. Orders are cached per query, and the whole path sits behind a flag that is off by default. Type in the box to watch the timing and the staleness rule.",
+  "tags": [
+    "docs-site",
+    "search",
+    "autocomplete",
+    "latency",
+    "caching"
+  ],
+  "date": "2026-09-21"
+}

@@ -1,0 +1,14 @@
+{
+  "slug": "mods-prompt-enhancer-stack-aware",
+  "source": "docs/feat--prompt-enhancer-stack-aware/index.html",
+  "title": "prompt-enhancer 0.2.0: short, stack-aware rewrites",
+  "description": "A 4-word draft used to come back as an essay with questions; 0.2.0 keeps it short, names your real subagents, skills and MCP servers, ends with one Done when line, and prompt-caches the catalog prefix.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "prompt-enhancer",
+    "prompt-caching"
+  ],
+  "date": "2026-10-22"
+}

@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "10.0.0-beta.56",
-  "description": "The Complete AI Development Toolkit — 107 skills, 36 agents, 171 hooks for full-stack development.",
+  "version": "10.15.1",
+  "description": "A Claude Code plugin library: 115 skills, 36 agents and 163 hooks for planning, building, reviewing and shipping software. Open source, MIT.",
   "author": {
     "name": "Yonatan Gross",
     "url": "https://github.com/yonatangross"
@@ -20,32 +20,77 @@
     "plugin"
   ],
   "skills": "all",
+  "skillsExclude": [
+    "ai-ui-generation",
+    "animation-motion-design",
+    "async-jobs",
+    "figma-design-handoff",
+    "i18n-date-patterns",
+    "langgraph",
+    "llm-integration",
+    "mcp-patterns",
+    "monitoring-observability",
+    "multimodal-llm",
+    "portless",
+    "rag-retrieval",
+    "storybook-testing",
+    "ui-components",
+    "vite-advanced",
+    "zustand-patterns",
+    "accessibility",
+    "agent-orchestration",
+    "design-stylecards",
+    "distributed-systems",
+    "documentation-patterns",
+    "domain-driven-design",
+    "golden-dataset",
+    "interaction-patterns",
+    "release-management",
+    "responsive-patterns",
+    "audit-activation",
+    "audit-full",
+    "bare-eval",
+    "careful",
+    "freeze",
+    "prompt-focus",
+    "swarm-migrate"
+  ],
   "agents": "all",
   "hooks": "all",
   "workflows": [
+    "skills/assess/workflows/assess-fanout.js",
     "skills/audit-full/workflows/audit-full-mapreduce.js",
     "skills/bare-eval/workflows/skill-fitness.js",
-    "skills/cover/workflows/heal-loop.js"
+    "skills/brainstorm/workflows/brainstorm-diverge.js",
+    "skills/cover/workflows/heal-loop.js",
+    "skills/review-pr/workflows/review-fanout.js",
+    "skills/review-pr/workflows/rule-check.js",
+    "skills/verify/workflows/verify-dispatch.js"
   ],
   "userConfig": {
     "webhookUrl": {
       "type": "string",
-      "description": "Webhook endpoint URL for usage reports and notifications"
+      "sensitive": false,
+      "description": "Webhook endpoint URL for usage reports and notifications",
+      "title": "Webhook URL"
     },
-    "webhookToken": {
+    "hookToken": {
       "type": "string",
       "sensitive": true,
-      "description": "Authentication token for webhook endpoint (stored in keychain)"
+      "description": "Authentication token for webhook endpoint (stored in keychain)",
+      "title": "Webhook token"
     },
     "evalApiKey": {
       "type": "string",
       "sensitive": true,
-      "description": "Anthropic API key for skill evaluation pipeline (stored in keychain)"
+      "description": "Anthropic API key for skill evaluation pipeline (stored in keychain)",
+      "title": "Eval API key"
     },
     "notebookLmToken": {
       "type": "string",
       "sensitive": true,
-      "description": "NotebookLM auth token for /ork:release-sync (stored in keychain)"
+      "description": "NotebookLM auth token for /ork:release-sync (stored in keychain)",
+      "title": "NotebookLM token"
     }
   }
 }

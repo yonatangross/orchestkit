@@ -1,0 +1,8 @@
+{
+  "slug": "evals-judge-cache-cost-4461",
+  "source": "docs/chore--dsp-15026-4461-hq-ext-ork-5-5/index.html",
+  "title": "Eval judge cost fix (#4461)",
+  "description": "SDK judge, cache-priced ledger, ORK_EVALS_API_KEY gate. Why the 15x undercount happened and what the unit tests pin.",
+  "tags": ["evals", "cost", "cache", "4461"],
+  "date": "2026-09-26"
+}

@@ -1,37 +1,24 @@
 ---
 name: explore
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, and health assessment. Generates ASCII visualizations, import graphs, and design pattern detection with cross-session memory storage. Use when exploring a repo, discovering architecture, onboarding to a new codebase, or analyzing design patterns."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research)."
 argument-hint: "[topic-or-feature] [--render=markdown|json-render|both] [--effort=low|medium|high]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.6.0
-author: OrchestKit
-tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, mcp__memory__search_nodes, Bash, ToolSearch]
+allowed-tools: "AskUserQuestion Read Write Grep Glob Agent TaskCreate TaskUpdate TaskStop mcp__memory__search_nodes Bash ToolSearch"
 skills: [glyph, architecture-decision-record, memory, architecture-patterns, chain-patterns]
-complexity: high
-persuasion-type: guidance
 effort: high
 model: sonnet
-hooks:
-  PreToolUse:
-    - matcher: "Glob"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/repo-structure-indexer"
-      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory
-triggers:
-  keywords: [explore, "how does", "walk me through", "big picture", architecture, "trace the", "where is", "find all files", codebase]
-  examples:
-    - "how does the auth system work in this codebase"
-    - "what is the architecture of this repo"
-    - "i just joined this project, walk me through the structure"
-  anti-triggers: [fix, implement, build, commit, review, assess]
+  version: "2.6.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "exploration, code-search, architecture, codebase, health-assessment"
 paths: ["src/**", "package.json", "CLAUDE.md"]
 ---
 
@@ -47,7 +34,7 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 explore authentication
 ```
 
-> **Opus 5**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
+> **Opus 5.5**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
 
 ---
 
@@ -71,7 +58,7 @@ EFFORT = EFFORT or "high"  # default
 | `high` (default) | 4 (full parallel team) | 1–8 | ~6 min |
 | `xhigh` (Opus 5) | 5 (+ uncertainty pass on health scores) | 1–8 + caveats | ~8 min |
 
-**Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `doctor` warns when `xhigh` is requested without Opus 5.
+**Override gate:** if the user passes `--effort=high` explicitly while `$CLAUDE_EFFORT` is `low`, the flag wins. `doctor` warns only when `xhigh` is configured on a model in its `XHIGH_UNSUPPORTED_PREFIXES` table.
 
 ---
 
@@ -135,22 +122,22 @@ Write(".claude/chain/exploration.json", JSON.stringify({
 
 ---
 
-Choose **Agent Teams** (mesh) or **Task tool** (star):
+Choose **Agent Teams** (mesh) or **Agent tool** (star):
 
 1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 4+ agents**
-2. Task tool mode → **for quick/single-focus exploration**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Task tool** (override)
+2. Agent tool mode → **for quick/single-focus exploration**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Agent tool** (override)
 
-| Aspect | Task Tool | Agent Teams |
+| Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
 | Discovery sharing | Lead synthesizes after all complete | Explorers share discoveries as they go |
 | Cross-referencing | Lead connects dots | Data flow explorer alerts architecture explorer |
 | Cost | ~150K tokens | ~400K tokens |
 | Best for | Quick/focused searches | Deep full-codebase exploration |
 
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining exploration.
+> **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining exploration.
 
-> **Model cost (CC 2.1.198+):** the built-in Explore agent inherits the session model **capped at Opus** — it no longer runs on haiku. From a premium-model session (Opus, Fable), budget Explore fan-outs at Opus rates; there is no knob to pin the built-in Explore back to haiku. ork's own explorer agents can still pin a cheaper model via frontmatter.
+> **Model pin:** Set `model="haiku"` on the built-in Explore calls in Agent tool mode. This trial covers that path only. Agent Teams calls keep their existing model selection. A fork uses the parent model and shared context.
 
 ---
 
@@ -216,6 +203,10 @@ For Phase 3 parallel agents, output each agent's findings **as soon as it return
 
 ### Phase 1: Initial Search
 
+**Repo map, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/repo-structure-indexer`:
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/repo-structure-indexer 2>/dev/null || true`
+
 ```python
 # PARALLEL - Quick searches
 Grep(pattern="$ARGUMENTS[0]", output_mode="files_with_matches")
@@ -231,7 +222,7 @@ mcp__memory__search_nodes(query="architecture")
 
 ### Phase 3: Parallel Deep Exploration (4 Agents)
 
-Load `Read("rules/exploration-agents.md")` for Task tool mode prompts.
+Load `Read("rules/exploration-agents.md")` for Agent tool mode prompts.
 
 Load `Read("rules/agent-teams-mode.md")` for Agent Teams alternative.
 

@@ -1,0 +1,8 @@
+{
+  "slug": "cot-examples-thinking-models",
+  "source": "docs/fix--4363-coderabbit-opus55-examples/cot-examples.html",
+  "title": "Thinking-model aware CoT examples",
+  "description": "The llm-integration self-consistency and CoT guidance, before and after, with a toggle showing the request a thinking model and a non-thinking model each get.",
+  "tags": ["models", "prompting"],
+  "date": "2026-09-23"
+}

@@ -66,8 +66,9 @@ for skill in "${AI_ML_SKILLS[@]}"; do
         # Check for required fields
         has_name=$(grep -c "^name:" "$skill_file" || true)
         has_desc=$(grep -c "^description:" "$skill_file" || true)
-        has_version=$(grep -c "^version:" "$skill_file" || true)
-        has_tags=$(grep -c "^tags:" "$skill_file" || true)
+        # top level or under metadata (m1); awk prints a real 0 instead of swallowing grep's exit
+        has_version=$(awk '/^[[:space:]]*version:/{n++} END{print n+0}' "$skill_file")
+        has_tags=$(awk '/^[[:space:]]*tags:/{n++} END{print n+0}' "$skill_file")
 
         if [[ $has_name -ge 1 && $has_desc -ge 1 && $has_version -ge 1 && $has_tags -ge 1 ]]; then
             pass "$skill has valid frontmatter"

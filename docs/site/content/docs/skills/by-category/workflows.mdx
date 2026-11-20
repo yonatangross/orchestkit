@@ -5,43 +5,58 @@ description: "User-invocable commands for common development workflows."
 
 # Workflows Skills
 
-**36 skills** for user-invocable commands for common development workflows.
+**51 skills** for user-invocable commands for common development workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
-| [Assess](/docs/reference/skills/assess) | Command | high | Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, test... |
-| [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits sub-agent activation from explicit consumer telemetry roots. It separates attempted, started, completed, and u... |
-| [Auto](/docs/reference/skills/auto) | Command | medium | Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Class... |
-| [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideatio... |
-| [Ci Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnose a failing CI run against an 11-pattern playbook. Classifies the failure, cites the relevant memory entry, pr... |
-| [Ci Sentinel](/docs/reference/skills/ci-sentinel) | Command | medium | Daily autonomous classifier for failing PRs across your repos. Runs /ci-debug headless against every open PR with red... |
-| [Commit](/docs/reference/skills/commit) | Command | low | Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-a... |
-| [Component Search](/docs/reference/skills/component-search) | Command | simple | Search 21st.dev component registry for production-ready React components. Finds components by natural language descri... |
-| [Cover](/docs/reference/skills/cover) | Command | high | Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers ... |
-| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Creates GitHub pull requests with pre-flight validation, conventional title formatting, and structured summary genera... |
-| [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typogr... |
-| [Design Import](/docs/reference/skills/design-import) | Command | medium | Scaffolds React components from a Claude Design handoff bundle and stops at files on disk: no stories, no tests, no p... |
-| [Design Ship](/docs/reference/skills/design-ship) | Command | complex | One-shot pipeline turning a claude.ai/design link into a pull request: scaffold via /ork:design-import, stories and s... |
-| [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type s... |
-| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Mockup-to-component pipeline using Google Stitch, 21st.dev, and Storybook MCP. Accepts a screenshot, a description, o... |
-| [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev... |
-| [Doctor](/docs/reference/skills/doctor) | Command | low | OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent front... |
-| [Dream](/docs/reference/skills/dream) | Command | medium | Nightly memory consolidation — prunes stale entries, merges duplicates, resolves contradictions, rebuilds MEMORY.md i... |
-| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a tar... |
-| [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration spawning 3-5 parallel agents for code structure, data flow, architecture patterns, a... |
-| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression det... |
-| [Glyph](/docs/reference/skills/glyph) | Command | low | Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, ... |
-| [Help](/docs/reference/skills/help) | Command | low | OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right ... |
-| [Implement](/docs/reference/skills/implement) | Command | medium | Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktre... |
-| [Memory](/docs/reference/skills/memory) | Command | low | Unified read-side memory operations including knowledge graph search, session context loading, decision timeline view... |
-| [Page Serve](/docs/reference/skills/page-serve) | Command | low | Hand a human a rendered HTML page at a stable HTTPS URL. Registers a portless route for a file or directory (https://... |
-| [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when... |
-| [Release Sync](/docs/reference/skills/release-sync) | Command | low | Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, a... |
-| [Remember](/docs/reference/skills/remember) | Command | low | Stores decisions, patterns, and outcomes in the MCP memory knowledge graph as entities with typed observations and re... |
-| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review using parallel specialized agents for code quality, security, testing, architecture, and performance analys... |
-| [Setup](/docs/reference/skills/setup) | Command | medium | Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers... |
-| [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transfo... |
-| [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write count... |
-| [Verify](/docs/reference/skills/verify) | Command | high | Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E... |
-| [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency grap... |
-| [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, an... |
+| [Assess](/docs/reference/skills/assess) | Command | high | Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or co... |
+| [Audit Activation](/docs/reference/skills/audit-activation) | Command | medium | Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents... |
+| [Audit Full](/docs/reference/skills/audit-full) | Command | max | Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use... |
+| [Auto](/docs/reference/skills/auto) | Command | medium | Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use fo... |
+| [Bare Eval](/docs/reference/skills/bare-eval) | Command | medium | Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading s... |
+| [Brainstorm](/docs/reference/skills/brainstorm) | Command | medium | Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when b... |
+| [Careful](/docs/reference/skills/careful) | Command | low | Blocks destructive shell commands once invoked: a PreToolUse Bash guard denies rm -rf outside temp dirs, force pushes... |
+| [CI Debug](/docs/reference/skills/ci-debug) | Command | medium | Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it... |
+| [CI Sentinel](/docs/reference/skills/ci-sentinel) | Command | low | Formerly ci-sentinel, now ci-debug sweep. Use when /ork:ci-sentinel is typed to install or check the red-PR sweep. Re... |
+| [Commit](/docs/reference/skills/commit) | Command | low | Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-... |
+| [Component Search](/docs/reference/skills/component-search) | Command | simple | Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI ... |
+| [Configure](/docs/reference/skills/configure) | Reference | low | Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, presets. Use when customizing... |
+| [Cover](/docs/reference/skills/cover) | Command | high | Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use... |
+| [Create Plan](/docs/reference/skills/create-plan) | Command | medium | Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.md) with phases, file changes and runnable success c... |
+| [Create Pr](/docs/reference/skills/create-pr) | Command | medium | Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when a... |
+| [Create Research](/docs/reference/skills/create-research) | Command | medium | Documents how code works today for a task's questions, with file:line citations. Use before planning a change; descri... |
+| [Design Context Extract](/docs/reference/skills/design-context-extract) | Command | medium | Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tai... |
+| [Design Import](/docs/reference/skills/design-import) | Command | low | Old name of design-to-code import mode, kept so the typed command still works. Use when /ork:design-import is typed; ... |
+| [Design Ship](/docs/reference/skills/design-ship) | Command | low | Alias: runs design-to-code in ship mode (design export to an opened PR) for people who still type the earlier command... |
+| [Design Stylecards](/docs/reference/skills/design-stylecards) | Command | low | Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. Use for polish... |
+| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse exis... |
+| [Dev](/docs/reference/skills/dev) | Command | medium | One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to t... |
+| [Disk Cleanup](/docs/reference/skills/disk-cleanup) | Command | low | Frees the disk that agents and worktrees leave behind: caches, merged worktrees, Docker build cache, old logs. Dry ru... |
+| [Doctor](/docs/reference/skills/doctor) | Command | low | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, w... |
+| [Dream](/docs/reference/skills/dream) | Command | low | Formerly dream, now memory dream. Use when /ork:dream is typed to tidy and prune memory entries. Removed 2027-01-31. |
+| [Expect](/docs/reference/skills/expect) | Command | high | Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Us... |
+| [Explore](/docs/reference/skills/explore) | Command | high | Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfami... |
+| [Fix Issue](/docs/reference/skills/fix-issue) | Command | medium | Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tes... |
+| [Freeze](/docs/reference/skills/freeze) | Command | low | Confines file edits to one directory until lifted: an Edit, Write, MultiEdit and NotebookEdit hook refuses any path w... |
+| [Glyph](/docs/reference/skills/glyph) | Command | low | Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, ... |
+| [Help](/docs/reference/skills/help) | Command | low | OrchestKit skill directory by category. Use when looking for the right skill or workflow. |
+| [Implement](/docs/reference/skills/implement) | Command | medium | Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when ... |
+| [Issue Progress Tracking](/docs/reference/skills/issue-progress-tracking) | Reference | low | GitHub issue workflow ceremony using gh CLI, labels issues as in-progress, creates feature branches (issue/N-descript... |
+| [Iterate Plan](/docs/reference/skills/iterate-plan) | Command | medium | Revises a create-plan file from its review comments or new instructions, keeping comments and bumping the revision. U... |
+| [Iterate Research](/docs/reference/skills/iterate-research) | Command | medium | Re-checks a create-research file when a claim is challenged or the question widens, citing file:line afresh. Use afte... |
+| [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, hum... |
+| [Memory](/docs/reference/skills/memory) | Command | medium | Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream ... |
+| [Page Serve](/docs/reference/skills/page-serve) | Command | low | Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request... |
+| [Prd To Goal](/docs/reference/skills/prd-to-goal) | Command | low | Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal agains... |
+| [Prompt Focus](/docs/reference/skills/prompt-focus) | Command | low | Shows where your attention went from your own Claude Code and Codex prompts over 20 weeks, as a local counts-only rep... |
+| [Release Sync](/docs/reference/skills/release-sync) | Command | low | After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Us... |
+| [Remember](/docs/reference/skills/remember) | Command | low | Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. R... |
+| [Review Artifact Comments](/docs/reference/skills/review-artifact-comments) | Command | low | Works through review comments in a plan or research artifact: replies, resolves, hands off to iterate-plan or iterate... |
+| [Review Pr](/docs/reference/skills/review-pr) | Command | medium | Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and giv... |
+| [Setup](/docs/reference/skills/setup) | Command | medium | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when settin... |
+| [Swarm Migrate](/docs/reference/skills/swarm-migrate) | Command | high | Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and... |
+| [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable ... |
+| [Telemetry Inspect](/docs/reference/skills/telemetry-inspect) | Command | low | Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. ... |
+| [Verify](/docs/reference/skills/verify) | Command | high | Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFI... |
+| [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII,... |
+| [Write Prd](/docs/reference/skills/write-prd) | Command | medium | Product Requirements Documents: 8-section template, user stories, acceptance criteria, go/no-go. Use when writing a P... |

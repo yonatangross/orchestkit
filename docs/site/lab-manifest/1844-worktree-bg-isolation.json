@@ -1,0 +1,13 @@
+{
+  "slug": "1844-worktree-bg-isolation",
+  "source": "docs/chore--dsp-76137-ork-fix-1844/index.html",
+  "title": "worktree.bgIsolation: the settings decision behind #1844",
+  "description": "Claude Code 2.1.143 added worktree.bgIsolation to let background sessions skip EnterWorktree. Pick a repo profile and see when the opt-in is safe and when it reproduces shared-tree thrash.",
+  "tags": [
+    "worktree",
+    "claude-code",
+    "settings",
+    "1844"
+  ],
+  "date": "2026-10-15"
+}

@@ -1,0 +1,13 @@
+{
+  "slug": "g1-registry-agent-key",
+  "source": "docs/fix--g1-registry-agent-key/index.html",
+  "title": "G1 registry: agent is a Claude Code skill key, not house debt",
+  "description": "Claude Code reads agent on skills (CHANGELOG 2.1.0 and the 2.1.101 fix for context: fork plus agent), and the ork build already forwards it. The G1 registry now lists it as a skill key instead of a house key, so 49 forked skills stop counting as debt: 977 to 928.",
+  "tags": [
+    "frontmatter",
+    "standards",
+    "skills",
+    "registry"
+  ],
+  "date": "2026-09-28"
+}

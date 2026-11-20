@@ -3,19 +3,48 @@ import Link from "next/link";
 import { ContentPage } from "@/components/content-page";
 import { StructuredData, personNode } from "@/components/structured-data";
 import { COUNTS, PERSON, SITE } from "@/lib/constants";
+import { PRODUCT_LINE } from "@/lib/host-support";
+import contributorsData from "@/lib/contributors-data.json";
 
 export const metadata: Metadata = {
 	title: "About",
-	description: `${SITE.name} is a free, open-source plugin for Claude Code with ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks.`,
+	description: `${SITE.name} is ${PRODUCT_LINE}: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks on Claude Code.`,
 	alternates: { canonical: `${SITE.domain}/about` },
 };
+
+type Contributor = {
+	login: string;
+	url: string;
+	contributions: number;
+	isBot: boolean;
+};
+
+const CONTRIBUTORS: Contributor[] = contributorsData.contributors;
+const PEOPLE = CONTRIBUTORS.filter((c) => !c.isBot);
+const BOTS = CONTRIBUTORS.filter((c) => c.isBot);
+
+function ContributorList({ items, bot }: { items: Contributor[]; bot: boolean }) {
+	return (
+		<ul>
+			{items.map((c) => (
+				<li key={c.login}>
+					<a href={c.url} rel="nofollow">
+						{c.login}
+					</a>
+					{bot ? " (Bot)" : ""}: {c.contributions.toLocaleString("en-US")}{" "}
+					{c.contributions === 1 ? "contribution" : "contributions"}
+				</li>
+			))}
+		</ul>
+	);
+}
 
 export default function AboutPage() {
 	return (
 		<ContentPage
 			title={`About ${SITE.name}`}
 			path="/about"
-			lead={`${SITE.name} is a free, open-source plugin for Claude Code — a curated toolkit of skills, agents, and quality-gate hooks that adds AI-assisted development best practices out of the box.`}
+			lead={`${SITE.name} is ${PRODUCT_LINE}: a curated toolkit of skills, agents, and quality-gate hooks that adds AI-assisted development best practices out of the box.`}
 		>
 			<StructuredData nodes={[personNode()]} />
 			<h2>What OrchestKit is</h2>
@@ -36,6 +65,15 @@ export default function AboutPage() {
 				capable, consistent, and safe.
 			</p>
 
+			<h2 id="creator">Creator</h2>
+			<p>
+				OrchestKit was created by{" "}
+				<a href={PERSON.url} rel="author">
+					<strong>{PERSON.name}</strong>
+				</a>{" "}
+				(GitHub: <a href={PERSON.url}>github.com/yonatangross</a>).
+			</p>
+
 			<h2>Who builds it</h2>
 			<p>
 				OrchestKit is built and maintained by{" "}
@@ -43,7 +81,7 @@ export default function AboutPage() {
 					<strong>{PERSON.name}</strong>
 				</a>{" "}
 				as an open-source project under the MIT license. {PERSON.name} is a
-				software engineer who develops OrchestKit in the open — designing the
+				software engineer who develops OrchestKit in the open, designing the
 				skill, agent, and hook primitives, and curating the security and
 				quality-gate patterns the plugin ships with.
 			</p>
@@ -51,10 +89,26 @@ export default function AboutPage() {
 				Development happens publicly on{" "}
 				<a href={SITE.github}>GitHub</a>, where every skill, agent, and hook is
 				version-controlled and reviewed. Issues, discussions, and pull requests
-				are welcome — the fastest way to reach the maintainer is to{" "}
+				are welcome; the fastest way to reach the maintainer is to{" "}
 				<a href={`${SITE.github}/issues`}>open an issue</a> or follow{" "}
 				<a href={PERSON.url}>{PERSON.name} on GitHub</a>.
 			</p>
+
+			<h2 id="contributors">Contributors</h2>
+			<p>
+				Everyone with a commit in the{" "}
+				<a href={`${SITE.github}/graphs/contributors`}>GitHub repository</a>,
+				from the GitHub contributors list as of{" "}
+				<time dateTime={contributorsData.snapshotDate} className="whitespace-nowrap">
+					{contributorsData.snapshotDate}
+				</time>
+				.
+				Automation accounts are listed apart and marked Bot.
+			</p>
+			<h3>People</h3>
+			<ContributorList items={PEOPLE} bot={false} />
+			<h3>Bots</h3>
+			<ContributorList items={BOTS} bot />
 
 			<h2>Why it exists</h2>
 			<p>

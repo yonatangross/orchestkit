@@ -158,6 +158,10 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
 
   // Skip retry logic for successful completions
   if (outcome === 'success') {
+    // A retried agent finished, so its next task starts with a full retry budget.
+    const name = agentType.replace(/^ork:/, '');
+    const tracked = loadState().activeAgents.find(a => a.agent.replace(/^ork:/, '') === name);
+    if (tracked && tracked.retryCount > 0) updateAgentStatus(agentType, 'completed');
     return outputSilentSuccess();
   }
 
@@ -178,12 +182,12 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
         `[PARTIAL RESULT] Agent \`${agentType}\` stopped at its ${turnLimit}-turn limit; its output is partial, not finished. ` +
         `Continue it with SendMessage to ${who} ("continue from where you stopped") — its context survives the stop. ` +
         `Do NOT re-spawn it from scratch; that pays the whole prompt again and loses its working state.`
-      );
+      , input);
     }
     return outputWithContext(
       `[PARTIAL RESULT] Agent \`${agentType}\` returned partial results (likely killed or timed out). ` +
       `Verify completeness before proceeding — do NOT auto-spawn replacement agents on partial output.`
-    );
+    , input);
   }
 
   // Load config and state
@@ -191,7 +195,10 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   const state = loadState();
 
   // Find dispatched agent in state
-  const dispatchedAgent = state.activeAgents.find(a => a.agent === agentType);
+  const normalizedAgentType = agentType.replace(/^ork:/, '');
+  const dispatchedAgent = state.activeAgents.find(
+    a => a.agent === agentType || a.agent.replace(/^ork:/, '') === normalizedAgentType
+  );
   const currentRetryCount = dispatchedAgent?.retryCount || 0;
 
   // Record attempt
@@ -237,5 +244,5 @@ export function retryHandler(input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
   // Format message for user
   const message = formatRetryDecision(decision, agentType);
 
-  return outputWithContext(message);
+  return outputWithContext(message, input);
 }

@@ -111,6 +111,7 @@ function consultRouteSeam(
   if (mode === 'off') return null;
   const opts: RouteJudgmentOptions = {
     prompt,
+    promptId: input.prompt_id,
     sessionId: safeIdentifier(sessionId, 'invalid'),
     projectDir: input.project_dir || ctx.projectDir,
     env: deps.env,

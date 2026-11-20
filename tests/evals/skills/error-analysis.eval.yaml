@@ -1,0 +1,58 @@
+# NOTE: Interactive workflow skill: quality evals test method knowledge, not orchestration.
+# Full orchestration requires interactive session (AskUserQuestion for human labels).
+
+id: error-analysis
+name: "Error analysis skill evaluation"
+skill_path: src/skills/error-analysis/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  # Should trigger: direct requests
+  - prompt: "run error analysis on my Langfuse traces"
+    should_trigger: true
+  - prompt: "pull 100 production traces and build me a failure taxonomy"
+    should_trigger: true
+  - prompt: "my agent keeps failing and I do not know which evals to write"
+    should_trigger: true
+  # Should trigger: casual/indirect phrasing
+  - prompt: "the chatbot gives wrong answers sometimes, help me figure out the failure modes before I spend time on evals"
+    should_trigger: true
+  - prompt: "can you look at real traces and tell me what is actually breaking"
+    should_trigger: true
+  # Should trigger: method vocabulary
+  - prompt: "walk me through open coding and axial coding on these LLM outputs"
+    should_trigger: true
+  # Should NOT trigger: errors skill confusion pair (CC session errors, not LLM app traces)
+  - prompt: "analyze the errors from my Claude Code session yesterday"
+    should_trigger: false
+  # Should NOT trigger: ci-debug confusion pair (CI infra failure, not app traces)
+  - prompt: "debug why this GitHub Actions run failed"
+    should_trigger: false
+  # Should NOT trigger: testing-llm / eval-runner pair (modes already named, just write the eval)
+  - prompt: "write a faithfulness eval with DeepEval for my RAG pipeline"
+    should_trigger: false
+  # Should NOT trigger: generic bug fix, no trace analysis requested
+  - prompt: "fix the null pointer exception in the parser"
+    should_trigger: false
+  # Should NOT trigger: verify existing work
+  - prompt: "verify my eval suite is ready to merge"
+    should_trigger: false
+
+quality_evals:
+  - prompt: |
+      my LLM support agent disappoints users and I have traces in Langfuse.
+      I want to know what to measure before writing evals.
+    scaffold: python-fastapi
+    assertions:
+      - name: "pulls real traces first"
+        check: "starts by pulling roughly 100 real traces from Langfuse public API or a JSONL export rather than writing evals immediately"
+      - name: "human owns the labels"
+        check: "open coding has a human writing or approving one short note per failing trace, with Claude only drafting candidates"
+      - name: "named taxonomy with counts"
+        check: "proposes 5 to 8 named failure modes from the notes, gets human confirmation, and writes failure-taxonomy.md with counts and example trace ids"
+      - name: "binary evals only for recurring modes"
+        check: "recommends pass/fail evals only for named recurring failure modes, not Likert scales and not a generic quality judge"
+      - name: "prompt or code replay"
+        check: "explains how to decide prompt/context vs code failure by replaying the tool or DB call with its recorded inputs and comparing the replayed output to the recorded observation, treating a differing replay as inconclusive"
+      - name: "judge alignment against human labels"
+        check: "requires measuring judge agreement (TPR and TNR) against human-labeled examples on a held-out test split before trusting the judge"

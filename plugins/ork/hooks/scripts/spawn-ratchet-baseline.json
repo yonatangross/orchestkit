@@ -1,0 +1,29 @@
+{
+  "comment": "Hook processes started per tool call, counted by spawn-ratchet.mjs from the shipped plugins/ork/hooks/hooks.json (the dispatcher copy build-plugins.sh writes from the src/hooks/hooks.json registry). baseline only falls (lower it with --update in the PR that removes a spawn). target is the success-path finish line (yellow-refactor M1: under 3 per call). Since 2026-11-11 the shipped file IS the flag variant (unifiedToolHooks, no PostToolBatch; operator yes), so the shipped success baseline equals the target: 2.",
+  "target": {
+    "Bash": 2,
+    "Edit": 2,
+    "Write": 2,
+    "Read": 2
+  },
+  "baseline": {
+    "success": {
+      "Bash": 2,
+      "Edit": 2,
+      "Write": 2,
+      "Read": 2
+    },
+    "permission": {
+      "Bash": 4,
+      "Edit": 4,
+      "Write": 4,
+      "Read": 2
+    },
+    "failure": {
+      "Bash": 3,
+      "Edit": 3,
+      "Write": 3,
+      "Read": 1
+    }
+  }
+}

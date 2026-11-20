@@ -5,7 +5,18 @@ One Jev judgment per expect step, in one of three modes selected by
 or the network); `shadow` logs a second opinion beside the agent's pick
 and never drives the browser; `1` or `act` lets the Jev pick drive the
 step, failing closed to the agent's own pick on any error, timeout, empty
-or malformed answer, or a confidence below `act_confidence_floor`. The
+or malformed answer, or a confidence below `act_confidence_floor`. Jev
+reads untrusted page content, so in act mode its pick runs only when it
+agrees with the agent's pick, or when a disagreement clears the floor and
+the step passes `--confirm-disagreement`; every other disagreement runs
+the agent's pick and logs `path: "fallback:disagreement"` (or
+`"fallback:unknown_agreement"` when the agent's pick sits outside the
+keyspace). Agreement is on verb and ref only, so on the form path a Jev
+field decision that would rewrite the action (a different fill value,
+click turned into check or uncheck, click turned into done) runs only
+when it equals the agent's own action or the step passes
+`--confirm-disagreement`; otherwise the agreed key runs and the field
+records `rewrite_blocked`. The
 legacy `ORK_EXPECT_JEV_SHADOW` flag, truthy with `ORK_EXPECT_JEV` unset,
 still selects `shadow`.
 
@@ -72,12 +83,29 @@ config; nothing is a code constant.
 | `context_max_chars` | Per-field truncation for goal / last verify |
 | `latency_budget_ms` | Abort budget for the one request (default 400) |
 | `act_confidence_floor` | Act mode only: Choice confidence below this falls back to the agent's pick (default 0.5) |
+| `act_list_confidence_floor` | Raised floor for list fields (checkboxes); the two-step list answer and the state answer must agree and clear this floor or the field defers (default 0.7) |
 | `model` | Pinned Jev model id |
 | `endpoint` | POST target (`ORK_EXPECT_JEV_ENDPOINT` overrides, for mocks) |
 | `thresholds.low_confidence` | Choice confidence below this flags the pick |
 | `thresholds.{goal_reached,page_changed_as_expected,blocked}` | Noul at or above raises the flag |
 
 ## The record
+
+Every active invocation appends its row to `.expect/jev-shadow.jsonl` before
+emitting stdout. This journal does not depend on `report.sh --save`.
+Use `--log-file` or `ORK_EXPECT_JEV_LOG` to choose another journal. New files
+use mode 0600; write failures surface on stderr without changing the fallback.
+All rows include `jev_pick`, `jev_confidence`, `incumbent_pick`, `agree`,
+`floor`, and `decided_by`, including configuration and transport failures.
+Pass the actual choice with `--model-action`. If the incumbent truly did not
+run, shadow mode accepts `--incumbent-not-run REASON` instead. Missing evidence
+is rejected before writing; act mode always requires an incumbent fallback.
+An unrecognized supplied action stays recorded with unknown agreement.
+
+Export the review bucket with
+`node scripts/jev-shadow-report.mjs --confident-wrong .expect/jev-shadow.jsonl`.
+Its predicate is `agree=false AND jev_confidence >= floor`. The result is a
+candidate for adjudication, not an assertion that the incumbent was correct.
 
 ```json
 {
@@ -111,17 +139,49 @@ fallbacks, agree_rate}` summary to the JSON report, and prints one
 `JEV_RUN|steps=N|picks=N|fallbacks=N|agree_rate=R` line at the end of the
 run. Failures (`http N`, `unreachable_or_timeout`, `malformed_answer`,
 `empty_answer`, `no_api_key`, `no jev_shadow config`) land as error
-records with `agree: null`. The script always exits 0: a dead Jev lane
+records with `agree: null`. With valid CLI arguments, the script exits 0: a dead Jev lane
 must never fail a run.
 
 In act mode every record additionally carries `mode: "act"`, `path`, and
 `executed_action`. `path` is `"jev"` when the Jev pick ran and
 `"fallback:<reason>"` when the agent's own pick ran instead
 (`fallback:low_confidence` still logs the full Jev answer; the floor
-rejected it, not the network). `executed_action` is the canonical
+rejected it, not the network; `fallback:disagreement` likewise logs the
+full answer plus `high_confidence_disagreement` and
+`disagreement_confirmed`). `executed_action` is the canonical
 candidate key (`verb:@eN` or a meta verb) the agent translates back to an
 agent-browser command; on fallback it is the agent's normalized pick, or
 its raw action text when the pick sits outside the keyspace.
+
+Every record also carries the decision provenance fields: `jev_pick`,
+`jev_confidence`, `incumbent_pick` (the agent's normalized pick),
+`agree`, `floor` (the resolved `act_confidence_floor`), `decided_by`
+(`"jev"` or `"incumbent"`), `prompt_id` (config `prompt_id`, override
+with `--prompt-id`), and `session_id` (`--session-id`, else
+`ORK_EXPECT_SESSION`, else `AB_SESSION`).
+
+## Form path (`--task-doc`)
+
+When `--task-doc` carries the step's task document, the request adds
+field questions per form element (up to `field_cap`): a value Choice over
+candidates extracted from the document for textbox/searchbox/spinbutton/
+combobox/listbox elements, and two questions per checkbox-family element:
+`list::<ref>` asks which document list names the item (keep/do/build/add
+vs drop/remove/skip/hold/not-do vs unlisted) and `field::<ref>` asks the
+final state (check/uncheck/skip). The decision is match-then-map: the
+list answer derives the target (do=check, drop=uncheck, none=skip), the
+state answer cross-checks it, and disagreement marks the field
+`inconsistent` and forces deferral. List fields gate on the raised
+`act_list_confidence_floor` (default 0.7); other fields use
+`act_confidence_floor`. Per-field answers land in `field_decisions` keyed
+by ref, each with `jev_pick`, `jev_confidence` (the weaker of the two
+answers for list fields), `list_pick`, `list_conf`, `floor`,
+`decided_by`, and the resolved `value` or `target` when Jev decided. In
+act mode, when the step's executed action targets a decided field,
+`executed_action` carries the decision through: `fill:@eN="value"`,
+`check:@eN`, `uncheck:@eN`, or `done` when Jev's target is skip. A field
+Jev answers below the floor keeps `decided_by: "incumbent"` and the
+agent's own handling stands.
 
 ## Invocation (expect-agent, per step)
 
@@ -140,3 +200,10 @@ bash $CLAUDE_PLUGIN_ROOT/skills/expect/scripts/jev-shadow.sh \
 already captured (text or `--json` form; only ref/role/name are read).
 `--config` or `ORK_EXPECT_CONFIG` points at an alternate config file;
 `.expect/config.yaml` is used when present.
+
+Deliberately NOT `snapshot --delta` (0.38+): the bounded legal-action set
+needs the full list of interactive elements on every step, and a delta call
+answers `unchanged` whenever the page has not moved, which would starve Jev
+of candidates on exactly the steps where nothing visibly changed. Use
+`snapshot -i` here even though `--delta` is the better choice for the
+retry loop in `expect-agent.md`.

@@ -385,7 +385,7 @@ CC 2.1.116 closes a prior escape where sandbox auto-allow could bypass the dange
 
 Before 2.1.116, agent-scoped hooks (defined in `src/agents/<name>.md` frontmatter) only fired when the agent ran as a subagent via the `Task` tool. As of 2.1.116, they also fire when a user invokes the agent as their main thread via `claude --agent <name>`.
 
-**Impact for OrchestKit**: All 14 agent hooks in OrchestKit are defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing is a **net positive** — users who pick an OrchestKit agent as their default get the same safety rails that subagent runs get.
+**Impact for OrchestKit** (as of 2.1.116; #3461 later removed every agent-scoped hook, and dangerous-command-blocker was removed in #3841): All 14 agent hooks in OrchestKit were defensive `PreToolUse`/`PostToolUse` blockers (dangerous-command-blocker, ci-safety-check, deployment-safety-check, migration-safety-check, etc.). Main-thread firing was a **net positive**: users who picked an OrchestKit agent as their default get the same safety rails that subagent runs get.
 
 **No action required.** The audit in PR "chore(compat): CC 2.1.116 adoption" confirmed all existing agent hooks are main-thread safe.
 
@@ -466,7 +466,7 @@ CC 2.1.128 extends `--channels` (the MCP-server-pushes-into-session feature, ori
 
 Place in the org's managed settings file (typically `/etc/claude-code/managed-settings.json` or the path your enterprise installer writes to). Without this flag, console-auth users on managed orgs see a "channels disabled by managed policy" message when invoking `--channels`.
 
-**Action for OrchestKit**: None for personal use. Enterprise admins shipping OrchestKit alongside `claude` for API-key-auth teams should add `channelsEnabled: true` to the managed-settings bundle if channel-relayed permission prompts (the `ork:portless` + channels combo, the brainstorm-on-mobile flow) are part of the rollout.
+**Action for OrchestKit**: None for personal use. Enterprise admins shipping OrchestKit alongside `claude` for API-key-auth teams should add `channelsEnabled: true` to the managed-settings bundle if channel-relayed permission prompts (the `ork-extras:portless` + channels combo, the brainstorm-on-mobile flow) are part of the rollout.
 
 ## CC 2.1.129 Settings
 
@@ -485,7 +485,7 @@ Before 2.1.129, `Bash(mkdir *)` and `Bash(touch *)` allow rules in `.claude/sett
 }
 ```
 
-**Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant — the canonical glob form works.
+**Impact for OrchestKit**: Skills that scaffold project structure (`ork:implement`, `ork:cover`, `ork-extras:portless`) no longer need `Bash(mkdir:./*)`-style explicit path enumeration to silence prompts on project-relative `mkdir`/`touch` calls. If your `.claude/settings.local.json` has accumulated workaround entries from older CC, they're now redundant — the canonical glob form works.
 
 ### `--plugin-url <url>` for One-Off `.zip` Plugin Loading
 
@@ -526,7 +526,7 @@ claude
 
 **Breaking for**: Anyone who relied on `/model` listing custom gateway models in 2.1.126–2.1.128 — the picker now shows only the static built-in list unless the env var is set.
 
-**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/references/model-selection.md`.
+**Action for OrchestKit**: None on the plugin side. `ork:setup` and `ork-extras:llm-integration` reference the env var so users hitting "my fine-tuned model disappeared from `/model`" know the one-line fix. See also `${CLAUDE_PLUGIN_ROOT}/skills/llm-integration/references/model-selection.md`.
 
 ### claude_code.pull_request.count Now Counts MCP-Filed PRs
 
@@ -637,7 +637,7 @@ This is a regression for OrchestKit users. From CC 2.1.128 through 2.1.132, `Ent
 // All three forms re-acquire the 2.1.128–2.1.132 behavior:
 //   --worktree
 //   EnterWorktree tool
-//   agent-isolation worktrees (Task tool, isolation: "worktree")
+//   agent-isolation worktrees (Agent tool, isolation: "worktree")
 { "worktree": { "baseRef": "head" } }
 ```
 
@@ -881,7 +881,7 @@ Settings introduced since the 2.1.152 entries above, current to the adoption hea
 `availableModels` (an allowlist of model IDs/aliases) existed earlier, but its enforcement hardened: CC 2.1.172 applies the allowlist to **subagent model overrides, the agent-dispatch picker, and the advisor model**; CC 2.1.176 closes two bypasses — alias picks can **no longer be redirected to a blocked model via `ANTHROPIC_DEFAULT_*_MODEL`** env vars, and `/fast` **refuses to toggle** when it would switch to a model outside the allowlist.
 
 ```json
-{ "availableModels": ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"] }
+{ "availableModels": ["claude-opus-5-5", "claude-sonnet-5", "claude-haiku-4-5"] }
 ```
 
 **Action for OrchestKit**: ork's `model-cost-advisor` hook is allowlist-aware (PR #2420) — when an agent's pinned tier is excluded it emits a **visible warning** instead of letting CC silently substitute a weaker model (a correctness trap for capability-pinned agents like `security-auditor`). ork agents use bare aliases, so they survive the picker fix; no frontmatter change needed.
@@ -1134,3 +1134,199 @@ CC 2.1.269 fixes remote and headless sessions reporting that they are waiting fo
 CC 2.1.271 adds per-command `allowed_domains` to Bash, PowerShell and Monitor in auto mode with sandboxing. The hosts a command needs are reviewed with that command and opened for it alone; other hosts are refused.
 
 **Action for OrchestKit**: use the per-command domain review for commands with known network hosts. ork does not add host access rules to user settings.
+
+## CC 2.1.278 and 2.1.280 Settings
+
+### `CLAUDE_CODE_AUTO_MODE_SERVER`, server-side classifier by default (2.1.278)
+
+CC 2.1.278 moves auto mode for Claude API and Enterprise users, and on Bedrock, Vertex, Foundry and
+gateways, to the server-side classifier by default, which does not charge for classifier overhead.
+`CLAUDE_CODE_AUTO_MODE_SERVER=0` opts out on Bedrock, Vertex, Foundry and gateways, and CC warns when
+it falls back to the billed local classifier. `/status` gains an `Auto mode server` row. This reverses
+the 2.1.273 note, where the local classifier was the default and `=1` restored the server-side one.
+Upstream doc: https://code.claude.com/docs/en/auto-mode-classifier-billing
+
+**Action for OrchestKit**: none. ork sets neither variable; leave it to the operator who owns billing.
+
+### `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH`, MCP description cap (2.1.280)
+
+CC 2.1.280 adds `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` to change the 2,048-character cap on MCP
+tool descriptions and server instructions for every MCP server in the session.
+
+CC 2.1.296 raises the default cap on MCP tool descriptions sent up front and on server
+instructions from 2,048 to 4,096 characters. Since CC 2.1.295, descriptions the model loads through
+tool search are cut at 16,384 characters.
+
+**Action for OrchestKit**: keep the default. The cap exists so verbose servers cannot flood context;
+raise it only for a server whose truncated description was measured to break tool selection.
+
+### Effort on newly released models (2.1.280)
+
+An effort level saved before `/effort` became per-model no longer applies to newly released models
+such as Opus 5.5; they start at their own default until a level is picked. Opus 5.5's own default is
+`medium`, one level below Opus 5's `high`. Separately, Opus 4.7, Opus 4.8 and Fable 5 stop holding
+their launch-default effort over `-p`, the Agent SDK, a project, managed or `--settings`
+`effortLevel`, or a per-model level.
+
+**Action for OrchestKit**: skills that expect deep work (audit-full, verify) now say to pass `high`
+or `xhigh` explicitly. Skill-level `effort:` frontmatter is tracked separately in GH-4052.
+
+## CC 2.1.285 and 2.1.288 Settings
+
+### Auto mode becomes the headless default (2.1.285)
+
+Auto mode became the unset default in three steps. CC 2.1.283 moved interactive sessions on
+third-party providers or with telemetry off. CC 2.1.284 moved interactive terminal and VS Code
+sessions on every plan and provider. CC 2.1.285 moves `claude -p` and Python Agent SDK sessions
+on third-party providers or with telemetry off, matching the interactive behaviour. In all three
+cases an explicit `permissions.defaultMode` in settings or a `--permission-mode` flag still wins.
+
+This is a permission-mode default, not a classifier change: the 2.1.278 server-side classifier
+default above is unchanged, and a session in auto mode still runs the same classifier it did
+interactively. What changes is only which mode a headless session starts in when nothing named
+one. Headless `PermissionRequest` acceptance evidence is tracked in GH-4055.
+
+**Action for OrchestKit**: ci-sentinel already passes `--permission-mode acceptEdits` and
+run-agent-eval passes `--dangerously-skip-permissions`, so their launch policy is unchanged.
+The gap to watch is the bare-eval grader calls (`run-skill-eval.sh`, `run-trigger-eval.sh`,
+`optimize-description.sh`), which pass no mode: on a third-party provider or with telemetry
+off they now start in auto mode where they used to stop at prompts. That is a policy question
+for a conductor, not a doc change; this section only records that a bare `claude -p` no longer
+implies the old stop-at-prompt behaviour on those environments. A harness that wants it must
+pass an explicit `--permission-mode`.
+
+### `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS`, gateway opt-out (2.1.288)
+
+CC 2.1.288 adds `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS` to turn structured outputs off. On
+Mantle or behind a gateway that rejects structured-output requests, session titles, memory
+recall and prompt hooks failed until this variable was set; the failure took the prompt hook
+path down with it.
+
+**Action for OrchestKit**: ork runs prompt hooks, so an operator on a strict gateway needs this
+opt-out for the hooks to fire. Set `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS=1` on Mantle or any
+gateway that rejects structured outputs; leave it unset elsewhere.
+
+## CC 2.1.290 to 2.1.296 Settings
+
+### `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR`, WebSearch budget (2.1.290)
+
+CC 2.1.290 changes the interactive WebSearch budget from a hard 200 calls per session to a budget
+that refills at 100 calls per hour. `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR` sets the rate and `0`
+turns the refill off.
+
+**Action for OrchestKit**: keep the default. A research skill that fans out many WebSearch calls no
+longer hits a session wall; it slows to the refill rate instead.
+
+### MCP protocol and description limits (2.1.292, 2.1.295, 2.1.296)
+
+CC 2.1.292 makes local (stdio) MCP servers negotiate protocol 2026-07-28 by default.
+`MCP_PROTOCOL_NEGOTIATION=legacy` opts out, and a server that ignores the newer check is
+remembered for 7 days after one slow connect. CC 2.1.295 cuts MCP tool descriptions the model
+loads through tool search at 16,384 characters instead of 2,048. CC 2.1.296 raises the default
+limit on descriptions sent up front and on server instructions from 2,048 to 4,096 characters;
+`CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` (2.1.280) still overrides it.
+
+**Action for OrchestKit**: none. ork ships no MCP server. Set `MCP_PROTOCOL_NEGOTIATION=legacy`
+only for a stdio server measured to fail the new handshake.
+
+### 529 backoff and the retry watchdog cap (2.1.292, 2.1.295, 2.1.296)
+
+| Variable | Since | Effect |
+|:-|:-|:-|
+| `CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS` | CC 2.1.292 | Longer base delay for 529 retries |
+| `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` | CC 2.1.295 | Caps how long `CLAUDE_CODE_RETRY_WATCHDOG` waits out 429 and 529 |
+| `CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS` | CC 2.1.296 | Longer maximum delay for 529 retries |
+
+**Action for OrchestKit**: unattended eval batches that set `CLAUDE_CODE_RETRY_WATCHDOG=1` (see
+bare-eval) should also set `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS`, so a 429 storm cannot stall a
+batch for hours. Interactive sessions need none of the three.
+
+### `onFailure: "block"` for command and HTTP hooks (2.1.295)
+
+CC 2.1.295 adds `onFailure: "block"` to command and HTTP hook entries. A hook that cannot start,
+times out, or exits with an unexpected code then blocks the action. Without the key the old
+behaviour stays: a failed hook lets the action through.
+
+**Action for OrchestKit**: none of ork's hook entries set it yet, and the 2.1.277 floor ignores the
+key. When the floor reaches 2.1.295, security guards are the only candidates (a guard that crashes
+should fail closed); telemetry and context hooks must keep the default, or a slow logger would
+block every tool call.
+
+### `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`, one model for workflow agents (2.1.296)
+
+CC 2.1.296 adds `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` to run every Workflow agent on one model while
+other subagents keep theirs.
+
+**Action for OrchestKit**: leave it unset. Six of ork's eight workflow scripts pass a model per
+stage; which one wins when the variable is set is unconfirmed, so a session that sets it may lose
+the per-stage routing those skills document.
+
+### `autoCompactWindow` in subagent frontmatter (2.1.296)
+
+CC 2.1.296 accepts `autoCompactWindow` in subagent frontmatter and in agent definitions passed on
+the command line, so a subagent can auto-compact earlier than the main conversation. The
+user-scope setting is unchanged (see the doctor settings-posture reference).
+
+**Action for OrchestKit**: no ork agent sets it. Whether CC honours the key on plugin agents is
+unconfirmed; measure that before adding it to any agent.
+
+### Read `allow_large` (2.1.296)
+
+CC 2.1.296 adds an `allow_large` option to the Read tool, so Claude can read a text file past the
+usual size limits in one call when it needs the whole file and the context has room.
+
+**Action for OrchestKit**: none in settings. The `pretool/read/tldr-summary` hook still injects a
+summary on such a read; skipping it is a hook change tracked outside this adoption.
+
+## CC 2.1.299 to 2.1.309 Settings
+
+CC 2.1.297 and 2.1.298 have no CHANGELOG entries; 2.1.303 and 2.1.308 say only "Bug fixes and
+reliability improvements".
+
+### Idle compaction, `idleCompaction` and `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` (2.1.299, 2.1.302)
+
+CC 2.1.299 compacts a terminal conversation of 200K tokens or more that sits idle for about 54
+minutes, before its one-hour prompt cache expires, so the next message does not reprocess it all.
+`"idleCompaction": false` in settings.json turns it off; `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`
+changes the 200K minimum. Both need CC 2.1.290 or later. CC 2.1.302 adds an `Idle compaction` row
+to `/config`.
+
+**Action for OrchestKit**: leave it on for unattended lanes. A lane that waits on CI, a reviewer or
+a usage reset is exactly the idle session this protects. The doctor's
+`check-operator-permissions.sh --json` reports the setting under `unattended.idle_compaction` and
+warns, never fails, when a scope sets it to false.
+
+### Retry watchdog usage-limit caps (2.1.301, 2.1.305)
+
+| Variable | Since | Effect |
+|:-|:-|:-|
+| `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` | CC 2.1.301 | Ends a request at a usage limit that resets too far away instead of waiting |
+| `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` | CC 2.1.305 | Rechecks while waiting, so a limit lifted before its reset is noticed |
+
+**Action for OrchestKit**: an unattended lane or eval batch that sets `CLAUDE_CODE_RETRY_WATCHDOG=1`
+should set both, beside `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` (2.1.295). The doctor's
+`check-operator-permissions.sh --json` offers each missing one under
+`unattended.retry_watchdog.offers` when the watchdog is on.
+
+### `CLAUDE_CODE_AUTO_MODE_MODEL`, client-side classifier model (2.1.302)
+
+CC 2.1.302 adds `CLAUDE_CODE_AUTO_MODE_MODEL` to choose the model the client-side auto mode
+classifier uses. It does not change server-side auto mode, the default since 2.1.278.
+
+**Action for OrchestKit**: none. ork sets no classifier model.
+
+### `sandbox.allowNestedUserNamespaces` (2.1.305, Linux)
+
+CC 2.1.305 lets sandboxed commands on Linux create user namespaces (Chromium, rootless podman).
+CC's own note: this lets them get around the sandbox's file protections.
+
+**Action for OrchestKit**: do not recommend it. Browser skills on Linux that need it should say so
+and leave the choice to the operator.
+
+### `CLAUDE_CODE_DISABLE_FILE_MENTIONS` (2.1.299)
+
+With the variable set, Claude gets the paths of `@` file mentions and reads them with its file
+tools instead of receiving the contents.
+
+**Action for OrchestKit**: none. The `pretool/read` hooks then see those reads as ordinary Read
+calls.

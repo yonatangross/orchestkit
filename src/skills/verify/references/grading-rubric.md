@@ -6,7 +6,7 @@
 
 | Range | Level | Description |
 |-------|-------|-------------|
-| 0-3 | Poor | Critical issues, blocks merge |
+| 0-3 | Poor | Critical issues; below 3.0 blocks merge |
 | 4-6 | Adequate | Functional but needs improvement |
 | 7-9 | Good | Ready for merge, minor suggestions |
 | 10 | Excellent | Exemplary, reference quality |
@@ -130,13 +130,14 @@ The composite table above is overridden by per-dimension floors. Thresholds live
 
 | Dimension | Threshold | Effect when below |
 |-----------|-----------|-------------------|
-| Security | `min_blocker` 4.0 | Verdict BLOCKED regardless of composite |
+| Security | `min_blocker` 9.0, fixed for every project (operator decision 2026-09-25) | Verdict BLOCKED regardless of composite; never lowered |
+| Every other dimension | `min_blocker` 3.0 | Verdict BLOCKED regardless of composite (below 3.0 blocks merge) |
 | Compliance | `min_pass` 6.0 | Verdict capped at IMPROVEMENTS RECOMMENDED |
 
 Reporting format — the tripped dimension leads the verdict, with the threshold named:
 
 ```
-Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)
+Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)
 ```
 
 A passing composite never clears a tripped `min_blocker`; list every tripped dimension with the fix required to clear it.

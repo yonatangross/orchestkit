@@ -1,0 +1,12 @@
+{
+  "slug": "4368-no-verify-parse-fallback",
+  "source": "docs/fix--4368-no-verify-parse-fallback/index.html",
+  "title": "#4368 follow-up: parse-fail --no-verify fallback",
+  "description": "When settings JSON fails to parse, settings-reload falls back to a whole-file --no-verify scan so a malformed file cannot hide a real grant. Valid deny/ask rules still do not block.",
+  "tags": [
+    "hooks",
+    "debugging",
+    "explainer"
+  ],
+  "date": "2026-09-23"
+}

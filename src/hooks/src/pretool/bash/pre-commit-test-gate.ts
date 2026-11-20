@@ -82,7 +82,7 @@ function stagedFiles(projectDir: string): string[] {
     const out = execSync('git diff --cached --name-only', {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 3000,
+      killSignal: 'SIGKILL', timeout: 3000,
     }).trim();
     if (!out) return [];
     return out.split('\n').filter(Boolean);

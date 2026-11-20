@@ -1,35 +1,26 @@
 ---
 name: auto
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description."
+compatibility: "Claude Code 2.1.277+."
+description: "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help)."
 argument-hint: "[plain-english goal]"
 context: inherit
-version: 1.0.0
-author: OrchestKit
-tags: [router, intent, orchestration, discovery, meta, front-door]
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Skill, Agent]
-complexity: medium
-persuasion-type: collaborative
+allowed-tools: "AskUserQuestion Read Grep Glob Skill Agent"
 model: sonnet
 metadata:
   category: workflow-automation
-triggers:
-  keywords: [auto, "do this", "figure out", "just make", "get it to", "i want", "help me with", "not sure which", "what should i", "can you make"]
-  examples:
-    - "get coverage above 90%"
-    - "why isn't the build green"
-    - "just make the login page work"
-    - "I want the API faster"
-  anti-triggers: ["/ork:help", "list skills", "what skills exist"]
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "router, intent, orchestration, discovery, meta, front-door"
 ---
 
 # auto — Intent Router
 
 The front door to OrchestKit. **You describe a goal in plain English; the router classifies it and hands off to the right specialist.** One entry point, many execution paths.
 
-> **Why this exists:** OrchestKit has 107 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
+> **Why this exists:** OrchestKit has 115 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
 
 **Core principle:** routing is a *deterministic workflow*, not an autonomous agent (Anthropic, *Building Effective Agents*). Classify → confirm → hand off. The router never does the work itself — it picks who does.
 
@@ -58,14 +49,18 @@ so there is no "too obvious for auto".
 | intent | signal words | routes to |
 |---|---|---|
 | **fix** | fix, debug, broken, failing, error, crash, regression | `fix-issue` |
-| **diagnose** | why, why isn't, why does, why can't, investigate | `fix-issue` (investigation-first) |
+| **diagnose** | why, why isn't, why does, why can't, investigate, triage, root cause, culprit commit | `fix-issue` (investigation-first) |
 | **optimize** | faster, reduce, latency, bundle, minimize, below N ms | a **`/goal` optimization loop** (see Gaps) |
 | **cover** | coverage, untested, get to N% | `cover --target N` |
-| **design** | design, architect, how should we, explore, idea | `brainstorm` |
+| **e2e** | e2e, in the browser, browser test, playwright | `expect` (run on the diff); `cover` when no e2e tests exist yet |
+| **design** | design, architect, how should we, explore, idea | `/ork:brainstorm` |
 | **build** | build, implement, create, add feature, from ticket | `implement` |
-| **review** | review, PR, MR, pull request, #N | `review-pr` |
+| **review** | review, PR, MR, pull request, #N, diff | `review-pr` |
+| **open-pr** | open a PR, make a PR, PR title and body, ready for review, go up for review | `create-pr` |
 | **verify** | verify, check, make sure, passes, green | `verify` |
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
+| **setup** | set up OrchestKit, onboard this repo, which skills fit this project, rescan the stack | `/ork:setup` |
+| **migrate** | across all repos, every repo, org-wide, roll out to N repos, bump in each consumer | `/ork-extras:swarm-migrate` (formerly a core ork skill; needs the opt-in ork-extras plugin, slash-only) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
 Full per-category parameter extraction + edge cases: `references/routing-rules.md`.
@@ -74,7 +69,7 @@ Full per-category parameter extraction + edge cases: `references/routing-rules.m
 
 Intent picks **who** does the work. Weight picks **how expensive that worker should be**. A route is `{intent} @ {weight}`. Weight never changes the intent and never replaces it. The taxonomy above and the 7 disambiguation rules are untouched by it.
 
-Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 · `sonnet` 10 · `opus` 6 · `inherit` 13). No parallel taxonomy.
+Tiers are the ones already declared in each agent's `model:` frontmatter (`haiku` 3 · `sonnet` 23 · `opus` 6 · `inherit` 4). No parallel taxonomy.
 
 | weight | tier | the task is… |
 |---|---|---|
@@ -86,7 +81,7 @@ Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 
 
 Weight is **per leg, not per route**. A PR review can be a Heavy security leg plus a Light lint leg. Full signal table, per-intent defaults, and the honest limits of this lever: `references/routing-rules.md`.
 
-> **This is the selector, not the cap.** `src/hooks/src/pretool/task/team-size-gate.ts` is an ex-post, per-session counter keyed on `ORK_TEAM_OPUS_MAX` (default 8). Its default posture is advisory (`outputWarning`); with `ORK_TEAM_SIZE_HARD=1` it escalates to `outputDeny` and refuses the spawn outright. Either way it reads the model read-only: it can refuse a premium spawn, but it cannot *choose* a cheaper one for you. Routing is what chooses. The two compose, cap as backstop and routing as selector; never duplicate the cap's counting here.
+> **This is the selector, and the only cost control.** OrchestKit ships no spawn cap: the old `team-size-gate` hook was removed in #3839. Choosing the tier here is what keeps a premium model off routine work.
 
 ## The flow
 
@@ -95,12 +90,12 @@ Weight is **per leg, not per route**. A PR review can be a Heavy security leg pl
      |            |             |
   intent       show the     invoke the
   + weight     route        target skill;
-  out loud     + nod        follow ITS phases
+  one line     + nod        follow ITS phases
 ```
 
-### 1. Classify (reason out loud first)
+### 1. Classify
 
-State your reasoning **before** committing to a route — this triggers chain-of-thought and is the single biggest accuracy lever (Anthropic, *Writing Effective Tools for Agents*). Example: *"'get latency under 200ms' names a metric + a direction → optimize, not fix."*
+Name the route and the one signal that decided it in a single short line. Example: *"'get latency under 200ms' names a metric + a direction, so optimize, not fix."*
 
 Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
 
@@ -144,10 +139,10 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 ## Fallback + honest gaps
 
 - **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work — surface it, don't bury it.
-- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal` → `references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
-- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals + `evolution-engine`), not a one-shot edit. It requires a benchmark + holdout set first.
+- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal/references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
+- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (in an OrchestKit source checkout, `npm run eval:skill -- --holdout-promote <skill>`; an installed plugin has no runner, so score both versions with `assess` on held-out cases and let the user decide), not a one-shot edit. It requires a benchmark + holdout set first.
 
-## Stacked invocation (CC 2.1.199+)
+## Stacked invocation
 
 `/skill-a /skill-b <goal>` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `auto brainstorm <goal>` pre-loads the specialist alongside the router — useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
 
@@ -155,19 +150,19 @@ Invoke the target skill with the extracted parameters and **follow that skill's 
 
 - **No recursion.** `auto` must not route to itself, directly or via a spawned agent.
 - **No bypass.** Routing does not skip the target skill's guardrails, readonly enforcement, or confirmation steps.
+- **A pronoun target is yours to resolve.** Pass a concrete target, not `this` or `them`: read it back from the conversation and announce it in one line. If a routed skill returns `TARGET_UNRESOLVED: <word>`, resolve `<word>` the same way and invoke the skill again; never relay the sentinel to the user (`Read("../../shared/rules/target-resolution.md")`).
 - **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
-- **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.
-- **A gate denial is not a re-route trigger.** If `team-size-gate` denies a spawn, do NOT relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user decide.
-- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 13 `inherit` agents adopt. It never overrides a target skill's own agent selection.
+- **A gate denial is not a re-route trigger.** If a gate denies a spawn (a Fable spend prompt, a permission refusal), do NOT relabel a Heavy leg as Standard to get past it. Report the denial and let the user decide.
+- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 4 `inherit` agents adopt. It never overrides a target skill's own agent selection.
 
 ## Validation
 
-Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 50 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
+Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 78 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
 
 ```bash
-# isolated classification check via the bare-eval harness
-bare-eval   # grade router output against routing-benchmark.json
+# isolated classification check: /ork-extras:bare-eval grades router output against routing-benchmark.json
+/ork-extras:bare-eval
 ```
 
 Target ≥95% category accuracy; track the fallback rate as a degradation alarm as the skill library grows.
@@ -175,7 +170,7 @@ Target ≥95% category accuracy; track the fallback rate as a degradation alarm 
 ## References
 
 - `references/routing-rules.md` — per-category parameter extraction, edge cases, disambiguation
-- `routing-benchmark.json` — 50 labeled goal→category pairs for accuracy validation
+- `routing-benchmark.json` — 78 labeled goal→category pairs for accuracy validation
 
 ## Quality Bar
 
@@ -185,7 +180,7 @@ Done means all of these hold:
 - The confirm block names one of the taxonomy's intent categories, its target skill or `/goal` loop, and the extracted args — on one line.
 - Every Heavy (opus/fable) leg is surfaced for explicit approval before handoff; no premium spend is silent, and declining it runs Standard with the weakened check named.
 - Adversarial, security, safety, architecture, and cross-cutting work is never routed below opus tier; mechanical single-file IO-bound work is not routed above haiku tier.
-- The router neither counts spawns nor touches `ORK_TEAM_OPUS_MAX`, and never downgrades a Heavy leg to evade a `team-size-gate` denial.
+- The router does not count spawns, and never downgrades a Heavy leg to evade a gate denial.
 - No target skill is invoked without an explicit nod (or `-y`); handoff never precedes confirmation.
 - When two categories are equally plausible, exactly ONE clarifying question is asked — the fallback is never silently guessed.
 - `optimize` routes to a `/goal` loop and `improve-skill` to the evolution gate; neither claims a dedicated skill that does not exist.
@@ -195,5 +190,5 @@ Done means all of these hold:
 
 - `help` — static categorized directory (browse, don't route)
 - `prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
-- `fix-issue` · `cover` · `brainstorm` · `implement` · `review-pr` · `verify` — the route targets
+- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `create-pr` · `verify` · `setup` · `swarm-migrate`: the route targets
 - `assess` — champion/challenger holdout gate (the `improve-skill` route)

@@ -1,0 +1,13 @@
+{
+  "slug": "traffic-token-and-rp-guard",
+  "source": "docs/fix--traffic-token-and-rp-guard/index.html",
+  "title": "Traffic snapshot App token; release-please guard skips release/* bases",
+  "description": "The weekly traffic snapshot failed 3 of 3 runs with a 403 because GITHUB_TOKEN can never hold Administration: read. It now mints the Release Bot App token and preflights traffic/views with an error that names the missing permission. The release-please guard skips PRs based on release/*, which release-please never reads.",
+  "tags": [
+    "ci",
+    "github-actions",
+    "release-please",
+    "traffic"
+  ],
+  "date": "2026-09-28"
+}

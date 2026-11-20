@@ -42,7 +42,28 @@ const C = process.stdout.isTTY
 const STANDALONE_ALLOWLIST = {
   // Add entries as: 'skill-name': 'why it is intentionally direct-only',
   'audit-activation':
-    'operator audit tool — user-invocable with disable-model-invocation: true by design (P3-A2); direct /ork:audit-activation is the only intended trigger',
+    'operator audit tool — user-invocable with disable-model-invocation: true by design (P3-A2); direct /ork-extras:audit-activation is the only intended trigger',
+  remember:
+    'typed-only alias of the remember verb of memory (disable-model-invocation: true by design, ruling 2026-11-17); the model reaches the verb through the memory skill',
+  dream:
+    'typed-only alias of the dream verb of memory (disable-model-invocation: true by design, ruling 2026-11-17); the model reaches the verb through the memory skill',
+  'ci-sentinel':
+    'typed-only alias of the sweep mode of ci-debug (disable-model-invocation: true by design, ruling 2026-11-17); the model reaches the mode through the ci-debug skill',
+  careful:
+    'operator guard: invoking it registers a session-long Bash hook, so turning it on must be a human decision; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
+  freeze:
+    'operator guard: invoking it registers a session-long edit fence and takes the dir as a typed argument; user-invocable with disable-model-invocation: true by design (claude.dev skills-10)',
+  'audit-full':
+    'slash-only in the opt-in ork-extras plugin (trim stage 1 ruling): 0 Skill-tool and 0 typed calls in 90 days, so the model listing no longer carries it; the audit is run by typing /ork-extras:audit-full',
+  'prompt-focus':
+    'slash-only in the opt-in ork-extras plugin (trim stage 1 ruling): reads the operator\'s own prompts, so it runs only when typed as /ork-extras:prompt-focus',
+  'design-import':
+    'typed-only alias for the old command name: it runs design-to-code import and holds no logic; user-invocable with disable-model-invocation: true so the model sees only the merged skill. Remove with the alias after 2026-12-14',
+  'design-ship':
+    'typed-only alias for the old command name: it runs design-to-code ship and holds no logic; user-invocable with disable-model-invocation: true so the model sees only the merged skill. Remove with the alias after 2026-12-14',
+  // setup and swarm-migrate left this list in #4981: ork:auto now routes to both
+  // (SKILL.md table + routing-benchmark setup-* and mig-* cases), so they pass on
+  // the chain channel instead of an allowlist entry.
 };
 
 // ---- parse a YAML frontmatter `skills:` field (inline [..] OR block list) ----
@@ -93,7 +114,8 @@ const skillSet = new Set(skillDirs);
 const chainedBy = new Map(skillDirs.map((n) => [n, new Set()]));
 for (const [src, t] of Object.entries(skillText)) {
   const refs = new Set();
-  for (const m of t.matchAll(/\/(?:ork:)?([a-z][a-z0-9-]{2,})/g)) refs.add(m[1]);
+  // Both plugin namespaces: moved skills are referenced as /ork-extras:<skill> (#4936).
+  for (const m of t.matchAll(/\/(?:ork(?:-extras)?:)?([a-z][a-z0-9-]{2,})/g)) refs.add(m[1]);
   for (const s of frontmatterSkills(t)) refs.add(s);
   for (const r of refs) if (skillSet.has(r) && r !== src) chainedBy.get(r).add(src);
 }
@@ -107,7 +129,10 @@ for (const f of readdirSync(AGENTS).filter((x) => x.endsWith('.md'))) {
 }
 
 // ---- channel: background (skill is autonomous) ----
-const BG = /autonomous|nightly|hourly|\bcron\b|background:|headless|stop hook|runs? (on a )?schedule|post-release|after (tagging|a release)|propose-don/i;
+// #4697: every forked skill carries a `background: false` frontmatter line
+// (#3093), so a bare `background:` arm counted a non-trigger as autonomous.
+// Only `background: true` is a background trigger.
+const BG = /autonomous|nightly|hourly|\bcron\b|background:\s*true\b|headless|stop hook|runs? (on a )?schedule|post-release|after (tagging|a release)|propose-don/i;
 
 // ---- evaluate ----
 console.log('');

@@ -1,0 +1,8 @@
+{
+  "slug": "demo-production-quick-start",
+  "source": "docs/fix--demo-production-quick-start/index.html",
+  "title": "The demo Quick Start now points where the files are",
+  "description": "DEMO_PRODUCTION.md copied demo-cli.ts into a plugins folder that does not exist. The guide now uses the config in place and renders from orchestkit-demos/src/index.ts.",
+  "tags": ["docs", "demos", "remotion"],
+  "date": "2026-10-30"
+}

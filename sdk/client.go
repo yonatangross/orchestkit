@@ -1,5 +1,5 @@
 // Package sdk is the official Go client for the OrchestKit public docs API.
-// Homepage: https://orchestkit.yonyon.ai
+// Homepage: https://orchestkit.dev
 package sdk
 
 import (
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const DefaultBaseURL = "https://orchestkit.yonyon.ai"
+const DefaultBaseURL = "https://orchestkit.dev"
 const userAgent = "orchestkit-go/0.1.0"
 
 type Client struct {

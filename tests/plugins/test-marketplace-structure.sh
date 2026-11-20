@@ -53,7 +53,9 @@ echo "--- Test 2: Validate source path format ---"
 #
 # The invariant, per shape:
 #   string source  -> must start "./plugins/"
-#   object source  -> its .path must start "plugins/" (same rule, repo-relative)
+#   object source  -> its .path must start "plugins/" (same rule, repo-relative),
+#                     or be exactly "mods/<entry name>": function-hook mods live in
+#                     mods/, not in the built plugins/ tree
 INVALID_SOURCES=$(jq -r '
   .plugins[]
   | select((.source | type) == "string")
@@ -62,16 +64,17 @@ INVALID_SOURCES=$(jq -r '
 INVALID_OBJECT_PATHS=$(jq -r '
   .plugins[]
   | select((.source | type) == "object")
-  | select((.source.path // "") | startswith("plugins/") | not)
+  | select(((.source.path // "") | startswith("plugins/")) | not)
+  | select((.source.path // "") != ("mods/" + .name))
   | "  \(.name): path=\(.source.path // "<missing>")"' "$MARKETPLACE_JSON")
 if [[ -n "$INVALID_SOURCES" || -n "$INVALID_OBJECT_PATHS" ]]; then
   echo "❌ ERROR: Found plugins with invalid source format:"
   [[ -n "$INVALID_SOURCES" ]] && echo "$INVALID_SOURCES"
   [[ -n "$INVALID_OBJECT_PATHS" ]] && echo "$INVALID_OBJECT_PATHS"
-  echo "   String sources must be './plugins/{name}'; object sources must set path 'plugins/{name}'"
+  echo "   String sources must be './plugins/{name}'; object sources must set path 'plugins/{name}' or 'mods/{name}'"
   ERRORS=$((ERRORS + 1))
 else
-  echo "✓ All plugins resolve under plugins/ (string or object source)"
+  echo "✓ All plugins resolve under plugins/ or mods/<name> (string or object source)"
 fi
 
 # Test 3: Root .claude-plugin should only contain marketplace.json
@@ -152,6 +155,7 @@ echo "--- Test 6: Plugin count verification ---"
 # Count plugins using jq if available, otherwise use grep with context
 if command -v jq &>/dev/null; then
   PLUGIN_COUNT=$(jq '.plugins | length' "$MARKETPLACE_JSON")
+  MOD_ENTRY_COUNT=$(jq '[.plugins[] | select((.source | type) == "object" and ((.source.path // "") | startswith("mods/")))] | length' "$MARKETPLACE_JSON")
 else
   # Fallback: count lines with "source": (each plugin has exactly one)
   PLUGIN_COUNT=$(grep -c '"source":' "$MARKETPLACE_JSON" || echo "0")
@@ -160,6 +164,44 @@ echo "  Total plugins in marketplace: $PLUGIN_COUNT"
 
 PLUGIN_DIRS=$(find "$REPO_ROOT/plugins" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
 echo "  Plugin directories: $PLUGIN_DIRS"
+# Mod entries point into mods/, not plugins/: compare them against mods/ dirs and
+# the rest against plugins/ dirs.
+MOD_DIRS=0
+if [[ -d "$REPO_ROOT/mods" ]]; then
+  MOD_DIRS=$(find "$REPO_ROOT/mods" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
+fi
+# An unlisted mod is a normal state: listing is a one-way door that waits for
+# the operator, so the mod's README says so on a line that starts with
+# "Not listed in any marketplace." (same rule as hq-ext-plugin#2387). Such a
+# folder needs no entry. A listed mod whose README says it is not listed is an
+# error: one of the two is wrong. MOD_ENTRY_COUNT is set only when jq exists.
+UNLISTED_LINE='^[[:space:]]*Not listed in any marketplace\.'
+UNLISTED_DIRS=0
+if [[ -d "$REPO_ROOT/mods" && -n "${MOD_ENTRY_COUNT:-}" ]]; then
+  for dir in "$REPO_ROOT"/mods/*/; do
+    name="$(basename "$dir")"
+    says_unlisted=0
+    if [[ -f "$dir/README.md" ]] && grep -Eq "$UNLISTED_LINE" "$dir/README.md"; then
+      says_unlisted=1
+    fi
+    # Listed by name OR by source path: an entry named after the mod lists it
+    # whatever its source (a plugins/ copy or symlink), so it cannot be unlisted.
+    listed=$(jq --arg p "mods/$name" --arg n "$name" '[.plugins[] | select(.name == $n or ((.source | type) == "object" and .source.path == $p))] | length' "$MARKETPLACE_JSON")
+    if [[ $listed -gt 0 && $says_unlisted -eq 1 ]]; then
+      echo "❌ ERROR: mods/$name is listed, but its README says \"Not listed in any marketplace.\""
+      ERRORS=$((ERRORS + 1))
+    elif [[ $listed -eq 0 && $says_unlisted -eq 1 ]]; then
+      echo "  unlisted: mods/$name"
+      UNLISTED_DIRS=$((UNLISTED_DIRS + 1))
+    elif [[ $listed -eq 0 ]]; then
+      # Judged per folder, not only by the count: a dangling entry elsewhere
+      # must not balance a folder that is neither listed nor marked unlisted.
+      echo "❌ ERROR: mods/$name has no marketplace entry, and its README does not say \"Not listed in any marketplace.\""
+      ERRORS=$((ERRORS + 1))
+    fi
+  done
+fi
+echo "  Mod entries: ${MOD_ENTRY_COUNT:-0}, mod directories: $MOD_DIRS, unlisted: $UNLISTED_DIRS"
 
 # An empty plugins array clears Tests 1, 2, 4 and 5 by having nothing to
 # iterate; this was the only check that noticed, and it only warned
@@ -167,11 +209,32 @@ echo "  Plugin directories: $PLUGIN_DIRS"
 if [[ $PLUGIN_COUNT -eq 0 ]]; then
   echo "❌ ERROR: marketplace.json lists zero plugins; Tests 1 to 5 examined nothing"
   ERRORS=$((ERRORS + 1))
-elif [[ $PLUGIN_COUNT -ne $PLUGIN_DIRS ]]; then
-  echo "⚠ WARNING: Mismatch between marketplace entries ($PLUGIN_COUNT) and plugin directories ($PLUGIN_DIRS)"
-  WARNINGS=$((WARNINGS + 1))
 else
-  echo "✓ Marketplace entries match plugin directories"
+  # Two independent checks, never one elif chain: when they were chained, the
+  # warn-only plugin-dir mismatch short-circuited the mod-count error, so a
+  # mods/<name>/ dir with no entry exited 0 whenever plugins/ also held an extra
+  # dir (#4597).
+  COUNTS_MATCH=1
+  if [[ $((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) -ne $PLUGIN_DIRS ]]; then
+    echo "⚠ WARNING: Mismatch between marketplace entries ($((PLUGIN_COUNT - ${MOD_ENTRY_COUNT:-0})) outside mods/) and plugin directories ($PLUGIN_DIRS)"
+    WARNINGS=$((WARNINGS + 1))
+    COUNTS_MATCH=0
+  fi
+  # A mod dir with no marketplace entry cannot be installed at all (the mod
+  # exists on disk but `claude plugin install <name>@<marketplace>` finds no
+  # entry): memory-lens shipped in #4530 with no entry and stayed loadable
+  # by --plugin-dir only while this check only warned. An entry with no dir
+  # is a dangling install pointer. Both directions are errors.
+  if [[ ${MOD_ENTRY_COUNT:-0} -ne $((MOD_DIRS - UNLISTED_DIRS)) ]]; then
+    echo "❌ ERROR: Mismatch between mod entries (${MOD_ENTRY_COUNT:-0}) and listed mod directories ($((MOD_DIRS - UNLISTED_DIRS)) of $MOD_DIRS)"
+    echo "   Every mods/<name>/ directory needs a marketplace entry with source.path 'mods/<name>',"
+    echo "   or a README line \"Not listed in any marketplace.\""
+    ERRORS=$((ERRORS + 1))
+    COUNTS_MATCH=0
+  fi
+  if [[ $COUNTS_MATCH -eq 1 ]]; then
+    echo "✓ Marketplace entries match plugin directories"
+  fi
 fi
 
 # Summary

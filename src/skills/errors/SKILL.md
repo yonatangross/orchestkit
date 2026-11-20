@@ -1,22 +1,20 @@
 ---
 name: errors
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Error pattern analysis and troubleshooting for Claude Code sessions. Categorizes errors (network, auth, model, tool, memory, permission) with known resolution patterns, searches memory for prior occurrences, and suggests recovery steps. Delegates to debug-investigator agent for complex root cause analysis. Use when handling errors, fixing failures, or troubleshooting session issues."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Claude Code session error triage: categorizes network, auth, model, tool and permission errors, finds prior occurrences, suggests recovery. Use when a session hits errors or failures."
 context: inherit
-agent: debug-investigator
-version: 1.0.0
-author: OrchestKit
-tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
-allowed-tools: [Read, Bash, Grep]
-complexity: low
-persuasion-type: collaborative
+allowed-tools: "Read Bash Grep"
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
   mcp-server: memory
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "errors, debugging, troubleshooting, patterns"
 ---
 
 # Error Pattern Analysis

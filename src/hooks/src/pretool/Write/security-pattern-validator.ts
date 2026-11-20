@@ -113,7 +113,7 @@ export function securityPatternValidator(input: HookInput, ctx: HookContext = NO
     ctx.logPermission('warn', `Security issues in ${filePath}: ${securityIssues.join(', ')}`, input);
 
     // CC 2.1.9: Use additionalContext for warnings
-    return outputWithContext(warningMsg);
+    return outputWithContext(warningMsg, input);
   }
 
   ctx.log('security-pattern-validator', `SECURITY_OK: ${filePath}`);

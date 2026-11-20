@@ -200,24 +200,30 @@ export function computeDelta(prev: string[], curr: string[]): ShapeDelta {
 export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const prompt = input.prompt || '';
 
-  // Skip empty/trivial prompts (no injections to detect)
-  if (prompt.length < 50) {
-    return outputSilentSuccess();
-  }
-
   const sessionId = input.session_id;
   if (!sessionId) {
     return outputSilentSuccess();
   }
 
   try {
+    // Load previous state and advance turn counter on every prompt with a sessionId
+    // so goal-tracker turn counting works even on short (< 50 char) prompts.
+    const prevState = loadState(sessionId);
+    const turnCount = (prevState?.turnCount ?? 0) + 1;
+
+    // Skip empty/trivial prompts for shape analysis (no injections to detect)
+    if (prompt.length < 50) {
+      saveState(sessionId, {
+        lastShapeHash: prevState?.lastShapeHash ?? '',
+        lastMarkers: prevState?.lastMarkers ?? [],
+        turnCount,
+      });
+      return outputSilentSuccess();
+    }
+
     // Extract current shape
     const currentMarkers = extractPromptShape(prompt);
     const currentHash = hashShape(currentMarkers);
-
-    // Load previous state
-    const prevState = loadState(sessionId);
-    const turnCount = (prevState?.turnCount ?? 0) + 1;
 
     // Save current state for next turn
     saveState(sessionId, {
@@ -226,8 +232,8 @@ export function cacheBreakDetector(input: HookInput, ctx: HookContext = NOOP_CTX
       turnCount,
     });
 
-    // First turn: no comparison possible — just record baseline
-    if (!prevState) {
+    // First turn with a shape baseline: no comparison possible, just record baseline
+    if (!prevState?.lastShapeHash) {
       ctx.log(HOOK_NAME, `Baseline shape recorded: ${currentMarkers.length} markers, hash=${currentHash}`);
       return outputSilentSuccess();
     }

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plugin description: before and after</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1d1d1b; background: #faf8f3; }
+  h1 { font-size: 22px; }
+  .card { border: 1px solid #d8d3c7; border-radius: 8px; padding: 16px; margin: 16px 0; background: #fff; }
+  .label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #6b665c; }
+  .before .text { color: #8a2d1f; }
+  .after .text { color: #1f5e3a; }
+  ul { padding-left: 20px; }
+  button { font: inherit; padding: 6px 12px; border: 1px solid #1d1d1b; background: #fff; border-radius: 6px; cursor: pointer; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Plugin description: before and after"><meta property="og:description" content="Compare the prior plugin description with the hook scope and opt-in network disclosure."><meta property="og:url" content="https://orchestkit.dev/lab/plugin-description-plain.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Plugin description: before and after"><meta name="twitter:description" content="Compare the prior plugin description with the hook scope and opt-in network disclosure."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<h1>The ork plugin description, before and after</h1>
+<p>Where it shows: the Claude plugin directory listing, <code>claude plugin details ork</code>, Cursor and the marketplace entry. Source: <code>manifests/ork.json</code>, copied by the build into 4 files.</p>
+
+<div class="card before">
+  <div class="label">Before</div>
+  <p class="text" id="before"></p>
+</div>
+<div class="card after">
+  <div class="label">After</div>
+  <p class="text" id="after">Skills, agents and hooks for Claude Code: 110 skills, 36 agents, 163 hooks for review, testing, security and memory. Hooks run on prompts and tool calls. Telemetry and webhooks are opt-in and off by default; by default some hooks call out through your own CLIs: gh on issue branches and on gh pr merge --delete-branch, and claude (haiku) to title each session.</p>
+</div>
+
+<h2>Why</h2>
+<ul>
+  <li>No long dash and no superlative ("The Complete").</li>
+  <li>The directory review tests that a description matches behavior. It now says the hooks run on prompts and tool calls, that telemetry and webhooks are opt-in, and which hooks call out by default through your own gh and claude CLIs (the README section "What OrchestKit observes" has the details).</li>
+  <li>The count tuple keeps the form <code>N skills, M agents, K hooks</code>, so <code>scripts/stamp-counts.sh</code> still stamps it.</li>
+</ul>
+
+<button id="copy">Copy the new description</button>
+<script>
+  document.getElementById('before').textContent =
+    'The Complete AI Development Toolkit ' + String.fromCharCode(0x2014) + ' 110 skills, 36 agents, 163 hooks for full-stack development.';
+  document.getElementById('copy').addEventListener('click', function () {
+    navigator.clipboard.writeText(document.getElementById('after').textContent);
+    this.textContent = 'Copied';
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

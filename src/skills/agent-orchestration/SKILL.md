@@ -1,26 +1,19 @@
 ---
 name: agent-orchestration
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios.
-tags: [agents, orchestration, multi-agent, agent-loops, crewai, autogen, swarm, coordination]
-context: fork
-agent: workflow-architect
-version: 2.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: Agent orchestration patterns for agentic loops, multi-agent coordination, and alternative frameworks. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating multi-step scenarios.
 user-invocable: false
-disable-model-invocation: true
-complexity: high
-persuasion-type: reference
 effort: high
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "workflow-architect"
   category: workflow-automation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "agents, orchestration, multi-agent, agent-loops, crewai, autogen, swarm, coordination"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Agent Orchestration
@@ -78,7 +71,7 @@ Patterns for autonomous LLM reasoning: ReAct (Reasoning + Acting), Plan-and-Exec
 
 Fan-out/fan-in parallelism, supervisor routing with dependency ordering, conflict resolution (confidence-based or LLM arbitration), result synthesis, and CC Agent Teams (mesh topology for peer messaging in CC 2.1.33+).
 
-**Key decisions:** 3-8 specialists, parallelize independent agents, use Task tool (star) for simple work, Agent Teams (mesh) for cross-cutting concerns.
+**Key decisions:** 3-8 specialists, parallelize independent agents. Pick one of three modes: the Agent tool (star) for simple work, Agent Teams (mesh) for cross-cutting concerns, and a Workflow for large background fan-out you check back on later.
 
 ## Alternative Frameworks
 
@@ -99,7 +92,7 @@ Local tutorials for these topics were retired; consult the first-party source an
 | Topic | First-party source |
 |-------|--------------------|
 | ReAct / plan-and-execute / self-correction loop implementations | OpenAI function calling guide (https://platform.openai.com/docs/guides/function-calling); LangGraph tutorials (context7: /langchain-ai/langgraph) |
-| Fan-out coordination, result-synthesis boilerplate, and the generic multi-agent design checklist | Python asyncio docs (https://docs.python.org/3/library/asyncio-task.html); Anthropic "Building effective agents" (https://www.anthropic.com/research/building-effective-agents); `ork:langgraph` supervisor patterns |
+| Fan-out coordination, result-synthesis boilerplate, and the generic multi-agent design checklist | Python asyncio docs (https://docs.python.org/3/library/asyncio-task.html); Anthropic "Building effective agents" (https://www.anthropic.com/research/building-effective-agents); `ork-extras:langgraph` supervisor patterns |
 | CrewAI (crews, Flows, MCP tools, guardrails) | CrewAI docs (https://docs.crewai.com); context7: /crewaiinc/crewai |
 | OpenAI Agents SDK (handoffs, sessions, guardrails, MCP) | https://openai.github.io/openai-agents-python/ ; context7: /openai/openai-agents-python |
 | Microsoft Agent Framework / AutoGen (teams, termination, A2A) | https://learn.microsoft.com/en-us/agent-framework/ ; context7: /microsoft/autogen |
@@ -121,7 +114,7 @@ Local tutorials for these topics were retired; consult the first-party source an
 | Max loop steps | 5-15 (prevent infinite loops) |
 | Agent count | 3-8 specialists per workflow |
 | Framework | Match to team expertise + use case |
-| Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
+| Topology | Agent tool (star) for simple; Agent Teams (mesh) for complex; Workflow for large background fan-out |
 | Scenario count | Always 3: simple, medium, complex |
 
 ## Common Mistakes
@@ -133,12 +126,12 @@ Local tutorials for these topics were retired; consult the first-party source an
   - Note (CC 2.1.157): `claude agents` honors the `agent` field in `settings.json` for dispatched sessions; `--agent <name>` overrides it — pin the agent type explicitly when dispatching.
 - Missing synthesis step (raw agent outputs not useful)
 - Mixing frameworks in one project (complexity explosion)
-- Using Agent Teams for simple sequential work (use Task tool)
+- Using Agent Teams for simple sequential work (use the Agent tool)
 - Sequential instead of parallel scenarios (defeats purpose)
 
 ## Related Skills
 
-- `ork:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
+- `ork-extras:langgraph` - LangGraph workflow patterns (supervisor, routing, state)
 - `function-calling` - Tool definitions and execution
 - `ork:task-dependency-patterns` - Task management with Agent Teams workflow
 

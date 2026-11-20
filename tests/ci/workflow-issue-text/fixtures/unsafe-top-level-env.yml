@@ -1,0 +1,24 @@
+# PLANTED UNSAFE FIXTURE. The credential sits in the top-level env block,
+# which every job inherits. A lint that scans only job bodies misses it.
+name: Unsafe top level env fixture
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+
+env:
+  MODEL_API_TOKEN: ${{ secrets.MODEL_API_TOKEN }}
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reads the issue under an inherited secret
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue view "${{ inputs.issue_number }}" --json title,body

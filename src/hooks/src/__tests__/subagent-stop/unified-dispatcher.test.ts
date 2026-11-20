@@ -44,7 +44,7 @@ vi.mock('../../subagent-stop/feedback-loop.js', () => ({
 import { unifiedSubagentStopDispatcher, registeredHookNames } from '../../subagent-stop/unified-dispatcher.js';
 import { trackEvent } from '../../lib/session-tracker.js';
 import { appendAnalytics } from '../../lib/analytics.js';
-import { resolveAgentContext } from '../../lib/agent-attribution.js';
+import { resolveAgentContext, appendLedgerEntry } from '../../lib/agent-attribution.js';
 import { feedbackLoop } from '../../subagent-stop/feedback-loop.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -693,6 +693,25 @@ describe('unified-subagent-stop-dispatcher', () => {
         'agent-usage.jsonl',
         expect.objectContaining({ agent: 'ork:test-generator' }),
       );
+    });
+
+    test('writes analytics but no ledger row when attribution context is unavailable (#4386)', async () => {
+      // Arrange: null means the state lock or read failed; the caller must
+      // skip the ledger row instead of writing duration_ms 0 / stage 0 /
+      // commit_base '', while the analytics row still goes out.
+      vi.mocked(trackEvent).mockReset();
+      vi.mocked(resolveAgentContext).mockReturnValueOnce(null);
+      const input = createSubagentStopInput({ agent_id: 'agent-blocked' });
+
+      // Act
+      await unifiedSubagentStopDispatcher(input, testCtx);
+
+      // Assert
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'agent-usage.jsonl',
+        expect.objectContaining({ agent: 'test-agent' }),
+      );
+      expect(appendLedgerEntry).not.toHaveBeenCalled();
     });
 
     test('inline payload type wins over the staged type', async () => {

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>dompurify and ip-address patch: PR 4862 playground</title>
+<meta name="description" content="Four npm advisories that blocked every orchestkit push, the two lockfile moves that close them, and the audit counts before and after.">
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; --bad: #f2a199; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .verdict { font-size: 17px; margin: 8px 0 16px; }
+  .muted { color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .meter { display: grid; grid-template-columns: 7em 1fr 4em; gap: 10px; align-items: center; margin: 6px 0; }
+  .bar { height: 12px; border-radius: 6px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
+  .fill { height: 100%; background: var(--accent); }
+  .fill.bad { background: var(--bad); }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Patch dompurify and ip-address</h1>
+  <p class="verdict"><strong>Verdict:</strong> two lockfile moves inside the existing ranges close all four advisories that failed the pre-push security suite. Nothing is allowlisted.</p>
+  <p class="muted">PR 4862, branch <code>fix/deps-dompurify-ip-address</code>. Files: <code>docs/site/package-lock.json</code>, <code>src/mcp-server/package-lock.json</code>.</p>
+
+  <h2>The two moves</h2>
+  <table>
+    <thead><tr><th>Lockfile</th><th>Package (pulled in by)</th><th>From</th><th>To</th><th>Published</th></tr></thead>
+    <tbody>
+      <tr><td><code>docs/site</code></td><td>dompurify (posthog-js ^3.4.13)</td><td>3.4.16</td><td>3.4.17</td><td>2026-10-12</td></tr>
+      <tr><td><code>src/mcp-server</code></td><td>ip-address (express-rate-limit ^10.2.0)</td><td>10.7.2</td><td>10.7.4</td><td>2026-10-11</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The four advisories</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Severity</th><th>Package</th><th>Vulnerable</th><th>Issue</th></tr></thead>
+    <tbody>
+      <tr><td>1242880</td><td>critical</td><td>dompurify</td><td>3.4.4 to 3.4.16</td><td>SAFE_FOR_TEMPLATES bypass: split template expressions survive in attached shadow root content</td></tr>
+      <tr><td>1242881</td><td>high</td><td>dompurify</td><td>up to 3.4.16</td><td>IN_PLACE: a hook that removes a parent or sibling leaves the detached subtree's handlers armed</td></tr>
+      <tr><td>1242882</td><td>low</td><td>dompurify</td><td>up to 3.4.16</td><td>SMIL attributeName=href guard skipped under application/xhtml+xml</td></tr>
+      <tr><td>1242883</td><td>moderate</td><td>ip-address</td><td>up to 10.7.3</td><td>Address6 matches a zone identifier in quadratic time before its length limit</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Audit before and after</h2>
+  <p class="muted"><code>tests/security/test-npm-audit.sh</code> (severity moderate and up), checks passed out of 11:</p>
+  <div class="meter"><span>main</span><div class="bar"><div class="fill bad" style="width:81.8%"></div></div><span class="num">9 / 11</span></div>
+  <div class="meter"><span>this PR</span><div class="bar"><div class="fill" style="width:100%"></div></div><span class="num">11 / 11</span></div>
+  <p class="muted">Before: 4 advisories not in the allowlist. After: 0 findings at moderate or above in <code>docs/site</code> and <code>src/mcp-server</code>.</p>
+</main>
+</body>
+</html>

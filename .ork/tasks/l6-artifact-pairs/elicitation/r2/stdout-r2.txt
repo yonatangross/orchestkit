@@ -1,0 +1,8 @@
+The `ask_in_task` call ran once and came back cancelled. Its result text, verbatim:
+
+```
+ask_in_task (task param absent) elicitation answered: {"action":"cancel"}
+```
+
+The tool's schema takes no parameters, and the response says the task param was absent. The elicitation was answered with a cancel, so no color was returned.
+EXIT=0

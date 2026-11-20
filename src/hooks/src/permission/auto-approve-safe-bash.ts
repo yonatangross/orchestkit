@@ -1,16 +1,24 @@
 /**
  * Auto-Approve Safe Bash - Automatically approves safe bash commands
  * Hook: PermissionRequest (Bash)
- * CC 2.1.6 Compliant: includes continue field in all outputs
+ *
+ * OPT-IN (#4374 security hold): emits allow only when
+ * ORK_PERMISSION_AUTO_APPROVE=1. Default OFF so CC shows its normal dialog.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   outputSilentSuccess,
 } from '../lib/common.js';
-import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import {
+  isCompoundCommand,
+  normalizeSingle,
+  hasUnquotedExpansion,
+  hasBackgroundOperator,
+} from '../lib/normalize-command.js';
 import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
+import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
@@ -28,11 +36,13 @@ const SAFE_PATTERNS: RegExp[] = [
   // Destructive forms (checkout -f, checkout --, checkout .) are caught by REJECT_PATTERNS.
   /^git checkout\s+\S/,
 
-  // Package managers — safe: read/run operations, no install/publish
-  /^npm (list|ls|outdated|audit|run|test)/,
-  /^pnpm (list|ls|outdated|audit|run|test)/,
-  /^yarn (list|outdated|audit|run|test)/,
-  /^poetry (show|run|env)/,
+  // Package managers: read operations and the test entry point only. A bare
+  // `run <script>` runs whatever package.json says, so only the named
+  // test/lint/typecheck/format scripts below are allowed.
+  /^npm (list|ls|outdated|audit|test)\b/,
+  /^pnpm (list|ls|outdated|audit|test)\b/,
+  /^yarn (list|outdated|audit|test)\b/,
+  /^poetry (show|env)\b/,
 
   // Docker — safe: read-only inspection commands
   /^docker (ps|images|logs|inspect)/,
@@ -49,12 +59,13 @@ const SAFE_PATTERNS: RegExp[] = [
   /^head\s/,
   /^tail\s/,
   /^wc\s/,
-  // SEC: find with -exec uses ; which triggers isCompoundCommand -> manual review
+  // SEC (#4216 HR-1): find with -exec/-execdir runs arbitrary commands and is
+  // rejected by REJECT_PATTERNS; -delete/-fprint*/-fls/-ok likewise.
   /^find\s/,
   /^which\s/,
   /^type\s/,
-  /^env$/,
-  /^printenv/,
+  // SEC (#4216 HR-1): env/printenv dump the whole environment — including
+  // exported secrets — under a "read-only" auto-approve. Not on the list.
 
   // POSIX utilities — safe: read-only text/numeric processing (CC 2.1.71 expanded allowlist)
   // SEC: pipes/redirects are compound commands, rejected before pattern matching
@@ -79,7 +90,9 @@ const SAFE_PATTERNS: RegExp[] = [
   // Testing and linting — safe: read-only analysis
   /^pytest/,
   /^poetry run pytest/,
-  /^npm run (test|lint|typecheck|format)/,
+  // The script name must end at whitespace or end of input: `test-e2e` or
+  // `lint:fix` are different scripts with their own package.json body.
+  /^(?:npm|pnpm|yarn) run (test|lint|typecheck|format)(?:\s|$)/,
   /^ruff (check|format)/,
   /^ty check/,
   /^mypy/,
@@ -89,6 +102,11 @@ const SAFE_PATTERNS: RegExp[] = [
  * Auto-approve safe bash commands
  */
 export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  if (!isPermissionAutoApproveEnabled()) {
+    ctx.log('auto-approve-safe-bash', 'ORK_PERMISSION_AUTO_APPROVE not set; pass-through');
+    return outputSilentSuccess();
+  }
+
   const command = input.tool_input.command || '';
 
   ctx.log('auto-approve-safe-bash', `Evaluating bash command: ${command.slice(0, 50)}...`);
@@ -96,6 +114,13 @@ export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CT
   // SEC: Reject compound commands — "git status && rm -rf /" must NOT auto-approve
   if (command && isCompoundCommand(command)) {
     ctx.log('auto-approve-safe-bash', 'Compound command detected, requiring manual approval');
+    return outputSilentSuccess();
+  }
+
+  // SEC: globs, expansion and background jobs hide what actually runs or
+  // which file is read from the literal patterns below.
+  if (command && (hasUnquotedExpansion(command) || hasBackgroundOperator(command))) {
+    ctx.log('auto-approve-safe-bash', 'Expansion or background operator, requiring manual approval');
     return outputSilentSuccess();
   }
 
@@ -115,7 +140,7 @@ export function autoApproveSafeBash(input: HookInput, ctx: HookContext = NOOP_CT
     if (pattern.test(normalized)) {
       ctx.log('auto-approve-safe-bash', `Auto-approved: matches safe pattern ${pattern}`);
       ctx.logPermission('allow', `Matches safe pattern: ${pattern}`, input);
-      return outputSilentAllow();
+      return outputPermissionRequestAllow();
     }
   }
 

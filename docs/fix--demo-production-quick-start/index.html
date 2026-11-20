@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The demo Quick Start now points where the files are</title>
+<style>
+  :root {
+    --pg-bg:         hsl(232 26% 7%);
+    --pg-ink:        hsl(220 18% 93%);
+    --pg-muted:      hsl(220 12% 64%);
+    --pg-faint:      hsl(220 10% 46%);
+    --pg-line:       hsl(0 0% 100% / 0.10);
+    --pg-glass:      hsl(0 0% 100% / 0.05);
+    --pg-rose:       hsl(345 76% 63%);
+    --pg-emerald:    hsl(160 68% 45%);
+    --pg-r-md: 16px;
+    --pg-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    --pg-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-block: 3rem; padding-inline: 1.5rem;
+    font-family: var(--pg-font); color: var(--pg-ink);
+    background: var(--pg-bg); line-height: 1.6;
+  }
+  main { max-inline-size: 48rem; margin-inline: auto; }
+  h1 { font-size: 1.55rem; line-height: 1.25; margin-block-end: .25rem; }
+  h2 { font-size: 1.02rem; margin-block: 0 .7rem; }
+  .sub { color: var(--pg-muted); margin-block-start: 0; font-size: .95rem; }
+  .card {
+    border: 1px solid var(--pg-line); background: var(--pg-glass);
+    border-radius: var(--pg-r-md); padding: 1.1rem 1.25rem; margin-block: 1.25rem;
+  }
+  table { inline-size: 100%; border-collapse: collapse; font-size: .87rem; }
+  th, td { text-align: start; padding: .45rem .6rem; border-block-end: 1px solid var(--pg-line); }
+  th { color: var(--pg-muted); font-weight: 600; }
+  code { font-family: var(--pg-mono); font-size: .87em; }
+  .bad { color: var(--pg-rose); }
+  .good { color: var(--pg-emerald); }
+  footer { color: var(--pg-faint); font-size: .82rem; margin-block-start: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The demo Quick Start now points where the files are</h1>
+  <p class="sub">PR playground for #4793: each step of the Quick Start in
+    <code>docs/DEMO_PRODUCTION.md</code>, before and after.</p>
+
+  <div class="card">
+    <h2>Quick Start steps</h2>
+    <table>
+      <thead><tr><th>step</th><th>before</th><th>after</th></tr></thead>
+      <tbody>
+        <tr><td>config</td>
+          <td class="bad">copy <code>demo-cli.ts</code> into <code>plugins/ork/skills/demo-producer/src/components/configs/</code> (folder does not exist)</td>
+          <td class="good">use <code>orchestkit-demos/scripts/demo-cli.ts</code> in place</td></tr>
+        <tr><td>register</td>
+          <td class="bad">"Root.tsx" beside the copy (does not exist)</td>
+          <td class="good"><code>orchestkit-demos/src/Root.tsx</code>, next to the ScrapbookShowcase composition</td></tr>
+        <tr><td>render</td>
+          <td class="bad"><code>npx remotion render Root ...</code></td>
+          <td class="good"><code>npx remotion render src/index.ts ...</code> from <code>orchestkit-demos/</code></td></tr>
+        <tr><td>file tree</td>
+          <td class="bad">draws <code>plugins/ork/skills/demo-producer/src/components/configs/</code></td>
+          <td class="good">draws <code>orchestkit-demos/</code> with its entry, Root and config</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Why a copy could not work</h2>
+    <p style="margin-block-start:0">
+      The config imports its props type from <code>../src/components/ScrapbookDemo</code>. That
+      path resolves inside <code>orchestkit-demos</code>, where the file is typechecked, and from
+      nowhere under <code>plugins/</code>. Using the config in place is the only shape that
+      compiles.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Verification</h2>
+    <table>
+      <thead><tr><th>check</th><th>result</th></tr></thead>
+      <tbody>
+        <tr><td>red commit: <code>tests/ci/test-demo-production-paths.mjs</code></td><td class="bad">fails on the missing <code>plugins/</code> folder</td></tr>
+        <tr><td>green commit: the guide change</td><td class="good">CI at the pushed head is the proof</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Docs fix. No code in orchestkit-demos changes.</footer>
+</main>
+</body>
+</html>

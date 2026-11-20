@@ -9,8 +9,13 @@
  * The 3 security-critical hooks (validated by security-critical-hooks.test.ts):
  * 1. auto-approve-safe-bash — Dual-role: rejects dangerous commands via REJECT_PATTERNS first,
  *    then auto-approves known-safe commands. Despite the name, this is a security gate.
- * 2. redact-secrets — Detects and warns on leaked secrets
- * 3. security-command-audit — Audit logs Bash commands
+ * 2. redact-secrets: Detects and warns on leaked secrets in tool output (stringifies
+ *    Bash {stdout,stderr} payloads so object-shaped responses are scanned; #4217/#4330).
+ * 3. security-command-audit: Audit logs Bash commands with secret values redacted;
+ *    prefers CLAUDE_PLUGIN_DATA/logs over the project tree (#4217).
+ *
+ * Complementary (not in this un-disableable set): posttool/secret-handler defaults to
+ * AUDIT via ORK_SECRET_HOOK (detect + warn, no blocking); set OFF or REDACT explicitly.
  *
  * SECURITY BASELINE CHANGE, 2026-08-31 (#3835, operator-ordered divergence purge):
  * dangerous-command-blocker, file-guard and git-validator were removed from this

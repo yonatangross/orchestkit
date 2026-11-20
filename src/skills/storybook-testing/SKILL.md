@@ -1,29 +1,25 @@
 ---
 name: storybook-testing
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Storybook 10 testing patterns with Vitest integration, ESM-only distribution, CSF3 typesafe factories, play() interaction tests, Chromatic TurboSnap visual regression, module automocking, accessibility addon testing, and autodocs generation. Use when writing component stories, setting up visual regression testing, configuring Storybook CI pipelines, or migrating from Storybook 9.
-tags: [storybook, vitest, csf3, chromatic, turbosnap, visual-regression, play-functions, component-testing, a11y-testing, autodocs, esm-only, module-automocking]
-context: fork
-agent: frontend-ui-developer
-version: 2.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Storybook 10 testing: Vitest integration, CSF3 factories, play() interaction tests, Chromatic TurboSnap, automocking, a11y addon, autodocs. Use when writing component stories, setting up visual regression, Storybook CI, or migrating from Storybook 9."
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: guidance
+# Reference skill: fenced Storybook MCP names teach CSF/testing patterns; this
+# skill never invokes those tools (disable-model-invocation: true).
+tool-coverage: illustrative
 targets:
   - library: storybook
-    version: ">=10.3.0"
+    version: ">=10.6.1"
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   storybook-version: "10.3"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "storybook, vitest, csf3, chromatic, turbosnap, visual-regression, play-functions, component-testing, a11y-testing, autodocs, esm-only, module-automocking"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Storybook Testing — Storybook 10
@@ -202,7 +198,7 @@ npx storybook add @storybook/addon-mcp   # current: 0.6.0, Apr 2026
 npx mcp-add --type http --url "http://localhost:6006/mcp" --scope project
 ```
 
-See `storybook-mcp-integration` skill for full tool reference and patterns.
+See the Storybook mode of the `design-to-code` skill for full tool reference and patterns.
 
 ---
 
@@ -214,7 +210,7 @@ See `storybook-mcp-integration` skill for full tool reference and patterns.
 
 ## Related Skills
 
-- `storybook-mcp-integration` — Storybook MCP tools: component discovery, testing, previews
+- `design-to-code` (Storybook mode): Storybook MCP tools for component discovery, testing, previews
 - `react-server-components-framework` — React 19 + Next.js 16 patterns (component architecture)
 - `accessibility` — Broader accessibility patterns beyond Storybook
 - `devops-deployment` — CI/CD pipeline patterns for automated testing

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unconfirmed env must not warn below floor</title>
+<meta name="description" content="On a cloud cold start, SessionStart has only CLAUDE_CODE_VERSION=2.1.42. No transcript stamp, no versions/ symlink. Toggle whether unconfirmed env may warn.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  label{cursor:pointer}
+  .out{padding:.8rem 1rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.8rem;min-height:7rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .note{border-inline-start:3px solid var(--accent);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Unconfirmed env must not warn below floor"><meta property="og:description" content="Cloud cold start: only CLAUDE_CODE_VERSION=2.1.42, no transcript, no versions/ symlink. Env alone must not fire the below-floor warning."><meta property="og:url" content="https://orchestkit.dev/lab/cc-version-cold-start.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Unconfirmed env must not warn below floor"><meta name="twitter:description" content="Cloud cold start: only CLAUDE_CODE_VERSION=2.1.42, no transcript, no versions/ symlink. Env alone must not fire the below-floor warning."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Unconfirmed env must not warn below floor</h1>
+<p class="sub">Branch fix/cc-version-cold-start, issue #5031 cold-start remainder. After #5034 the warm path prefers transcript; on a cold start only <code>CLAUDE_CODE_VERSION=2.1.42</code> remains, with no transcript and no install-path symlink.</p>
+
+<section>
+  <h2>1. Cold-start witnesses</h2>
+  <div class="controls">
+    <label><input type="radio" name="policy" value="old" checked> before: warn on env alone</label>
+    <label><input type="radio" name="policy" value="new"> after: silent when env is unconfirmed</label>
+  </div>
+  <div class="controls">
+    <label><input type="checkbox" id="env" checked> env = 2.1.42</label>
+    <label><input type="checkbox" id="transcript"> transcript available</label>
+    <label><input type="checkbox" id="install"> install-path versions/ symlink</label>
+  </div>
+  <div class="out" id="verdict" aria-live="polite"></div>
+  <p class="note">Floor in this demo is <code>2.1.277</code>. A real cloud cold start matches env-only: SessionStart runs before any transcript stamp, and the image does not point <code>claude</code> into <code>versions/&lt;x&gt;</code>.</p>
+</section>
+
+<section>
+  <h2>2. What changed</h2>
+  <p class="dim" style="font-size:.82rem;margin:0"><code>ccVersionCheck</code> still resolves env last, but when <code>source === "env"</code> and the value is below the floor it stays silent instead of emitting the user warning. Confirmed sources (transcript, install-path) still warn.</p>
+</section>
+
+<script>
+(function () {
+  var FLOOR = "2.1.277";
+
+  function cmp(a, b) {
+    var pa = a.split(".").map(Number);
+    var pb = b.split(".").map(Number);
+    for (var i = 0; i < 3; i++) {
+      var x = pa[i] || 0, y = pb[i] || 0;
+      if (x < y) return -1;
+      if (x > y) return 1;
+    }
+    return 0;
+  }
+
+  function resolve(hasEnv, hasTranscript, hasInstall) {
+    var steps = [];
+    function trySource(name, version, enabled) {
+      if (!enabled) {
+        steps.push({ text: name + ": miss", cls: "dim" });
+        return null;
+      }
+      steps.push({ text: name + ": " + version, cls: "ok" });
+      return { version: version, source: name };
+    }
+    var hit = trySource("transcript", "2.1.317", hasTranscript)
+      || trySource("install-path", "2.1.317", hasInstall)
+      || trySource("env", "2.1.42", hasEnv);
+    return { hit: hit, steps: steps };
+  }
+
+  function show() {
+    var policy = document.querySelector('input[name="policy"]:checked').value;
+    var hasEnv = document.getElementById("env").checked;
+    var hasTranscript = document.getElementById("transcript").checked;
+    var hasInstall = document.getElementById("install").checked;
+    var r = resolve(hasEnv, hasTranscript, hasInstall);
+    var root = document.getElementById("verdict");
+    while (root.firstChild) root.removeChild(root.firstChild);
+
+    r.steps.forEach(function (s) {
+      var d = document.createElement("div");
+      d.className = s.cls;
+      d.textContent = s.text;
+      root.appendChild(d);
+    });
+
+    var line = document.createElement("div");
+    if (!r.hit) {
+      line.className = "warn";
+      line.textContent = "no source → check did NOT run";
+    } else if (cmp(r.hit.version, FLOOR) < 0) {
+      if (policy === "new" && r.hit.source === "env") {
+        line.className = "ok";
+        line.textContent = "silent: env " + r.hit.version + " is unconfirmed (no below-floor warning)";
+      } else {
+        line.className = "bad";
+        line.textContent = "warn: Claude Code " + r.hit.version + " is below floor " + FLOOR + " (via " + r.hit.source + ")";
+      }
+    } else {
+      line.className = "ok";
+      line.textContent = "silent: running " + r.hit.version + " via " + r.hit.source + " is in range";
+    }
+    root.appendChild(line);
+  }
+
+  document.querySelectorAll("input").forEach(function (el) {
+    el.addEventListener("change", show);
+  });
+  show();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

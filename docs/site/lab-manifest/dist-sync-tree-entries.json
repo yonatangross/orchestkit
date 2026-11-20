@@ -1,0 +1,12 @@
+{
+  "slug": "dist-sync-tree-entries",
+  "source": "docs/fix--dist-sync-tree-entries/index.html",
+  "title": "Why the dist sync died at ten seconds",
+  "description": "The sync split requests by bytes, and a known file costs none, so one request carried almost every entry and timed out. Move the slider to see why a cap fixes it.",
+  "tags": [
+    "ci",
+    "release",
+    "github-api"
+  ],
+  "date": "2026-11-06"
+}

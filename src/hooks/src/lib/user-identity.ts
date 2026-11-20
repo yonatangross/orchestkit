@@ -176,7 +176,7 @@ function getGitIdentity(projectDir: string): { email?: string; name?: string } {
     result.email = execFileSync('git', ['config', 'user.email'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 2000,
+      killSignal: 'SIGKILL', timeout: 2000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {
@@ -187,7 +187,7 @@ function getGitIdentity(projectDir: string): { email?: string; name?: string } {
     result.name = execFileSync('git', ['config', 'user.name'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 2000,
+      killSignal: 'SIGKILL', timeout: 2000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     }).trim();
   } catch {

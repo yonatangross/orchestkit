@@ -74,6 +74,17 @@
       ]
     },
     {
+      "id": "plugin-row-errordetails",
+      "rule": "mcp-status-checks",
+      "query": "How does doctor treat a plugin list JSON row that carries errorDetails?",
+      "expectedBehavior": [
+        "errorDetails rows surface as warnings",
+        "noteDetails rows surface at info severity",
+        "a non-empty errorDetails field marks the row as errored",
+        "the verdict reports warnings instead of all-ok while errorDetails rows exist"
+      ]
+    },
+    {
       "id": "agent-browser-doctor-fallback",
       "rule": "diagnostic-checks",
       "query": "What does /ork:doctor do for agent-browser versions older than 0.26?",

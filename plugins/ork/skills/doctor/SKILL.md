@@ -1,35 +1,29 @@
 ---
 name: doctor
 license: MIT
-compatibility: "Claude Code 2.1.251+ for xhigh effort warning (Category 14); earlier versions skip that check."
-description: "OrchestKit doctor for health diagnostics across manifest integrity, hook configuration, skill validation, agent frontmatter, MCP server connectivity, CC version compatibility, and permission rules. Reports issues with severity levels and auto-remediation suggestions. Validates component counts, detects orphaned entries, and checks CC version matrix compliance. Use when diagnosing plugin health, troubleshooting configuration issues, or running pre-release checks."
+compatibility: "Claude Code 2.1.277+ for xhigh effort warning (Category 14); earlier versions skip that check."
+description: "Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, with severity and remedies. Use to run doctor checks, diagnose issues or check project health before a release."
 argument-hint: "[--verbose]"
 context: inherit
-version: 3.3.0
-author: OrchestKit
-tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion, Write]
+allowed-tools: "Bash Read Grep Glob AskUserQuestion Write"
 skills: [configure]
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/doctor-env-snapshot"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/doctor-env-snapshot"
+          once: true
 metadata:
   category: document-asset-creation
-triggers:
-  keywords: [doctor, diagnose, "health check", healthy, "hooks configured", "skills showing", "plugin setup", "something broken", troubleshoot, "installation is"]
-  examples:
-    - "run orchestkit doctor"
-    - "are my hooks configured correctly"
-    - "something feels broken with ork"
-  anti-triggers: [help, setup, configure, explore, implement]
+  version: "3.3.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "health-check, diagnostics, validation, permissions, hooks, skills, agents, memory"
 ---
 
 # OrchestKit Health Diagnostics
@@ -83,7 +77,7 @@ The `doctor` command performs comprehensive health checks on your OrchestKit ins
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
 9. **Memory System** - Graph memory health
-10. **Claude Code Version** - Validates CC >= 2.1.220 (supported floor). Everything the old "recommends 2.1.154+" note gated (`xhigh` effort, `/ultrareview`, stream-json `plugin_errors`) is floor-guaranteed now, so there is nothing left to recommend
+10. **Claude Code Version** - Validates CC >= the `supported_floor` in `shared/cc-support.json` (read it; it is the single source). Everything the old "recommends 2.1.154+" note gated (`xhigh` effort, `/ultrareview`, stream-json `plugin_errors`) is floor-guaranteed now, so there is nothing left to recommend
 11. **External Dependencies** - Checks optional tool availability (agent-browser), plus one line per peer skill installed from another marketplace: `typesafe@typesafe-ai` installed version against the marketplace's, via `scripts/check-peer-skill.py` (missing marketplace and missing plugin are separate verdicts, the vendor's update commands are the fix text; #4233)
 12. **MCP Status** - Active vs disabled vs misconfigured, API key presence for paid MCPs. CC 2.1.110: detects duplicate definitions across config scopes. Sub-check warns when HIGH-tier servers resolve to `@latest` in `.mcp.json` (closes #1462)
 13. **Plugin Validate** - Runs `claude plugin validate` for official CC frontmatter + hooks.json validation (CC >= 2.1.77)
@@ -138,7 +132,7 @@ doctor --json    # Machine-readable for CI
 
 | Category | What It Checks | Reference |
 |----------|---------------|-----------|
-| **4. Memory** | .claude/memory/ graph integrity + queue depth; **auto-memory MEMORY.md index budget (≤24.4 KB; warns + recommends dream on re-bloat)** | load `references/memory-health.md` |
+| **4. Memory** | .claude/memory/ graph integrity + queue depth; auto-memory MEMORY.md index budget; per-agent `.claude/agent-memory/NAME/MEMORY.md` (orphans, staleness, 150-line warn, secret/PII) | load `references/memory-health.md` and `references/agent-memory-dir.md` |
 | **5. Build** | plugins/ sync with src/, manifest counts, orphans | load `rules/diagnostic-checks.md` |
 
 > **Analytics writer liveness (System Health):** the local analytics pipeline has several independent JSONL writers under `~/.claude/analytics/` (skill-usage, agent-usage, hook-timing). A writer can die silently while its siblings stay hot — observed once for four months (skill-usage.jsonl, 2026-03 to 2026-07). The check is a peer comparison: flag any watched file whose last write is ≥48h old while a sibling wrote within 24h (`stat -f '%m %N' ~/.claude/analytics/*.jsonl`). The `lifecycle/analytics-liveness-check` SessionStart hook runs the same comparison continuously.
@@ -166,7 +160,7 @@ doctor --json    # Machine-readable for CI
 | **13. Plugin Validate** | Official CC frontmatter + hooks.json validation (CC >= 2.1.77) | load `rules/diagnostic-checks.md` |
 | **14. Effort/Model** | `xhigh` effort configured on a model that provably cannot run it (see below). Defaults to silence | inline |
 | **15. Sandbox Posture** | CC Bash-sandbox on/off across all four settings scopes + `/sandbox` nudge (opt-in, Bash-only; info-level). **15b**: bounded read-only query of the macOS unified log for recent `Sandbox` deny events via `scripts/check-sandbox-violations.sh` (warn-level; fail-closed when the log query itself is denied; explicit skip off macOS) | load `references/sandbox-posture.md` |
-| **16. Operator Settings Posture** | Controls a plugin bundle **cannot** carry, so they exist only if the operator wrote them: credential-read `permissions.deny` rules (defence in depth: `pretool/read/credential-read-guard` already covers the `Read` tool), the `sandbox` block incl. `network.deniedDomains` (the egress guard only `ask`s on the upload shape; a plain GET abstains), and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (ork's own `agent-teams.ts` gates on it). Since CC 2.1.257 it also reports `permissions.blockReadsOutsideWorkingDirectories` and warns when it is true without `~/.claude` in `additionalDirectories` (the reads ork skills make outside the project would be refused, not prompted). Since #3877 it also names a project-scope `sandbox.enabled: false` that overrides a user-scope `true` (`sandbox_override`, project file:line and user file:line; the project file wins and Bash runs unsandboxed). Since #3835 the audit is a script: `bash ${CLAUDE_SKILL_DIR}/scripts/check-operator-permissions.sh <project_dir> --json` (exit 0 all payload rules enforced, 1 missing with the remedy, 2 could-not-observe); the remedy is setup phase 3.6, consent-gated. Warn-level; prints the JSON to paste | load `references/settings-posture.md` |
+| **16. Operator Settings Posture** | Controls a plugin bundle **cannot** carry, so they exist only if the operator wrote them: credential-read `permissions.deny` rules (defence in depth: `pretool/read/credential-read-guard` already covers the `Read` tool), the `sandbox` block incl. `network.deniedDomains` (the egress guard only `ask`s on the upload shape; a plain GET abstains), and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (ork's own `agent-teams.ts` gates on it). Since CC 2.1.257 it also reports `permissions.blockReadsOutsideWorkingDirectories` and warns when it is true without `~/.claude` in `additionalDirectories` (the reads ork skills make outside the project would be refused, not prompted). Since #3877 it also names a project-scope `sandbox.enabled: false` that overrides a user-scope `true` (`sandbox_override`, project file:line and user file:line; the project file wins and Bash runs unsandboxed). Since CC 2.1.299 to 2.1.305 it also reports unattended-lane posture under `unattended`: an `idleCompaction: false` scope (warned) and, with `CLAUDE_CODE_RETRY_WATCHDOG` on, each missing watchdog cap (offered). Since #3835 the audit is a script: `bash ${CLAUDE_SKILL_DIR}/scripts/check-operator-permissions.sh <project_dir> --json` (exit 0 all payload rules enforced, 1 missing with the remedy, 2 could-not-observe); the remedy is setup phase 3.6, consent-gated. Warn-level; prints the JSON to paste | load `references/settings-posture.md` |
 
 > **Why Check 16 exists at all:** `plugins-reference.md:858` says "Only the `agent` and `subagentStatusLine` keys are currently supported" in a plugin's bundled `settings.json`. Everything else ork used to declare there was inert, so the protection it looked like it shipped was never in force. Check 16 is the replacement: detect the gap in a scope CC really reads, then hand the operator the exact JSON. The `ork:configure` skill, section *Operator-Scope Settings*, carries the paste-ready blocks, staged loose-then-strict per #3424; the full JSON is in `../configure/references/operator-scope-settings.md`.
 
@@ -221,7 +215,7 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 
 > **Bisect with `--safe-mode` (CC 2.1.169+):** when doctor findings don't explain a misbehaving session, restart with `claude --safe-mode` (or `CLAUDE_CODE_SAFE_MODE=1`) — it disables ALL customizations (CLAUDE.md, plugins incl. ork, skills, hooks, MCP). If the problem disappears, it's a customization; re-enable halves to isolate. If it persists, it's CC itself — file upstream.
 
-> **Host load vs session load (macOS):** when doctor findings say the session is healthy but the machine is slow, do not diagnose from `memory_pressure`'s "System-wide memory free percentage": it once read 84% free while 59 of 64 GB was in use and swap stood at 6.9 of 8 GB, and the first culprit named from that number was wrong (the real load was a test suite in another project). Read the evidence before naming anything: `sysctl vm.swapusage` for swap, `vm_stat` for the memory split, and a process tree (e.g. `ps aux | sort -nrk 3 | head`) for who is actually consuming.
+> **Host load vs session load (macOS):** when doctor findings say the session is healthy but the machine is slow, do not diagnose from `memory_pressure`'s "System-wide memory free percentage": it once read 84% free while 59 of 64 GB was in use and swap stood at 6.9 of 8 GB, and the first culprit named from that number was wrong (the real load was a test suite in another project). Read the evidence before naming anything: `sysctl vm.swapusage` for swap, `vm_stat` for the memory split, and a process view sorted by memory use (e.g. `ps aux | sort -nrk 4 | head`) for who is actually consuming memory.
 
 ### After you fix an issue
 
@@ -230,6 +224,8 @@ Every category reports an explicit **pass / warn / fail** status, and every warn
 > **CC 2.1.116+**: `/reload-plugins` and background plugin auto-update now **auto-install missing plugin dependencies** from marketplaces you've already added. If `ork:doctor` flagged a plugin-load failure due to a missing dep, `/reload-plugins` resolves it in place — no manual `plugin install` step needed.
 >
 > **CC 2.1.152+**: For non-plugin **skills** in a skill directory (`~/.claude/skills/` or `.claude/skills/`), run `/reload-skills` to re-scan without restarting — the skill analogue of `/reload-plugins`.
+>
+> **CC 2.1.268+**: `/plugin` install, enable and disable take effect when the menu closes, so `/reload-plugins` is no longer needed after them.
 
 ## Chain: Deeper Audit
 
@@ -255,13 +251,16 @@ Load on demand with `Read("references/<file>")` or `Read("rules/<file>")`:
 |------|---------|
 | `rules/diagnostic-checks.md` | Bash commands and validation logic per category |
 | `rules/mcp-status-checks.md` | Credential validation and misconfiguration detection |
+| `scripts/check-agent-browser-version.sh` | Check 11: WARN when agent-browser on PATH is below `MIN_VERSION` (the one place the minimum lives), with the upgrade command (#5289) |
 | `references/remediation-guide.md` | Results interpretation and troubleshooting steps |
 | `references/health-check-outputs.md` | Sample output per category |
 | `references/skills-validation.md` | Skills frontmatter and structure checks |
 | `references/agents-validation.md` | Agents frontmatter and tool ref checks |
 | `references/hook-validation.md` | Hook registration and bundle checks |
 | `references/memory-health.md` | Memory system integrity checks |
+| `references/agent-memory-dir.md` | Per-agent agent-memory dir: orphans, staleness, 150-line warn, secrets |
 | `references/permission-rules.md` | Permission rule detection |
+| `references/skill-preapproval.md` | Skills whose `allowed-tools` pre-grant stops under managed `allowManagedPermissionRulesOnly` (CC 2.1.282, 2.1.284), detection and admin remedy |
 | `references/schema-validation.md` | JSON schema compliance |
 | `references/report-format.md` | ASCII report templates and JSON CI output |
 | `references/version-compatibility.md` | CC version and channel validation |

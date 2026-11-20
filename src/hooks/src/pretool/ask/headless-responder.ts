@@ -49,14 +49,16 @@ export default function headlessResponder(input: HookInput, ctx: HookContext = N
     return outputSilentSuccess();
   }
 
-  // Auto-select first option for each question (typically "Recommended")
-  const answers: Record<string, string | string[]> = {};
+  // Auto-select first option for each question (typically "Recommended").
+  // CC reads `answers`: question text -> answer string, multi-select answers
+  // comma-separated (the AskUserQuestion input schema; CC joins with ", ").
+  const answers: Record<string, string> = {};
 
   for (const q of toolInput.questions) {
     if (q.options?.length) {
       if (q.multiSelect) {
         // For multi-select, select all options
-        answers[q.question] = q.options.map(o => o.label);
+        answers[q.question] = q.options.map(o => o.label).join(', ');
       } else {
         // For single-select, pick the first (usually "Recommended")
         answers[q.question] = q.options[0].label;
@@ -66,7 +68,9 @@ export default function headlessResponder(input: HookInput, ctx: HookContext = N
 
   ctx.log('headless-responder', `Auto-answering ${toolInput.questions.length} question(s) in headless mode`);
 
-  // CC 2.1.85: Return updatedInput with permissionDecision to satisfy AskUserQuestion
+  // CC 2.1.85: Return updatedInput with permissionDecision to satisfy AskUserQuestion.
+  // The key must be `answers`: since CC 2.1.300 validates updatedInput, any
+  // other key (the old `_headless_answers`) is dropped and nothing is answered.
   return {
     continue: true,
     suppressOutput: true,
@@ -75,7 +79,7 @@ export default function headlessResponder(input: HookInput, ctx: HookContext = N
       permissionDecision: 'allow',
       updatedInput: {
         ...toolInput,
-        _headless_answers: answers,
+        answers,
       },
     },
   };

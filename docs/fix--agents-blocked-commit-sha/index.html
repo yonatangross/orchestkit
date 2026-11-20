@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A blocked commit reports BLOCKED, not an empty sha</title>
+<meta name="description" content="A builder whose commit a hook refused used to return committed_sha as an empty string, and the caller schema accepted it. Pick a builder result to see whether the new build-result schema accepts it and why.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button,textarea{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  textarea{width:100%;min-height:8.5rem;padding:.6rem .8rem}
+  .verdict{font-size:.9rem;font-weight:700;margin:.8rem 0 .4rem}
+  .verdict.ok{color:var(--ok)}
+  .verdict.bad{color:var(--bad)}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:start}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+</head>
+<body><main>
+<h1>A blocked commit reports BLOCKED, not an empty sha</h1>
+<p class="sub">Branch fix/agents-blocked-commit-sha (#4703, the remaining gap of #4628). A builder agent whose commit a hook refused returned <code>committed_sha: ""</code>, the caller schema accepted it, and the workflow chained on as if the build had landed. New: <code>src/shared/build-result.schema.json</code> (DONE needs a full 40-hex sha, BLOCKED needs a null sha and a named <code>blocked_reason</code>), the same rule in <code>status-protocol.md</code> (loaded by 35 agents) and inline in ci-cd-engineer, test-generator and frontend-ui-developer, pinned by <code>tests/agents/test-build-result-schema.mjs</code>.</p>
+
+<section><h2>1. Pick a builder result</h2>
+<div class="controls">
+  <select id="preset" aria-label="preset result">
+    <option value="done">DONE, full sha</option>
+    <option value="empty">DONE, empty sha (the old bug)</option>
+    <option value="short">DONE, short sha</option>
+    <option value="placeholder">DONE, placeholder sha</option>
+    <option value="blocked">BLOCKED, null sha, hook named</option>
+    <option value="blockedEmpty">BLOCKED, empty sha</option>
+    <option value="blockedNoReason">BLOCKED, no reason</option>
+  </select>
+  <span class="sub" style="margin:0">or edit the JSON below</span>
+</div>
+<textarea id="json" aria-label="builder result JSON" spellcheck="false"></textarea>
+<div class="verdict" id="verdict"></div>
+<div class="out" id="out"></div>
+<p class="note"><strong>What changed for the caller.</strong> Before, any string passed as <code>committed_sha</code>, so an empty one read as success. Now a result either proves the commit landed or says what refused it. The checks here mirror the schema's rules in plain JavaScript; the test file runs the real schema.</p>
+</section>
+
+<section><h2>2. The rule, per status</h2>
+<table><thead><tr><th>status</th><th>committed_sha</th><th>blocked_reason</th></tr></thead><tbody>
+<tr><td>DONE</td><td>full 40-hex lowercase sha</td><td>null</td></tr>
+<tr><td>BLOCKED</td><td>null</td><td>non-empty: the refusing hook or check and its message</td></tr>
+</tbody></table>
+<div class="controls" style="margin-top:1rem"><button id="copy" type="button">copy this result and verdict as JSON</button><span id="copied" class="sub" style="margin:0"></span></div>
+</section>
+
+<script>
+const SHA = '54189f18632f7d419e9377cbfc617c99fe9ff72e';
+const PRESETS = {
+  done: { status: 'DONE', committed_sha: SHA, blocked_reason: null },
+  empty: { status: 'DONE', committed_sha: '', blocked_reason: null },
+  short: { status: 'DONE', committed_sha: '54189f1', blocked_reason: null },
+  placeholder: { status: 'DONE', committed_sha: '<sha>', blocked_reason: null },
+  blocked: { status: 'BLOCKED', committed_sha: null, blocked_reason: 'pre-commit: lint FAILED (1 error)', uncommitted_files: ['src/app.ts'] },
+  blockedEmpty: { status: 'BLOCKED', committed_sha: '', blocked_reason: 'pre-commit refused the commit' },
+  blockedNoReason: { status: 'BLOCKED', committed_sha: null, blocked_reason: '' }
+};
+function check(r) {
+  const errs = [];
+  if (r === null || typeof r !== 'object' || Array.isArray(r)) return ['the result must be a JSON object'];
+  for (const k of ['status', 'committed_sha', 'blocked_reason']) if (!(k in r)) errs.push(`missing required field ${k}`);
+  if (!['DONE', 'BLOCKED'].includes(r.status)) errs.push('status must be DONE or BLOCKED');
+  const sha = r.committed_sha;
+  if (sha !== null && sha !== undefined) {
+    if (typeof sha !== 'string') errs.push('committed_sha must be a string or null');
+    else if (!/^[0-9a-f]{40}$/.test(sha)) errs.push(`committed_sha ${JSON.stringify(sha)} is not a full 40-hex lowercase sha`);
+  }
+  const why = r.blocked_reason;
+  if (why !== null && why !== undefined && (typeof why !== 'string' || why.length < 1)) errs.push('blocked_reason must be a non-empty string or null');
+  if (r.status === 'DONE') {
+    if (typeof sha !== 'string') errs.push('DONE needs committed_sha as a string');
+    if (why !== null) errs.push('DONE needs blocked_reason null');
+  }
+  if (r.status === 'BLOCKED') {
+    if (sha !== null) errs.push('BLOCKED needs committed_sha null');
+    if (typeof why !== 'string') errs.push('BLOCKED needs a blocked_reason naming what refused the commit');
+  }
+  return errs;
+}
+let last = { result: null, valid: false, errors: [] };
+function render() {
+  const text = document.getElementById('json').value;
+  const v = document.getElementById('verdict');
+  const out = document.getElementById('out');
+  let r;
+  try { r = JSON.parse(text); } catch (e) {
+    v.className = 'verdict bad'; v.textContent = 'not JSON';
+    out.textContent = String(e.message); last = { result: null, valid: false, errors: ['not JSON'] }; return;
+  }
+  const errs = check(r);
+  last = { result: r, valid: errs.length === 0, errors: errs };
+  v.className = 'verdict ' + (errs.length ? 'bad' : 'ok');
+  v.textContent = errs.length ? 'REJECTED: the caller stops here' : 'ACCEPTED';
+  out.textContent = errs.length
+    ? errs.map((e) => '- ' + e).join('\n')
+    : (r.status === 'DONE' ? `the commit landed at ${r.committed_sha}; the workflow may chain on` : `blocked by: ${r.blocked_reason}; the workflow stops and reports it`);
+}
+function load(name) {
+  document.getElementById('json').value = JSON.stringify(PRESETS[name], null, 2);
+  render();
+}
+document.getElementById('preset').addEventListener('change', (e) => load(e.target.value));
+document.getElementById('json').addEventListener('input', render);
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = JSON.stringify(last, null, 2);
+  try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'copied'; }
+  catch { document.getElementById('copied').textContent = 'clipboard blocked'; }
+});
+load('done');
+</script>
+</main></body>
+</html>

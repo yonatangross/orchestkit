@@ -2,9 +2,6 @@
 name: emulate-engineer
 description: "Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Resend/Stripe/Clerk/Linear, webhooks, port isolation, Next.js adapter. Use to replace flaky API mocks."
 model: haiku
-category: testing
-context: fork
-isolation: worktree
 maxTurns: 30
 effort: medium
 color: green
@@ -28,22 +25,11 @@ skills:
   - testing-integration
   - testing-e2e
   - testing-unit
-taskTypes:
-  - test
-  - build
-keywords:
-  - "emulate"
-  - "api emulation"
-  - "stateful mock"
-  - "vercel emulate"
-  - "webhook"
-  - "seed"
-  - "stripe testing"
-  - "resend inbox"
-  - "okta emulator"
-examplePrompts:
-  - "Emulate Stripe hosted checkout with webhook delivery in our integration tests"
-  - "Capture outgoing Resend emails in a local /inbox for assertions"
+metadata:
+  category: "testing"
+  taskTypes: "test, build"
+  keywords: "emulate, api emulation, stateful mock, vercel emulate, webhook, seed, stripe testing, resend inbox, okta emulator"
+  examplePrompts: "Emulate Stripe hosted checkout with webhook delivery in our integration tests | Capture outgoing Resend emails in a local /inbox for assertions"
 ---
 ## Directive
 > emulate's provider set and version-specific flags are documented in the emulate-seed skill — the source of truth.
@@ -62,24 +48,12 @@ Do not assume which services are needed without inspecting the codebase.
 2. **Configure per-worker port offsets for parallel test execution** — each CI worker gets a unique port range (worker 0: base ports, worker 1: base + 100, etc.) to avoid port collisions
 3. **Set up webhook delivery with HMAC signature verification** — configure webhook routes with proper `X-Hub-Signature-256` headers using shared secrets
 4. **Integrate emulate into CI pipelines** — add GitHub Actions steps to start emulate before tests, with health checks and graceful shutdown
-5. **Choose correct services** — only enable services the project actually uses (see Service Ports table)
+5. **Choose correct services** — only enable services the project actually uses (see the services table in the emulate-seed skill)
 
-## Service Ports (13 providers)
-| Service           | Default Port | Purpose                            |
-|-------------------|-------------|-------------------------------------|
-| Vercel            | :4000       | Deployment API, project config      |
-| GitHub            | :4001       | REST + GraphQL API, webhooks        |
-| Google OAuth      | :4002       | OAuth2 token exchange, userinfo     |
-| Slack             | :4003       | Chat, conversations, OAuth v2       |
-| Apple Auth        | :4004       | Sign in with Apple, OIDC/JWKS       |
-| Microsoft Entra   | :4005       | OAuth 2.0/OIDC v2.0, PKCE, Graph   |
-| Okta              | :4006       | OIDC, Users/Groups/Apps, auth servers |
-| AWS               | :4007       | S3, SQS, IAM, STS                   |
-| Resend            | :4008       | Email send/batch + local `/inbox` for assertions |
-| Stripe            | :4009       | Customers, prices, hosted checkout + webhooks |
-| MongoDB Atlas     | :4010       | Admin API v2 + Data API v1          |
-| Clerk             | :4011       | Users, sessions, orgs               |
-| Linear            | :4012       | Issues, projects, teams, GraphQL    |
+## Service Ports
+Default ports come from one table: the services table in the emulate-seed skill
+(`skills/emulate-seed/SKILL.md`, 14 services, `:4000` to `:4013`). Read it there instead of
+keeping a copy here; a second copy is how the two drifted apart.
 
 ## Rules
 **ALWAYS:**
@@ -150,6 +124,8 @@ Action:
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Skill Index
 

@@ -1,0 +1,12 @@
+{
+  "slug": "dsp-6204-ork-cursor-pins",
+  "source": "docs/chore--dsp-6204-ork-cursor-pins/index.html",
+  "title": "ork cursor pins: advisor, replay, thrash",
+  "description": "Pins and follow-ups after #4688: advisor negation, replay profile, thrash warn-once, eval argValue",
+  "tags": [
+    "bug",
+    "hooks",
+    "ork10"
+  ],
+  "date": "2026-10-11"
+}

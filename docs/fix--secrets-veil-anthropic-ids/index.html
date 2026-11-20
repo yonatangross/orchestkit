@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>secrets-veil: tool ids stay readable | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · SECRETS-VEIL</p>
+<h1>Tool ids stay readable</h1>
+<p>With secrets-veil on, a tool_use id such as <code>toolu_01</code> followed by 22 letters and digits showed as dots. The id is long and random, so the high-entropy layer took it for a secret: in a test, 890 of 1000 ids of that shape crossed the bar. These ids are public request handles, not credentials. Version 0.0.8 lets a token that is exactly an Anthropic id through the entropy layer and keeps every other layer on it.</p>
+<table>
+  <tr><th>Token</th><th>0.0.7</th><th>0.0.8</th></tr>
+  <tr><td>a tool_use, server tool, message or request id (<code>toolu_01</code>, <code>srvtoolu_01</code>, <code>msg_01</code>, <code>req_011C</code>)</td><td>masked about 9 times in 10</td><td>passes unchanged</td></tr>
+  <tr><td>the same id set as a named value</td><td>masked</td><td>masked</td></tr>
+  <tr><td>a vendor-prefix secret next to an id</td><td>masked</td><td>masked</td></tr>
+  <tr><td>a random token that only starts like an id (wrong digits or too long)</td><td>masked</td><td>masked</td></tr>
+</table>
+<p>The exemption covers the entropy layer only and only a whole token of the exact id shape. A real secret pasted with one of these prefixes in front of it, at the id length, would pass that one layer.</p>
+</body>
+</html>

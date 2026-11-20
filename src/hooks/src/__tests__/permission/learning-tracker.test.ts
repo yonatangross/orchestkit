@@ -67,6 +67,16 @@ function createBashInput(command: string): HookInput {
 // Tests
 // ---------------------------------------------------------------------------
 
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('learningTracker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -189,7 +199,9 @@ describe('learningTracker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('auto-approves when second pattern matches', () => {
@@ -207,7 +219,9 @@ describe('learningTracker', () => {
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('returns silentSuccess when no pattern matches', () => {
@@ -353,7 +367,9 @@ describe('learningTracker', () => {
 
       // Assert - long pattern skipped, valid prefix matches
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('regex-like patterns are treated as literal prefixes (SEC: no regex injection)', () => {
@@ -389,7 +405,9 @@ describe('learningTracker', () => {
 
       // Assert - non-string skipped, valid prefix matches
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -496,11 +514,11 @@ describe('learningTracker', () => {
       // Assert - CC 2.1.6 compliant shape
       expect(result).toHaveProperty('continue', true);
       expect(result).toHaveProperty('suppressOutput', true);
-      // #1910: hookSpecificOutput must carry hookEventName ('PreToolUse' for a
-      // permission hook), else CC's envelope validator rejects it.
+      // F11: PermissionRequest uses decision.behavior, not PreToolUse
+      // permissionDecision. hookEventName must match the firing event.
       expect(result.hookSpecificOutput).toEqual({
-        hookEventName: 'PreToolUse',
-        permissionDecision: 'allow',
+        hookEventName: 'PermissionRequest',
+        decision: { behavior: 'allow' },
       });
     });
 
@@ -545,7 +563,9 @@ describe('learningTracker', () => {
 
       // Assert — auto-approved purely from the cache
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
       // The full learned-patterns.json was neither stat'd nor read
       const bigFileTouches = [
         ...(existsSync as ReturnType<typeof vi.fn>).mock.calls,
@@ -572,7 +592,9 @@ describe('learningTracker', () => {
 
       // Assert — legacy fallback still auto-approves (fail-open preserved)
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('rejects a cache with the wrong schema key and falls back', () => {
@@ -609,7 +631,9 @@ describe('learningTracker', () => {
 
       // Assert — the one valid pattern still matches
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('survives absence of BOTH cache and legacy file (fail-open)', () => {
@@ -685,5 +709,75 @@ describe('learningTracker', () => {
       expect(result.continue).toBe(true);
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hardening (card ork-autoapprove-fix-2026-10-22): learned patterns match on a
+// token boundary and never bypass the reject and expansion checks.
+// ---------------------------------------------------------------------------
+
+describe('learningTracker learned-pattern hardening', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    _resetPatternCacheForTesting();
+  });
+
+  function learn(patterns: string[]): void {
+    (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(JSON.stringify({ autoApprovePatterns: patterns }));
+  }
+
+  function allowed(cmd: string): boolean {
+    const r = learningTracker(createBashInput(cmd));
+    return r.hookSpecificOutput?.decision?.behavior === 'allow' || r.hookSpecificOutput?.permissionDecision === 'allow';
+  }
+
+  test('a learned prefix only matches at a word boundary', () => {
+    learn(['git st']);
+    expect(allowed('git stash drop')).toBe(false);
+  });
+
+  test('a learned bare git approval does not cover a git option that runs another program', () => {
+    learn(['git']);
+    expect(allowed('git --exec-path=x status')).toBe(false);
+    expect(allowed('git -c core.pager=x log')).toBe(false);
+    expect(allowed('git log -1')).toBe(true);
+  });
+
+  test('a learned bare git approval does not cover git grep opening files in a pager', () => {
+    learn(['git']);
+    // -O<cmd> and --open-files-in-pager=<cmd> run <cmd> on the matched files;
+    // git also accepts the short form inside a cluster and the long one abbreviated.
+    expect(allowed('git grep -Ox hello')).toBe(false);
+    expect(allowed('git grep -nOx hello')).toBe(false);
+    expect(allowed('git grep --open-files-in-pager=x hello')).toBe(false);
+    expect(allowed('git grep --op=x hello')).toBe(false);
+    expect(allowed('git --shallow-file /dev/null grep -Opython hello')).toBe(false);
+    expect(allowed('git fetch --upload-pa=x origin')).toBe(false);
+    expect(allowed('git grep -n hello')).toBe(true);
+    expect(allowed('git log -O order.txt -1')).toBe(true);
+  });
+
+  test('a stored pattern with trailing whitespace still needs a word boundary', () => {
+    learn(['git st ']);
+    expect(allowed('git stash drop')).toBe(false);
+  });
+
+  test('a learned pattern does not cover glob or expansion characters', () => {
+    learn(['cat']);
+    expect(allowed('cat $HOME/notes.txt')).toBe(false);
+    expect(allowed('cat ~/.ss?/config')).toBe(false);
+  });
+
+  test('a learned pattern does not cover a reject-listed shape', () => {
+    learn(['cat']);
+    expect(allowed('cat ~/.ssh/config')).toBe(false);
+  });
+
+  test('control: an exact learned command and its arguments still allow', () => {
+    learn(['git status']);
+    expect(allowed('git status')).toBe(true);
+    expect(allowed('git status --short')).toBe(true);
   });
 });

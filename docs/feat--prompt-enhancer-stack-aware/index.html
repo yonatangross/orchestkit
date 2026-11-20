@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>prompt-enhancer 0.2.0: short, stack-aware rewrites | OrchestKit Lab</title>
+<meta name="description" content="A 4-word draft used to come back as an essay with questions. 0.2.0 keeps the draft, names your real subagents, skills and MCP servers, ends with one Done when line, and sends the catalog as a prompt-cached prefix.">
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 960px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+  pre { white-space: pre-wrap; background: #fff; border: 1px solid #d9d3c7; border-radius: 8px; padding: 12px; font-size: 14px; }
+  .meta { color: #5b6470; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; vertical-align: top; }
+  code { background: #fff; border: 1px solid #e6e0d4; border-radius: 4px; padding: 0 4px; }
+  button { font: inherit; padding: 4px 12px; border-radius: 6px; border: 1px solid #2a6f97; background: #fff; color: #2a6f97; cursor: pointer; }
+  button[aria-pressed="true"] { background: #2a6f97; color: #fff; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · PROMPT-ENHANCER</p>
+<h1>A 4-word draft should stay a short prompt</h1>
+<p>Dogfood on 2026-10-22: the draft <code>herdr agents cross harness</code> came back from 0.1.1 as a 30-line essay that invented a repo search, listed four interpretations and asked the user to pick one. 0.2.0 keeps the draft, picks the most likely meaning, names tools the user really has, and ends with one <code>Done when:</code> line.</p>
+<p><button id="show-1" aria-pressed="true">herdr agents cross harness</button> <button id="show-2" aria-pressed="false">גם ןא שךך fix teh failing prs in orchestkit</button></p>
+<div class="pair">
+  <div><h3>0.1.1</h3><pre id="before">Investigate how herdr agents work across harnesses in this codebase, and ask me before changing any files.
+
+First, locate herdr. The working directory (`~/scratch`) is not a git repository, so search for herdr under this directory and report the project root, the stack, and the conventions you find. Do not assume a location.
+
+&quot;Cross harness&quot; is ambiguous, so resolve it from the code or ask me. Possible meanings:
+1. Running herdr-managed agents under more than one harness (for example Claude Code, Codex, or another CLI runtime).
+2. Letting agents in different harnesses hand off work or share state with each other.
+3. Defining one shared interface that every harness implements.
+4. &quot;Harness&quot; as a test harness, not an agent runtime.
+
+Also confirm whether you should only produce a plan or also implement it.
+
+When the code is read, report in this order:
+- Where herdr lives and how agents and harnesses are defined there.
+- Which harnesses are already supported, and which are referenced but missing.
+- Your two or three best readings of &quot;cross harness&quot;, each with the file or symbol that supports it.
+
+If intent is still unclear after reading, stop and ask me which reading to pursue. Do not edit files until I answer.
+
+Once I confirm the goal, the work is done when:
+- The change is in place, and you show the command output that proves it. For example, a list command showing agents registered under two or more harnesses, or a test run with its pass count line.
+- You paste the file paths you changed and confirm each with `ls` or a read.
+- Anything you could not run or confirm is marked as unverified, with the command or location you checked.</pre></div>
+  <div><h3>0.2.0</h3><pre id="after">Make herdr agents work across harnesses, so Claude Code and other coding-agent harnesses running side by side in herdr panes can be read and sent to from one session. Use the herdr skill for pane reads and sends, and /hq-ext:floor for floor status.
+Done when: a message sent from a Claude Code pane reaches an agent in another harness&#x27;s pane, and its reply is read back in the same session.</pre></div>
+</div>
+<p class="meta">Real Haiku 5.5 outputs, recorded with <code>claude -p --model haiku</code> and each version's system prompt (0.2.0 also with the machine's local catalog). The second draft was only run on 0.2.0: <code>גם ןא שךך</code> is <code>do it all</code> typed on a Hebrew keyboard layout.</p>
+<h2>What changed</h2>
+<table>
+  <tr><th></th><th>0.1.1</th><th>0.2.0</th></tr>
+  <tr><td>Ambiguity</td><td>name it, ask the user</td><td>never ask, never list readings: write for the most likely one</td></tr>
+  <tr><td>Length</td><td>unbounded</td><td>the fixed draft, at most 3 added lines, one <code>Done when:</code> line, 6 lines max</td></tr>
+  <tr><td>Typos</td><td>fixed</td><td>fixed, plus English typed on a Hebrew layout decoded key by key</td></tr>
+  <tr><td>Tools</td><td>"read the repo first"</td><td>up to 3 names copied from the local catalog of the user's subagents, skills, slash commands and MCP servers; none without one</td></tr>
+  <tr><td>Prompt cache</td><td>none</td><td>system prompt and catalog are one static prefix with a breakpoint (<code>cache: true</code>) before the draft</td></tr>
+</table>
+<h2>The catalog</h2>
+<p>Nothing is bundled: the mod installs without OrchestKit, so a shipped tool list could point rewrites at tools the user does not have. With no local catalog the call says none is available and the rewrite names no tools. Local: <code>npm run catalog:local</code> writes <code>~/.claude/prompt-enhancer/catalog.md</code> from <code>~/.claude</code>, the enabled plugins and the MCP server names, plus an optional <code>notes.md</code>. Names and one-line purposes only, sorted the same way every time, capped at 24,000 characters. MCP server commands, args, env and URLs are never read into it.</p>
+<h2>Why the breakpoint sits in prompt</h2>
+<p>The mods API docs say a mod that other people run should put its cached static content at the start of <code>prompt</code>: through Bedrock, Vertex, Foundry or a gateway, Claude Code's attribution block fingerprints the start of the user message, so a breakpoint in <code>system</code> can miss. <code>system</code> comes first in the prefix, so the one breakpoint on the catalog block covers both. The cache is shared by every session on the account, so one Enhance warms it for every herdr lane for 5 minutes.</p>
+<script>
+const runs = { "1": ["Investigate how herdr agents work across harnesses in this codebase, and ask me before changing any files.\n\nFirst, locate herdr. The working directory (`~/scratch`) is not a git repository, so search for herdr under this directory and report the project root, the stack, and the conventions you find. Do not assume a location.\n\n\"Cross harness\" is ambiguous, so resolve it from the code or ask me. Possible meanings:\n1. Running herdr-managed agents under more than one harness (for example Claude Code, Codex, or another CLI runtime).\n2. Letting agents in different harnesses hand off work or share state with each other.\n3. Defining one shared interface that every harness implements.\n4. \"Harness\" as a test harness, not an agent runtime.\n\nAlso confirm whether you should only produce a plan or also implement it.\n\nWhen the code is read, report in this order:\n- Where herdr lives and how agents and harnesses are defined there.\n- Which harnesses are already supported, and which are referenced but missing.\n- Your two or three best readings of \"cross harness\", each with the file or symbol that supports it.\n\nIf intent is still unclear after reading, stop and ask me which reading to pursue. Do not edit files until I answer.\n\nOnce I confirm the goal, the work is done when:\n- The change is in place, and you show the command output that proves it. For example, a list command showing agents registered under two or more harnesses, or a test run with its pass count line.\n- You paste the file paths you changed and confirm each with `ls` or a read.\n- Anything you could not run or confirm is marked as unverified, with the command or location you checked.", "Make herdr agents work across harnesses, so Claude Code and other coding-agent harnesses running side by side in herdr panes can be read and sent to from one session. Use the herdr skill for pane reads and sends, and /hq-ext:floor for floor status.\nDone when: a message sent from a Claude Code pane reaches an agent in another harness's pane, and its reply is read back in the same session."], "2": ["(not run on 0.1.1)", "Do it all: fix the failing PRs in the orchestkit repo (yonatangross/orchestkit).\nUse ork:ci-debug on each failing run, read the actual error, and fix the root cause instead of re-running CI.\nRun the independent PRs in parallel subagents (ork:ci-cd-engineer) and keep the main session for decisions.\nMerge a PR only once its CI is green.\nDone when: every PR that was failing shows green CI, or each one still open names its specific blocker."] };
+for (const id of ["1", "2"]) {
+  document.getElementById("show-" + id).addEventListener("click", () => {
+    document.getElementById("before").textContent = runs[id][0];
+    document.getElementById("after").textContent = runs[id][1];
+    for (const other of ["1", "2"]) document.getElementById("show-" + other).setAttribute("aria-pressed", String(other === id));
+  });
+}
+</script>
+</body>
+</html>

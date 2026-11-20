@@ -30,6 +30,7 @@ jobs:
     name: Build (CI)
     permissions:
       contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -95,6 +96,20 @@ jobs:
       # (release-please.yml "Rebuild hook bundles on the release PR"), so
       # feature PRs never touch them and never conflict on them. The next step
       # enforces the other half: a feature PR must not carry a dist change.
+      #
+      # docs/site/lib/generated/related-graph.ts and search-suggest-index.ts are
+      # written by docs/site's prebuild (gen-related-graph, gen-search-suggest-index),
+      # not by the root `npm run build`, so they sat inside the GENERATED roster
+      # below while nothing in this job ever regenerated them: they went stale
+      # on main ("161 Hooks" where the count was 163, no ork-extras page) and the
+      # diff stayed green. Both scripts import only node builtins and repo
+      # scripts, so they run here without a docs/site install. They must run
+      # before the drift diff.
+      - name: Regenerate docs-site link graph and search index
+        run: |
+          node docs/site/scripts/gen-related-graph.mjs
+          node docs/site/scripts/gen-search-suggest-index.mjs
+
       - name: Check for uncommitted build changes
         run: |
           # docs/site/public/lab/ joined 2026-09-11 (#4049): lab-manifest.mjs now
@@ -113,6 +128,13 @@ jobs:
               exit 1
             fi
           done
+          # A rebuild can recreate a Lab copy omitted from the commit.
+          # Require every published copy to be tracked before checking drift.
+          if [ -n "$(git ls-files -o docs/site/public/lab/)" ]; then
+            echo "::error::Untracked Lab copies: add the generated pages to the commit."
+            git ls-files -o docs/site/public/lab/
+            exit 1
+          fi
           if ! git diff --quiet -- "${GENERATED[@]}"; then
             echo "::error::Build drift detected! Run 'npm run build' and commit the changes (${GENERATED[*]})."
             git diff --stat -- "${GENERATED[@]}"
@@ -128,6 +150,9 @@ jobs:
               case "$f" in
                 plugins/ork/skills/*)
                   echo "::error::Did you edit generated output? Source: src/skills/${f#plugins/ork/skills/}" ;;
+                docs/site/lib/generated/related-graph.ts|docs/site/lib/generated/search-suggest-index.ts)
+                  # Written by docs/site prebuild, not by the root npm run build.
+                  echo "::error::$f is not written by 'npm run build'. Run: node docs/site/scripts/gen-related-graph.mjs && node docs/site/scripts/gen-search-suggest-index.mjs" ;;
               esac
             done
             exit 1
@@ -153,7 +178,8 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           HEAD_REF: ${{ github.head_ref }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           DIST=(src/hooks/dist plugins/ork/hooks/dist)
@@ -168,25 +194,63 @@ jobs:
           done
           if [[ "$HEAD_REF" == release-please--* ]]; then
             if ! git diff --quiet -- "${DIST[@]}"; then
-              echo "::error::Release branch carries stale hook bundles. release-please.yml's rebuild step has not landed on this head yet; it re-runs on every push to main, so re-check after the next run or dispatch release-please.yml."
+              # Observed fact only. A diff here is either a rebuild that has
+              # not landed yet, or a rebuild the release-owned-bundle guard
+              # refused. Re-running this job, or dispatching release-please,
+              # is the remedy for exactly one of those, and this step cannot
+              # tell which. Link the latest run so the reader checks.
+              RP_URL=""
+              if command -v gh >/dev/null 2>&1; then
+                RP_URL="$(gh run list --workflow=release-please.yml --limit 1 --json url --jq '.[0].url' 2>/dev/null || true)"
+              fi
+              if [[ -z "${RP_URL}" ]]; then
+                RP_URL="https://github.com/${GITHUB_REPOSITORY:-yonatangross/orchestkit}/actions/workflows/release-please.yml"
+              fi
+              echo "::error::A fresh build of the hook bundles differs from what is committed."
+              echo "::error::Two causes fit that diff: the release-please rebuild has not run on this head yet, or the rebuild was refused by the release-owned-bundle guard. This step cannot tell which."
+              echo "::error::Latest release-please run: ${RP_URL}"
               git diff --stat -- "${DIST[@]}"
               exit 1
             fi
             echo "Release branch: hook bundles match a fresh build."
             exit 0
           fi
-          git fetch --quiet --depth=1 origin "$BASE_SHA"
-          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD -- "${DIST[@]}")
-          if [[ -n "$CHANGED" ]]; then
-            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Keep the local build for tests, but restore the committed copies and commit only src/:"
-            echo "::error::  git checkout ${BASE_SHA} -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
-            echo "$CHANGED"
+          # Compare against the CURRENT base tip, not the event's frozen
+          # base.sha: a bundle rebuild landing on main after the PR opened
+          # showed as "the PR changed dist" and red-ed every open hooks PR for
+          # free. HEAD here is the merge ref (base tip + head), so merge-base
+          # resolves to the tip itself; on a head-only checkout it resolves to
+          # the fork point, which is still the right comparison.
+          # This job's checkout is fetch-depth: 1, so the clone is shallow:
+          # unshallow or merge-base exits 1 silently with no common ancestor
+          # (fail-open-by-accident on every PR). FETCH_HEAD names the fetched
+          # base tip even when the shallow fetchspec maps no origin/<base> ref.
+          if [[ "$(git rev-parse --is-shallow-repository)" == true ]]; then
+            git fetch --quiet --unshallow origin "$BASE_REF"
+          else
+            git fetch --quiet origin "$BASE_REF"
+          fi
+          BASE=$(git merge-base FETCH_HEAD HEAD)
+          CHANGED=$(git diff --name-only "$BASE" HEAD -- "${DIST[@]}")
+          # Inherited, not authored (the #4277 pre-commit exception, applied to
+          # CI): a dist path whose committed content equals the current base
+          # tip is main's own bundle content, not a feature edit.
+          AUTHORED=()
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            git diff --quiet FETCH_HEAD HEAD -- "$f" && continue
+            AUTHORED+=("$f")
+          done <<< "$CHANGED"
+          if [[ ${#AUTHORED[@]} -gt 0 ]]; then
+            echo "::error::This PR changes hook bundles, which are release-owned (#3578). Rebase on or merge origin/$BASE_REF and push so the PR picks up the current bundles."
+            echo "::error::If the diff persists, restore the release-owned copies: git checkout origin/$BASE_REF -- ${DIST[*]} && git commit -m 'chore: drop release-owned hook bundles from PR'"
+            printf '%s\n' "${AUTHORED[@]}"
             exit 1
           fi
           echo "Feature PR: hook bundles untouched."
 
       - name: Upload built plugins
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -210,19 +274,19 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version-file: .nvmrc
 
       - name: Install Claude Code CLI
         run: |
-          # Pinned to the current stable CLI (2.1.273), not the 2.1.251 floor
+          # Pinned to the mod API version (2.1.300), not the 2.1.251 floor
           # used by plugin-validation.yml: hooks modules registered on newer
           # events (session.start) only validate on newer CLIs, and users'
           # installs auto-update, so the gate should match what runs in
-          # production. --ignore-scripts is the supply-chain mitigation from
-          # plugin-validation.yml; install.cjs fetches the native binary.
-          npm install -g @anthropic-ai/claude-code@2.1.273 --ignore-scripts 2>/dev/null || true
+          # production. Disable install scripts for supply chain protection.
+          # plugin-validation.yml uses the same protection. Fetch the binary next.
+          npm_config_ignore_scripts=true npm install -g @anthropic-ai/claude-code@2.1.300 2>/dev/null || true
           INSTALL_CJS="$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
           if [ -f "$INSTALL_CJS" ]; then
             node "$INSTALL_CJS" 2>/dev/null || true
@@ -269,7 +333,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -304,6 +368,30 @@ jobs:
       - name: FH-ready handler policy
         run: cd src/hooks && node scripts/fh-ready-check.mjs
 
+      # Hook spawn ratchet (yellow-refactor M1): processes started per Bash,
+      # Edit, Write and Read call, counted from hooks.json. Baseline in
+      # src/hooks/scripts/spawn-ratchet-baseline.json only falls; the
+      # success-path target is 2 per call.
+      - name: Hook spawn ratchet
+        run: cd src/hooks && node scripts/spawn-ratchet.mjs
+
+      # The 51 Python scripts shipped under src/skills/**/scripts/ had zero CI
+      # coverage: hook-contract-py.yml and orchestkit-py.yml lint only their own
+      # packages. compileall catches syntax errors; ruff runs under the repo
+      # pyproject.toml config (templates/examples excluded).
+      # The interpreter is pinned to the declared requires-python floor (3.11),
+      # not the runner default: the runner's python3 accepts PEP 695 generics
+      # at compile time, which is exactly how #4265 shipped
+      # `def call_llm[T: BaseModel]` into a >=3.11 codebase.
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.11"
+      - name: Python skill scripts (compileall + ruff)
+        run: |
+          python -m compileall -q src/skills
+          python -m pip install --quiet "ruff==0.17.4"
+          ruff check src/skills
+
   # ============================================================================
   # STAGE 1b: Dependency Security Audit (BLOCKING)
   # ============================================================================
@@ -319,14 +407,31 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version-file: .nvmrc
 
+      # On a pull request this row judges the CHANGE through the one gate script the pre-push hook and
+      # "Security Tests" use (orchestkit row 10, part 2): advisories in packages the PR adds or changes,
+      # and high or critical anywhere in any lockfile. It diffs against the base tip, so the base must
+      # be fetched (the Performance job's step is the model); a missing base fails closed. On push to
+      # main the two whole-tree steps below run exactly as before, and the scheduled workflow owns the rest.
+      - name: Fetch the base branch for the change audit
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      - name: Audit the change (pull request)
+        if: github.event_name == 'pull_request'
+        run: bash .github/scripts/audit-gate.sh
+
       - name: Audit root dependencies
+        if: github.event_name != 'pull_request'
         run: bash .github/scripts/npm-audit-with-retry.sh .
 
       - name: Audit hooks dependencies
+        if: github.event_name != 'pull_request'
         run: bash .github/scripts/npm-audit-with-retry.sh src/hooks
 
   # ============================================================================
@@ -337,14 +442,16 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        timeout-minutes: 8
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Run gitleaks
+        timeout-minutes: 5
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -377,126 +484,7 @@ jobs:
           # Expression, not string interpolation of attacker-controlled text:
           # this evaluates to the literal true/false before the shell sees it.
           IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
-        run: |
-          set -uo pipefail
-
-          skip() {
-            echo "required=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::$1"
-            exit 0
-          }
-
-          # Bot PRs never carry a playground.
-          if [[ "$PR_AUTHOR" == "dependabot[bot]" || "$PR_AUTHOR" == "release-please[bot]" || "$PR_AUTHOR" == "github-actions[bot]" || "$PR_AUTHOR" == "orchestkit-release-bot[bot]" ]]; then
-            skip "Skipping playground check for bot PR ($PR_AUTHOR)"
-          fi
-
-          # Automated branches, kept as a cheap fast path.
-          if [[ "$HEAD_REF" =~ ^(dependabot/|release-please|renovate/|chore/cc-snapshot-|ci/) ]]; then
-            skip "Skipping playground check for automated branch ($HEAD_REF)"
-          fi
-
-          # Fork PRs. This gate exists to keep OUR feature work documented in
-          # the Lab, which presumes knowledge an outside contributor does not
-          # have and cannot get from CONTRIBUTING: the docs/<branch-slug>/
-          # naming rule, the no-third-party-render-proxy rule, and the
-          # lab-manifest publishing step. Being REQUIRED, it hard-blocked such
-          # PRs with no path forward.
-          #
-          # Hit twice for real. #3193 was a one-line docs diff, and the fix then
-          # was to widen INERT by path; that does not generalise, because the
-          # next case (#3495) was a two-line change to a Python example under
-          # src/skills/, a path that legitimately IS user-facing. The problem is
-          # not which files were touched, it is that we are taxing a stranger
-          # for an artifact only a maintainer knows how to produce.
-          #
-          # So: exempt cross-repository PRs and let the maintainer add the
-          # playground when landing the change. This cannot be used to dodge the
-          # gate on our own work, because a branch pushed to this repo is never
-          # cross-repository.
-          if [[ "$IS_FORK" == "true" ]]; then
-            skip "Skipping playground check for fork PR ($PR_AUTHOR); maintainer adds the playground at merge time"
-          fi
-
-          # Path-based inertness.
-          #
-          # The branch rule above already encodes this intent ("vercel.json,
-          # .github/, *.toml have nothing user-facing to playground") but keys it
-          # on a branch NAME, which only works for branches we name ourselves. An
-          # outside contributor fixing a typo in README.md has no such prefix, so
-          # the gate demanded a hand-authored interactive playground for a
-          # one-line docs diff — and being a REQUIRED check, it hard-blocked the
-          # PR with no path forward. Hit for real on #3193.
-          #
-          # Fail-closed on purpose: a changed file matching nothing here still
-          # REQUIRES a playground, so a new user-facing directory is never
-          # silently exempted just because this list predates it.
-          # NOTE the `.*` after `\.github/`: the trailing `$` anchors the whole
-          # alternation, so a bare `\.github/` would only match a file literally
-          # named ".github/" and every real workflow path would fall through to
-          # "playground required".
-          # `docs/<type>--<slug>/` is the Lab itself. A diff confined to those
-          # dirs is Lab maintenance, not feature work that needs documenting,
-          # and requiring a playground for it is circular: the periodic prune
-          # (scripts/prune-playgrounds.sh) deletes 77 playground dirs and was
-          # then blocked for not adding a 78th, which would immediately become
-          # the next cycle's prune fodder. Feature PRs are unaffected because
-          # they also touch src/, docs/site/ or tests/, which are not inert.
-          # `docs/playgrounds/` holds session explainer pages (glyph output,
-          # not Lab entries): the same circularity, a page about a page. Hit
-          # on #3811, three explainers blocked for lacking a fourth.
-          # `docs/audits/` holds dated decline-and-document records: the
-          # written output of a decision, not feature work with something to
-          # demonstrate. Same circularity a third time, hit on #3845, a diff of
-          # one audit file plus a one-line upper bound in pyproject.toml (which
-          # is already exempt). Requiring a hand-authored interactive page for
-          # an evidence record is the tax this list exists to remove.
-          # `.claude/rules/` holds the agent-facing rule texts this repo writes for
-          # itself. They are repo-internal instructions, not product: there is no
-          # user-facing behaviour to demonstrate in an interactive page, and a
-          # playground about a rule amendment is a page about a page. Same
-          # circularity the three widenings above already removed, hit a fourth time
-          # on #3993, a one-file edit to .claude/rules/hooks-development.md that this
-          # gate demanded a hand-authored playground for.
-          #
-          # Scoped to `rules/` deliberately, NOT all of `.claude/`. `.claude/skills/`
-          # and `.claude/hooks/` would be real behaviour a reviewer should be able to
-          # open, and the fail-closed property below is the thing worth keeping.
-          # Generated Lab artifacts are the outputs of
-          # docs/site/scripts/lab-manifest.mjs: for a docs/<slug>/ page it
-          # emits the published copy under docs/site/public/lab/, a manifest
-          # fragment under docs/site/lab-manifest/, and the data module
-          # docs/site/lib/generated/lab-data.ts. The source page is already
-          # inert, so a diff confined to it plus these build products is Lab
-          # maintenance, and demanding a playground for them is a page about
-          # a page. Same circularity a fourth time, hit on #4161, where a fix
-          # to one Lab page plus its generated copy failed with "Missing PR
-          # playground directory" because the copy sat outside the pattern
-          # that exempts its source.
-          INERT='^(README\.md|CHANGELOG\.md|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md|LICENSE|\.github/.*|vercel\.json|[^/]*\.toml|docs/[^/]*--[^/]*/.*|docs/playgrounds/.*|docs/audits/.*|\.claude/rules/.*|docs/site/public/lab/.*|docs/site/lab-manifest/.*|docs/site/lib/generated/lab-data\.ts)$'
-
-          FILES=$(gh pr diff "$PR_NUMBER" --name-only 2>/dev/null || true)
-          if [ -z "$FILES" ]; then
-            echo "required=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Could not read the PR diff; requiring a playground (fail-closed)."
-            exit 0
-          fi
-
-          # grep -v exits 0 when SOME line fails to match, i.e. a non-inert file
-          # exists. Negating it means "every changed file is inert".
-          #
-          # Here-string, NOT `printf ... | grep -q`. grep -q early-exits on the
-          # first match, which SIGPIPEs the producer; under `pipefail` that 141
-          # propagates and flips this `if` non-deterministically (#603). In a
-          # REQUIRED gate that races fail-OPEN: a user-facing PR would sometimes
-          # be waved through with no playground. A here-string has no producer
-          # process, so there is nothing to signal.
-          if ! grep -qvE "$INERT" <<< "$FILES"; then
-            skip "Skipping playground check: every changed file is docs or config only"
-          fi
-
-          echo "required=true" >> "$GITHUB_OUTPUT"
-          echo "::notice::Playground required (PR touches user-facing paths)"
+        run: bash scripts/ci/playground-gate-decision.sh
 
       - name: Check playground exists
         if: steps.gate.outputs.required == 'true'
@@ -592,7 +580,7 @@ jobs:
             echo "::error::     \"slug\": \"<slug>\", \"source\": \"<the path above>\", title, description, tags, date"
             echo "::error::  2. run: npm run build (regenerates lab-data.ts and public/lab/)"
             echo "::error::Then link it in the PR body as"
-            echo "::error::  https://orchestkit.yonyon.ai/lab/<slug>.html"
+            echo "::error::  https://orchestkit.dev/lab/<slug>.html"
             echo "::error::(the .html suffix is required; /lab/<slug> returns 404)"
             exit 1
           fi
@@ -642,14 +630,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20', '22']
+        # PRs run node 22 only (the required "Unit Tests (node 22)"); node 20
+        # runs on push, merge_group, schedule and dispatch.
+        node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["20", "22"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -659,6 +649,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           build-plugins: 'false'
+
+      # tests/unit/test-workflows-open-prs-unarmed.sh runs
+      # scripts/ci/check-workflow-self-merge.py, which parses each workflow
+      # with PyYAML and fails closed (exit 2) without it (#4914, #4931).
+      - name: Install PyYAML for the workflow self-merge checker
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
 
       - name: Run unit tests
         shell: bash
@@ -719,7 +715,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -734,6 +730,17 @@ jobs:
       # An install-based fix was tried first and is wrong here — docs/site pulls
       # @yonatan-hq/analytics from GitHub Packages and NPM_TOKEN is deliberately
       # withheld on pull_request runs (#2536), so `npm ci` 401s on every PR.
+      #
+      # On a pull request the npm audit gate judges the CHANGE (orchestkit row 10, part 2), through
+      # .github/scripts/audit-gate.sh, by diffing every lockfile against the base tip. That needs the
+      # base branch, so it is fetched here (the Performance job's step is the model); a missing base
+      # fails closed with its own message. On push to main the gate stays whole-tree.
+      - name: Fetch the base branch for the npm audit gate
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
       - name: Run security tests
         shell: bash
         run: |
@@ -771,7 +778,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -810,7 +817,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -819,6 +826,19 @@ jobs:
         uses: ./.github/actions/setup
         with:
           build-plugins: 'false'
+
+      # The skill-listing gate parses SKILL.md frontmatter with PyYAML and
+      # fails closed (exit 2) without it (orchestkit#5044).
+      - name: Install PyYAML for the skill-listing gate
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
+
+      # Test 4d compares skill-listing-ratchet.txt with the base branch and
+      # fails closed on a pull_request run when the base ref is missing.
+      - name: Fetch the base branch for the ratchet check
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
 
       - name: Run performance tests
         shell: bash
@@ -843,7 +863,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -879,14 +899,14 @@ jobs:
       contents: read
     needs: [build-plugins]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45  # was 20: the warnings ratchet step below runs the full suite (about 12 minutes on a runner)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -895,6 +915,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           build-plugins: 'false'
+          install-hooks-deps: 'true'  # the full-suite ratchet step runs the hook structure tests
 
       - name: Run agent tests
         shell: bash
@@ -921,6 +942,32 @@ jobs:
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/subagents --verbose
+
+      # The full run below includes tests/performance/test-token-overhead.sh, whose Test 4d compares
+      # skill-listing-ratchet.txt with the base branch and fails closed on a pull_request run when
+      # the base ref is missing. Same fetch as the Performance Tests job (row 12, #5231 first run).
+      - name: Fetch the base branch for the ratchet check
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+
+      # Advisory-warnings ratchet gate (row 12, 2026-11-13). Every category has its own baseline
+      # in tests/warnings-baselines.txt, and the skills block keeps WARNINGS_BASELINE in
+      # tests/run-all-tests.sh; all of them only fall. Until now the ratchet printed "GREW" and
+      # exited 0, and no PR job called the script, so warnings could grow unseen (375 against a
+      # baseline of 267 on main). This step lives in the "Agents & Skills" job on purpose: that
+      # job is a required check and "CI Summary" needs it, so a category above its baseline, below
+      # it (strict: the message prints the line to write), one with no baseline, a count that cannot
+      # be read, or any failing test in any of the 25 categories blocks the merge. Do not move it to a
+      # sibling workflow, which would only report. Never set ORK_WARNINGS_BASELINE or
+      # ORK_WARNINGS_BASELINES_FILE here: that would let a workflow raise a baseline.
+      # It is the full run (the same one `npm test` does): the baselines were measured on it.
+      - name: Warnings ratchet (every category)
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/run-all-tests.sh
 
   # ============================================================================
   # STAGE 7b: Manifest, Schema & Hook Compliance
@@ -950,6 +997,11 @@ jobs:
           build-plugins: 'true'   # rebuild plugins/ from this checkout's src/ (not a stale artifact)
           run-ci-setup: 'false'
           install-hooks-deps: 'true'  # npm ci in src/hooks BEFORE build → src/hooks/dist rebuilt from src
+
+      # The workflow issue-text scanner (#4747) parses each workflow with a
+      # YAML safe loader; without PyYAML it refuses every file (exit 2).
+      - name: Install PyYAML for the workflow issue-text scanner
+        run: python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --user --break-system-packages 'PyYAML==6.0.3'
 
       - name: Run manifest tests
         run: bash scripts/ci/run-tests.sh tests/manifests --verbose
@@ -1017,7 +1069,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -1031,7 +1083,7 @@ jobs:
         run: npm run eval:static
 
       - name: Upload results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: static-analysis-results
           path: tests/evals/results/static-analysis.json
@@ -1055,7 +1107,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -1094,7 +1146,7 @@ jobs:
           persist-credentials: false
 
       - name: Download built plugins
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: built-plugins
           path: plugins/
@@ -1131,7 +1183,7 @@ jobs:
           bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: hook-coverage-report
           path: coverage-report.txt

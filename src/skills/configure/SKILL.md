@@ -1,21 +1,20 @@
 ---
 name: configure
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, and install presets. Use when customizing plugin behavior or managing settings."
+compatibility: "Claude Code 2.1.277+."
+description: "Interactive wizard for OrchestKit settings: MCP servers, hook permissions, keybindings, presets. Use when customizing plugin behavior."
 argument-hint: "[preset-name]"
 context: inherit
-version: 1.0.1
-author: OrchestKit
-tags: [configuration, setup, wizard, customization]
 user-invocable: false
-allowed-tools: [Bash, Read, Grep, Glob, Edit, Write, AskUserQuestion]
-complexity: low
-persuasion-type: collaborative
+allowed-tools: "Bash Read Grep Glob Edit Write AskUserQuestion"
 effort: low
 model: haiku
 metadata:
   category: workflow-automation
+  version: "1.0.1"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "configuration, setup, wizard, customization"
 paths: [".claude/**", "**/.claude/**"]
 ---
 
@@ -39,17 +38,22 @@ TARGET = "$ARGUMENTS[1]"   # Optional target, e.g., "memory"
 # $ARGUMENTS is the full string (CC 2.1.59 indexed access)
 ```
 
+Done means `~/.claude/plugins/orchestkit/config.json` is written, the user saw the Step 11 preview, and `/reload-plugins` was advised.
+Budget: at most one AskUserQuestion per step and 11 steps; stop and report at the finish line or the first cap, whichever comes first.
+
 ## Step 1: Choose Preset
 
 Use AskUserQuestion:
 
 | Preset | Skills | Agents | Hooks | Description |
 |--------|--------|--------|-------|-------------|
-| **Complete** | 91 | 31 | 96 | Everything |
-| **Standard** | 91 | 0 | 96 | Skills, no agents |
-| **Lite** | 10 | 0 | 96 | Essential only |
-| **Hooks-only** | 0 | 0 | 96 | Just safety |
-| **Monorepo** | 91 | 31 | 96 | Complete + monorepo detection |
+| **Complete** | all | all | all | Everything |
+| **Standard** | all | 0 | all | Skills, no agents |
+| **Lite** | 28 | 0 | all | Essential only (testing, security, planning) |
+| **Hooks-only** | 0 | 0 | all | Safety, productivity and team coordination hooks |
+| **Monorepo** | all | all | all | Complete + monorepo detection |
+
+Live counts: run `claude plugin details ork` (107 skills, 36 agents on 2026-09-25).
 
 ## Step 2: Customize Skill Categories
 
@@ -104,10 +108,10 @@ Categories available:
 
 ## Step 4: Configure Hooks
 
-**Safety Hooks (Always On):**
-- git-branch-protection
-- file-guard
-- redact-secrets
+**Safety (Always On):**
+- operator `permissions.deny` rules (written by `/ork:setup`, enforced by Claude Code)
+- network egress guard (DENY tier, inside the Bash dispatcher)
+- secret handler (PostToolUse output scan; logs only by default, `ORK_SECRET_HOOK=REDACT` to redact)
 
 **Toggleable Hooks:**
 - Productivity (auto-approve, logging)
@@ -146,7 +150,7 @@ All 4 MCPs ship **enabled by default**. Tavily requires an API key.
 | sequential-thinking | Structured reasoning for subagents | enabled | Nothing |
 | tavily | Web search + extraction | enabled | API key (free tier: app.tavily.com) |
 
-> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. While Opus 5 has native extended thinking, Sonnet and Haiku do not — they benefit from sequential-thinking. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
+> **Why enabled?** OrchestKit ships 30+ Sonnet/Haiku subagents. Opus 5.5, Sonnet 5 and Haiku 5.5 think natively (adaptive thinking is on by default), so sequential-thinking is most useful for a subagent pinned to an older model such as Haiku 4.5, which needs an explicit `budget_tokens`. Where `haiku` still resolves to Haiku 4.5 (CC below 2.1.293, Bedrock, Vertex, Foundry, Claude Platform on AWS), that means every `model: haiku` subagent. Tavily is used by specific agents (see `mcpServers` in agent frontmatter). CC's MCPSearch auto-defers schemas when overhead exceeds 10% of context, so token cost is managed automatically.
 
 > **Background agents:** MCP tools are NOT available in background subagents (hard CC platform limitation). Agents that need MCP tools must run in the foreground.
 

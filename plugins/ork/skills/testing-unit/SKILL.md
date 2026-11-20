@@ -1,28 +1,21 @@
 ---
 name: testing-unit
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Unit testing patterns for isolated business logic tests — AAA pattern, parametrized tests (test.each, @pytest.mark.parametrize), fixture scoping (function/module/session), mocking with MSW/VCR at network level, and test data management with factories (FactoryBoy, faker-js). Use when writing unit tests, setting up mocks, structuring test data, optimizing test speed, choosing fixture scope, or reducing test boilerplate. Covers Vitest, Jest, pytest.
-tags: [testing, unit, mocking, msw, vcr, fixtures, factories, vitest-4, aroundEach]
-context: fork
-agent: test-generator
-version: 2.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Unit test patterns: AAA, parametrized tests, fixture scope, MSW or VCR network mocks, data factories, for Vitest, Jest and pytest. Use when writing unit tests or setting up mocks and fixtures."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: vitest
-    version: ">=4.1.0"
+    version: ">=5.0.3"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "testing, unit, mocking, msw, vcr, fixtures, factories, vitest-4, aroundEach"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["*.test.*", "*.spec.*", "**/vitest.config.*", "**/jest.config.*"]
 ---
 

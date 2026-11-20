@@ -1,12 +1,12 @@
 ---
-description: "Inspects the OrchestKit telemetry pipeline for the current project — lists all known telemetry files with write counts, sizes, schema status, growth trend, and orphan detection. Use when verifying the observability pipeline is healthy, debugging a missing writer, or auditing which files have schema locks vs. which are drift-vulnerable. Read-only — never modifies telemetry files."
+description: "Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. Use when verifying the observability pipeline or hunting a missing writer."
 argument-hint: "[--session <id>] [--json]"
 model: haiku
 effort: low
 context: inherit
 user-invocable: true
 name: telemetry-inspect
-allowed-tools: [Bash, Read, Grep, Glob]
+allowed-tools: "Bash Read Grep Glob"
 ---
 
 # Auto-generated from skills/telemetry-inspect/SKILL.md
@@ -139,7 +139,7 @@ Degrade gracefully: if `sqlite3` is absent or the DB / metrics file doesn't exis
 
 When inspecting Claude Code's own OTel metrics (downstream of this skill — `claude_code.*` in your collector):
 
-- **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover — annotate, don't alert. See `references/../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.
+- **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover, annotate, don't alert. See `../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.
 - **CC 2.1.161+**: `OTEL_RESOURCE_ATTRIBUTES` values are now attached as labels on all metric datapoints, enabling dimensional slicing (team, repo, environment). Existing dashboards keep working; new dashboards should use label selectors to segment usage.
 - **CC 2.1.145+**: `claude_code.tool` OTEL spans carry `agent_id` + `parent_agent_id`, and background subagent spans nest under the dispatching Agent tool span. Build the trace tree by querying on `parent_agent_id` — enables per-skill fan-out timing and cost attribution for multi-agent skills (`brainstorm`, `explore`, `implement`); no schema change needed.
 - **CC 2.1.174+**: `/usage` exposes CC-native per-component attribution — cache misses, long context, subagents, and per-skill/agent/plugin/MCP cost breakdowns over 24h/7d (surfaced first in the VSCode Account & usage dialog). Treat it as a cross-check source in the health report: if ork telemetry shows a skill/agent active but CC attribution shows zero usage for it (or vice versa), flag the divergence as a possible missing writer or stale install rather than trusting either side alone.

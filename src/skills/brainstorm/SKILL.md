@@ -1,33 +1,21 @@
 ---
 name: brainstorm
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Design exploration using parallel agents through a 7-phase process: topic analysis, memory context, divergent ideation (10+ ideas), feasibility filtering, evaluation with devil's advocate scoring (0-10 across 7 dimensions), synthesis of top approaches, and trade-off comparison. Supports open exploration, constrained design, comparison, quick ideation, and iterative optimization modes. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess)."
 argument-hint: "[topic-or-idea]"
-tags: [planning, ideation, creativity, design]
-context: fork
-# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
-background: false
-version: 4.10.0
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
-author: OrchestKit
 user-invocable: true
-allowed-tools: [AskUserQuestion, Agent, Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, ExitWorktree, PushNotification, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design, memory, remember, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
-complexity: medium
-persuasion-type: collaborative
+allowed-tools: "AskUserQuestion Agent Workflow Read Grep Glob Bash TaskCreate TaskUpdate TaskList TaskStop ToolSearch ExitWorktree PushNotification mcp__memory__search_nodes"
+skills: [architecture-decision-record, api-design, memory, scope-appropriate-architecture, testing-unit, testing-integration, chain-patterns, design-to-code, component-search, design-context-extract, security-patterns, database-patterns, performance, devops-deployment, competitive-analysis, user-research, browser-tools]
 model: sonnet
-hooks:
-  PreToolUse:
-    - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/prior-decisions-loader"
-      once: true
-    - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/brainstorm-instructions-loader"
-      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "4.10.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "planning, ideation, creativity, design"
 triggers:
   keywords: [brainstorm, brianstorm, "explore ideas", "explore some ideas", ideate, "think through", "some approaches", "not sure how to architect", alternatives, "compare strategies", "help me compare"]
   examples:
@@ -63,6 +51,12 @@ Full procedure + handoff-file table: `Read("references/mcp-probe-resume.md")`
 ---
 
 ## STEP 0: Project Context Discovery
+
+**Context already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind; there is nothing to run. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/prior-decisions-loader` and `skill/brainstorm-instructions-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" <loader>`:
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/prior-decisions-loader 2>/dev/null || true`
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/brainstorm-instructions-loader 2>/dev/null || true`
 
 **BEFORE creating tasks or selecting agents**, detect the project tier. This becomes the **complexity ceiling** for all downstream decisions.
 
@@ -188,10 +182,10 @@ ExitPlanMode()
 
 **Based on answers, adjust workflow:**
 - **Open exploration** (Q1): Full 7-phase process with all agents
-- **Comparison** (Q1): Skip ideation, jump to evaluation phase
+- **Comparison** (Q1): Skip ideation (skips Phase 2), jump to evaluation phase
 - **Quick ideation** (Q1): Generate ideas, skip deep evaluation
-- **Iterative optimization** (Q1): Skip phases 2-6, enter autoresearch-style loop (see below)
-- **Constrained design** (Q2 = "Fixed requirements"): Skip divergent phase, focus on feasibility within the stated requirements — composes with any Q1 mode
+- **Iterative optimization** (Q1): Skip phases 2-6 (no Phase 2 fan-out), enter autoresearch-style loop (see below)
+- **Constrained design** (Q2 = "Fixed requirements"): Skip divergent phase (skips Phase 2), focus on feasibility within the stated requirements, composes with any Q1 mode
 
 **If 'Iterative optimization' selected:** skip Phases 2-6 and enter the autoresearch-style metric-driven loop.
 
@@ -201,32 +195,39 @@ Full sub-flow (metric question, baseline, loop body): `Read("references/iterativ
 
 ## STEP 0b: Select Orchestration Mode (skip for Tier 1-2)
 
-Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
+Choose the **Workflow** call (star, scripted), **Agent Teams** (mesh, agents debate and challenge ideas) or the **Agent tool** (star, all report to lead):
 
-1. Agent Teams mode (GA since CC 2.1.33) → **recommended for 3+ agents** (real-time debate produces better ideas)
-2. Task tool mode → **for quick ideation**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Task tool** (override)
+1. Workflow mode → `workflows/brainstorm-diverge.js` runs the Phase 2 generators at effort `low` (STEP 0c)
+2. Agent Teams mode → **recommended for 3+ agents** (real-time debate produces better ideas)
+3. Agent tool mode → **for quick ideation**
+4. `ORCHESTKIT_FORCE_TASK_TOOL=1` → **Agent tool** (override)
 
-| Aspect | Task Tool | Agent Teams |
+| Aspect | Agent Tool | Agent Teams |
 |--------|-----------|-------------|
 | Idea generation | Each agent generates independently | Agents riff on each other's ideas |
 | Devil's advocate | Lead challenges after all complete | Agents challenge each other in real-time |
 | Cost | ~150K tokens | ~400K tokens |
 | Best for | Quick ideation, constrained design | Open exploration, deep evaluation |
 
-> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining phases.
+> **Fallback:** If Agent Teams encounters issues, fall back to Agent tool for remaining phases.
 
 ---
 
-## STEP 0c: Effort-Aware Phase Scaling (CC 2.1.76; `xhigh` added in 2.1.111)
+## STEP 0c: Effort-Aware Phase Scaling
 
 Read the `/effort` setting and scale brainstorm depth — `low` runs phases 0/2/5 only, `high` (default) runs all 7, `xhigh` adds extra devil's-advocate and synthesis rounds. Explicit user choice in STEP 0a always overrides downscaling.
 
 Full level table + detection rules: `Read("references/effort-scaling.md")`
 
+**Phase 2 always runs at effort `low`**, whatever the level above: in-the-loop ideation is where low effort pays, scoring is not. The skill has no `effort:` frontmatter on purpose (it would lower Phase 4 too); `workflows/brainstorm-diverge.js` passes `effort: "low"` to every generator instead. Details in the same reference.
+
+**Fan-out rule:** a single pass is never a fallback when the selected mode runs Phase 2. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; this skill runs inline (#4696) because a fork has no Workflow tool. If none of them spawns a generator, end the run as BLOCKED and say why. A mode that skips Phase 2 (Comparison, Iterative optimization, Constrained design) is not a violation.
+
 ---
 
-## 🚨 CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+**Finish line.** Done means: the top approaches are scored on all seven dimensions and the trade-offs are presented for the user to choose. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
+## 🚨 CRITICAL: Task Management is MANDATORY
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -277,7 +278,7 @@ execution waves with verifiable items), emit the design as a **living plan playg
 one-shot render: waves from Phase 5 synthesis, 7-dimension scores from Phase 4, discarded ideas with
 reasons from Phase 3, one item per work unit with a "done when" evidence check. Route through
 `visualize-plan`'s living-plan path (exemplar `living-plan.template.html`, update-mode contract in its
-`references/format-dispatch.md` §Living-plan update mode). The artifact then tracks its own execution:
+`visualize-plan/references/format-dispatch.md` §Living-plan update mode). The artifact then tracks its own execution:
 later sessions flip item statuses in the embedded `lpp-state` JSON and append to its changelog — one
 plan = one file, never fork.
 
@@ -302,7 +303,7 @@ Session dir must contain `brainstorm-output.json` (with `recommended`, `composit
 
 Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler for `/hq-ext:decide`).
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output
 
 Output results **incrementally** after each phase — don't batch everything until the end:
 
@@ -355,13 +356,12 @@ Skip brainstorming when:
 In Agent Teams mode, form a brainstorming team where agents debate ideas in real-time. Dynamically select teammates based on topic analysis (Phase 0):
 
 ```python
-# CC 2.1.178+: one implicit team per session — no TeamCreate.
-# Spawn teammates directly via Agent(name=...). Requires
-# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 (set in ork.settings.json).
+# One implicit team per session: no TeamCreate and no team_name.
+# Spawn teammates directly via Agent(name=...). Agent Teams needs
+# CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in the user's environment.
 
 # Always include the system design lead
 Agent(subagent_type="ork:workflow-architect", name="system-designer",
-     team_name="brainstorm-{topic-slug}",
      prompt="""You are the system design lead for brainstorming: {topic}
      DIVERGENT MODE: Generate 3-4 architectural approaches.
      When other teammates share ideas, build on them or propose alternatives.
@@ -370,7 +370,6 @@ Agent(subagent_type="ork:workflow-architect", name="system-designer",
 
 # Domain-specific teammates (select 2-3 based on topic keywords)
 Agent(subagent_type="ork:backend-system-architect", name="backend-thinker",
-     team_name="brainstorm-{topic-slug}",
      prompt="""Brainstorm backend approaches for: {topic}
      DIVERGENT MODE: Generate 3-4 backend-specific ideas.
      When system-designer shares architectural ideas, propose concrete API designs.
@@ -378,7 +377,6 @@ Agent(subagent_type="ork:backend-system-architect", name="backend-thinker",
      Play devil's advocate on complexity vs simplicity trade-offs.""")
 
 Agent(subagent_type="ork:frontend-ui-developer", name="frontend-thinker",
-     team_name="brainstorm-{topic-slug}",
      prompt="""Brainstorm frontend approaches for: {topic}
      DIVERGENT MODE: Generate 3-4 UI/UX ideas.
      When backend-thinker proposes APIs, suggest frontend patterns that match.
@@ -387,7 +385,6 @@ Agent(subagent_type="ork:frontend-ui-developer", name="frontend-thinker",
 
 # Always include: testability assessor
 Agent(subagent_type="ork:test-generator", name="testability-assessor",
-     team_name="brainstorm-{topic-slug}",
      prompt="""Assess testability for each brainstormed approach: {topic}
      For every idea shared by teammates, evaluate:
      - Can core logic be unit tested without external services?
@@ -419,23 +416,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up implement
 
 > **Fallback:** If team formation fails, load `Read("references/phase-workflow.md")` and use standard Phase 2 Task spawns.
 
-> **Partial results (CC 2.1.76, extended 2.1.246):** Background agents that are killed (timeout, context limit) return responses tagged with `[PARTIAL RESULT]`. Since CC 2.1.246 an agent that stops at its `maxTurns` limit is ALSO reported as partial: its summary reads "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)" and its output is marked partial instead of appearing finished. When collecting Phase 2 divergent ideas, check each agent's output for either shape. If present, include the partial ideas but note them as incomplete in Phase 3 feasibility. For the turn-limit shape, `SendMessage` to that agent's id with "continue from where you stopped" reuses its context; a re-spawn starts from zero and pays the prompt again. Never treat a turn-limited agent as finished.
-
-> **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
-
-> **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table). Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so mid-turn stalls are rare — no need to expect a second pass.
-
-> **When context fills (CC 2.1.141+):** Instead of ending the session, use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent context intact — a deliberate compaction point that pairs with the improved reactive compaction above.
-
-> **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Enabled by default since CC 2.1.110 (even with telemetry disabled).
-
-> **Push notifications (CC 2.1.110+):** For long brainstorm sessions, use `PushNotification` to alert when synthesis is complete (requires Remote Control with "Push when Claude decides").
->
-> **Lighter alternative (CC 2.1.141+):** Hooks can emit desktop notifications, window titles, and bells natively via the `terminalSequence` field in hook JSON output — no Remote Control required, no Anthropic round-trip. Ork's notification hooks (`notification/desktop`, `notification/sound`) already emit via `terminalSequence` (#1847, shipped).
-
-> **Manual cleanup:** To stop lingering background teammates, press `Ctrl+F` twice (foreground/Stop). Note: `/clear` (CC 2.1.72+) preserves background agents — only foreground tasks are cleared.
-
-> **Teammate background tasks survive turn-end (CC 2.1.183):** A background task started *by a teammate* is no longer killed when that teammate finishes its turn. Phase-2 teammates may safely kick off a long `run_in_background` task (e.g. a feasibility build) and let it outlive their own turn — the result is still collectable at synthesis. Pre-2.1.183 this required the lead to own the background task.
+> **Session notes:** partial results from killed or turn-limited agents, cross-session replies, PostCompact recovery, recap, push notifications, manual cleanup, and teammate background tasks live in `references/claude-code.md` (section "Session notes moved from SKILL.md"). Read it when a brainstorm runs long or a teammate stops early.
 
 ---
 
@@ -454,9 +435,7 @@ ExitWorktree(action="keep")  # Keep branch for follow-up implement
 
 ## Running unattended with /goal
 
-Set a completion condition with `/goal` (CC 2.1.139+, **2.1.143+ recommended for this skill**) and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
-
-> **Why 2.1.143+:** Pre-2.1.143 `/goal` evaluator could fire while background shells or delegated subagents were still running — racing the parallel agents this skill spawns in Phase 2. Fixed in CC 2.1.143 (changelog: "`/goal` evaluator firing while background shells or delegated subagents are still running").
+Set a completion condition with `/goal` and this skill will keep working across turns until the condition is met. Works in interactive, `-p`, and Remote Control. The overlay panel shows live elapsed / turns / tokens.
 
 **Example completion condition for this skill:**
 

@@ -1,46 +1,29 @@
 ---
 name: design-context-extract
 license: MIT
-compatibility: "Claude Code 2.1.251+. Optional: stitch (official Google Stitch) MCP server."
-description: "Extract design DNA from app screenshots, live URLs, or screen recordings using Google Stitch — color palettes, typography, spacing tokens, component patterns, and motion specs as design-tokens.json or Tailwind config. Use when the user points to a screenshot, URL, or video and asks to extract or audit the design, analyze animations or scroll behavior, or keep new pages matching an established visual identity."
+compatibility: "Claude Code 2.1.277+. Optional: stitch (official Google Stitch) MCP server."
+description: "Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. Use to match a visual identity."
 argument-hint: "[screenshot-path | video-path | url | 'current project']"
-tags: [design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.0.1
-author: OrchestKit
 user-invocable: true
-complexity: medium
-persuasion-type: collaborative
 model: sonnet
 agent: design-context-extractor
-allowed-tools:
-  - Read
-  - Write
-  - Glob
-  - Grep
-  - Bash
-  - WebFetch
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
+allowed-tools: "Read Write Glob Grep Bash WebFetch AskUserQuestion TaskCreate TaskUpdate TaskList mcp__stitch__list_projects mcp__plugin_hq-ext_stitch__list_projects mcp__stitch__get_project mcp__plugin_hq-ext_stitch__get_project mcp__stitch__list_screens mcp__plugin_hq-ext_stitch__list_screens mcp__stitch__get_screen mcp__plugin_hq-ext_stitch__get_screen mcp__stitch__generate_screen_from_text mcp__plugin_hq-ext_stitch__generate_screen_from_text"
+  # Stitch: body names these five (live stitch.googleapis.com/mcp roster).
+  # Grant BOTH prefixes: standalone stitch (mcp__stitch__*) and hq-ext plugin
+  # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
 skills:
   - design-system-tokens
-  - remember
   - memory
 metadata:
   category: document-asset-creation
   mcp-server: stitch
-triggers:
-  keywords: ["extract design", "design tokens", "color palette", "typography", "design dna", "visual identity", "design system from", "screen recording", "motion spec", "analyze this video"]
-  examples:
-    - "extract the design tokens from this screenshot"
-    - "what colors and fonts does this app use"
-    - "create a design system from this live URL"
-    - "analyze the animations in this screen recording"
-  anti-triggers: [implement, build, component, explore, brainstorm]
+  version: "1.0.1"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "design-context, design-tokens, stitch, extraction, colors, typography, audit, visual-identity"
 ---
 
 # Design Context Extract
@@ -66,7 +49,7 @@ Input (screenshot/URL/project)
            │
            ▼
 ┌──────────────────────────────┐
-│ Extract                       │  Stitch extract_design_context
+│ Extract                       │  Stitch get_screen + generate_screen_from_text
 │                               │  OR multimodal analysis (fallback)
 │ → Colors (hex + oklch)        │
 │ → Typography (families, scale)│
@@ -120,12 +103,16 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 **For screenshots:** Read the image directly (Claude is multimodal). Pasted/attached images are compressed to the same token budget as Read tool images (CC 2.1.97), so both workflows are equally efficient.
 
-> **Resolution budget (Opus 5 / CC 2.1.111+):** Max input is **2,576 px on the long edge** (~3.75 MP) — roughly 3× the Opus 4.6 ceiling. Dense dashboards, dark-mode UIs, and technical diagrams benefit the most from the higher ceiling; extraction reads tiny labels, spacing ticks, and component boundaries that were previously blurred. Below 1,024 px, don't upscale — the source bitmap is the ceiling. Resize only when input exceeds 2,576 px.
+> **Resolution budget (Opus 5.5 / CC 2.1.111+):** Max input is **2,576 px on the long edge** (~3.75 MP) — roughly 3× the Opus 4.6 ceiling. Dense dashboards, dark-mode UIs, and technical diagrams benefit the most from the higher ceiling; extraction reads tiny labels, spacing ticks, and component boundaries that were previously blurred. Below 1,024 px, don't upscale — the source bitmap is the ceiling. Resize only when input exceeds 2,576 px.
 
 **For URLs:**
 ```python
-# If stitch available: call build_site(prompt=<url + extraction goal>)
-#   then get_screen_code / get_screen_image per generated screen
+# If stitch available:
+#   list_projects / get_project to locate the project
+#   generate_screen_from_text once for the URL goal (can take minutes; DO NOT RETRY;
+#     on timeout poll get_screen every 30 s up to 10 times)
+#   list_screens, then get_screen(name="projects/{projectId}/screens/{screenId}")
+#   fetch download URLs from the response
 # If not: WebFetch the URL and analyze HTML/CSS
 ```
 
@@ -170,10 +157,18 @@ Never describe motion as "smooth" or "nice" — convert taste into mechanism + n
 
 **If stitch MCP is available:**
 ```python
-# Official Stitch MCP tools (stitch.withgoogle.com/docs/mcp):
-#   - build_site(prompt)          → generates the target design
-#   - get_screen_code(screenId)   → React/HTML output per screen
-#   - get_screen_image(screenId)  → PNG rasterization per screen
+# Live Stitch MCP tools (https://stitch.googleapis.com/mcp), matching
+# design-context-extractor agent grants:
+#   - list_projects() / get_project(projectId)
+#   - list_screens(projectId)
+#   - get_screen(name="projects/{projectId}/screens/{screenId}")
+#       ONE required param: name. Returns screen details including download URLs
+#   - generate_screen_from_text(projectId, prompt)
+#       quota-costing write; can take a few minutes. DO NOT RETRY.
+#       On timeout: poll get_screen(name=...) every 30 s, up to 10 times.
+#
+# Flow: generate_screen_from_text once (or reuse an existing screen) →
+# list_screens → get_screen(name=...) → fetch download URLs for multimodal extract.
 #
 # Also consider Figma Dev Mode MCP as a complementary extraction path
 # when the source is a Figma file:

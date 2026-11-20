@@ -1,24 +1,17 @@
 ---
 name: portless
-compatibility: "Claude Code 2.1.251+"
-description: "Named HTTPS .localhost URLs with portless (v0.15.x). Eliminates port collisions, gives agents stable URLs, adds branch-named subdomains for git worktrees, LAN mode (--lan), and Tailscale sharing. Use when setting up a local dev environment or testing from phones and tablets on the same wifi. Do NOT use for production deployments, CI environments (set PORTLESS=0), or DNS/hosting configuration."
-tags:
-  - dev-server
-  - localhost
-  - https
-  - portless
-  - devops
-  - mdns
-  - lan
-version: 1.2.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "Named HTTPS .localhost URLs with portless (v0.15.x): no port collisions, branch subdomains for worktrees, LAN and Tailscale sharing. Use for local dev URLs. Not for production, CI or DNS hosting."
 user-invocable: false
-complexity: low
 context: inherit
-persuasion-type: guidance
 metadata:
+  archive-candidate: "pending an outside usage signal"
   upstream-package: portless
   upstream-version-tested: "0.15.6"
+  version: "1.2.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "dev-server, localhost, https, portless, devops, mdns, lan"
 ---
 
 # Portless Integration

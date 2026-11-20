@@ -1,0 +1,22 @@
+# PLANTED UNSAFE FIXTURE (XREVIEW 6209271782, P2a). Top-level permissions are
+# empty, the job sits at four spaces and its properties at eight, and the job
+# itself grants id-token: write while reading issue text. A lint that looks
+# for job permissions at exactly job indent plus two never sees the grant.
+name: Unsafe deep job properties fixture
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+    triage:
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write
+        steps:
+            - name: Read the issue while holding id-token write
+              run: gh issue view 1

@@ -1,0 +1,11 @@
+{
+  "slug": "one-gold-standard-not-two",
+  "source": "docs/chore--drop-homeos-exemplar/index.html",
+  "title": "One Gold Standard, Not Two",
+  "description": "The user-story player archetype had two references: a verbatim copy of a third party's private product and a de-branded template of the same design. The verbatim copy is removed from the public repo, the template becomes the canonical gold standard, and the playground lint loses its only exemption, so every exemplar is now blocking.",
+  "tags": [
+    "playground",
+    "plugin"
+  ],
+  "date": "2026-09-22"
+}

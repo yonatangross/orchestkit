@@ -8,6 +8,13 @@ vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
 }));
 
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) => {
+    const { fill, priority, ...rest } = props;
+    return <img data-fill={fill ? "true" : undefined} data-priority={priority ? "true" : undefined} {...rest} />;
+  },
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
@@ -65,10 +72,11 @@ vi.mock("..//components/optimized-thumbnail", () => ({
 
 // Mock constants
 vi.mock("..//lib/constants", () => ({
+  BRAND: { mark: "/brand/george-nav.png" },
   SITE: {
     name: "OrchestKit",
     version: "6.3.0",
-    domain: "https://orchestkit.yonyon.ai",
+    domain: "https://orchestkit.dev",
     github: "https://github.com/yonatangross/orchestkit",
     installCommand:
       "claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit",
@@ -80,6 +88,13 @@ vi.mock("..//lib/constants", () => ({
     ccVersion: "2.1.148+",
   },
   COUNTS: { skills: 69, agents: 38, hooks: 96 },
+  SITE_TITLE: "OrchestKit: for Claude Code and 7 more agents",
+  HOME_TITLE: "OrchestKit: Claude Code Plugin with 69 Skills and 38 Agents",
+  PAGE_SUMMARY: {
+    site: "Free, open source Claude Code plugin with 69 skills, 38 agents and 96 hooks for code review, testing, security and memory. Also runs in Cursor and Codex.",
+    pricing:
+      "OrchestKit is free and open source under the MIT license. No paid tiers, no usage limits, no account required.",
+  },
   PERSON: { name: "Yonatan Gross", url: "https://github.com/yonatangross" },
   ORG: {
     legalName: "OrchestKit",
@@ -95,8 +110,8 @@ vi.mock("..//lib/constants", () => ({
     description:
       "Yonyon is an independent software studio building developer tooling for AI-assisted engineering.",
     disambiguation:
-      "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
-    url: "https://orchestkit.yonyon.ai/yonyon",
+      "Yonyon here is a software studio (the publisher of OrchestKit), not the musician of the same name.",
+    url: "https://orchestkit.dev/yonyon",
     wikidata: "https://www.wikidata.org/wiki/Q141457913",
   },
   // Added 2026-07-31 alongside the real INTEGRATIONS export (lib/constants.ts):
@@ -204,8 +219,10 @@ describe("landing page content", () => {
     // Hero proof line renders each count in its own span (mock COUNTS:
     // 69 skills / 38 agents / 96 hooks). Match the paragraph that contains
     // all three fragments via its combined textContent.
+    // getAllByText: the agents block lead (look 05) also states all three
+    // counts in one paragraph, so more than one P matches.
     expect(
-      screen.getByText(
+      screen.getAllByText(
         (_content, el) => {
           const text = el?.textContent ?? "";
           return (
@@ -319,24 +336,84 @@ describe("landing page content", () => {
     expect(code).not.toMatch(/searchParams/);
   });
 
-  it("puts one copyable install command in the hero, before the host picker", async () => {
+  it("leads the hero with host chips, then exactly one command for the picked host", async () => {
     const HomePage = (await import("../app/(home)/page")).default;
     const result = await HomePage();
     const { container } = render(result);
 
-    const heroInstall = container.querySelector("[data-hero-install]");
-    expect(heroInstall).toBeTruthy();
-    const copy = within(heroInstall as HTMLElement).getByRole("button", {
-      name: "Copy claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit to clipboard",
-    });
-    const nav = screen.getByRole("navigation", { name: /install by host/i });
-    // The hero command is not the picker's copy, and it comes first in the DOM.
-    expect(nav.contains(copy)).toBe(false);
+    // Host first (operator + PostHog 2026-09-25: 76% of host picks were not
+    // Claude Code), then that host's command, all inside the hero copy column.
+    const copyCol = container.querySelector(".home-hero-copy") as HTMLElement;
+    const nav = within(copyCol).getByRole("navigation", { name: /install by host/i });
+    const box = nav.querySelector("[data-hero-install]") as HTMLElement;
+    expect(box).toBeTruthy();
+    const hosts = within(nav).getByRole("group", { name: "Hosts" });
     expect(
-      copy.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING,
+      hosts.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    // Exactly one hero install command.
-    expect(container.querySelectorAll("[data-hero-install] button").length).toBe(1);
+    // Claude Code is preselected and its box says so.
+    expect(
+      within(hosts).getByRole("link", { name: "Claude Code" }).getAttribute("aria-current"),
+    ).toBe("true");
+    expect(within(box).getByText("Claude Code")).toBeTruthy();
+    // Exactly one install copy button in the hero, and no second Claude-only box.
+    expect(container.querySelectorAll("[data-hero-install]").length).toBe(1);
+    expect(
+      within(box).getAllByRole("button", { name: /copy claude plugin marketplace add/i }),
+    ).toHaveLength(1);
+    // The old "For Claude Code. On Cursor..." sentence is gone.
+    expect(copyCol.textContent).not.toMatch(/Pick your host below/);
+  });
+
+  it("renders hero A conductor art with priority image and layout hooks", async () => {
+    const HomePage = (await import("../app/(home)/page")).default;
+    const result = await HomePage();
+    const { container } = render(result);
+
+    const section = container.querySelector("section.home-hero");
+    expect(section).toBeTruthy();
+    expect(container.querySelector(".home-hero-copy")).toBeTruthy();
+    expect(container.querySelector(".home-hero-art")).toBeTruthy();
+
+    // One art per theme, both cropped to the subject (2026-09-25). The dark
+    // layer is the default theme's LCP image, so it carries priority.
+    const dark = container.querySelector(".home-hero-art img.home-hero-art-dark");
+    expect(dark?.getAttribute("src")).toBe("/brand/hero-conductor-dark.png");
+    expect(dark?.getAttribute("data-priority")).toBe("true");
+    const light = container.querySelector(".home-hero-art img.home-hero-art-light");
+    expect(light?.getAttribute("src")).toBe("/brand/hero-conductor-light.jpg");
+    expect(container.querySelectorAll(".home-hero-art img")).toHaveLength(2);
+
+    // Install + Get started stay in the copy column.
+    const copyCol = container.querySelector(".home-hero-copy");
+    expect(copyCol?.querySelector("[data-hero-install]")).toBeTruthy();
+    expect(
+      within(copyCol as HTMLElement).getByRole("link", { name: /get started/i }),
+    ).toBeTruthy();
+
+    // The compact host picker sits in the copy column; the band under the hero
+    // keeps search, links and proof. The old 8-card picker made the copy
+    // column ~600px taller than the art (operator report 2026-09-25).
+    const more = container.querySelector(".home-hero-more");
+    expect(more).toBeTruthy();
+    const nav = screen.getByRole("navigation", { name: /install by host/i });
+    expect(copyCol?.contains(nav)).toBe(true);
+    expect(more?.contains(nav)).toBe(false);
+    // The art is a sibling of the copy column in the hero grid.
+    const artBox = container.querySelector(".home-hero-art");
+    expect(artBox?.parentElement).toBe(copyCol?.parentElement);
+  });
+
+  it("brands the nav with George's head crop and a one-color wordmark", async () => {
+    const { baseOptions } = await import("../app/layout.config");
+    const { container } = render(<>{baseOptions.nav?.title}</>);
+    const mark = container.querySelector("img[data-brand-mark]");
+    expect(mark?.getAttribute("src")).toContain("george-nav.png");
+    expect(mark?.getAttribute("width")).toBe("30");
+    // The whole 128px badge read as a blurred avatar at 22px.
+    expect(container.querySelector('img[src*="george-badge"]')).toBeNull();
+    expect(container.textContent).toBe("OrchestKit");
+    expect(container.querySelector(".bg-clip-text")).toBeNull();
   });
 
   it("exposes a copyable install command per host", async () => {
@@ -353,13 +430,18 @@ describe("landing page content", () => {
     expect(within(nav).getByRole("link", { name: "Pi" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "Muse Code" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "OpenCode" })).toBeTruthy();
+    // The picker is the hero now, so it prints the default host's command once.
     expect(
-      within(nav)
-        .getByRole("button", {
-          name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
-        })
-        .getAttribute("aria-label"),
-    ).toMatch(/claude plugin install ork@orchestkit/i);
+      within(nav).getAllByRole("button", {
+        name: /copy claude plugin marketplace add yonatangross\/orchestkit/i,
+      }),
+    ).toHaveLength(1);
+    // The /ork:setup follow-up is genuinely extra, so it stays copyable.
+    expect(
+      within(nav).getByRole("button", {
+        name: /^copy \/ork:setup to clipboard$/i,
+      }),
+    ).toBeTruthy();
     expect(
       within(nav).getByRole("link", { name: /Claude Code docs/i }).getAttribute("href"),
     ).toBe("/docs/getting-started/claude-code");

@@ -1,0 +1,8 @@
+{
+  "slug": "security-xs-4220-batch",
+  "source": "docs/fix--4220-security-xs-batch/index.html",
+  "title": "Security XS batch (#4220)",
+  "description": "Checklist playground for the 2026-09-17 security XS hardening batch: AF-12 dispatcher overrides, HR/IC gates, CodeQL esc().",
+  "tags": ["security", "hooks", "4220", "audit"],
+  "date": "2026-09-23"
+}

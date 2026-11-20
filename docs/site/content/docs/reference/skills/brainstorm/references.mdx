@@ -1,6 +1,6 @@
 ---
 title: "Brainstorm: References"
-description: "12 references for the Brainstorm skill: Claude Code; Common Pitfalls; Devils Advocate Prompts; Divergent Techniques; Effort Scaling; Evaluation Rubric; Example Session Auth; Example Session Dashboard; Iterative Optimization Mode; Mcp Probe Resume; Phase Workflow; Socratic Questions"
+description: "12 references for the Brainstorm skill: Claude Code; Common Pitfalls; Devils Advocate Prompts; Divergent Techniques; Effort Scaling; Evaluation Rubric; Example Session Auth; Example Session Dashboard; Iterative Optimization Mode; MCP Probe Resume; Phase Workflow; Socratic Questions"
 ---
 
 > Part of the [Brainstorm](/docs/reference/skills/brainstorm) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
@@ -14,7 +14,7 @@ description: "12 references for the Brainstorm skill: Claude Code; Common Pitfal
 Slash invoke: `/ork:brainstorm`
 
 YAML `hooks:` / `command:` lines in this skill's frontmatter stay Claude-only.
-They use `$\{CLAUDE_PLUGIN_ROOT\}/hooks/bin/run-hook.mjs` and are ignored by pi.
+They use `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs` and are ignored by pi.
 
 Session chain files live at `.claude/chain/` (state.json, decisions.json, capabilities.json).
 Other hosts should persist equivalent run state in their own session store.
@@ -27,6 +27,31 @@ Lines that still mention a Claude-only path in the body:
 Host-neutral workflow. Invoke by skill name (`brainstorm`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `references/claude-code.md`.
 > **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table). Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so mid-turn stalls are rare — no need to expect a second pass.
 ```
+
+
+## Session notes moved from SKILL.md (quality loop round 1)
+
+These version-tagged notes used to sit in the body of SKILL.md, which pushed it over the 500-line cap. Nothing was changed except the location.
+
+> **Partial results (CC 2.1.76, extended 2.1.246):** Background agents that are killed (timeout, context limit) return responses tagged with `[PARTIAL RESULT]`. Since CC 2.1.246 an agent that stops at its `maxTurns` limit is ALSO reported as partial: its summary reads "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)" and its output is marked partial instead of appearing finished. When collecting Phase 2 divergent ideas, check each agent's output for either shape. If present, include the partial ideas but note them as incomplete in Phase 3 feasibility. For the turn-limit shape, `SendMessage` to that agent's id with "continue from where you stopped" reuses its context; a re-spawn starts from zero and pays the prompt again. Never treat a turn-limited agent as finished.
+
+> **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
+
+> **PostCompact recovery:** Long brainstorm sessions may trigger context compaction. The PostCompact hook re-injects branch and task state. If compaction occurs mid-brainstorm, check `.claude/chain/state.json` for the last completed phase and resume from the next handoff file (see Phase Handoffs table). Reactive compaction (CC 2.1.142+) now sizes the first summarize to the actual overflow, so mid-turn stalls are rare, no need to expect a second pass.
+
+> **When context fills (CC 2.1.141+):** Instead of ending the session, use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent context intact, a deliberate compaction point that pairs with the improved reactive compaction above.
+
+> **Session recap (CC 2.1.108+):** After idle periods, use `/recap` to restore conversational context alongside checkpoint-resume. Enabled by default since CC 2.1.110 (even with telemetry disabled).
+
+> **Push notifications (CC 2.1.110+):** For long brainstorm sessions, use `PushNotification` to alert when synthesis is complete (requires Remote Control with "Push when Claude decides").
+>
+> **Lighter alternative (CC 2.1.141+):** Hooks can emit desktop notifications, window titles, and bells natively via the `terminalSequence` field in hook JSON output, no Remote Control required, no Anthropic round-trip. Ork's notification hooks (`notification/desktop`, `notification/sound`) already emit via `terminalSequence` (#1847, shipped).
+
+> **Manual cleanup:** To stop lingering background teammates, press `Ctrl+F` twice (foreground/Stop). Note: `/clear` (CC 2.1.72+) preserves background agents, only foreground tasks are cleared.
+
+> **Teammate background tasks survive turn-end (CC 2.1.183):** A background task started *by a teammate* is no longer killed when that teammate finishes its turn. Phase-2 teammates may safely kick off a long `run_in_background` task (e.g. a feasibility build) and let it outlive their own turn, the result is still collectable at synthesis. Pre-2.1.183 this required the lead to own the background task.
+
+> **That claim does not cover auto-backgrounded work (#3448):** a foreground Bash call the harness backgrounds on timeout is a different path. Its completion notice goes to the agent that spawned it, and if that agent already ended its turn on "I'll wait", the notice lands nowhere and the output is lost with zero logged errors. Two rules follow. The lead owns any research call whose documented runtime can approach the Bash timeout (`tavily-research` advertises 30-120s and real queries pass 180s). And no teammate ends a turn on "I'll wait for X" without either collecting X or handing ownership of X to the lead.
 
 
 ### Common Pitfalls
@@ -189,7 +214,7 @@ Challenge templates for assumption testing. Find hidden flaws before implementat
 
 - "How would you test the critical path without mocking everything?"
 - "What happens when the external dependency is unavailable during testing?"
-- "Show me the integration test — can it run in CI without special infrastructure?"
+- "Show me the integration test, can it run in CI without special infrastructure?"
 - "How many mocks/stubs does a single test need? If more than 3, the design has coupling issues."
 - "Can a new developer write a test for this without reading the entire codebase?"
 
@@ -269,7 +294,7 @@ Each agent contributes sequentially:
 
 # Effort-Aware Phase Scaling
 
-CC 2.1.76 introduced `/effort` levels; `xhigh` was added in CC 2.1.111 (Opus 4.7); since CC 2.1.154 Opus 4.8 defaults to `high` and reserves `xhigh` for the hardest tasks. The effort-aware context budgeting hook (global) detects effort level automatically — adapt the phase plan accordingly.
+CC 2.1.76 introduced `/effort` levels; `xhigh` was added in CC 2.1.111. Each model starts at its own default: Opus 5.5 (the `opus` alias) defaults to `medium`, so set `high` or `xhigh` explicitly for a full brainstorm. The effort-aware context budgeting hook (global) detects effort level automatically; adapt the phase plan accordingly.
 
 | Effort Level | Phases Run                                                                                        | Token Budget | Agents |
 |--------------|---------------------------------------------------------------------------------------------------|--------------|--------|
@@ -285,6 +310,23 @@ CC 2.1.76 introduced `/effort` levels; `xhigh` was added in CC 2.1.111 (Opus 4.7
 ```
 
 > **Override:** Explicit user selection in STEP 0a (e.g., "Open exploration") overrides `/effort` downscaling.
+
+## Phase 2 runs at low at every level
+
+The level above decides which phases run and how many agents. It does not decide the effort of the divergent phase: Phase 2 always runs at `low`, and Phases 3 to 6 run at the session effort.
+
+| Phase | Effort | Why |
+|-------|--------|-----|
+| 2. Divergent exploration | `low` | Quantity and speed; nothing is judged here |
+| 3 to 6. Gate, evaluation, synthesis, presentation | session | Devil's-advocate scoring is where depth pays |
+
+Claude Code gives three effort knobs, and only one is scoped to a phase:
+
+- `effort:` in skill frontmatter covers the whole skill (for this `context: fork` skill, the whole fork). Brainstorm has no such key on purpose: `effort: low` would also run Phase 4 at low.
+- The Agent tool takes a per-call `model`, not a per-call `effort`. Agents spawned with it run at their own frontmatter effort.
+- A Workflow `agent()` call takes `effort` per call. `workflows/brainstorm-diverge.js` passes `effort: "low"` to every generator, the top-up round included, and returns raw ideas with no scores.
+
+`tests/unit/test-brainstorm-diverge.mjs` fails if any generator call drops `effort: "low"`; `tests/skills/test-skill-effort-ladder.sh` fails if brainstorm gains a skill-level effort key.
 
 
 ### Evaluation Rubric
@@ -330,12 +372,12 @@ Rate each idea 0-10 across seven dimensions with weighted scoring.
 | Score | Criteria |
 |-------|----------|
 | 9-10 | Removes code/concepts while improving or maintaining the result |
-| 7-8 | Neutral complexity — replaces existing with equivalent simplicity |
+| 7-8 | Neutral complexity, replaces existing with equivalent simplicity |
 | 5-6 | Adds moderate complexity proportional to value delivered |
 | 3-4 | Adds significant complexity for marginal gain |
 | 0-2 | Adds ugly complexity, new abstractions, new concepts for little benefit |
 
-> "A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome — that's a simplification win." — autoresearch design principle
+> "A small improvement that adds ugly complexity is not worth it. Removing something and getting equal or better results is a great outcome, that's a simplification win.", autoresearch design principle
 
 ## Composite Formula
 
@@ -801,7 +843,7 @@ append_to_journal(baseline, "keep", "-", current_commit, "baseline")
 
 ## 3. Optimization loop
 
-See `$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/experiment-journal.md` for journal format.
+See `${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/experiment-journal.md` for journal format.
 
 ```python
 # LOOP (until user interrupts or trajectory == "stuck" for 5+ iterations):
@@ -816,7 +858,7 @@ See `$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/experiment-journal
 ```
 
 
-### Mcp Probe Resume
+### MCP Probe Resume
 
 # MCP Probe + Resume Check
 
@@ -829,7 +871,7 @@ ToolSearch(query="select:mcp__memory__search_nodes")  # CC < 2.1.121 fallback (a
 ToolSearch(query="select:mcp__sequential-thinking__sequentialthinking")
 ```
 
-Detailed detection patterns: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/references/mcp-detection.md")`.
+Detailed detection patterns: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/mcp-detection.md")`.
 
 ## Store capabilities
 
@@ -946,14 +988,30 @@ Glob(pattern="**/*{topic}*")
 
 **CRITICAL:** Generate 10+ ideas WITHOUT filtering. Quantity over quality.
 
+**Default: the Workflow at effort low.** Phase 2 is the one phase that runs at `low` (claude.dev "Spending your effort": low for in-the-loop brainstorming). Only a Workflow `agent()` call takes a per-call effort, so the generators run there:
+
 ```python
-# Launch ALL agents in ONE message
+Workflow(
+  name="ork:brainstorm-diverge",
+  args={"topic": TOPIC, "tier": tier_name, "ceiling": ceiling_description,
+        "agents": selected_agents,          # Phase 0 Step 2; workflow-architect + test-generator are added if missing
+        "constraints": constraints_answer,  # STEP 0a Q2
+        "minIdeas": 10, "modelOverride": None}
+)
+# Returns {ideas[], perspectives[], short, toppedUp, reasons[]}. Every generator ran at
+# effort low; no idea carries a score. Show the ideas, relay every reason line
+# (short pool, missing perspective, duplicate-only perspective, partial ideas), then go to Phase 3 at the session effort.
+```
+
+**Fallback (Workflow tool unavailable, or Agent Teams debate mode):** launch the generators with the Agent tool, all in ONE message. These run at each agent's own frontmatter effort, because the Agent tool has no per-call effort; say so in the Phase 2 output.
+
+```python
 Agent(subagent_type="ork:workflow-architect", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:backend-system-architect", prompt="...", run_in_background=True)
 ```
 
-**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete — include them in the idea pool but flag them for extra scrutiny in Phase 3. A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+**Collecting results (CC 2.1.76):** When background agents complete, check for `[PARTIAL RESULT]` tag in the response. Partial results contain usable ideas but may be incomplete, include them in the idea pool but flag them for extra scrutiny in Phase 3. A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
 
 **Divergent mindset instruction for agents:**
 ```
@@ -971,7 +1029,7 @@ DIVERGENT MODE: Generate as many approaches as possible.
 
 ## Phase 3: Keep / Discard / Crash Gate
 
-Binary viability gate inspired by [autoresearch](https://github.com/karpathy/autoresearch). No scoring — just a fast yes/no/unknown per idea. Save detailed scoring for Phase 4.
+Binary viability gate inspired by [autoresearch](https://github.com/karpathy/autoresearch). No scoring, just a fast yes/no/unknown per idea. Save detailed scoring for Phase 4.
 
 **Time budget: 10 seconds per idea.** For each idea from Phase 2, answer ONE question: *"If we built this, would it work?"*
 
@@ -979,15 +1037,15 @@ Binary viability gate inspired by [autoresearch](https://github.com/karpathy/aut
 |--------|----------|--------|
 | **keep** | Could work with known technology for this tier | → Phase 4 |
 | **discard** | Fundamentally broken, OVERKILL for tier, or duplicates a prior `discard` in experiment journal | → Drop |
-| **crash** | Can't assess — missing information or ambiguous scope | → Flag for user, skip |
+| **crash** | Can't assess, missing information or ambiguous scope | → Flag for user, skip |
 
 **Discard reasons** (tag each discard for experiment journal):
-- `overkill` — exceeds project tier complexity ceiling
-- `infeasible` — requires technology/resources not available
-- `duplicate` — too similar to a previously discarded approach
-- `untestable` — no seam for testing core logic without real services
+- `overkill`: exceeds project tier complexity ceiling
+- `infeasible`: requires technology/resources not available
+- `duplicate`: too similar to a previously discarded approach
+- `untestable`: no seam for testing core logic without real services
 
-**Experiment journal check** (if `.claude/experiments/brainstorm-\{topic\}.tsv` exists):
+**Experiment journal check** (if `.claude/experiments/brainstorm-{topic}.tsv` exists):
 ```python
 # Pre-filter: skip ideas similar to previous 'discard' entries
 prior = Read(f".claude/experiments/brainstorm-{topic_slug}.tsv")
@@ -1028,7 +1086,7 @@ if critical_concerns > 0:
     composite *= 0.7  # 30% penalty
 ```
 
-See `evaluation-rubric.md` for the Simplicity scoring guide — scores net complexity change, not implementation difficulty. Removing code for equal results scores 9-10.
+See `evaluation-rubric.md` for the Simplicity scoring guide, scores net complexity change, not implementation difficulty. Removing code for equal results scores 9-10.
 
 ---
 
@@ -1080,7 +1138,7 @@ Present in 200-300 word sections:
 After each section: "Does this look right so far?"
 
 **Living plan output (Phase 6.4, optional):** if the user asked for a playground or the synthesis is a
-multi-wave plan, ALSO emit a living plan playground (see SKILL.md Phase 6.4) — waves from Phase 5,
+multi-wave plan, ALSO emit a living plan playground (see SKILL.md Phase 6.4), waves from Phase 5,
 scores from Phase 4, discards from Phase 3, per-item "done when" evidence. Later sessions update the
 same file's `lpp-state` JSON as work executes; never fork a second file for the same plan.
 

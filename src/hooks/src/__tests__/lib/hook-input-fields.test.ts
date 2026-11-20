@@ -12,7 +12,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { HookInput } from '../../types.js';
 
 // ---------------------------------------------------------------------------
@@ -81,10 +82,8 @@ describe('HookInput field contracts (CC 2.1.47+)', () => {
   });
 
   describe('enabledPlugins is NOT a hook field', () => {
-    const hooksSourceDir = resolve(
-      new URL(import.meta.url).pathname,
-      '../../../..' // up from __tests__/lib → src/hooks/src
-    );
+    // Scan hook source, excluding sibling dependencies and build artifacts.
+    const hooksSourceDir = fileURLToPath(new URL('../../', import.meta.url));
 
     it('no hook source reads enabledPlugins as a hook input field', () => {
       const tsFiles = collectTsFiles(hooksSourceDir).filter(

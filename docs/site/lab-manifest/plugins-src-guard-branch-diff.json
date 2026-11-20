@@ -1,0 +1,11 @@
+{
+  "slug": "plugins-src-guard-branch-diff",
+  "source": "docs/fix--plugins-src-guard-branch-diff/index.html",
+  "title": "plugins-src-guard: a regen may follow its src edit",
+  "description": "The pre-commit guard accepts a src counterpart changed earlier on the branch (#4661)",
+  "tags": [
+    "bug",
+    "git-hooks"
+  ],
+  "date": "2026-10-11"
+}

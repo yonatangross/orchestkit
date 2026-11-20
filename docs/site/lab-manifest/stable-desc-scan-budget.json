@@ -1,0 +1,12 @@
+{
+  "slug": "stable-desc-scan-budget",
+  "source": "docs/fix--stable-desc-scan-budget/index.html",
+  "title": "Why the stable description lost its numbers, and the scan got a longer fuse",
+  "description": "Nothing stamps the stable ork entry or the Devin manifest, and a slow fetch could spend the whole Secret Scanning budget. Pick a state to see what CI answers.",
+  "tags": [
+    "ci",
+    "release",
+    "secret-scanning"
+  ],
+  "date": "2026-11-06"
+}

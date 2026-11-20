@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ci-sentinel pinned CC below the floor; now it reads the floor live</title>
+<meta name="description" content="Issue #4055: ci-sentinel.yml hardcoded claude-code 2.1.251 while shared/cc-support.json moved the floor to 2.1.277. The install step now reads supported_floor at run time. Drag the floor forward and watch the two pin styles diverge.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box} body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.55}
+  main{max-width:60rem;margin-inline:auto} h1{font-size:1.25rem;margin:0 0 .35rem} .sub{color:var(--dim);margin:0 0 1.8rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.15rem 1.35rem;margin-block:1rem}
+  h2{font-size:.85rem;margin:0 0 .75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+  .controls{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin:.55rem 0}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.4rem .85rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  input[type="range"]{accent-color:var(--accent);min-width:16rem}
+  pre{background:#0b0d13;border:1px solid var(--edge);border-radius:8px;padding:.85rem 1rem;font-size:.78rem;overflow:auto;white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;font-size:.8rem} th,td{text-align:start;padding:.4rem .5rem;border-bottom:1px solid var(--edge)} th{color:var(--dim)}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .verdict{margin-top:.7rem;padding:.65rem .8rem;border:1px solid var(--edge);border-radius:6px;font-size:.85rem}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+  a{color:var(--accent)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="ci-sentinel pinned CC below the floor; now it reads the floor live"><meta property="og:description" content="Issue #4055: ci-sentinel.yml hardcoded claude-code 2.1.251 while shared/cc-support.json moved the floor to 2.1.277, so the headless sentinel never ran with PermissionRequest hooks (fire under -p from 2.1.268). The install step now reads supported_floor at run time. Drag the floor forward and watch the two pin styles diverge."><meta property="og:url" content="https://orchestkit.dev/lab/4055-ci-sentinel-cc-floor.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ci-sentinel pinned CC below the floor; now it reads the floor live"><meta name="twitter:description" content="Issue #4055: ci-sentinel.yml hardcoded claude-code 2.1.251 while shared/cc-support.json moved the floor to 2.1.277, so the headless sentinel never ran with PermissionRequest hooks (fire under -p from 2.1.268). The install step now reads supported_floor at run time. Drag the floor forward and watch the two pin styles diverge."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>ci-sentinel pinned CC below the floor; now it reads the floor live</h1>
+<p class="sub">Issue <a href="https://github.com/yonatangross/orchestkit/issues/4055">#4055</a>. <code>ci-sentinel.yml</code> hardcoded <code>@anthropic-ai/claude-code@2.1.251</code> while <code>shared/cc-support.json</code> moved the floor to 2.1.277. The headless sentinel never ran with PermissionRequest hooks, which fire under <code>-p</code> from 2.1.268.</p>
+
+<section>
+<h2>Install step, before vs after</h2>
+<div class="controls" role="group" aria-label="pin style">
+  <button id="btn-before" aria-pressed="true">Before: hardcoded pin</button>
+  <button id="btn-after" aria-pressed="false">After: read supported_floor</button>
+</div>
+<pre id="step-view"></pre>
+</section>
+
+<section>
+<h2>Drag the floor forward</h2>
+<p class="dim">Simulate <code>cc-support-window-bump.yml</code> raising <code>supported_floor</code> over time. The hardcoded pin stays frozen and drifts below the floor; the jq read tracks it. The 2.1.268 marker is where PermissionRequest hooks start firing under <code>-p</code>.</p>
+<div class="controls">
+  <label for="floor" class="dim">supported_floor = <strong id="floor-label">2.1.277</strong></label>
+  <input id="floor" type="range" min="277" max="296" value="277">
+</div>
+<table>
+  <thead><tr><th>pin style</th><th>installed version</th><th>vs floor</th><th>PermissionRequest hooks under -p</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div id="verdict" class="verdict"></div>
+</section>
+
+<section>
+<h2>What shipped</h2>
+<ul class="dim" style="font-size:.85rem;padding-left:1.1rem">
+  <li><code>ci-sentinel.yml</code>: <code>CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)</code> then <code>npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"</code>. The pin cannot drift again.</li>
+  <li><code>src/skills/ci-sentinel/SKILL.md</code>: one line noting PermissionRequest hooks fire under <code>-p</code> from 2.1.268 and the unified dispatcher passes them through by default (auto-approve stays opt-in via <code>ORK_PERMISSION_AUTO_APPROVE</code>).</li>
+  <li>Acceptance: one workflow_dispatch run on the new pin, conclusion success, no permission stall, wall time comparable to run 30438994895.</li>
+</ul>
+</section>
+
+<footer class="sub">OrchestKit lab page. Source: <code>docs/chore--dsp-53355-ork-fix-4055/index.html</code>.</footer>
+</main>
+<script>
+const BEFORE = `          # Pinned to the supported floor (2.1.251, shared/cc-support.json) for reproducibility.
+          npm install -g @anthropic-ai/claude-code@2.1.251
+          claude --version`;
+const AFTER = `          # Pinned to the supported floor, read live from supported_floor in
+          # shared/cc-support.json so the pin cannot drift below the floor again
+          # (#4055). The floor is above 2.1.268, where PermissionRequest hooks
+          # started firing under -p; the dispatcher passes them through by default.
+          CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+          npm install -g "@anthropic-ai/claude-code@\${CC_FLOOR}"
+          claude --version`;
+const stepView = document.getElementById('step-view');
+const btnBefore = document.getElementById('btn-before');
+const btnAfter = document.getElementById('btn-after');
+const floor = document.getElementById('floor');
+const floorLabel = document.getElementById('floor-label');
+const rows = document.getElementById('rows');
+const verdict = document.getElementById('verdict');
+const HOOKS_FROM = 268;
+
+function setMode(after) {
+  stepView.textContent = after ? AFTER : BEFORE;
+  btnAfter.setAttribute('aria-pressed', String(after));
+  btnBefore.setAttribute('aria-pressed', String(!after));
+}
+btnBefore.addEventListener('click', () => setMode(false));
+btnAfter.addEventListener('click', () => setMode(true));
+
+function render() {
+  const f = Number(floor.value);
+  const fv = `2.1.${f}`;
+  floorLabel.textContent = fv;
+  const hard = '2.1.251', live = fv;
+  const hardBelow = 251 < f;
+  const hooks = (v) => Number(v.split('.')[2]) >= HOOKS_FROM
+    ? '<span class="ok">fire (>= 2.1.268)</span>'
+    : '<span class="bad">never fire (< 2.1.268)</span>';
+  rows.innerHTML = `
+    <tr><td>hardcoded (before)</td><td>${hard}</td>
+      <td>${hardBelow ? `<span class="bad">below floor by 2.1.${f - 251}... drift</span>` : '<span class="ok">at floor</span>'}</td>
+      <td>${hooks(hard)}</td></tr>
+    <tr><td>jq read (after)</td><td>${live}</td>
+      <td><span class="ok">at floor</span></td>
+      <td>${hooks(live)}</td></tr>`;
+  verdict.innerHTML = hardBelow
+    ? `<span class="bad">Drift:</span> the hardcoded pin sits ${f - 251} patch${f - 251 === 1 ? '' : 'es'} under the floor and misses every hook fix shipped since. The jq read removes this class of bug.`
+    : `<span class="ok">At floor:</span> both styles install ${fv} today. Only the jq read keeps that true on the next bump.`;
+}
+floor.addEventListener('input', render);
+setMode(false);
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

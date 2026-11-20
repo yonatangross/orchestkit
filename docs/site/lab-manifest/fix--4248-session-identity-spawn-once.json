@@ -1,0 +1,8 @@
+{
+  "slug": "fix--4248-session-identity-spawn-once",
+  "source": "docs/fix--4248-session-identity-spawn-once/index.html",
+  "title": "session-identity: one spawn per session",
+  "description": "Issue 4248: the session titler respawned a detached claude -p generator on every turn after a branch flip deleted the spawn marker, 38-43 calls per hour measured. Simulate turns and compare spawn attempts before and after.",
+  "tags": ["hooks", "session-identity", "rate-limit"],
+  "date": "2026-09-19"
+}

@@ -1,0 +1,8 @@
+{
+  "slug": "ork-extras-pinned-stable",
+  "source": "docs/fix--ork-extras-pinned-stable/index.html",
+  "title": "ork-extras goes back to a pinned stable entry",
+  "description": "The v10.13.0 stable-pin PR went red because release-please still stamped the ork-extras marketplace entry after the pin moved it to a tag. Compare who writes each entry before and after the fix.",
+  "tags": ["release", "marketplace"],
+  "date": "2026-11-15"
+}

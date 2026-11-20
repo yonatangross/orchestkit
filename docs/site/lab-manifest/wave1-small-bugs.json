@@ -1,0 +1,12 @@
+{
+  "slug": "wave1-small-bugs",
+  "source": "docs/fix--wave1-small-bugs/index.html",
+  "title": "Two small OrchestKit fixes, before and after",
+  "description": "Pick a Codex hook command or a docs MCP query and compare what OrchestKit did with it before and after these fixes.",
+  "tags": [
+    "codex",
+    "mcp",
+    "hooks"
+  ],
+  "date": "2026-11-08"
+}

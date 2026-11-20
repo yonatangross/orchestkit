@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Public docs installs, without a token</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 52rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.6; }
+h1 { line-height: 1.2; }
+.eyebrow { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
+fieldset, section { border: 1px solid #888; border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; }
+label { display: block; margin: .4rem 0; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; border-left: 4px solid #397bba; background: light-dark(#f1f5f9, #182331); }
+code, pre { font-family: ui-monospace, monospace; font-size: .9rem; }
+output { display: block; font-weight: 600; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 650px) { .grid { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Public docs installs, without a token"><meta property="og:description" content="Trace the shared docs installer through a public checkout, registry access, production refusal, and manifest restoration."><meta property="og:url" content="https://orchestkit.dev/lab/docs-site-public-install.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Public docs installs, without a token"><meta name="twitter:description" content="Trace the shared docs installer through a public checkout, registry access, production refusal, and manifest restoration."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<p class="eyebrow">OrchestKit / Contributor setup</p>
+<h1>Public docs installs, without a token</h1>
+<p>One shared installer for local contributors, CI, and Vercel. Registry access still installs the real analytics package. An authentication failure can use the local no-op stub, but never in Vercel production.</p>
+<pre>npm run setup --prefix docs/site</pre>
+<p>This is an interactive explanation, not a live installer. Select a scenario to trace its outcome.</p>
+<fieldset>
+<legend>Install scenario</legend>
+<label><input type="radio" name="scenario" value="public" checked> Public checkout without a token</label>
+<label><input type="radio" name="scenario" value="registry"> Working registry access</label>
+<label><input type="radio" name="scenario" value="production"> Vercel production with an auth failure</label>
+<label><input type="radio" name="scenario" value="network"> Non-auth install failure</label>
+</fieldset>
+<div class="grid">
+<section><h2>Before</h2><pre>npm ci --prefix docs/site
+E401 Unauthorized
+Private analytics package cannot be fetched without registry access.</pre></section>
+<section aria-live="polite"><h2>Shared installer</h2><ol id="steps"></ol><output id="outcome"></output></section>
+</div>
+<section><h2>Leave the checkout as it was</h2><p>The installer backs up <code>package.json</code> and <code>package-lock.json</code> before installing. Its exit trap restores both originals, even if the fallback fails. A successful stub install stays in <code>node_modules</code>, not in the tracked dependency specifications.</p><p>The lockfile is reconciled in place for the stub, never discarded. Other install errors remain fatal.</p></section>
+</main>
+<script>
+const scenarios = {
+  public: { steps: ['npm ci returns E401.', 'Temporarily point analytics at the local stub and reconcile the lockfile.', 'Install dependencies with the no-op analytics package.', 'Restore the original manifest and lockfile.'], outcome: 'Success: contributors can build the docs without a token.' },
+  registry: { steps: ['npm ci succeeds using registry access.', 'Keep the real analytics package installed.', 'Restore the original manifest and lockfile.'], outcome: 'Success: no stub is used.' },
+  production: { steps: ['npm ci returns E401.', 'VERCEL_ENV is production: refuse the stub.', 'Restore the original manifest and lockfile.'], outcome: 'Failure: production cannot silently ship no-op analytics.' },
+  network: { steps: ['npm ci fails for a reason other than authentication.', 'Do not try the stub.', 'Restore the original manifest and lockfile.'], outcome: 'Failure: propagate the original install error.' },
+};
+function render(key) {
+  const scenario = scenarios[key];
+  document.getElementById('steps').replaceChildren(...scenario.steps.map(text => {
+    const item = document.createElement('li');
+    item.textContent = text;
+    return item;
+  }));
+  document.getElementById('outcome').textContent = scenario.outcome;
+}
+document.querySelectorAll('input[name="scenario"]').forEach(input => input.addEventListener('change', () => render(input.value)));
+render('public');
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -5,23 +5,33 @@ description: "LLM integration, RAG, agent orchestration, MCP, embeddings."
 
 # AI & LLM Skills
 
-**11 skills** for llm integration, rag, agent orchestration, mcp, embeddings.
+**20 skills** for llm integration, rag, agent orchestration, mcp, embeddings.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
-| [Chain Patterns](/docs/reference/skills/chain-patterns) | Reference | medium | Chain patterns for multi-phase pipelines: MCP detection, handoff files, checkpoint-resume, worktree agents, CronCreat... |
-| [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error h... |
-| [Llm Integration](/docs/reference/skills/llm-integration) | Reference | medium | LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning cust... |
-| [Mcp Patterns](/docs/reference/skills/mcp-patterns) | Reference | high | MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool hand... |
-| [Mcp Visual Output](/docs/reference/skills/mcp-visual-output) | Reference | medium | Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandb... |
-| [Multimodal Llm](/docs/reference/skills/multimodal-llm) | Reference | high | Vision, audio, video generation, and multimodal LLM integration patterns. Use when processing images, transcribing au... |
-| [Rag Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
-| [React Server Components Framework](/docs/reference/skills/react-server-components-framework) | Reference | medium | Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing exper... |
-| [Setup](/docs/reference/skills/setup) | Command | medium | Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers... |
-| [Storybook Mcp Integration](/docs/reference/skills/storybook-mcp-integration) | Reference | medium | Reference for the Storybook MCP server itself (@storybook/addon-mcp): 6 tools across 3 toolsets (dev, docs, testing),... |
-| [Testing Llm](/docs/reference/skills/testing-llm) | Reference | medium | LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agent... |
+| [Agent Orchestration](/docs/reference/skills/agent-orchestration) | Reference | high | Agent orchestration patterns for agentic loops, multi-agent coordination, and alternative frameworks. Use when buildi... |
+| [Auto](/docs/reference/skills/auto) | Command | medium | Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use fo... |
+| [Chain Patterns](/docs/reference/skills/chain-patterns) | Reference | medium | Multi-phase pipeline patterns: MCP detection, handoff files, checkpoint-resume, worktree agents, cron monitoring. Use... |
+| [Design To Code](/docs/reference/skills/design-to-code) | Command | complex | Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse exis... |
+| [Doctor](/docs/reference/skills/doctor) | Command | low | Diagnoses OrchestKit and project health: manifests, hooks, skills, agents, MCP servers, CC version and permissions, w... |
+| [Dream](/docs/reference/skills/dream) | Command | low | Formerly dream, now memory dream. Use when /ork:dream is typed to tidy and prune memory entries. Removed 2027-01-31. |
+| [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, hum... |
+| [LLM Integration](/docs/reference/skills/llm-integration) | Reference | medium | LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning cust... |
+| [MCP Patterns](/docs/reference/skills/mcp-patterns) | Reference | high | MCP server building, advanced patterns, and security hardening. Use when building MCP servers, implementing tool hand... |
+| [MCP Visual Output](/docs/reference/skills/mcp-visual-output) | Reference | medium | Renders MCP tool JSON results as dashboards via @json-render/mcp (stat grids, tables, badges). Use when a result read... |
+| [Memory](/docs/reference/skills/memory) | Command | medium | Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream ... |
+| [Memory Fabric](/docs/reference/skills/memory-fabric) | Reference | high | Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, ded... |
+| [Multimodal LLM](/docs/reference/skills/multimodal-llm) | Reference | high | Vision, audio, video generation, and multimodal LLM patterns. Use when processing images, transcribing audio, generat... |
+| [RAG Retrieval](/docs/reference/skills/rag-retrieval) | Reference | high | Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding docume... |
+| [React Server Components Framework](/docs/reference/skills/react-server-components-framework) | Reference | medium | Next.js 16+ with React Server Components: App Router, Cache Components, streaming SSR, Server Actions. Use when build... |
+| [Remember](/docs/reference/skills/remember) | Command | low | Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. R... |
+| [Setup](/docs/reference/skills/setup) | Command | medium | Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when settin... |
+| [Task Dependency Patterns](/docs/reference/skills/task-dependency-patterns) | Reference | medium | Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable ... |
+| [Testing LLM](/docs/reference/skills/testing-llm) | Reference | medium | LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use w... |
+| [Visualize Plan](/docs/reference/skills/visualize-plan) | Command | medium | Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII,... |
 
 ## Related Agents
 
-- [Llm Integrator](/docs/reference/agents/llm-integrator)
+- [LLM Integrator](/docs/reference/agents/llm-integrator)
 - [Multimodal Specialist](/docs/reference/agents/multimodal-specialist)
+- [Workflow Architect](/docs/reference/agents/workflow-architect)

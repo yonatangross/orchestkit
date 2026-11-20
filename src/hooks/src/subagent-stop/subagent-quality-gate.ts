@@ -33,10 +33,21 @@ interface VerificationPolicy {
   };
 }
 
+// Security is 9.0 for every project, a hard block no policy file lowers
+// (operator decision 2026-09-25, #4424). A policy may raise it, never lower it.
+const SECURITY_FLOOR = 9.0;
+const SECURITY_DIMENSION = /security|vuln|cve|owasp/i;
+
 const DEFAULT_THRESHOLDS = {
-  security_minimum: 5.0,
+  security_minimum: SECURITY_FLOOR,
   general_minimum: 3.0,
 };
+
+/** Clamp a security threshold to the floor. A missing or non-numeric value is the floor. */
+function clampSecurity(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.max(SECURITY_FLOOR, n) : SECURITY_FLOOR;
+}
 
 // -----------------------------------------------------------------------------
 // Score Extraction
@@ -106,13 +117,18 @@ function getThreshold(dimension: string | null, policy: VerificationPolicy): num
   const thresholds: Record<string, number> = { ...DEFAULT_THRESHOLDS, ...policy.thresholds };
 
   if (dimension) {
+    const isSecurity = SECURITY_DIMENSION.test(dimension);
     const dimKey = `${dimension}_minimum`;
     if (dimKey in thresholds) {
-      return thresholds[dimKey] ?? DEFAULT_THRESHOLDS.general_minimum;
+      const value = thresholds[dimKey] ?? DEFAULT_THRESHOLDS.general_minimum;
+      // A dimension key may tighten a security dimension, never drop it below the floor.
+      return isSecurity
+        ? Math.max(clampSecurity(thresholds.security_minimum), clampSecurity(value))
+        : value;
     }
     // Security-related dimensions use security threshold
-    if (/security|vuln|cve|owasp/i.test(dimension)) {
-      return thresholds.security_minimum ?? DEFAULT_THRESHOLDS.security_minimum;
+    if (isSecurity) {
+      return clampSecurity(thresholds.security_minimum);
     }
   }
 
@@ -209,8 +225,7 @@ export function subagentQualityGate(input: HookInput, ctx: HookContext = NOOP_CT
 
       if (normalized < threshold) {
         const isSecurityDimension = score.dimension !== null &&
-          /security|vuln|cve|owasp/i.test(score.dimension);
-        const securityThreshold = policy.thresholds?.security_minimum ?? DEFAULT_THRESHOLDS.security_minimum;
+          SECURITY_DIMENSION.test(score.dimension);
 
         ctx.log(
           'subagent-quality-gate',
@@ -219,11 +234,12 @@ export function subagentQualityGate(input: HookInput, ctx: HookContext = NOOP_CT
         );
         updateMetrics('threshold_failure');
 
-        // Security dimensions BLOCK — non-security dimensions WARN
-        if (isSecurityDimension && normalized < securityThreshold) {
+        // Security dimensions BLOCK, non-security dimensions WARN. For a security
+        // dimension `threshold` is already clamped to at least SECURITY_FLOOR.
+        if (isSecurityDimension) {
           return outputBlock(
             `Security: ${label} ${score.value}/${score.max} (${normalized.toFixed(1)}/10) ` +
-              `below minimum ${securityThreshold}/10 — resolve before proceeding.`,
+              `below minimum ${threshold}/10. Resolve before proceeding.`,
           );
         }
 

@@ -1,0 +1,12 @@
+{
+  "slug": "ref-skill-fork",
+  "source": "docs/fix--ref-skill-fork/index.html",
+  "title": "Reference skills load inline; e2e asks route to expect or cover",
+  "description": "49 guideline-only skills stop forking into background agents that return nothing; 2 task skills wait for their fork; ork:auto routes e2e asks to /ork:expect or /ork:cover.",
+  "tags": [
+    "skills",
+    "routing",
+    "bug"
+  ],
+  "date": "2026-10-07"
+}

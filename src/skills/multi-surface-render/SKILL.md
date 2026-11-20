@@ -1,20 +1,21 @@
 ---
 name: multi-surface-render
-compatibility: "Claude Code 2.1.251+"
-description: "Multi-surface rendering with json-render — one JSON spec produces React web, Next.js, React Native, Ink terminal UIs, PDFs, emails, Remotion videos, OG images, and 3D scenes. Covers renderer target selection, registry mapping, and platform APIs (renderToBuffer, renderToStream, renderToFile). Use when generating output for several platforms or creating PDF reports, email templates, demo videos, or social images from one component spec."
-tags: [json-render, multi-surface, pdf, email, remotion, video, image, react, rendering, ink, nextjs]
-version: 1.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "One json-render spec to many targets: React, Next.js, React Native, Ink, PDF, email, Remotion, OG images, 3D. Use when one component spec must render on several platforms."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
 context: inherit
-persuasion-type: reference
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.20.0"
+  upstream-version-tested: "0.21.3"
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "json-render, multi-surface, pdf, email, remotion, video, image, react, rendering, ink, nextjs"
 ---
+
+Upstream version reference: `@json-render/core` 0.21.3 (2026-10-24).
 
 # Multi-Surface Rendering with json-render
 
@@ -128,7 +129,7 @@ const png = await renderToPng(spec, {
 ### Render to Video (Remotion)
 
 ```tsx
-// Verified 2026-07-31 against @json-render/remotion@0.19.0: the export is
+// Verified 2026-10-26 against @json-render/remotion@0.21.3 (same exports as 0.19.0): the export is
 // `Renderer` and its props are { spec, components }. fps and durationInFrames
 // belong on Remotion's own Composition, not on this renderer.
 import { Renderer } from '@json-render/remotion'
@@ -201,7 +202,13 @@ component tree.
 | 3D | `@json-render/react-three-fiber` | 3D scenes (19 components, verified 2026-07-31; roster lives upstream) | Three.js canvas |
 | Codegen | `@json-render/codegen` | Source code from specs | TypeScript/JSX |
 
-All `@json-render/*` renderers are verified against **0.20.0** (`@json-render/core`).
+All `@json-render/*` renderers are verified against **0.21.3** (2026-10-26, against the published type
+definitions). From 0.19.0 to 0.21.3 the export lists of `@json-render/react`, `remotion`, `shadcn` and
+`yaml` are unchanged, and `@json-render/core` only adds names, with zero removals. 0.21 adds only the
+experimental composition API (`experimental_composeSpec`, `experimental_createEvaluator`), and its path
+helpers `setByPath`, `addByPath` and `removeByPath` ignore a path with a `__proto__` segment.
+State-store writes (`createStateStore` set/update, `createStoreAdapter`) are not guarded, so callers
+must reject `__proto__`, `constructor` and `prototype` keys themselves. The 0.20.0 notes below still apply.
 The 0.19.0 to 0.20.0 export surface went 84 to 87 symbols with zero removals, so every
 API documented here still resolves. 0.20.0 adds named slots (`slots?: Record<string,
 string[]>` on `UIElement`, with catalogs declaring `slots: ["default", "header", ...]`),

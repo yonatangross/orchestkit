@@ -9,6 +9,7 @@ paths:
 - **Max 500 lines** (< 400 preferred for prompt cache efficiency)
 - Required frontmatter: `name`, `description`, `version`, `author`, `user-invocable`, `complexity`, `tags`
 - Description must include **WHAT** (capabilities) + **WHEN** (trigger conditions) in third person
+- For model-facing skills, `description` + `when_to_use` must total at most **260 bytes** (parsed UTF-8 values), not a word range. Include a negative boundary ("Do NOT use for..."). Test 4b in `tests/performance/test-token-overhead.sh` enforces this cap and the down-only listing total in `tests/performance/skill-listing-ratchet.txt`.
 - At least 1 code example block required
 - Token budget: 200-5000 tokens per skill
 

@@ -1,0 +1,12 @@
+{
+  "slug": "4566-review-security-agent-effort-high",
+  "source": "docs/fix--review-security-agent-effort-high/index.html",
+  "title": "#4566: review and security agents at effort high",
+  "description": "security-auditor and code-quality-reviewer move from effort medium to high, pinned by a test, because edge-case-heavy review is where high effort pays.",
+  "tags": [
+    "agents",
+    "effort",
+    "explainer"
+  ],
+  "date": "2026-10-01"
+}

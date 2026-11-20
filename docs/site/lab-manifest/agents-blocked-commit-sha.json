@@ -1,0 +1,12 @@
+{
+  "slug": "agents-blocked-commit-sha",
+  "source": "docs/fix--agents-blocked-commit-sha/index.html",
+  "title": "A blocked commit reports BLOCKED, not an empty sha",
+  "description": "A builder whose commit a hook refused used to return committed_sha as an empty string, and the caller schema accepted it. Pick a builder result to see whether the new build-result schema accepts it and why.",
+  "tags": [
+    "agents",
+    "schema",
+    "status-protocol"
+  ],
+  "date": "2026-11-02"
+}

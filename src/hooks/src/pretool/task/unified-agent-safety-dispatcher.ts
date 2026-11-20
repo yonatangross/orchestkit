@@ -17,9 +17,6 @@
  * --restricted CI lane (#3799), the same row as restrict-bash in
  * shared/rules/cc-native-first.md.
  *
- * NOT consolidated (remains separate in hooks.json):
- * - team-size-gate (Agent Teams gate, different concern)
- *
  * CC 2.1.7 Compliant: Returns first blocking result, or merged context
  */
 
@@ -122,5 +119,5 @@ export function unifiedAgentSafetyDispatcher(input: HookInput, ctx: HookContext 
   // Single consolidated output
   const consolidated = contextParts.join('\n\n---\n\n');
   ctx.log(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
-  return outputWithContext(consolidated);
+  return outputWithContext(consolidated, input);
 }

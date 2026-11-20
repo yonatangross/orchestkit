@@ -18,7 +18,7 @@ PR context (diff, comments, review status) is available when resuming.
 
 ## Task Metrics (CC 2.1.30+)
 
-Task tool results include `token_count`, `tool_uses`, and `duration_ms`. Report validation efficiency in PR comments:
+Agent tool results include `token_count`, `tool_uses`, and `duration_ms`. Report validation efficiency in PR comments:
 
 ```markdown
 ## Pre-PR Validation Metrics
@@ -36,7 +36,7 @@ Task tool results include `token_count`, `tool_uses`, and `duration_ms`. Report 
 Before ending PR creation sessions, store context for future sessions:
 
 ```bash
-/ork:remember PR #123 created: [brief description], pending review from [team]
+/ork:memory remember PR #123 created: [brief description], pending review from [team]
 ```
 
 ## Post-Creation Verification

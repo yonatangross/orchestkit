@@ -1,16 +1,24 @@
 /**
  * Auto-Approve Project Writes - Auto-approves writes within project directory
  * Hook: PermissionRequest (Write|Edit)
- * CC 2.1.6 Compliant: includes continue field in all outputs
+ *
+ * OPT-IN (#4374 security hold): emits allow only when
+ * ORK_PERMISSION_AUTO_APPROVE=1. Default OFF so CC shows its normal dialog.
+ * Hard denylist (settings*.json, .mcp.json, plugin.json, .claude/**, .github/**,
+ * .husky/**, .env*) is enforced even when enabled; see lib/permission-auto-approve.ts.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   outputSilentSuccess,
 } from '../lib/common.js';
 import { isInsideDir, hasExcludedDir, resolveRealPath } from '../lib/path-containment.js';
-import { resolve, isAbsolute } from 'node:path';
+import {
+  isPermissionAutoApproveEnabled,
+  isHardDeniedWritePath,
+} from '../lib/permission-auto-approve.js';
+import { resolve, isAbsolute, normalize } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
 
 /**
@@ -18,6 +26,11 @@ import { NOOP_CTX } from '../lib/context.js';
  * (excluding sensitive directories). CC 2.1.47: respects added_dirs from statusline.
  */
 export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  if (!isPermissionAutoApproveEnabled()) {
+    ctx.log('auto-approve-project-writes', 'ORK_PERMISSION_AUTO_APPROVE not set; pass-through');
+    return outputSilentSuccess();
+  }
+
   let filePath = input.tool_input.file_path || '';
   const projectDir = input.project_dir || (ctx.projectDir);
 
@@ -28,11 +41,20 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
     filePath = resolve(projectDir, filePath);
   }
 
-  // SEC: Resolve symlinks to prevent bypass attacks (ME-001 / SEC-3)
+  // SEC: keep the requested path as well as the symlink target. A protected
+  // name can link to an ordinary file and the reverse, so the denylist and
+  // excluded-dir checks run on both (ME-001 / SEC-3).
+  const requestedPath = normalize(filePath);
   filePath = resolveRealPath(filePath, projectDir);
 
+  // SEC (#4374): hard denylist on both paths, before any allow
+  if (isHardDeniedWritePath(requestedPath) || isHardDeniedWritePath(filePath)) {
+    ctx.log('auto-approve-project-writes', `Hard-denied write path: ${filePath}`);
+    return outputSilentSuccess();
+  }
+
   // All directories to check: primary project dir + any /add-dir dirs (CC 2.1.47)
-  // SEC-003: Validate added_dirs — reject filesystem root or sensitive directories
+  // SEC-003: Validate added_dirs; reject filesystem root or sensitive directories
   const safeAddedDirs = (input.added_dirs ?? []).filter(dir =>
     dir.length > 1 && !dir.includes('..') && !['/etc', '/usr', '/var'].some(s => dir.startsWith(s))
   );
@@ -41,7 +63,7 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;
 
-    if (hasExcludedDir(filePath)) {
+    if (hasExcludedDir(requestedPath) || hasExcludedDir(filePath)) {
       ctx.log('auto-approve-project-writes', `Write to excluded directory in: ${rootDir}`);
       return outputSilentSuccess(); // Let user decide
     }
@@ -49,7 +71,7 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
     const label = rootDir === projectDir ? 'project directory' : `added dir ${rootDir}`;
     ctx.log('auto-approve-project-writes', `Auto-approved: within ${label}`);
     ctx.logPermission('allow', `In-project write: ${filePath}`, input);
-    return outputSilentAllow();
+    return outputPermissionRequestAllow();
   }
 
   // Outside all known directories - let user decide

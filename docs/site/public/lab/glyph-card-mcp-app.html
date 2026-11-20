@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Glyph card as an MCP App: PR 4663 playground</title>
+<meta name="description" content="One MCP tool returns both an interactive ui:// card and a plain text fallback. Edit the tool input and see what each kind of host shows.">
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6b66; --line: #dedad2; --accent: #2f6f5e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171716; --fg: #ecebe6; --muted: #a3a29b; --line: #34332f; --accent: #6cc3a8; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, "Segoe UI", Arial, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .verdict { font-size: 17px; margin: 8px 0 16px; }
+  .muted { color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 210px; direction: ltr; text-align: left; font: 13px ui-monospace, Menlo, monospace; background: transparent; color: inherit; border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+  pre { direction: ltr; text-align: left; font: 13px ui-monospace, Menlo, monospace; white-space: pre; overflow-x: auto; margin: 0; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
+  button.ghost { background: transparent; color: var(--accent); }
+  .card { direction: ltr; font: 14px system-ui, sans-serif; }
+  .card h3 { font-size: 15px; margin: 0 0 8px; }
+  .row { display: grid; grid-template-columns: 1.5em 9em 1fr 5em; gap: 8px; align-items: center; margin: 4px 0; }
+  .bar { height: 10px; border-radius: 5px; background: color-mix(in srgb, currentColor 15%, transparent); }
+  .fill { height: 100%; border-radius: 5px; background: var(--accent); }
+  .val { text-align: right; font-variant-numeric: tabular-nums; }
+  .err { color: #b3261e; }
+  ul { padding-inline-start: 20px; }
+  code { direction: ltr; unicode-bidi: isolate; font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Glyph card as an MCP App, no SDK"><meta property="og:description" content="One MCP tool returns an interactive ui:// card and a plain text fallback in the same result. Edit the tool input and see what a host without UI support shows next to what an MCP Apps host draws."><meta property="og:url" content="https://orchestkit.dev/lab/glyph-card-mcp-app.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Glyph card as an MCP App, no SDK"><meta name="twitter:description" content="One MCP tool returns an interactive ui:// card and a plain text fallback in the same result. Edit the tool input and see what a host without UI support shows next to what an MCP Apps host draws."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Glyph card as an MCP App, no SDK</h1>
+  <p class="verdict"><strong>Verdict:</strong> one MCP tool returns both an interactive UI (a <code>ui://</code> resource) and a text card as a fallback. A host that supports MCP Apps draws the card; every other host shows the text.</p>
+  <p class="muted">PR 4663, branch <code>feat/genui-mcp-spike</code>. One file: <code>src/skills/mcp-visual-output/scripts/glyph-card-server.mjs</code>, with tests in <code>tests/unit/test-mcp-glyph-card.mjs</code>.</p>
+
+  <h2>01 / Try it</h2>
+  <p>Edit the input of the <code>render_glyph_card</code> tool and press Draw. On the left is what a host without UI support sees; on the right is what an MCP Apps host draws from <code>structuredContent</code>.</p>
+  <div class="panel">
+    <textarea id="input" aria-label="Tool input as JSON">{
+  "title": "Disk use",
+  "rows": [
+    { "label": "Docker cache", "value": 14.5, "unit": "G", "status": "warn" },
+    { "label": "Browser caches", "value": 8.9, "unit": "G", "status": "ok" },
+    { "label": "npm cache", "value": 6.2, "unit": "G", "status": "ok" }
+  ]
+}</textarea>
+    <p><button id="draw">Draw</button> <button id="copy" class="ghost">Copy as prompt</button> <span id="msg" class="muted"></span></p>
+  </div>
+  <div class="grid">
+    <div class="panel"><strong>Text fallback (<code>content</code>)</strong><pre id="text"></pre></div>
+    <div class="panel"><strong>The card (<code>ui://ork-glyph/card-v1</code>)</strong><div class="card" id="card"></div></div>
+  </div>
+
+  <h2>02 / What the PR adds</h2>
+  <ul>
+    <li>The tool declares <code>_meta.ui.resourceUri</code>, the older <code>ui/resourceUri</code> key, and the ChatGPT alias <code>openai/outputTemplate</code>.</li>
+    <li>The resource is served as <code>text/html;profile=mcp-app</code> and draws with <code>textContent</code> only, so a hostile label never becomes HTML.</li>
+    <li>HTTP mode rejects a non-local Host or Origin with 403, unless one name is allowed with <code>--allow-host</code>.</li>
+    <li>Unit tests: 10 pass, 0 fail, per the PR body.</li>
+  </ul>
+
+  <h2>03 / Not proven yet</h2>
+  <ul>
+    <li>No real host (ChatGPT, claude.ai) has drawn the card yet. That needs a public HTTPS URL and an operator step.</li>
+    <li>In Claude Code the model receives the <code>structuredContent</code> JSON when it is present, not the text card.</li>
+    <li>No authentication. This is a proof of concept, not a library.</li>
+  </ul>
+</main>
+<script>
+  // Mirrors glyphText() and the card draw() in glyph-card-server.mjs so the
+  // reader sees both outputs of one tool call. Rendering uses textContent only.
+  const ICONS = { ok: "\u{1F7E2}", warn: "\u{1F7E1}", bad: "\u{1F534}" };
+  const BAR_CELLS = 10;
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
+
+  function parse(raw) {
+    let a;
+    try { a = JSON.parse(raw); } catch (e) { return { error: "Invalid JSON: " + e.message }; }
+    if (!a || typeof a.title !== "string" || !a.title) return { error: "title must be a non-empty string" };
+    if (!Array.isArray(a.rows) || a.rows.length < 1 || a.rows.length > 12) return { error: "rows must hold 1 to 12 rows" };
+    const rows = [];
+    for (const r of a.rows) {
+      if (!r || typeof r.label !== "string" || typeof r.value !== "number" || !isFinite(r.value) || r.value < 0) return { error: "each row needs a string label and a non-negative number value" };
+      rows.push({ label: r.label, value: r.value, unit: typeof r.unit === "string" ? r.unit : "", status: ICONS[r.status] ? r.status : undefined });
+    }
+    const total = Math.round(rows.reduce((s, r) => s + r.value, 0) * 10) / 10;
+    return { title: a.title, rows, total };
+  }
+
+  function glyphText(sc) {
+    const max = Math.max(...sc.rows.map((r) => r.value), 1);
+    const lines = [sc.title.slice(0, 70), "─".repeat(Math.min(sc.title.length, 70))];
+    for (const r of sc.rows) {
+      const filled = Math.round((r.value / max) * BAR_CELLS);
+      const bar = "▓".repeat(filled) + "░".repeat(BAR_CELLS - filled);
+      const icon = r.status ? ICONS[r.status] : "  ";
+      lines.push(icon + " " + r.label.slice(0, 24).padEnd(24) + " " + bar + " " + r.value + r.unit);
+    }
+    lines.push("── total " + sc.total + sc.rows[0].unit);
+    return lines.join("\n");
+  }
+
+  function drawCard(sc) {
+    const max = Math.max(...sc.rows.map((r) => r.value), 1);
+    const card = $("card");
+    card.replaceChildren(el("h3", "", sc.title));
+    for (const r of sc.rows) {
+      const row = el("div", "row"), bar = el("div", "bar"), fill = el("div", "fill");
+      fill.style.width = Math.round((r.value / max) * 100) + "%";
+      bar.append(fill);
+      row.append(el("span", "", ICONS[r.status] || ""), el("span", "", r.label), bar, el("span", "val", r.value + r.unit));
+      card.append(row);
+    }
+    card.append(el("div", "", "Total " + sc.total + sc.rows[0].unit));
+  }
+
+  function draw() {
+    const sc = parse($("input").value);
+    if (sc.error) { $("msg").textContent = sc.error; $("msg").className = "err"; return; }
+    $("msg").textContent = ""; $("msg").className = "muted";
+    $("text").textContent = glyphText(sc);
+    drawCard(sc);
+  }
+
+  $("draw").addEventListener("click", draw);
+  $("copy").addEventListener("click", async () => {
+    const prompt = "Call the MCP tool render_glyph_card from glyph-card-server.mjs with these arguments:\n" + $("input").value;
+    try { await navigator.clipboard.writeText(prompt); $("msg").textContent = "Copied"; } catch { $("msg").textContent = "The browser blocked the copy"; }
+  });
+  draw();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

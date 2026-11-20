@@ -1,0 +1,14 @@
+{
+  "slug": "77100-ork-g1-frontmatter-gate",
+  "source": "docs/chore--dsp-77100-ork-g1-frontmatter-gate/index.html",
+  "title": "G1 advisory frontmatter gate for src/",
+  "description": "Ports hq-ext-plugin #1983 + #1990: a standards registry plus an advisory frontmatter check that judges PRs with the base-branch gate code and the head as data only. Ratchet baseline keeps existing agent keys quiet; only new non-spec keys report.",
+  "tags": [
+    "ci",
+    "frontmatter",
+    "agents",
+    "skills",
+    "77100"
+  ],
+  "date": "2026-09-28"
+}

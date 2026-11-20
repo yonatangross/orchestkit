@@ -17,7 +17,7 @@ import { registerWebMcpTools } from "@/lib/webmcp-tools";
 
 export function WebMcpProvider() {
 	useEffect(() => {
-		registerWebMcpTools(document, navigator);
+		registerWebMcpTools();
 	}, []);
 
 	return null;

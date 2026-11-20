@@ -26,7 +26,7 @@ globalThis.fetch = async (input) => {
 				{ "retry-after": "42" },
 			);
 		}
-		return json({ results: [{ id: "1", url: "/docs/x", title: "A doc" }] });
+		return json([{ id: "1", url: "/docs/x", title: "A doc" }]);
 	}
 	if (url.pathname.endsWith(".md")) {
 		return new Response("# A doc\n", {

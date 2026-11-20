@@ -29,7 +29,7 @@ function payload(command: string): string {
   return JSON.stringify({
     hook_event_name: 'PreToolUse',
     session_id: '00000000-0000-4000-8000-000000000000',
-    cwd: '/tmp',
+    cwd: home,
     tool_name: 'Bash',
     tool_input: { command },
   });
@@ -39,7 +39,11 @@ function run(command: string): Promise<{ code: number | null }> {
   return new Promise((resolve) => {
     const child = spawn('node', [RUN_HOOK, HOOK], {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, HOME: home, CLAUDE_PROJECT_DIR: '/tmp' },
+      // The project dir is private too (#4989): the runner writes its session
+      // events under CLAUDE_PROJECT_DIR before the timing row, and a shared
+      // /tmp is not writable inside the Claude Code sandbox, which skipped the
+      // row this test reads.
+      env: { ...process.env, HOME: home, CLAUDE_PROJECT_DIR: home },
     });
     child.stdout.resume();
     child.stderr.resume();

@@ -75,7 +75,7 @@ describe('Async Hooks Registry', () => {
       }
     });
 
-    it('should have exactly 8 async hooks', () => {
+    it('should have the expected async hook count', () => {
       const allHooks: Hook[] = [];
       for (const eventGroups of Object.values(hooksConfig.hooks)) {
         for (const group of eventGroups) {
@@ -116,7 +116,7 @@ describe('Async Hooks Registry', () => {
       //           agent-view-titler (#1783) is also sync.
       // 81 -> 83: M140 Bundle B (#1790, #1791) — stop/goal-tracker (async) +
       //           lifecycle/goal-budget-guard (SessionEnd, async). The companion
-      //           prompt/goal-tracker is SYNC (needs outputBlock + continueOnBlock).
+      //           prompt/goal-tracker is SYNC (needs outputBlock before the prompt runs).
       // 83 -> 84: M119 #1815 — lifecycle/rules-size-check (SessionStart, async)
       // 84 -> 85: M104 PR-A — lifecycle/ask-fallback-injector moved from
       //           UserPromptSubmit (sync) to SessionStart (async, 5s).
@@ -183,6 +183,11 @@ describe('Async Hooks Registry', () => {
       // 106 -> 109: #3789 (CC 2.1.251) — async PostModelSwitch telemetry + webhook forwarders on both new events; the PreModelSwitch consent gate is sync
       // 109 -> 110: #3727 — lifecycle/stray-playground-pages (SessionStart, async)
       // 110 -> 109: #3353 — pretool/settings-override-resolver deleted (table dropped in 005)
+      // 109 -> 108: Jev pairing observes Skill selection synchronously.
+      // 108 -> 110: #4297 route observation is async PreToolUse telemetry:
+      //             pretool/skill/skill-tracker async again, plus the new
+      //             pretool/task/route-observer (Agent, async 5s).
+      // 110 -> 109: lifecycle/cc-version-check is sync now: an async hook's systemMessage reaches the model, not the person.
       expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
     });
 

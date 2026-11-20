@@ -3,7 +3,7 @@
 // with one new layer added: high-entropy token masking. The layer is opt-in
 // per table via buildTable options, so existing callers keep exact behavior.
 
-import type { MaskTable, MaskTableEntry, MaskSpan, MaskResult, EntropyConfig } from "./types";
+import type { MaskTable, MaskTableEntry, MaskSpan, MaskResult, EntropyConfig, PatternSpec } from "./types";
 
 /**
  * High-entropy layer constants.
@@ -38,6 +38,105 @@ export const ENTROPY_ALPHABET = "[A-Za-z0-9+/=_-]";
  * padding) is exempt from the entropy layer entirely (FIX ROUND of #4189).
  */
 export const SRI_VALUE_RE = /^sha(?:1|256|384|512)-[A-Za-z0-9+/=]+$/;
+
+/**
+ * Anthropic API id: a tool_use id (toolu_01, srvtoolu_01), a message id
+ * (msg_01) or a request id (req_011C), each followed by base62. These ids
+ * are public request handles shown in transcripts and logs, never
+ * credentials, yet 890 of 1000 generated toolu_ ids crossed the 4.3 bar
+ * (dogfood 2026-10-20). A token that is exactly one of these ids is exempt
+ * from the entropy layer only; the named-value and vendor-prefix layers
+ * still run on it.
+ */
+export const ANTHROPIC_ID_RE = /^(?:srvtoolu_01|toolu_01|msg_01|req_011C)[A-Za-z0-9]{18,26}$/;
+
+/**
+ * Media hosts whose image URLs stay readable (#5134). Exact, lower-case
+ * hostnames only: a whole CDN domain such as cloudfront.net is shared by
+ * everyone, so it is never listed.
+ */
+export const MEDIA_HOSTS: readonly string[] = ["d8j0ntlcm91z4.cloudfront.net"];
+
+const MEDIA_IMAGE_EXT_RE = /\.(?:png|jpe?g|webp|gif)$/;
+
+/**
+ * Characters allowed in the path of an exempt media URL: letters, digits and
+ * - . _ / only. Anything else (; @ \ : % + = ~ and so on) ends the path, and
+ * the URL is refused unless what follows is a boundary (#5134 review, Codex
+ * on 2136496a: a ';' path parameter let a signed URL through).
+ */
+function isMediaPathCode(c: number): boolean {
+  return (
+    (c >= 0x30 && c <= 0x39) || (c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) ||
+    c === 0x2d /* - */ || c === 0x2e /* . */ || c === 0x2f /* / */ || c === 0x5f /* _ */
+  );
+}
+
+/**
+ * The exempt URL must be a whole white-space-delimited token (#5145 review
+ * round 4). Per-character edge lists kept leaking, because a URL parser keeps
+ * " < ` [ ] , ' ( ) and more inside an outer URL. So only white space or the
+ * ends of the text delimit it, and a quoted, bracketed or punctuated URL
+ * stays masked. Only ASCII space, tab, LF and CR count (#5146 review round
+ * 5): a URL parser keeps U+00A0, U+3000, U+2028 and other non-ASCII white
+ * space inside the URL, so a token touching one stays masked.
+ *
+ * Threat model (#5146 round 6, accepted residual): this judges lexical
+ * tokens and does not promise that a URL parser reads the same URL; a
+ * WHATWG parser strips tab, LF and CR, so it can join two tokens shown
+ * separately. Only the entropy layer is skipped, so named values and vendor
+ * prefixes still mask inside an exempt URL.
+ */
+function isMediaTokenEdge(text: string, at: number): boolean {
+  if (at < 0 || at >= text.length) return true;
+  const c = text.charCodeAt(at);
+  return c === 0x20 || c === 0x09 /* tab */ || c === 0x0a /* LF */ || c === 0x0d /* CR */;
+}
+
+/**
+ * Ranges of https image URLs on a named media host, ascending and disjoint.
+ * The entropy layer skips a run inside one; the named-value and vendor-prefix
+ * layers still apply. The whole URL must be scheme, exact host, and a path of
+ * [A-Za-z0-9._/-] ending in an image extension, and nothing else may share
+ * its white-space-delimited token. A
+ * query, fragment, path parameter, userinfo, backslash or percent-encoding
+ * refuses it, so a signed URL (Signature=, Expires=, Key-Pair-Id=) stays
+ * masked. Each search resumes past the last path, so the scan stays linear.
+ */
+function mediaUrlRanges(text: string): Array<{ start: number; end: number }> {
+  const ranges: Array<{ start: number; end: number }> = [];
+  for (const host of MEDIA_HOSTS) {
+    const prefix = `https://${host}/`;
+    let searchPos = 0;
+    while (true) {
+      const start = text.indexOf(prefix, searchPos);
+      if (start === -1) break;
+      const pathStart = start + prefix.length;
+      let scan = pathStart;
+      while (scan < text.length && isMediaPathCode(text.charCodeAt(scan))) scan++;
+      searchPos = Math.max(scan, start + 1);
+      if (!isMediaTokenEdge(text, start - 1) || !isMediaTokenEdge(text, scan)) continue;
+      const end = scan;
+      const ext = MEDIA_IMAGE_EXT_RE.exec(text.slice(Math.max(pathStart, end - 5), end));
+      if (ext !== null && end - ext[0].length > pathStart) ranges.push({ start, end });
+    }
+  }
+  if (MEDIA_HOSTS.length > 1) ranges.sort((a, b) => a.start - b.start);
+  return ranges;
+}
+
+/** True when the entropy layer must skip this whole token. */
+function isEntropyExempt(value: string): boolean {
+  // First-character check before any regex: this runs on every scored run.
+  const c = value.charCodeAt(0);
+  if (c === 0x73 /* s */) {
+    return SRI_VALUE_RE.test(value) || ANTHROPIC_ID_RE.test(value);
+  }
+  if (c === 0x74 /* t */ || c === 0x6d /* m */ || c === 0x72 /* r */) {
+    return ANTHROPIC_ID_RE.test(value);
+  }
+  return false;
+}
 
 /**
  * Minimum mean chunk length for a mixed-case segment to count as camelCase
@@ -158,7 +257,7 @@ export function isHighEntropyToken(token: string): boolean {
 export function buildTable(
   envNames: readonly string[],
   envValues: Record<string, string>,
-  patterns: readonly string[],
+  patterns: readonly PatternSpec[],
   options?: { entropy?: boolean }
 ): MaskTable {
   const entries: MaskTableEntry[] = [];
@@ -176,12 +275,19 @@ export function buildTable(
     }
   }
 
-  // Add shape patterns (prefixes that indicate secrets)
-  for (const pattern of patterns) {
-    entries.push({
-      type: "pattern",
-      pattern,
-    });
+  // Add shape patterns (prefixes that indicate secrets). A shaped prefix
+  // keeps its literal prefix for the indexOf scan and gets a sticky copy of
+  // its shape, tested only where the prefix is found.
+  for (const spec of patterns) {
+    if (typeof spec === "string") {
+      entries.push({ type: "pattern", pattern: spec });
+    } else {
+      entries.push({
+        type: "pattern",
+        pattern: spec.prefix,
+        shape: new RegExp(spec.shape.source, "y"),
+      });
+    }
   }
 
   const entropy: EntropyConfig | null = options?.entropy
@@ -195,18 +301,49 @@ export function buildTable(
  * Default secret patterns (prefixes and patterns).
  * Vendor prefixes such as sk-ant-, ghp_, xoxb-, AKIA, Bearer, BEGIN PRIVATE KEY.
  */
-export const DEFAULT_PATTERNS: readonly string[] = [
+export const DEFAULT_PATTERNS: readonly PatternSpec[] = [
   "sk-ant-",
-  "ops_",
+  // 1Password service-account token. The bare prefix sits inside every
+  // hq-ops MCP tool name (mcp__hq-ops__...) and identifiers like
+  // hq_ops_tasks, so the shape is anchored on the token BODY: a real token
+  // is base64 JSON, so it always continues "eyJ" ('{"') and a long
+  // base64url run. No lookbehind: the left context of a token in escaped
+  // text is a letter too ("\nops_...", "\tops_...", "%3Dops_..."), and a
+  // lookbehind there leaked real tokens (HOLD 6603957379).
+  { prefix: "ops_", shape: /ops_eyJ[A-Za-z0-9+/=_-]{20,}/y },
   "ghp_",
   "github_pat_",
   "xoxb-",
-  "sk_live_",
+  // Stripe live secret key: the bare prefix sits inside identifiers such as
+  // a risk_live_status column or disk_live_backup, so it must carry the
+  // 24+ alnum body of a real key. Body only, no lookbehind, for the same
+  // escaped-text reason as above (HOLD 6603957379).
+  { prefix: "sk_live_", shape: /sk_live_[0-9A-Za-z]{24,}/y },
   "rk_live_",
   "AKIA",
   "Bearer ",
   "-----BEGIN ",
 ];
+
+/** One raw match: a half-open range, plus the variable name for a named value. */
+interface MatchRecord {
+  start: number;
+  end: number;
+  name?: string;
+}
+
+/**
+ * The same set as the regex class \s (ECMAScript WhiteSpace plus
+ * LineTerminator), tested by char code: a regex call per character was
+ * the dominant cost on long inputs.
+ */
+function isSpaceCode(c: number): boolean {
+  return (
+    c === 0x20 || (c >= 0x09 && c <= 0x0d) || c === 0xa0 || c === 0x1680 ||
+    (c >= 0x2000 && c <= 0x200a) || c === 0x2028 || c === 0x2029 ||
+    c === 0x202f || c === 0x205f || c === 0x3000 || c === 0xfeff
+  );
+}
 
 /**
  * Push a span when the value crosses the entropy bar (length floor and
@@ -214,16 +351,17 @@ export const DEFAULT_PATTERNS: readonly string[] = [
  * check runs first so short values skip entropy scoring entirely (perf).
  */
 function pushIfHighEntropy(
-  matches: Array<{ start: number; end: number; value: string; name?: string }>,
+  matches: Array<MatchRecord>,
   start: number,
   value: string,
   entropy: EntropyConfig
 ): void {
   if (
     value.length >= entropy.minLength &&
+    !isEntropyExempt(value) &&
     shannonEntropy(value) >= entropy.thresholdBitsPerChar
   ) {
-    matches.push({ start, end: start + value.length, value });
+    matches.push({ start, end: start + value.length });
   }
 }
 
@@ -235,7 +373,7 @@ function pushIfHighEntropy(
  * (HOLD 5697167579) while keeping paths and branch names split.
  */
 function scorePiece(
-  matches: Array<{ start: number; end: number; value: string; name?: string }>,
+  matches: Array<MatchRecord>,
   absStart: number,
   run: string,
   pieceStart: number,
@@ -243,6 +381,9 @@ function scorePiece(
   entropy: EntropyConfig
 ): void {
   const piece = run.slice(pieceStart, pieceEnd);
+  // An exempt piece (an Anthropic id) is skipped before the '_' split, which
+  // would otherwise score its base62 body as a segment on its own.
+  if (isEntropyExempt(piece)) return;
   let segStart = -1;
   for (let i = 0; i <= piece.length; i++) {
     const ch = i < piece.length ? piece[i] : "/"; // sentinel flushes the tail
@@ -284,7 +425,7 @@ export function mask(text: string, table: MaskTable): MaskResult {
   let maskedText = text;
 
   // Collect all matches with their positions
-  const matches: Array<{ start: number; end: number; value: string; name?: string }> = [];
+  const matches: Array<MatchRecord> = [];
 
   for (const entry of table.entries) {
     if (entry.type === "env") {
@@ -296,14 +437,22 @@ export function mask(text: string, table: MaskTable): MaskResult {
         matches.push({
           start: idx,
           end: idx + entry.value.length,
-          value: entry.value,
           name: entry.name,
         });
+        // Every occurrence, overlapping ones included: a copy that starts
+        // inside another must not leave a fragment visible. indexOf keeps
+        // this linear; the spans are unioned below.
         searchPos = idx + 1;
       }
     } else {
       // Pattern prefix match
       let searchPos = 0;
+      // One forward search for "-----END ": the nearest END at or after a
+      // BEGIN only moves forward, so a cached position (or "none left") is
+      // reused instead of re-searching from every BEGIN (quadratic on many
+      // BEGINs with no END).
+      let endMarkerAt = -2; // -2: not searched yet; -1: none after endSearchFrom
+      let endSearchFrom = 0;
       while (true) {
         const idx = maskedText.indexOf(entry.pattern, searchPos);
         if (idx === -1) break;
@@ -311,9 +460,23 @@ export function mask(text: string, table: MaskTable): MaskResult {
         // Determine the end of the secret
         let end = idx + entry.pattern.length;
 
+        // A shaped prefix counts only where its token shape matches: the
+        // sticky shape runs at idx (its lookbehind sees the text before
+        // idx). A miss costs at most the shape's minimum body length, so
+        // the scan stays linear.
+        if (entry.shape) {
+          entry.shape.lastIndex = idx;
+          const hit = entry.shape.exec(maskedText);
+          if (hit === null) {
+            searchPos = idx + 1;
+            continue;
+          }
+          end = idx + hit[0].length;
+        }
+
         // For Bearer, extend to end of token (non-whitespace)
         if (entry.pattern === "Bearer ") {
-          while (end < maskedText.length && !/\s/.test(maskedText[end])) {
+          while (end < maskedText.length && !isSpaceCode(maskedText.charCodeAt(end))) {
             end++;
           }
           // Require at least 20 chars for Bearer tokens
@@ -326,7 +489,11 @@ export function mask(text: string, table: MaskTable): MaskResult {
 
         // For BEGIN ... PRIVATE KEY, find the END marker
         if (entry.pattern === "-----BEGIN ") {
-          const endMarker = maskedText.indexOf("-----END ", idx);
+          if (endMarkerAt === -2 || (endMarkerAt !== -1 && endMarkerAt < idx)) {
+            endSearchFrom = idx;
+            endMarkerAt = maskedText.indexOf("-----END ", idx);
+          }
+          const endMarker = endMarkerAt !== -1 && idx >= endSearchFrom ? endMarkerAt : -1;
           if (endMarker !== -1) {
             const finalDash = maskedText.indexOf("-----", endMarker + 10);
             if (finalDash !== -1) {
@@ -340,17 +507,17 @@ export function mask(text: string, table: MaskTable): MaskResult {
           entry.pattern !== "Bearer " &&
           entry.pattern !== "-----BEGIN "
         ) {
-          while (end < maskedText.length && !/\s/.test(maskedText[end])) {
+          while (end < maskedText.length && !isSpaceCode(maskedText.charCodeAt(end))) {
             end++;
           }
         }
 
-        matches.push({
-          start: idx,
-          end,
-          value: maskedText.slice(idx, end),
-        });
-        searchPos = idx + 1;
+        matches.push({ start: idx, end });
+        // Resume at the end of this match, never one character later: any
+        // later prefix hit inside [idx, end) would end at the same run end,
+        // so it is already covered, and the overlap step below unions spans
+        // instead of dropping them. Restarting inside the run was quadratic.
+        searchPos = Math.max(end, idx + 1);
       }
     }
   }
@@ -385,8 +552,20 @@ export function mask(text: string, table: MaskTable): MaskResult {
   if (entropy) {
     const tokenRe = new RegExp(`${ENTROPY_ALPHABET}{${entropy.minLength},}`, "g");
     let m: RegExpExecArray | null;
+    const mediaRanges = mediaUrlRanges(maskedText);
+    let mediaAt = 0;
     while ((m = tokenRe.exec(maskedText)) !== null) {
       const run = m[0];
+      // Runs arrive in ascending order, so the range pointer only moves forward.
+      while (mediaAt < mediaRanges.length && mediaRanges[mediaAt].end <= m.index) mediaAt++;
+      if (
+        mediaAt < mediaRanges.length &&
+        mediaRanges[mediaAt].start <= m.index &&
+        m.index + run.length <= mediaRanges[mediaAt].end
+      ) {
+        // an image URL on a named media host (#5134)
+        continue;
+      }
       if (SRI_VALUE_RE.test(run)) {
         // public integrity hash, never a secret
         continue;
@@ -412,35 +591,54 @@ export function mask(text: string, table: MaskTable): MaskResult {
     }
   }
 
-  // Sort matches by start position, then by length (longest first for same start)
-  matches.sort((a, b) => {
+  // Sort by start, longest first at a tie; skipped when the layers already
+  // produced ascending, non-tied starts (one pattern on a long input).
+  let ordered = true;
+  for (let k = 1; k < matches.length; k++) {
+    if (matches[k].start <= matches[k - 1].start) {
+      ordered = false;
+      break;
+    }
+  }
+  if (!ordered) matches.sort((a, b) => {
     if (a.start !== b.start) return a.start - b.start;
     return b.end - a.end; // longer matches first
   });
 
-  // Remove overlapping matches (keep the first/longest)
-  const nonOverlapping: typeof matches = [];
-  let lastEnd = -1;
+  // Union overlapping or touching matches. Dropping a match that starts
+  // inside an earlier one lost its tail whenever it reached further (a
+  // named value ending inside a prefix token, two overlapping named values,
+  // an entropy piece next to a prefix hit), leaving part of a secret
+  // visible. A merged span covers everything any layer matched.
+  const merged: Array<{ start: number; end: number; name?: string; names: number }> = [];
   for (const match of matches) {
-    if (match.start >= lastEnd) {
-      nonOverlapping.push(match);
-      lastEnd = match.end;
+    const last = merged[merged.length - 1];
+    if (last && match.start <= last.end) {
+      if (match.end > last.end) last.end = match.end;
+      if (match.name !== undefined && match.name !== last.name) last.names += 1;
+    } else {
+      merged.push({ start: match.start, end: match.end, name: match.name, names: match.name === undefined ? 0 : 1 });
     }
   }
 
-  // Build masked text and spans (in reverse order to preserve positions)
-  nonOverlapping.reverse();
-  for (const match of nonOverlapping) {
-    const maskedValue = "\u2022".repeat(Math.min(8, match.end - match.start));
-    maskedText =
-      maskedText.slice(0, match.start) + maskedValue + maskedText.slice(match.end);
-    spans.unshift({
-      start: match.start,
-      end: match.end,
-      value: match.value,
-      name: match.name,
+  // Build the masked text in one pass: slices and bullets joined once
+  // (per-span slice + concat + unshift was quadratic on many spans).
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const span of merged) {
+    parts.push(text.slice(cursor, span.start));
+    parts.push("\u2022".repeat(Math.min(8, span.end - span.start)));
+    cursor = span.end;
+    spans.push({
+      start: span.start,
+      end: span.end,
+      value: text.slice(span.start, span.end),
+      // A span merged from several named values names none of them.
+      name: span.names === 1 ? span.name : undefined,
     });
   }
+  parts.push(text.slice(cursor));
+  maskedText = parts.join("");
 
   return { text: maskedText, spans };
 }
@@ -454,7 +652,9 @@ export function wouldMask(value: string, table: MaskTable): boolean {
       return true;
     }
     if (entry.type === "pattern" && value.startsWith(entry.pattern)) {
-      return true;
+      if (!entry.shape) return true;
+      entry.shape.lastIndex = 0;
+      if (entry.shape.test(value)) return true;
     }
   }
   // Same tokenizer rule as mask(): '+' anywhere or '=' as trailing padding
@@ -464,7 +664,7 @@ export function wouldMask(value: string, table: MaskTable): boolean {
   // is scored whole. SRI values are public and never mask.
   const entropy = table.entropy;
   if (entropy) {
-    if (SRI_VALUE_RE.test(value)) {
+    if (isEntropyExempt(value)) {
       return false;
     }
     if (/[+]/.test(value) || /^[^=]+=+$/.test(value)) {
@@ -476,7 +676,7 @@ export function wouldMask(value: string, table: MaskTable): boolean {
     let pieceStart = 0;
     for (let i = 0; i <= value.length; i++) {
       if (i === value.length || value[i] === "=") {
-        if (i > pieceStart) {
+        if (i > pieceStart && !isEntropyExempt(value.slice(pieceStart, i))) {
           const piece = value.slice(pieceStart, i);
           let segStart = -1;
           let allWordLike = true;

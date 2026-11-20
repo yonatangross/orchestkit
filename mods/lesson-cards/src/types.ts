@@ -53,5 +53,7 @@ export interface MatchedLesson {
   severity: 'block' | 'warn';
   message: string;
   fix?: string;
+  /** The pattern's allowed_form: the one command the lesson hands the agent. */
+  allowedForm?: string;
   source: 'pattern' | 'bullet';
 }

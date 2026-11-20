@@ -121,40 +121,18 @@ done
 echo ""
 
 # ============================================================================
-# Test 4: CLAUDE.md passive injection
+# Test 4: no plugin-root CLAUDE.md wrapper
 # ============================================================================
-echo "▶ Test 4: CLAUDE.md contains full index"
+# The old wrapper was never loaded by Claude Code and fails
+# `claude plugin validate --strict`; tests/indexes/test-no-plugin-root-claude-md.sh
+# holds the full guard. The index itself is checked by Tests 1 to 3.
+echo "▶ Test 4: no plugin-root CLAUDE.md wrapper"
 echo "──────────────────────────────────────"
 
-if [[ -f "$ORK_CLAUDE_MD" ]]; then
-    pass "CLAUDE.md exists for ork plugin"
+if [[ -e "$ORK_CLAUDE_MD" ]]; then
+    fail "plugins/ork/CLAUDE.md exists (never loaded, fails validate --strict)"
 else
-    fail "CLAUDE.md missing for ork plugin"
-    exit 1
-fi
-
-# Check it contains the index in a code block
-if grep -q '```' "$ORK_CLAUDE_MD" && grep -q "Agent Routing Index" "$ORK_CLAUDE_MD"; then
-    pass "CLAUDE.md contains index in code block"
-else
-    fail "CLAUDE.md missing index code block"
-fi
-
-# Check it has the retrieval instruction outside the code block
-if head -5 "$ORK_CLAUDE_MD" | grep -qi "retrieval-led reasoning"; then
-    pass "CLAUDE.md has retrieval instruction in prose"
-else
-    fail "CLAUDE.md missing retrieval instruction in prose"
-fi
-
-# Verify agent count matches between index and CLAUDE.md
-INDEX_AGENT_COUNT=$(grep -cE "^\|[a-z][a-z0-9-]+:" "$ORK_INDEX" || true)
-CLAUDE_MD_AGENT_COUNT=$(grep -cE "^\|[a-z][a-z0-9-]+:" "$ORK_CLAUDE_MD" || true)
-
-if [[ "$INDEX_AGENT_COUNT" -eq "$CLAUDE_MD_AGENT_COUNT" ]]; then
-    pass "Agent count matches: $INDEX_AGENT_COUNT in both files"
-else
-    fail "Agent count mismatch: index=$INDEX_AGENT_COUNT, CLAUDE.md=$CLAUDE_MD_AGENT_COUNT"
+    pass "no plugins/ork/CLAUDE.md"
 fi
 
 echo ""

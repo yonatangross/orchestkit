@@ -35,38 +35,38 @@ Unsure OR mixed concerns?      → workflow-architect
 |---|---|---|---|---|
 | `backend-system-architect` | backend | inherit | medium | Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean… |
 | `database-engineer` | backend | sonnet | medium | PostgreSQL specialist: schema design, migrations, query optimization, pgvector/full-text search, Alembic mi… |
-| `event-driven-architect` | backend | opus | medium | Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS… |
-| `python-performance-engineer` | backend | inherit | medium | Python performance: profiling, memory optimization, async performance, database query optimization, caching… |
-| `data-pipeline-engineer` | data | haiku | low | Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consu… |
+| `event-driven-architect` | backend | sonnet | medium | Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS… |
+| `python-performance-engineer` | backend | sonnet | medium | Python performance: profiling, memory optimization, async performance, database query optimization, caching… |
+| `data-pipeline-engineer` | data | sonnet | low | Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consu… |
 | `demo-producer` | design | sonnet | medium | Universal demo video producer that creates polished marketing videos for any content - skills, agents, plug… |
 | `system-design-reviewer` | design | opus | medium | System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence … |
-| `ci-cd-engineer` | devops | inherit | medium | CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, … |
-| `deployment-manager` | devops | haiku | low | Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime de… |
+| `ci-cd-engineer` | devops | sonnet | medium | CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, … |
+| `deployment-manager` | devops | sonnet | low | Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime de… |
 | `infrastructure-architect` | devops | inherit | medium | Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architectu… |
-| `monitoring-engineer` | devops | haiku | low | Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distribute… |
-| `release-engineer` | devops | haiku | low | Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic version… |
+| `monitoring-engineer` | devops | sonnet | low | Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distribute… |
+| `release-engineer` | devops | haiku | low | Release and versioning specialist for GitHub releases, milestones, changelogs, semantic versioning and rele… |
 | `accessibility-specialist` | frontend | sonnet | medium | Accessibility expert: WCAG 2.2 audits, screen reader compat, keyboard navigation, ARIA patterns, automated … |
-| `claude-design-orchestrator` | frontend | sonnet | high | Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase … |
-| `component-curator` | frontend | inherit | low | Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tra… |
-| `design-context-extractor` | frontend | inherit | low | Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, … |
-| `design-system-architect` | frontend | inherit | medium | Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pip… |
+| `claude-design-orchestrator` | frontend | sonnet | high | Reads Claude Design exports (zip, HTML or folder): parses the prototypes, dedups proposed components agains… |
+| `component-curator` | frontend | sonnet | low | Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tra… |
+| `design-context-extractor` | frontend | sonnet | low | Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, … |
+| `design-system-architect` | frontend | sonnet | medium | Design system architect: token hierarchies, theming strategies, component library design, Figma-to-code pip… |
 | `frontend-performance-engineer` | frontend | sonnet | medium | Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets… |
 | `frontend-ui-developer` | frontend | inherit | medium | Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system t… |
-| `genui-architect` | frontend | inherit | medium | Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, co… |
-| `git-operations-engineer` | git | haiku | low | Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. |
+| `genui-architect` | frontend | sonnet | medium | Generative UI and json-render catalog specialist. Designs Zod-typed catalogs, selects shadcn components, co… |
+| `git-operations-engineer` | git | sonnet | low | Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.… |
 | `llm-integrator` | llm | sonnet | medium | LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost op… |
-| `multimodal-specialist` | llm | sonnet | medium | Vision, audio, video generation, and multimodal processing specialist who integrates Claude Opus 4.8, GPT-5… |
+| `multimodal-specialist` | llm | sonnet | medium | Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 5.5… |
 | `workflow-architect` | llm | opus | high | Multi-agent workflow: LangGraph pipelines, supervisor-worker patterns, state/checkpointing, RAG orchestration. |
-| `market-intelligence` | product | haiku | low | Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis. |
+| `market-intelligence` | product | sonnet | low | Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis. |
 | `product-strategist` | product | inherit | medium | Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, … |
 | `web-research-analyst` | research | sonnet | medium | Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical re… |
 | `ai-safety-auditor` | security | opus | medium | AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail… |
-| `security-auditor` | security | opus | medium | Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, re… |
+| `security-auditor` | security | opus | high | Security auditor: vulnerability scanning, dependency audits, OWASP Top 10 compliance, secrets detection, re… |
 | `security-layer-auditor` | security | opus | medium | Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to … |
-| `code-quality-reviewer` | testing | inherit | medium | Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking,… |
+| `code-quality-reviewer` | testing | opus | high | Code quality reviewer: bug detection, security vulnerabilities, performance issues, linting, type checking,… |
 | `debug-investigator` | testing | sonnet | medium | Debug specialist: systematic root cause analysis, execution path tracing, log and stack trace analysis. |
-| `emulate-engineer` | testing | inherit | medium | Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Re… |
+| `emulate-engineer` | testing | haiku | medium | Stateful API emulation via Vercel emulate. Seeds GitHub/Vercel/Google/Slack/Apple/Entra/AWS/MongoDB/Okta/Re… |
 | `eval-runner` | testing | haiku | low | LLM evaluation specialist who runs structured eval datasets, computes quality metrics using DeepEval/RAGAS,… |
 | `expect-agent` | testing | sonnet | high | Browser test execution: runs diff-aware test plans via agent-browser with ARIA selectors, status protocol, … |
-| `test-generator` | testing | inherit | medium | Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP… |
+| `test-generator` | testing | sonnet | medium | Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP… |
 <!-- END-GENERATED: list-invocable-agents -->

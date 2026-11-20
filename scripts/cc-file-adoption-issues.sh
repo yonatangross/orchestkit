@@ -15,6 +15,8 @@
 #                     skipped; 1 enables both evidence lanes (the workflow sets
 #                     it to 1 explicitly so activation is never silent)
 #   EVIDENCE_ROOTS    space-separated paths grepped for surface evidence
+#   TOOL_NOUN_ROOTS   space-separated paths grepped for class-T tool nouns
+#                     (default src/settings/ src/hooks/hooks.json)
 #   RECALL_MIN        sub-floor recall band lower bound (default 4)
 #   FEATURE_CAP       extractor hard cap for cap-saturation warning (default 20)
 #
@@ -46,6 +48,10 @@ MIN_GAP_SCORE="${MIN_GAP_SCORE:-10}"
 # actually author. Space-separated; non-existent paths are filtered out at use.
 # Injectable so the hermetic step-3 tests can point it at a controlled fixture.
 EVIDENCE_ROOTS="${EVIDENCE_ROOTS:-src/settings/ manifests/ src/hooks/hooks.json src/hooks/src/ src/skills/ src/agents/}"
+# Tool-noun roots are deliberately narrower (#2997): permission rules live only
+# in the settings files and hooks.json, so a `Noun(` token is evidence only
+# there, never across the full EVIDENCE_ROOTS. Injectable for hermetic tests.
+TOOL_NOUN_ROOTS="${TOOL_NOUN_ROOTS:-src/settings/ src/hooks/hooks.json}"
 # ORK_EVIDENCE_GATE defaults to 0 (legacy score-only filing, recall lane skipped)
 # so the gate never activates silently. The nightly workflow sets it to 1
 # explicitly (a visible, one-line-revertible switch). 1 enables both lanes.
@@ -107,7 +113,7 @@ normalize_ref() {
 # on a missing root (a removed dir must not fail-open the whole gate).
 existing_roots() {
   local r
-  for r in $EVIDENCE_ROOTS; do
+  for r in "$@"; do
     [ -e "$r" ] && printf '%s\n' "$r"
   done
 }
@@ -118,6 +124,8 @@ core_len() { printf '%s' "$1" | tr -cd '[:alnum:]' | awk '{ print length }'; }
 # Derive classified search tokens from a feature, one per line, deduped, as
 # "C<TAB>token" (camelCase — match case-sensitively) or "P<TAB>token" (punctuated
 # — match case-insensitively). See the classifier note above for the rules.
+# A third class, "T<TAB>Noun(" (#2997), covers permission tool nouns and is
+# grepped only under TOOL_NOUN_ROOTS, never the full EVIDENCE_ROOTS.
 derive_tokens() {
   local feat="$1"
   local slug desc ref desc_rest ref_rest
@@ -163,11 +171,21 @@ derive_tokens() {
       | tr '[:upper:]' '[:lower:]' \
       | sed -E 's/s$//' \
       | while IFS= read -r w; do [ -n "$w" ] && printf 'P\t%s\n' "$w"; done || true  # silent: known-noise
+    # Permission tool nouns (#2997). The set above covers ork's own component
+    # surfaces; this closed set covers the CC tool names a permission rule is
+    # written against (`Bash(npm run *)`). Emitted as class T with the paren
+    # attached so it can only match the permission-rule form, and has_evidence
+    # scopes it to TOOL_NOUN_ROOTS. The scan uses the sentence-initial-dropped
+    # text and the canonical capitalized names, so lowercase prose and a
+    # leading imperative verb cannot leak a token.
+    printf '%s\n' "$desc_rest $ref_rest" \
+      | grep -oE '\b(Bash|Read|Edit|Write|Glob|Grep|WebFetch|WebSearch|NotebookEdit)\b' \
+      | while IFS= read -r w; do [ -n "$w" ] && printf 'T\t%s(\n' "$w"; done || true  # silent: known-noise
     printf '%s\n' "$slug"
   } | while IFS= read -r tok; do
       # Vocabulary lines arrive pre-classified; pass them through untouched.
       case "$tok" in
-        P$'\t'*) printf '%s\n' "$tok"; continue ;;
+        [PT]$'\t'*) printf '%s\n' "$tok"; continue ;;
       esac
       [ -z "$tok" ] && continue
       [ "$(core_len "$tok")" -ge "$TOKEN_CORE_MIN" ] || continue
@@ -190,9 +208,10 @@ derive_tokens() {
 has_evidence() {
   local feat="$1"
   [ "$EVIDENCE_GATE" = "0" ] && { echo hit; return; }
-  local roots classified line cls tok files
-  roots=$(existing_roots)
+  local roots classified line cls tok files troots
+  roots=$(existing_roots $EVIDENCE_ROOTS)
   [ -z "$roots" ] && { echo unknown; return; }
+  troots=$(existing_roots $TOOL_NOUN_ROOTS)
   classified=$(derive_tokens "$feat")
   [ -z "$classified" ] && { echo unknown; return; }
   while IFS= read -r line; do
@@ -202,7 +221,12 @@ has_evidence() {
     # -F fixed string so a token with regex metachars can't misbehave. camelCase
     # (C) matches case-sensitively — its distinctiveness IS the casing; punctuated
     # (P) matches case-insensitively. A no-match grep exits 1 (expected).
-    if [ "$cls" = "C" ]; then
+    if [ "$cls" = "T" ]; then
+      # Permission-surface evidence: a `Noun(` token counts only where
+      # permission rules live, never across the wider EVIDENCE_ROOTS.
+      [ -z "$troots" ] && continue
+      files=$(printf '%s\n' "$troots" | tr '\n' '\0' | xargs -0 grep -rlF "$tok" 2>/dev/null || true)  # silent: known-noise
+    elif [ "$cls" = "C" ]; then
       files=$(printf '%s\n' "$roots" | tr '\n' '\0' | xargs -0 grep -rlF -- "$tok" 2>/dev/null || true)  # silent: known-noise
     else
       files=$(printf '%s\n' "$roots" | tr '\n' '\0' | xargs -0 grep -rliF -- "$tok" 2>/dev/null || true)  # silent: known-noise

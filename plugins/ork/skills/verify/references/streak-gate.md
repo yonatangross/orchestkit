@@ -93,7 +93,7 @@ The streak gate sits *above* the normal verdict — it never loosens a blocker, 
 | READY but `current < target` | **STREAK PROGRESS — `current`/`target`** (not done; run again) |
 | READY and `current >= target` | **READY FOR MERGE** (streak `target`/`target` met) |
 
-Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 < 4.0)`. The user must see how close (or how broken) the streak is.
+Always surface the count: `STREAK 2/3 — one more green to merge` or `streak reset to 0/3 (security 3.2 < 9.0)`. The user must see how close (or how broken) the streak is.
 
 ## Wiring into `/goal`
 

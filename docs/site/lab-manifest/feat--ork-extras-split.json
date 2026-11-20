@@ -1,0 +1,13 @@
+{
+  "slug": "feat--ork-extras-split",
+  "source": "docs/feat--ork-extras-split/index.html",
+  "title": "ork-extras split: which plugin ships each skill",
+  "description": "Core ork keeps 90 skills and 26 reference skills move to the opt-in ork-extras plugin. Search any skill to see which plugin ships it, its new /ork-extras: name, and copy a migration prompt.",
+  "tags": [
+    "plugins",
+    "ork-extras",
+    "migration",
+    "skills"
+  ],
+  "date": "2026-11-12"
+}

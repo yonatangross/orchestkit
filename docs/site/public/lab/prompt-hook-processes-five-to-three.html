@@ -1,0 +1,131 @@
+<!-- OrchestKit playground - PR fix/4904-prompt-hook-process-count (#4909, carries #4904) - 2026-10-25 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five processes per prompt, now three</title>
+<meta name="description" content="Every prompt used to start five OrchestKit node processes, two of them sync hooks with a 5 second timeout. Slide the machine load and see which hooks time out before and after #4904 folds goal-tracker and the worktree advisory into the prompt dispatcher.">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
+  main { max-width:980px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:#6ea8fe; }
+  p { margin:6px 0; color:#9aa3b2; max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:#181b22; border:1px solid #2a2f3a; border-radius:10px; padding:14px; margin-top:10px; }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:#9aa3b2; border:1px solid #2a2f3a; border-radius:20px; padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:#6ea8fe; color:#e6e6e6; }
+  label { font:13px ui-monospace,Menlo,monospace; color:#cbd5e1; }
+  input[type=range] { width:100%; }
+  table { width:100%; border-collapse:collapse; font:13px ui-monospace,Menlo,monospace; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid #2a2f3a; }
+  th { color:#9aa3b2; font-weight:600; }
+  .bad { color:#e5484d; } .ok { color:#4cc38a; } .dim { color:#6b7280; }
+  .verdict { font:600 14px ui-monospace,Menlo,monospace; margin-top:10px; }
+  pre { background:#0b0d11; border:1px solid #2a2f3a; border-radius:8px; padding:10px; white-space:pre-wrap; font:12.5px ui-monospace,Menlo,monospace; color:#cbd5e1; }
+  .copy { margin-top:8px; background:#6ea8fe; color:#0b0d11; border:0; border-radius:6px; padding:7px 12px; cursor:pointer; font:600 12px ui-monospace,Menlo,monospace; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Five processes per prompt, now three"><meta property="og:description" content="Every prompt used to start five OrchestKit node processes, two of them sync hooks with a 5 second timeout. Slide the machine load and see which hooks time out before and after #4904 folds goal-tracker and the worktree advisory into the prompt dispatcher."><meta property="og:url" content="https://orchestkit.dev/lab/prompt-hook-processes-five-to-three.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Five processes per prompt, now three"><meta name="twitter:description" content="Every prompt used to start five OrchestKit node processes, two of them sync hooks with a 5 second timeout. Slide the machine load and see which hooks time out before and after #4904 folds goal-tracker and the worktree advisory into the prompt dispatcher."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Five processes per prompt, now three</h1>
+<p>Every prompt you send runs OrchestKit's UserPromptSubmit hooks, and each registered hook starts its own node process. Before this change there were five. Two of them, <code>prompt/goal-tracker</code> and <code>prompt/worktree-advisory-consumer</code>, were sync hooks with a 5 second timeout. Under load, node's cold start alone used most of that budget. Contributed by @mikemikimike in #4904 (carried as #4909), the fold moves both hooks inside <code>prompt/unified-dispatcher</code>, which already runs on every prompt with a 15 second budget.</p>
+
+<h2>Slide the machine load</h2>
+<div class="panel">
+  <div class="opts" id="state">
+    <button data-s="before" aria-pressed="true">before (main)</button>
+    <button data-s="after" aria-pressed="false">after (#4904)</button>
+  </div>
+  <label for="load">load1 <span id="loadv"></span></label>
+  <input id="load" type="range" min="0" max="240" value="70">
+  <p id="cold"></p>
+  <table>
+    <thead><tr><th>hook</th><th>mode</th><th>timeout</th><th>this prompt</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="verdict" id="verdict"></div>
+  <p class="dim">The cold-start numbers are the ones measured for this change: about 0.35 s with the machine idle, up to 2.2 s at load1 60 to 86, past 5 s at load1 near 230. The slider interpolates between them, so read it as a shape, not a benchmark. The dispatcher's own hooks run in the same process, so they share one cold start.</p>
+</div>
+
+<h2>What stays the same</h2>
+<div class="panel">
+  <p>The fold keeps both hooks' behaviour. When this session tripped the /goal budget brake, the prompt is still blocked with the same message. A pending worktree advisory still reaches the model and is deleted after delivery, even past the dispatcher's shared context budget. Both hooks stay in the prompt entries map, reached through the dispatcher.</p>
+</div>
+
+<h2>Copy as prompt</h2>
+<div class="panel">
+  <pre id="prompt"></pre>
+  <button class="copy" id="copy">copy as prompt</button>
+</div>
+</main>
+<script>
+  const HOOKS = {
+    before: [
+      ["prompt/unified-dispatcher", "sync", 15],
+      ["prompt/goal-tracker", "sync", 5],
+      ["prompt/worktree-advisory-consumer", "sync", 5],
+      ["prompt/thrash-detector", "async", 5],
+      ["lifecycle/webhook-forwarder", "async", 15]
+    ],
+    after: [
+      ["prompt/unified-dispatcher (+ goal-tracker, worktree advisory)", "sync", 15],
+      ["prompt/thrash-detector", "async", 5],
+      ["lifecycle/webhook-forwarder", "async", 15]
+    ]
+  };
+  // Measured anchor points: [load1, cold start seconds]
+  const ANCHORS = [[0, 0.35], [60, 1.2], [86, 2.2], [230, 5.4], [240, 5.6]];
+  let state = "before";
+
+  function cold(load) {
+    for (let i = 1; i < ANCHORS.length; i++) {
+      const [l0, s0] = ANCHORS[i - 1], [l1, s1] = ANCHORS[i];
+      if (load <= l1) return s0 + (s1 - s0) * (load - l0) / (l1 - l0);
+    }
+    return ANCHORS[ANCHORS.length - 1][1];
+  }
+
+  function cell(text, cls) { const td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; return td; }
+
+  function render() {
+    const load = Number(document.getElementById("load").value);
+    const c = cold(load);
+    document.getElementById("loadv").textContent = load;
+    document.getElementById("cold").textContent = "node cold start at this load: about " + c.toFixed(2) + " s per process";
+    document.querySelectorAll("#state button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === state)));
+    const rows = document.getElementById("rows");
+    rows.replaceChildren();
+    let timedOut = 0, sync = 0;
+    for (const [name, mode, timeout] of HOOKS[state]) {
+      const tr = document.createElement("tr");
+      const over = c >= timeout;
+      if (mode === "sync") sync++;
+      if (over && mode === "sync") timedOut++;
+      tr.appendChild(cell(name));
+      tr.appendChild(cell(mode));
+      tr.appendChild(cell(timeout + " s"));
+      tr.appendChild(cell(over ? (mode === "sync" ? "times out" : "times out (async, prompt not held)") : "starts in time", over ? "bad" : "ok"));
+      rows.appendChild(tr);
+    }
+    const n = HOOKS[state].length;
+    const v = document.getElementById("verdict");
+    v.textContent = n + " node processes per prompt, " + sync + " sync, " + timedOut + " sync hook(s) timing out";
+    v.className = "verdict " + (timedOut ? "bad" : "ok");
+    document.getElementById("prompt").textContent =
+      "In OrchestKit, check UserPromptSubmit in src/hooks/hooks.json: it should list " + HOOKS.after.length +
+      " entries (unified-dispatcher, thrash-detector, webhook-forwarder), and goal-tracker plus worktree-advisory-consumer should run inside prompt/unified-dispatcher. At load1 " + load +
+      " a cold start is about " + c.toFixed(2) + " s.";
+  }
+
+  document.getElementById("load").addEventListener("input", render);
+  document.querySelectorAll("#state button").forEach(b => b.addEventListener("click", () => { state = b.dataset.s; render(); }));
+  document.getElementById("copy").addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("prompt").textContent));
+  render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -61,5 +61,5 @@ export function fileChanged(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
     return outputSilentSuccess();
   }
 
-  return outputWithContext(`[FileChanged] ${description}`);
+  return outputWithContext(`[FileChanged] ${description}`, input);
 }

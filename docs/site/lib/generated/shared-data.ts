@@ -4,16 +4,18 @@
 import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
-  "plugins": 1,
-  "skills": 107,
+  "plugins": 2,
+  "skills": 115,
+  "coreSkills": 82,
+  "extrasSkills": 33,
   "agents": 36,
-  "hooks": 171,
-  "commands": 36,
+  "hooks": 163,
+  "commands": 47,
   "compositions": 14
 };
 
 // Extracted from src/hooks/src/lib/cc-version-matrix.ts
-export const MIN_CC_VERSION = "2.1.251";
+export const MIN_CC_VERSION = "2.1.277";
 
 export const AGENTS: AgentSummary[] = [
   {
@@ -54,7 +56,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "claude-design-orchestrator",
-    "description": "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code.",
+    "description": "Reads Claude Design exports (zip, HTML or folder): parses the prototypes, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks export-to-PR provenance so design intent stays linked to shipped code.",
     "plugins": [
       "ork"
     ],
@@ -207,7 +209,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "git-operations-engineer",
-    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.",
+    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).",
     "plugins": [
       "ork"
     ],
@@ -252,7 +254,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "multimodal-specialist",
-    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
+    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 5.5, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
     "plugins": [
       "ork"
     ],
@@ -279,7 +281,7 @@ export const AGENTS: AgentSummary[] = [
   },
   {
     "name": "release-engineer",
-    "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.",
+    "description": "Release and versioning specialist for GitHub releases, milestones, changelogs, semantic versioning and release automation. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).",
     "plugins": [
       "ork"
     ],
@@ -389,13 +391,13 @@ export const SKILLS_SUMMARY = {
   "ork": {
     "workflows": [
       "commit",
+      "create-plan",
+      "create-research",
       "explore",
       "implement",
       "issue-progress-tracking",
-      "langgraph",
-      "task-dependency-patterns",
-      "verify",
-      "web-research-workflow"
+      "iterate-plan",
+      "iterate-research"
     ],
     "memory": [
       "doctor",
@@ -413,94 +415,74 @@ export const SKILLS_SUMMARY = {
       "write-prd"
     ],
     "git": [
-      "ai-ui-generation",
-      "animation-motion-design",
       "api-design",
       "assess",
       "ci-debug",
       "ci-sentinel",
       "code-review-playbook",
-      "commit"
+      "commit",
+      "create-pr",
+      "demo-producer"
     ],
     "video": [
       "demo-producer",
-      "multi-surface-render",
-      "multimodal-llm"
+      "multi-surface-render"
     ],
     "accessibility": [
-      "accessibility",
       "design-system-tokens",
       "expect",
-      "figma-design-handoff",
-      "storybook-mcp-integration",
-      "storybook-testing",
       "testing-e2e"
     ],
     "devops": [
       "devops-deployment",
-      "monitoring-observability",
-      "portless",
       "web-research-workflow"
     ],
     "testing": [
       "architecture-patterns",
-      "bare-eval",
+      "code-review-playbook",
       "cover",
       "emulate-seed",
+      "error-analysis",
       "expect",
-      "golden-dataset",
-      "llm-integration",
-      "product-analytics"
+      "product-analytics",
+      "review-pr"
     ],
     "security": [
-      "audit-full",
       "browser-tools",
-      "mcp-patterns",
       "review-pr",
       "security-patterns"
     ],
     "python": [
-      "async-jobs",
-      "domain-driven-design",
-      "langgraph",
       "python-backend",
       "testing-perf"
     ],
     "react": [
-      "accessibility",
       "component-search",
-      "design-import",
-      "design-ship",
       "design-to-code",
-      "i18n-date-patterns",
       "multi-surface-render",
-      "performance"
+      "performance",
+      "react-server-components-framework"
     ],
     "llm": [
-      "ai-ui-generation",
-      "golden-dataset",
-      "langgraph",
-      "llm-integration",
-      "mcp-patterns",
-      "multimodal-llm",
+      "error-analysis",
       "performance",
-      "rag-retrieval"
+      "react-server-components-framework",
+      "security-patterns",
+      "testing-llm"
     ],
     "rag": [
       "cover",
-      "interaction-patterns",
-      "rag-retrieval",
       "testing-llm"
     ],
     "backend": [
       "api-design",
       "architecture-decision-record",
       "architecture-patterns",
-      "audit-full",
       "browser-tools",
-      "distributed-systems",
-      "documentation-patterns",
-      "domain-driven-design"
+      "emulate-seed",
+      "explore",
+      "github-operations",
+      "python-backend"
     ]
   }
 };

@@ -11,23 +11,25 @@ import {
 	readDoc,
 	search,
 } from "./api.js";
+import { type HostEnv, HOST_IDS, detectHosts, installText, isHostId } from "./hosts.js";
 import { type McpTransport, mcpConfig } from "./mcp-config.js";
 
-/**
- * The one supported way to install the plugin from a shell. Mirrors
- * SITE.installCommand. `claude install` installs the Claude Code native build,
- * not a plugin, so it must never appear here.
- */
-export const PLUGIN_INSTALL_COMMAND =
-	"claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit";
+/** Detection that finds nothing: the default when the caller injects no HostEnv. */
+const NO_HOSTS: HostEnv = { env: {}, hasBin: () => false };
 
-export const HELP = `orchestkit, CLI for OrchestKit, the Claude Code plugin by Yonyon
+/** Claude Code's one-line install. Mirrors SITE.installCommand; defined in hosts.ts. */
+export { PLUGIN_INSTALL_COMMAND } from "./hosts.js";
+
+export const HELP = `orchestkit, CLI for OrchestKit by Yonyon: free, MIT skills and agents for
+Claude Code, Cursor, Codex and five more coding agents
 
 USAGE
   orchestkit <command> [options]
 
 COMMANDS
-  install            Print the Claude Code command that installs the plugin
+  install [host]     Print the install command for the coding agents found here
+                     (or for one host: claude, cursor, codex, devin, opencode,
+                     muse, pi, agy; --all for every host)
   search <query>     Search the documentation
   ask <question>     Ask a natural-language question (NLWeb /ask)
   read <page>        Print a documentation page as Markdown
@@ -47,7 +49,7 @@ EXAMPLES
   orchestkit mcp stdio > mcp.json
 
 The docs API is public, read-only and unauthenticated. Rate limit: 120 requests
-per minute per IP per endpoint. Policy: https://orchestkit.yonyon.ai/api-policy
+per minute per IP per endpoint. Policy: https://orchestkit.dev/api-policy
 `;
 
 export type ParsedArgs = {
@@ -56,32 +58,54 @@ export type ParsedArgs = {
 	limit: number;
 	json: boolean;
 	baseUrl?: string;
+	help: boolean;
 	version: boolean;
 };
+
+class UsageError extends Error {}
+
+function isOptionToken(value: string): boolean {
+	return value.startsWith("--") || value === "-h" || value === "-v";
+}
 
 export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
 	let limit = 5;
 	let json = false;
+	let help = false;
 	let version = false;
 	let baseUrl: string | undefined;
 
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i] as string;
 		if (arg === "--json") json = true;
+		else if (arg === "--help" || arg === "-h") help = true;
 		else if (arg === "--version" || arg === "-v") version = true;
-		else if (arg === "--limit") {
-			const next = Number.parseInt(argv[++i] ?? "", 10);
-			// A bad --limit silently falling back to the default would hide the typo
-			// in a script; clamping to a sane range is the honest middle ground.
-			if (Number.isFinite(next)) limit = Math.min(Math.max(next, 1), 50);
-		} else if (arg === "--base-url") baseUrl = argv[++i];
-		else if (arg.startsWith("-")) positional.push(arg);
+		else if (arg === "--limit" || arg === "--base-url") {
+			const value = argv[i + 1];
+			if (value === undefined || isOptionToken(value)) {
+				throw new UsageError(`${arg} requires a value.`);
+			}
+			i++;
+			if (arg === "--limit") {
+				if (!/^[+-]?\d+$/.test(value)) {
+					throw new UsageError("--limit requires an integer.");
+				}
+				limit = Math.min(Math.max(Number(value), 1), 50);
+			} else {
+				baseUrl = value;
+			}
+		} else if (arg.startsWith("-")) positional.push(arg);
 		else positional.push(arg);
 	}
 
-	const command = positional.shift() ?? (version ? "version" : "help");
-	return { command, positional, limit, json, baseUrl, version };
+	// Help and version answer before any command, wherever they appear, and help
+	// wins when both are given.
+	let command: string;
+	if (help) command = "help";
+	else if (version) command = "version";
+	else command = positional.shift() ?? "help";
+	return { command, positional, limit, json, baseUrl, help, version };
 }
 
 export type RunResult = { stdout: string; stderr: string; exitCode: number };
@@ -100,15 +124,15 @@ function rateLimitNote(rl: RateLimit): string {
 }
 
 function formatSearch(
-	results: { url: string; title?: string; description?: string }[],
+	results: { url: string; title?: string; description?: string; content?: string }[],
 	rl: RateLimit,
 	baseUrl: string,
 ): string {
 	if (results.length === 0) {
-		return "No matches. Try a broader query, or browse https://orchestkit.yonyon.ai/llms.txt\n";
+		return "No matches. Try a broader query, or browse https://orchestkit.dev/llms.txt\n";
 	}
 	const lines = results.map((r, i) => {
-		const title = r.title ?? r.url;
+		const title = r.title ?? r.content ?? r.url;
 		const desc = r.description ? `\n     ${r.description}` : "";
 		return `  ${i + 1}. ${title}\n     ${baseUrl}${r.url}${desc}`;
 	});
@@ -117,41 +141,37 @@ function formatSearch(
 
 export async function run(
 	argv: readonly string[],
-	deps: { version: string; clientFactory?: (o: Partial<Client>) => Client } = {
+	deps: {
+		version: string;
+		clientFactory?: (o: Partial<Client>) => Client;
+		hostEnv?: HostEnv;
+	} = {
 		version: "0.0.0",
 	},
 ): Promise<RunResult> {
-	const args = parseArgs(argv);
-	const makeClient = deps.clientFactory ?? createClient;
-	const client = makeClient({ baseUrl: args.baseUrl });
-
 	try {
+		const args = parseArgs(argv);
+		const makeClient = deps.clientFactory ?? createClient;
+		const client = makeClient({ baseUrl: args.baseUrl });
+
 		switch (args.command) {
 			case "help":
-			case "--help":
-			case "-h":
 				return ok(HELP);
 
 			case "version":
-			case "--version":
 				return ok(`${deps.version}\n`);
 
-			case "install":
-				return ok(
-					[
-						"OrchestKit is a Claude Code plugin. Install it from a terminal:",
-						"",
-						`  ${PLUGIN_INSTALL_COMMAND}`,
-						"",
-						"Or inside a Claude Code session:",
-						"",
-						"  /plugin marketplace add yonatangross/orchestkit",
-						"  /plugin install ork",
-						"",
-						"Requires Claude Code. Docs: https://orchestkit.yonyon.ai/docs/getting-started/installation",
-						"",
-					].join("\n"),
-				);
+			case "install": {
+				const target = args.positional[0];
+				if (target === "--all") return ok(installText(HOST_IDS));
+				if (target !== undefined) {
+					if (!isHostId(target)) {
+						return fail(`Unknown host "${target}". Use one of: ${HOST_IDS.join(", ")}.\n`, 2);
+					}
+					return ok(installText([target]));
+				}
+				return ok(installText(detectHosts(deps.hostEnv ?? NO_HOSTS)));
+			}
 
 			case "mcp": {
 				const transport = (args.positional[0] ?? "http") as McpTransport;
@@ -221,6 +241,7 @@ export async function run(
 				return fail(`Unknown command "${args.command}".\n\n${HELP}`, 2);
 		}
 	} catch (err) {
+		if (err instanceof UsageError) return fail(`${err.message}\n`, 2);
 		if (err instanceof ApiError) {
 			const retry =
 				err.retryAfter !== null ? ` Retry after ${err.retryAfter}s.` : "";

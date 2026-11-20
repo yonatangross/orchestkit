@@ -1,0 +1,11 @@
+{
+  "slug": "ci-sentinel-no-dead-ceiling",
+  "source": "docs/fix--5138-remove-sentinel-ceiling/index.html",
+  "title": "The sentinel loses a ceiling that could never fire",
+  "description": "Pick a part of the ci-sentinel workflow and compare what it did before and after the dead daily token ceiling was removed.",
+  "tags": [
+    "ci",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

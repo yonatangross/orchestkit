@@ -42,8 +42,8 @@ audits each shard in its own context, then recovers cross-shard edges in a synth
 pass. Prefer it over narrowing scope (which silently drops coverage).
 
 1. **Map-reduce tier (recommended)**: run the workflow with shards derived from the estimate — full coverage, cross-shard boundary pass, same STEP 3.5 refutation.
-2. **Directory scoping**: narrow to specific directories — fast but **drops coverage** outside the scope; say so.
-3. **Priority loading**: entry points + critical paths only — triage, not a full audit.
+2. **Directory scoping**: narrow to specific directories; fast but **drops coverage** outside the scope, say so. A declared scope cut the user picks, not a truncated load.
+3. **Priority loading**: entry points + critical paths only; triage, not a full audit. A declared scope cut the user picks, not a truncated load.
 4. **`/ork:verify`**: only if you actually want multi-agent *graded* verification rather than an audit.
 
 ```python

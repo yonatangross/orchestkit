@@ -1,30 +1,23 @@
 ---
 name: testing-integration
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Integration and contract testing patterns — API endpoint tests, component integration, database testing, Pact contract verification, property-based testing, and Zod schema validation. Use when testing API boundaries, verifying contracts, or validating cross-service integration.
-tags: [testing, integration, contract, pact, property, zod, api]
-context: fork
-agent: test-generator
-version: 2.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Integration and contract tests: API endpoints, databases, Pact contracts, property-based tests, Zod validation. Use when testing API or service boundaries."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: "@pact-foundation/pact"
-    version: ">=16.0.0"
+    version: ">=17.1.4"
   - library: "testcontainers"
-    version: ">=11.0.0"
+    version: ">=12.2.0"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "testing, integration, contract, pact, property, zod, api"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/integration/**", "**/testcontainers/**", "docker-compose.test.*"]
 ---
 

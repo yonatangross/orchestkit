@@ -1,0 +1,12 @@
+{
+  "slug": "agents-sha256-and-concerns",
+  "source": "docs/fix--agents-sha256-and-concerns/index.html",
+  "title": "Builder committed_sha accepts SHA-256; DONE_WITH_CONCERNS",
+  "description": "Follow-ups from #5007: committed_sha accepts 40-hex or 64-hex, and the builder result status enum includes DONE_WITH_CONCERNS when the commit landed but something is worth flagging.",
+  "tags": [
+    "agents",
+    "schema",
+    "status-protocol"
+  ],
+  "date": "2026-11-03"
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; connect-src 'self'">
+<title>Search anchors that reach the heading</title>
+<style>
+body{background:#111827;color:#e5e7eb;font:18px/1.7 system-ui;max-width:900px;margin:70px auto;padding:24px}h1,h2{line-height:1.2}code{color:#a7f3d0;overflow-wrap:anywhere}a{color:#93c5fd}.card{border:1px solid #475569;border-radius:16px;padding:24px;margin:24px 0}small{color:#94a3b8}
+</style>
+<main>
+<small>DOCS SEARCH / ANCHOR PARITY</small>
+<h1>Find a heading. Land on that heading.</h1>
+<p>Autocomplete used a handwritten slug function that collapsed spaces after removing punctuation. Fumadocs uses github-slugger, which preserves both spaces as hyphens and reserves duplicate slugs in page order.</p>
+<section class="card"><h2>Before: missing target</h2><p>Search for <code>subagentstart</code>, then select the heading inside the hooks overview.</p><code>/docs/hooks/overview#subagentstart-subagentstop</code><p>This fragment has no matching heading id.</p></section>
+<section class="card"><h2>After: exact target</h2><code>/docs/hooks/overview#subagentstart--subagentstop</code><p>The two hyphens match the rendered id of <strong>SubagentStart / SubagentStop</strong>.</p><a href="/docs/hooks/overview#subagentstart--subagentstop">Visit the real heading</a></section>
+<section class="card"><h2>Regression coverage</h2><p>Unit tests compare punctuation, Unicode, underscores from inline code, dots, slashes, repeated spaces and colliding heading slugs. A fresh slugger per page keeps repeated searches deterministic.</p></section>
+</main>
+</html>

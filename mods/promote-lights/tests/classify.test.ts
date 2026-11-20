@@ -10,6 +10,7 @@ import {
   matchAndClassify,
   type CheckRun,
 } from "../src/classify.ts";
+import { buildStatusLine } from "../src/pane.ts";
 
 describe("classifyCheckRun", () => {
   test("success is green", () => {
@@ -132,11 +133,16 @@ describe("isPassing", () => {
 });
 
 describe("matchAndClassify", () => {
-  test("a skipped run next to a success is NOT passing (GH-4177 rule)", () => {
-    // The rule is ANY run under a name that is not success means the name
-    // is not passing, so a skipped run next to a green rerun blocks the
-    // pass. This replaces the old "prefer first non-skipped" behavior,
-    // which read [skipped, success] as green and was order-dependent.
+  test("a skipped run next to a success IS passing (acct-nir-request-4)", () => {
+    // Measured on Nir's Windows setup (5 screenshots, 2026-10-05): a rerun
+    // leaves a skipped sibling under the same check name, and worst-wins
+    // across ALL runs read [skipped, success] as yellow forever, so a green
+    // bundle printed "3 yellow". Skipped is a non-verdict (path filters,
+    // concurrency skips) and GitHub itself treats a skipped required check
+    // as satisfied: a success under the name now settles it green. This
+    // deliberately narrows the old GH-4177 skipped carve-out: a failure,
+    // a cancellation or a pending run beside a success still rules (see the
+    // order-independence tests below).
     const required = ["ci"];
     const skippedFirst: CheckRun[] = [
       { name: "ci", status: "completed", conclusion: "skipped" },
@@ -147,10 +153,57 @@ describe("matchAndClassify", () => {
       { name: "ci", status: "completed", conclusion: "skipped" },
     ];
 
-    expect(matchAndClassify(required, skippedFirst)[0].color).toBe("yellow");
-    expect(matchAndClassify(required, skippedLast)[0].color).toBe("yellow");
-    expect(isPassing(matchAndClassify(required, skippedFirst))).toBe(false);
-    expect(isPassing(matchAndClassify(required, skippedLast))).toBe(false);
+    expect(matchAndClassify(required, skippedFirst)[0].color).toBe("green");
+    expect(matchAndClassify(required, skippedLast)[0].color).toBe("green");
+    expect(isPassing(matchAndClassify(required, skippedFirst))).toBe(true);
+    expect(isPassing(matchAndClassify(required, skippedLast))).toBe(true);
+  });
+
+  test("three names each with one success and one skipped print 0 yellow", () => {
+    // The measured fixture, Nir's real shape: every check name has two runs
+    // on the head, one success and one skipped, and the line must read all
+    // green with no yellow segment.
+    const required = ["Build", "Static Analysis", "Unit Tests (node 22)"];
+    const runs: CheckRun[] = [
+      { name: "Build", status: "completed", conclusion: "success" },
+      { name: "Build", status: "completed", conclusion: "skipped" },
+      { name: "Static Analysis", status: "completed", conclusion: "skipped" },
+      { name: "Static Analysis", status: "completed", conclusion: "success" },
+      { name: "Unit Tests (node 22)", status: "completed", conclusion: "success" },
+      { name: "Unit Tests (node 22)", status: "completed", conclusion: "skipped" },
+    ];
+
+    const lights = matchAndClassify(required, runs);
+    expect(lights.map((l) => l.color)).toEqual(["green", "green", "green"]);
+    expect(isPassing(lights)).toBe(true);
+
+    const line = buildStatusLine(9999, lights, "CLEAN", false);
+    expect(line).toContain("3 green");
+    expect(line).not.toContain("yellow");
+  });
+
+  test("a skipped run beside a failure or a pending run does not soften it", () => {
+    // Only a success demotes the skipped sibling. With no success under the
+    // name, skipped keeps losing to every real verdict.
+    const required = ["ci"];
+    const failureBesideSkipped: CheckRun[] = [
+      { name: "ci", status: "completed", conclusion: "failure" },
+      { name: "ci", status: "completed", conclusion: "skipped" },
+    ];
+    const pendingBesideSkipped: CheckRun[] = [
+      { name: "ci", status: "in_progress", conclusion: null },
+      { name: "ci", status: "completed", conclusion: "skipped" },
+    ];
+    const successFailureSkipped: CheckRun[] = [
+      { name: "ci", status: "completed", conclusion: "success" },
+      { name: "ci", status: "completed", conclusion: "skipped" },
+      { name: "ci", status: "completed", conclusion: "failure" },
+    ];
+
+    expect(matchAndClassify(required, failureBesideSkipped)[0].color).toBe("red");
+    expect(matchAndClassify(required, pendingBesideSkipped)[0].color).toBe("yellow");
+    expect(matchAndClassify(required, successFailureSkipped)[0].color).toBe("red");
+    expect(isPassing(matchAndClassify(required, failureBesideSkipped))).toBe(false);
   });
 
   test("ORDER-INDEPENDENCE: [success, in_progress] and [in_progress, success] both not passing", () => {

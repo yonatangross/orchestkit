@@ -1,0 +1,8 @@
+{
+  "slug": "coderabbit-runnable-examples",
+  "source": "docs/fix--4424-coderabbit-runnable-examples/playground.html",
+  "title": "Runnable skill examples",
+  "description": "CodeRabbit follow-up for #4424: move maxTurns out of Python fences and capture TaskCreate return ids.",
+  "tags": ["skills", "verify", "cover", "review-pr", "4424", "4433"],
+  "date": "2026-09-25"
+}

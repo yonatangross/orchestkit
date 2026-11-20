@@ -28,6 +28,9 @@ const STRING_FIELDS = new Set([
 ]);
 
 function normalizeInput(input: Record<string, unknown>): Record<string, unknown> {
+  // Captured at entry — the backfills below guarantee the object is never
+  // keyless by return time.
+  const emptyPayload = Object.keys(input).length === 0;
   if (!input.tool_input && input.toolInput) {
     input.tool_input = input.toolInput;
   }
@@ -63,6 +66,14 @@ function normalizeInput(input: Record<string, unknown>): Record<string, unknown>
   if ((input as Record<string, unknown>).agent_id && !toolInput.agent_id) {
     toolInput.agent_id = (input as Record<string, unknown>).agent_id;
   }
+  // Mirror of the real impl: non-enumerable internal marker (sc34 review
+  // finding) — readable, invisible to Object.keys / JSON.stringify / spread.
+  Object.defineProperty(input, '__orkEmptyPayload', {
+    value: emptyPayload,
+    enumerable: false,
+    writable: true,
+    configurable: true,
+  });
   return input;
 }
 
@@ -386,6 +397,24 @@ describe('normalizeInput', () => {
     it('does nothing when agent_type is absent', () => {
       const result = normalizeInput({ tool_input: {} });
       expect((result.tool_input as Record<string, unknown>).subagent_type).toBeUndefined();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // __orkEmptyPayload internal marker (sc34 review finding)
+  // -------------------------------------------------------------------------
+  describe('__orkEmptyPayload internal marker', () => {
+    it('is true for empty input, false for a real payload', () => {
+      expect(normalizeInput({}).__orkEmptyPayload).toBe(true);
+      expect(normalizeInput({ tool_name: 'Bash' }).__orkEmptyPayload).toBe(false);
+    });
+
+    it('is readable but invisible to enumeration and serialization', () => {
+      const result = normalizeInput({});
+      expect(result.__orkEmptyPayload).toBe(true);
+      expect(Object.keys(result)).not.toContain('__orkEmptyPayload');
+      expect(JSON.stringify(result)).not.toContain('__orkEmptyPayload');
+      expect({ ...result }).not.toHaveProperty('__orkEmptyPayload');
     });
   });
 });

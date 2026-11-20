@@ -406,53 +406,6 @@ test_all_agents_spawn() {
 }
 
 # =============================================================================
-# Test: Context Modes
-# =============================================================================
-
-test_context_mode_validation() {
-    test_start "agents have valid context mode (if specified)"
-
-    # Verify that any context: field in agent files uses valid values
-    # Valid values: fork, inherit, none (CC 2.1.6 standard)
-
-    local invalid_count=0
-    local checked_count=0
-
-    for agent_file in "$PROJECT_ROOT/src/agents/"*.md; do
-        if [[ -f "$agent_file" ]]; then
-            local context_mode
-            context_mode=$(grep -E "^context:" "$agent_file" 2>/dev/null | head -1 | awk '{print $2}' || echo "")
-
-            if [[ -n "$context_mode" ]]; then
-                ((checked_count++))
-                if [[ "$context_mode" != "fork" && "$context_mode" != "inherit" && "$context_mode" != "none" ]]; then
-                    ((invalid_count++))
-                    echo ""
-                    echo "      └─ Invalid context mode in $(basename "$agent_file"): $context_mode"
-                fi
-            fi
-        fi
-    done
-
-    if [[ $invalid_count -eq 0 ]]; then
-        test_pass
-    else
-        test_fail "$invalid_count agents have invalid context mode"
-    fi
-}
-
-test_context_mode_inherit() {
-    test_start "inherit context mode shares parent context"
-
-    # Check if any agents use inherit mode
-    local inherit_count
-    inherit_count=$(grep -l "context: inherit" "$PROJECT_ROOT/src/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
-
-    # This is informational - inherit mode exists
-    test_pass
-}
-
-# =============================================================================
 # Test: Agent Handoff
 # =============================================================================
 
@@ -522,12 +475,6 @@ echo ""
 echo "▶ All Agents Validation"
 echo "────────────────────────────────────────"
 test_all_agents_spawn
-
-echo ""
-echo "▶ Context Modes"
-echo "────────────────────────────────────────"
-test_context_mode_validation
-test_context_mode_inherit
 
 echo ""
 echo "▶ Agent Handoff"

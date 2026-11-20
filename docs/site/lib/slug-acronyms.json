@@ -1,0 +1,24 @@
+{
+  "words": {
+    "ai": "AI",
+    "api": "API",
+    "apis": "APIs",
+    "cd": "CD",
+    "ci": "CI",
+    "cli": "CLI",
+    "e2e": "E2E",
+    "jwt": "JWT",
+    "llm": "LLM",
+    "llms": "LLMs",
+    "mcp": "MCP",
+    "oauth": "OAuth",
+    "rag": "RAG",
+    "sdk": "SDK",
+    "seo": "SEO",
+    "ui": "UI",
+    "ux": "UX"
+  },
+  "phrases": {
+    "ci-cd": "CI/CD"
+  }
+}

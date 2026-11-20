@@ -1,0 +1,8 @@
+{
+  "slug": "changelog-x-feed",
+  "source": "docs/feat--changelog-x-feed/index.html",
+  "title": "X changelog feed: what it would post",
+  "description": "A real dry run of the facts-only X changelog feed for v9.8.0: the thread it would post, the 280 weighted length per post, and the safety gate that keeps it off until enabled.",
+  "tags": ["release", "x", "automation"],
+  "date": "2026-10-12"
+}

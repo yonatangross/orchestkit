@@ -1,0 +1,8 @@
+{
+  "slug": "review-threads-floor-bot",
+  "source": "docs/fix--review-threads-floor-bot/index.html",
+  "title": "Review threads replied: the floor agent's reply counts",
+  "description": "The review-thread check now counts a reply from the yonatan-hq-floor GitHub App, the identity the floor's agents post through, as an agent reply. Any other App reply still does not count.",
+  "tags": ["ci", "review"],
+  "date": "2026-11-10"
+}

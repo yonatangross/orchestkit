@@ -15,11 +15,21 @@ on:
   push:
     tags:
       - 'v*'
+  # Manual runs only do the dist-repo dry run below (dist-dry-run). Every
+  # release job is gated on github.event_name == 'push', so a dispatch never
+  # creates a release, moves a pin, pushes an image or writes to the dist repo.
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dist repo dry run: mint the bot token and check access, no writes'
+        type: boolean
+        default: true
 
 permissions: {}
 
 jobs:
   create-release:
+    if: github.event_name == 'push'
     # contents stays `read` on GITHUB_TOKEN — all release writes go through a
     # short-lived OrchestKit Release Bot installation token (see app-token step).
     # id-token + attestations must stay on GITHUB_TOKEN: the attest-build-
@@ -34,7 +44,7 @@ jobs:
     steps:
       - name: Mint Release Bot token
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
@@ -97,26 +107,27 @@ jobs:
       - name: Check if release exists
         id: check
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
           if gh release view "$TAG" &>/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
         env:
+          TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "${{ steps.version.outputs.tag }}" \
+          gh release create "$TAG" \
+            --title "$TAG" \
             --notes-file /tmp/release-notes.md
         env:
+          TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node.js for SBOM generation
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.0.0  # zizmor: ignore[cache-poisoning] deps via npm ci, no cache restored
         with:
           node-version-file: .nvmrc
 
@@ -130,10 +141,11 @@ jobs:
 
       - name: Upload SBOM to release
         run: |
-          gh release upload "${{ steps.version.outputs.tag }}" \
+          gh release upload "$TAG" \
             bom.json#sbom-cyclonedx.json \
             --clobber
         env:
+          TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Attest build provenance
@@ -143,8 +155,12 @@ jobs:
 
   # Advance the PINNED stable marketplace channel to this tag — GA tags only.
   #
-  # The pin (.claude-plugin/marketplace.json, the `ork` entry) must carry
-  # version X.Y.Z and source.ref vX.Y.Z together; CC validates that agreement at
+  # Since #4936 the stable channel is two entries, `ork` and `ork-extras`,
+  # pinned together by the script below.
+  #
+  # The pin (.claude-plugin/marketplace.json, the `ork` and `ork-extras`
+  # entries) must carry version X.Y.Z and source.ref vX.Y.Z together on each
+  # entry; CC validates that agreement at
   # plugin load, so a half-bump is a broken install for every stable user rather
   # than a red CI job. Nothing wrote it before #3350: release-please stamps the
   # ALPHA entry by index, and stamp-counts.sh deliberately stamps only the entry
@@ -158,11 +174,14 @@ jobs:
   # Lands as a PR, not a push: main requires pull requests (enforce_admins is on
   # and there is no bypass allowance), so a direct push would 403. That is also
   # why release-please-guard matters here, and it clears twice over — the PR
-  # author is orchestkit-release-bot[bot] (exempt at the bot check), and the two
-  # governed jsonpaths on this file, $.version and $.plugins[1].version, are not
-  # the fields this writes.
+  # author is orchestkit-release-bot[bot], which the guard exempts at its bot
+  # check, and the pin writes nothing release-please governs. release-please
+  # governs two jsonpaths on this file ($.version and $.plugins[1].version, the
+  # `ork-alpha` entry, see .release-please-config.json). The pin writes `ork` and
+  # `ork-extras`, both pinned, which release-please must not stamp.
   bump-stable-pin:
     needs: create-release
+    if: github.event_name == 'push'
     permissions:
       contents: read
     name: Stable Channel Pin
@@ -171,7 +190,7 @@ jobs:
     steps:
       - name: Mint Release Bot token
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
@@ -245,7 +264,7 @@ jobs:
           # Deliberately NO `Closes #3350`. This PR is opened on every GA tag;
           # the issue is closed once, by the PR that adds this automation.
           printf '%s\n\n%s\n' \
-            "Advances the pinned \`ork\` marketplace entry to version \`$VERSION\` with \`source.ref\` \`$TAG\`, both fields in one write, so CC's load-time agreement check holds." \
+            "Advances the stable marketplace entries (\`ork\` and \`ork-extras\`) to version \`$VERSION\` with \`source.ref\` \`$TAG\`, both fields in one write, so CC's load-time agreement check holds." \
             "Opened automatically by \`.github/workflows/release.yml\` on the \`$TAG\` tag. \`ork-alpha\` is untouched: it tracks \`main\`." \
             > /tmp/pin-pr-body.md
 
@@ -255,11 +274,165 @@ jobs:
             --title "chore(release): pin stable channel to $TAG" \
             --body-file /tmp/pin-pr-body.md
 
-          # Armed, not merged: the 18 required checks still gate it. On a repo
-          # with strict:true a PR that goes BEHIND may need a manual
-          # `gh pr update-branch` — arming makes it land the moment it is
-          # mergeable, it does not promise it lands unattended.
-          gh pr merge "$BRANCH" --squash --auto
+          # Opened UNARMED (#4914). The required checks are CI only, so an
+          # armed PR merges on CI alone with no reviewer (#4913 did). The
+          # merge desk arms or merges it after a LAND names the head.
+          # tests/unit/test-workflows-open-prs-unarmed.sh fails if any
+          # workflow arms its own PR again.
+
+  # Publish plugins/ork to the dist repo yonatangross/orchestkit-plugin on
+  # every GA tag cut from main. The Anthropic plugin directory validates a
+  # whole repo archive under a 50 MiB compressed cap; this repo is about
+  # 77 MiB, plugins/ork alone about 3.8 MiB. The dist repo holds only the
+  # plugin, at its root, plus its own LICENSE and a generated README.
+  #
+  # scripts/ci/dist-sync.mjs does the work through the Git Data API: one
+  # commit signed by GitHub (no author set, the #5016 pattern), main moved
+  # fast-forward only, then the same vX.Y.Z tag on that commit. It retries
+  # once and then fails loudly (the #5059 rule); a re-run for a tag that
+  # already holds the same tree is a no-op. Tests:
+  # tests/ci/test-release-dist-sync.mjs.
+  #
+  # The token is minted for orchestkit-plugin ONLY. If the repo does not exist
+  # or the bot is not installed on it, minting fails the job and the next step
+  # names the missing setup step; it never skips silently.
+  sync-dist:
+    needs: create-release
+    if: github.event_name == 'push' && github.repository == 'yonatangross/orchestkit'
+    permissions:
+      contents: read
+    name: Dist Repo Sync (orchestkit-plugin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: release-sync-dist
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # GA only, and only from main. Same rule as :latest in publish-docker:
+      # an older tag re-run gets its commit and tag but never moves main back.
+      - name: Classify the tag
+        id: tag
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if ! printf '%s\n' "$VERSION" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo "::notice::$TAG is not a GA tag; the dist repo only takes stable releases."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$TAG ($GITHUB_SHA) is not on main. The dist repo only takes releases cut from main."
+            exit 1
+          fi
+          . scripts/lib/semver.sh
+          HIGHEST=""
+          for t in $(git tag -l 'v*' | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'); do
+            if [ -z "$HIGHEST" ]; then HIGHEST="$t"; else HIGHEST="$(semver_max "$HIGHEST" "$t")"; fi
+          done
+          if [ "$VERSION" = "$HIGHEST" ]; then MOVE=true; else MOVE=false; fi
+          echo "move_main=$MOVE" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Mint Release Bot token (orchestkit-plugin only)
+        id: dist-token
+        if: steps.tag.outputs.skip == 'false'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit-plugin
+          permission-contents: write
+
+      # The job is already red when this runs; it only says what to do.
+      - name: Name the missing setup step
+        if: failure() && steps.dist-token.outcome == 'failure'
+        run: |
+          echo "::error::Could not mint a Release Bot token for ${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin: the repo does not exist or the OrchestKit Release Bot app is not installed on it. Setup: create the public repo, initialised with a README so main exists, install the app on it, then re-run this job. No new tag is needed."
+          exit 1
+
+      - name: Setup Node.js
+        if: steps.tag.outputs.skip == 'false'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.0.0  # zizmor: ignore[cache-poisoning] no dependencies installed, no cache restored
+        with:
+          node-version-file: .nvmrc
+
+      - name: Sync plugins/ork to the dist repo
+        if: steps.tag.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ steps.dist-token.outputs.token }}
+          VERSION: ${{ steps.tag.outputs.version }}
+          MOVE_MAIN: ${{ steps.tag.outputs.move_main }}
+        run: |
+          set -euo pipefail
+          ARGS=(--version "$VERSION" --repo "${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin" --source-ref "$GITHUB_SHA")
+          if [ "$MOVE_MAIN" != "true" ]; then ARGS+=(--no-move-main); fi
+          node scripts/ci/dist-sync.mjs "${ARGS[@]}"
+
+  # Manual dry run of the dist-repo access the sync needs. Mints the token
+  # exactly as sync-dist does (repositories: orchestkit-plugin, contents
+  # write; a successful mint is the write proof), then makes two GETs and
+  # nothing else: the installation's repositories must include
+  # orchestkit-plugin, and the repo's permissions.push is printed as info.
+  # No checkout, no write, the token is
+  # never printed. A real sync only ever runs from a tag push (sync-dist), so
+  # dry_run=false is refused here rather than given a second write path.
+  dist-dry-run:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'yonatangross/orchestkit'
+    permissions: {}
+    name: Dist Repo Dry Run (orchestkit-plugin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse a non-dry manual run
+        if: ${{ !inputs.dry_run }}
+        run: |
+          echo "::error::A manual run only does the dry run. The real dist sync runs from a GA tag push (job sync-dist); re-run that job on the release run instead."
+          exit 1
+
+      - name: Mint Release Bot token (orchestkit-plugin only)
+        id: dist-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit-plugin
+          permission-contents: write
+
+      - name: Name the missing setup step
+        if: failure() && steps.dist-token.outcome == 'failure'
+        run: |
+          echo "::error::Could not mint a Release Bot token for ${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin: the repo does not exist or the OrchestKit Release Bot app is not installed on it with contents write."
+          exit 1
+
+      - name: Check installation repositories and push access
+        env:
+          GH_TOKEN: ${{ steps.dist-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          DIST="${GITHUB_REPOSITORY_OWNER}/orchestkit-plugin"
+          names="$(gh api /installation/repositories --paginate --jq '.repositories[].full_name')"
+          echo "Installation repositories visible to this token:"
+          printf '  %s\n' $names
+          if ! printf '%s\n' "$names" | grep -qxF "$DIST"; then
+            echo "::error::$DIST is not in the installation's repositories. Install the OrchestKit Release Bot on it."
+            exit 1
+          fi
+          # Info only. The write proof is the mint above: GitHub refuses to mint
+          # a token for a repo the app is not installed on, or with
+          # permission-contents: write the app does not hold. An installation
+          # token's repo answer may not carry .permissions at all.
+          push="$(gh api "/repos/$DIST" --jq '.permissions.push // "absent"')"
+          echo "permissions.push on $DIST (info only): $push"
+          echo "::notice::Dry run passed: the token minted with contents write on $DIST and the installation lists it. The next GA release will sync it."
 
   # Build + push the stdio Docs MCP image to GHCR on every release. The image
   # is the OCI package surface advertised in server.json (packages[0]), so it
@@ -268,6 +441,7 @@ jobs:
   # label at publish time. Plain docker CLI on purpose: no third-party actions
   # to pin, GITHUB_TOKEN scoped to packages:write.
   publish-docker:
+    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -323,6 +497,7 @@ jobs:
   # GHCR at publish time, so the image tag must exist first.
   publish-mcp-registry:
     needs: publish-docker
+    if: github.event_name == 'push'
     permissions:
       contents: read
       id-token: write
@@ -390,9 +565,27 @@ jobs:
             exit 1
           fi
 
+      # Fetched through the authenticated API with the job token, not the
+      # anonymous github.com/.../releases/download URL. On 2026-11-09 the
+      # anonymous path returned 504 to runners for over 10 minutes (GitHub
+      # incident: timeouts from a surge in anonymous users) while the asset
+      # was there, and v10.10.7 missed the registry twice. The pinned sha256
+      # below still decides what runs.
       - name: Install mcp-publisher (pinned)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL --retry 5 --retry-delay 5 --connect-timeout 20 "https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz" -o mcp-publisher.tar.gz
+          for attempt in 1 2 3; do
+            if gh release download v1.7.9 --repo modelcontextprotocol/registry \
+                 --pattern mcp-publisher_linux_amd64.tar.gz --output mcp-publisher.tar.gz --clobber; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::could not download mcp-publisher v1.7.9 after 3 authenticated attempts"
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
           echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum -c -
           tar -xzf mcp-publisher.tar.gz mcp-publisher
           sudo install mcp-publisher /usr/local/bin/mcp-publisher

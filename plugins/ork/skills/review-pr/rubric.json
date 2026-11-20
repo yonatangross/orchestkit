@@ -1,7 +1,7 @@
 {
   "rubric": "ork-rubric/1.0",
   "skill": "review-pr",
-  "description": "review-pr does NOT compute a weighted 0-10 composite — its verdict is severity-bucket driven (critical|high|medium|low|info findings per category, deduplicated by file+line+category). This rubric maps the 6 finding categories to dimensions and encodes severity buckets as score bands: any CRITICAL finding in a dimension lands it in the 0-3 band, below min_blocker 4.0 -> hard blocker -> request-changes verdict. Weights reflect severity-sorting/reporting emphasis (security findings shown first), not a composite gate — hence no composite.min_pass.",
+  "description": "review-pr does NOT compute a weighted 0-10 composite — its verdict is severity-bucket driven (critical|high|medium|low|info findings per category, deduplicated by file+line+category). This rubric maps the 6 finding categories to dimensions (plus one zero-weight criterion, safety_proof, that marks a change UNPROVEN when its safety fact did not reach ladder step 4) and encodes severity buckets as score bands: any CRITICAL finding in a dimension lands it in the 0-3 band, below min_blocker 4.0 -> hard blocker -> request-changes verdict. Weights reflect severity-sorting/reporting emphasis (security findings shown first), not a composite gate — hence no composite.min_pass.",
   "source": "rules/agent-prompts-task-tool.md (structured output contract: severity + category buckets), SKILL.md Phase 5/6 (approve | comment | request-changes verdict)",
   "dimensions": [
     {
@@ -80,6 +80,17 @@
         { "score_min": 6, "score_max": 7, "label": "medium", "description": "Worst finding is MEDIUM" },
         { "score_min": 8, "score_max": 9, "label": "low", "description": "Worst finding is LOW/info" },
         { "score_min": 10, "score_max": 10, "label": "clean", "description": "No findings in this category" }
+      ]
+    },
+    {
+      "name": "safety_proof",
+      "weight": 0.0,
+      "min_blocker": 4.0,
+      "description": "Criterion, not a weighted category (weight 0 keeps the composite unchanged):a change that alters runtime behavior states the one fact it is safe because of, and the step of the proof ladder that fact reached (1 said so, 2 pointed at the line, 3 showed the bad case cannot happen, 4 ran a script or test against the real code, 5 reproduced in the running app). Step 4 or 5 passes; anything lower, or no stated fact, is marked UNPROVEN in the review. A mark in the review, not a blocker: it does not change the review verdict by itself. The min_blocker of 4.0 applies only to the skill eval, which does not promote a version that scores below it on this criterion, so the criterion is measured like the other six. Docs-only, comment-only and pure-rename diffs are not applicable. Method adapted from pstack by Lauren Tan (MIT, github.com/cursor/plugins); see fix-issue references/fix-blast-radius.md for the notice.",
+      "bands": [
+        { "score_min": 0, "score_max": 3, "label": "unproven", "description": "No safety fact stated, or it stops at ladder step 1 to 3: the reviewer marks it UNPROVEN" },
+        { "score_min": 4, "score_max": 9, "label": "proven-by-run", "description": "Safety fact stated and a script or test that ran against the real code backs it (ladder step 4)" },
+        { "score_min": 10, "score_max": 10, "label": "proven-in-app", "description": "Safety fact reproduced in the running app (ladder step 5)" }
       ]
     }
   ]

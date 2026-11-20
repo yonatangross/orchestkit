@@ -1,0 +1,11 @@
+{
+  "slug": "webmcp-inline-registration",
+  "source": "docs/feat--webmcp-inline-registration/index.html",
+  "title": "WebMCP in the served HTML: an inline registration hypothesis test",
+  "description": "Why the docs site now registers its four WebMCP tools in an inline script too, and how a rescan will tell whether ora.ai reads only the page source.",
+  "tags": [
+    "agent-readiness",
+    "webmcp"
+  ],
+  "date": "2026-09-28"
+}

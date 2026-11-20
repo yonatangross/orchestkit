@@ -1,0 +1,8 @@
+{
+  "slug": "feat--1270-userconfig-webhook",
+  "source": "docs/feat--1270-userconfig-webhook/index.html",
+  "title": "userConfig webhook resolution order",
+  "description": "Issue 1270: webhook URL and hook token now resolve from manifest userConfig (CLAUDE_PLUGIN_OPTION_*) with the legacy ORCHESTKIT_HOOK_* env vars as fallback. Toggle the sources and see which value each layer resolves.",
+  "tags": ["hooks", "manifest", "userConfig"],
+  "date": "2026-09-19"
+}

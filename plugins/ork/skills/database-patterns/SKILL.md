@@ -1,28 +1,21 @@
 ---
 name: database-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift.
-tags: [database, migrations, alembic, schema-design, versioning, postgresql, sql, nosql]
-context: fork
-agent: database-engineer
-version: 2.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Schema design, Alembic migrations and database versioning. Use when creating migrations, designing or normalizing schemas, or fixing schema drift."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: sqlalchemy
-    version: ">=2.0.0"
+    version: ">=2.1.1"
 metadata:
+  owner-agent: "database-engineer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "database, migrations, alembic, schema-design, versioning, postgresql, sql, nosql"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: ["**/migrations/**", "**/models/**", "alembic.ini", "**/schema*"]
 path_patterns: ["*.sql", "**/migrations/**", "**/alembic/**", "**/prisma/**"]
 ---

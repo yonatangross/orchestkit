@@ -1,22 +1,27 @@
 /**
  * Permission Learning Tracker - Learns from user approval patterns
  * Hook: PermissionRequest (Post-approval tracking)
- * CC 2.1.6 Compliant: includes continue field in all outputs
  *
- * This hook runs AFTER other permission hooks and tracks:
- * 1. Commands that are approved manually (potential auto-approve candidates)
- * 2. Patterns in approved commands for learning
- * 3. Frequency of command types
+ * OPT-IN (#4374 security hold): emits allow only when
+ * ORK_PERMISSION_AUTO_APPROVE=1. Default OFF so CC shows its normal dialog.
+ * Observation / logging still runs; only the allow decision is gated.
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import {
   outputSilentSuccess,
-  outputSilentAllow,
+  outputPermissionRequestAllow,
   getPluginRoot,
 } from '../lib/common.js';
-import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import {
+  isCompoundCommand,
+  normalizeSingle,
+  hasUnquotedExpansion,
+  hasBackgroundOperator,
+} from '../lib/normalize-command.js';
+import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
 import { readDistilledPatterns } from '../lib/learned-patterns-cache.js';
+import { isPermissionAutoApproveEnabled } from '../lib/permission-auto-approve.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { NOOP_CTX } from '../lib/context.js';
@@ -116,8 +121,14 @@ function shouldAutoApprove(command: string): boolean {
     if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > 200) {
       continue;
     }
-    // Literal prefix match only — safe from regex injection
-    if (normalizedCommand.startsWith(pattern.toLowerCase().trim())) {
+    // Literal prefix match only — safe from regex injection. The prefix must
+    // end on a word boundary: a learned `git st` covers `git st -s`, never a
+    // different subcommand that merely starts with the same letters.
+    const prefix = pattern.toLowerCase().trim();
+    if (prefix.length === 0) continue;
+    if (!normalizedCommand.startsWith(prefix)) continue;
+    const next = normalizedCommand.charAt(prefix.length);
+    if (next === '' || /\s/.test(next)) {
       return true;
     }
   }
@@ -129,6 +140,11 @@ function shouldAutoApprove(command: string): boolean {
  * Learning tracker hook - observes permissions for learning, optionally auto-approves
  */
 export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+  if (!isPermissionAutoApproveEnabled()) {
+    ctx.log('learning-tracker', 'ORK_PERMISSION_AUTO_APPROVE not set; pass-through (no allow)');
+    return outputSilentSuccess();
+  }
+
   const toolName = input.tool_name;
   const command = input.tool_input.command || input.tool_input.file_path || '';
 
@@ -148,11 +164,23 @@ export function learningTracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
       return outputSilentSuccess();
     }
 
+    // SEC: a learned pattern never widens past the shared reject list or
+    // covers arguments the hook cannot read literally.
+    if (hasUnquotedExpansion(command) || hasBackgroundOperator(command)) {
+      ctx.log('learning-tracker', 'Expansion or background operator, skipping auto-approve');
+      return outputSilentSuccess();
+    }
+    const normalizedForReject = normalizeSingle(command);
+    if (REJECT_PATTERNS.some((p) => p.test(normalizedForReject))) {
+      ctx.log('learning-tracker', 'Matches shared reject pattern, skipping auto-approve');
+      return outputSilentSuccess();
+    }
+
     // Check if this command matches a learned auto-approve pattern
     if (shouldAutoApprove(command)) {
       ctx.log('learning-tracker', 'Command matches learned auto-approve pattern');
       ctx.logPermission('allow', 'Learned pattern match', input);
-      return outputSilentAllow();
+      return outputPermissionRequestAllow();
     }
   }
 

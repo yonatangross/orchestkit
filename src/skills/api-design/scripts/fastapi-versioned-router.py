@@ -8,7 +8,7 @@ Production-ready API versioning with:
 - Shared services
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel
@@ -136,7 +136,7 @@ class User:
         self.email = email
         self.name = name
         self.avatar_url = avatar_url
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
         self.last_login = last_login
         self.preferences = preferences or {}
         self.is_verified = is_verified
@@ -325,7 +325,7 @@ def get_api_version(
         raise HTTPException(
             status_code=400,
             detail=f"Invalid API version: {x_api_version}",
-        )
+        ) from None
 
     if version not in VersionConfig.SUPPORTED_VERSIONS:
         raise HTTPException(

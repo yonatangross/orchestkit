@@ -11,7 +11,7 @@
 
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFile, appendFileSync, mkdirSync, readdirSync, fstatSync, readSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { sanitizeOutput } from './output-guard.mjs';
@@ -19,7 +19,35 @@ import { rotateAnalyticsIfNeeded } from './analytics-rotate.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const distDir = join(__dirname, '..', 'dist');
+/**
+ * Bundle directory. Normally the dist/ shipped next to this file.
+ *
+ * #4334: ORK_HOOKS_DIST_DIR redirects it. The redact-secrets integration test
+ * builds the PR's source into a temp dir and points the dispatcher there,
+ * instead of copying over the tracked plugins/ork/hooks/dist, which dirtied a
+ * release-owned file and raced the ~20 test files reading those bundles in
+ * parallel. The override is ignored unless the directory exists.
+ *
+ * #4360 follow-up: also require ORK_TEST_MODE (not VITEST). Bash dispatcher
+ * tests and vitest both set it explicitly; a stale ORK_HOOKS_DIST_DIR export
+ * in a real Claude Code session cannot redirect every hook (including
+ * security hooks) because the marker is absent. When the override is active,
+ * warn on stderr (same shape as the #3415 stdin warning).
+ */
+const distOverride = process.env.ORK_HOOKS_DIST_DIR;
+const testMode = process.env.ORK_TEST_MODE === '1' || process.env.ORK_TEST_MODE === 'true';
+const distOverrideActive = Boolean(
+  testMode && distOverride && existsSync(distOverride),
+);
+const distDir = distOverrideActive
+  ? distOverride
+  : join(__dirname, '..', 'dist');
+if (distOverrideActive) {
+  process.stderr.write(
+    `[orchestkit] WARNING: ORK_HOOKS_DIST_DIR overrides hook bundles to "${distOverride}" (#4334). ` +
+      `Unset it unless you intend to load every hook (including security hooks) from that directory.\n`,
+  );
+}
 
 /** Resolved plugin root — two levels up from hooks/bin/ */
 const pluginRoot = join(__dirname, '..', '..');
@@ -91,6 +119,12 @@ function isValidPath(s) {
 }
 
 function normalizeInput(input) {
+  // Whether stdin actually delivered a payload. This function backfills
+  // tool_input/session_id/hook_event below, so by return time the object is
+  // never keyless — capture emptiness at entry. emitHookResult hands it to
+  // output-guard: a verdict computed on no input (the #3415 watchdog, a
+  // stdin error, an unparseable body) is noise and never reaches CC.
+  const emptyPayload = Object.keys(input).length === 0;
   if (!input.tool_input && input.toolInput) {
     input.tool_input = input.toolInput;
   }
@@ -159,6 +193,20 @@ function normalizeInput(input) {
       }
     }
   }
+  // Non-enumerable: hooks see this object — stop-failure-handler logs
+  // Object.keys(input) on unknown reasons, subagent-stop/unified-dispatcher
+  // logs the key list at debug, and any JSON.stringify/spread of the input
+  // would carry the marker out of the runner. An enumerable internal field
+  // leaks into every hook's input view; a non-enumerable one stays readable
+  // (emitHookResult reads it directly) but invisible to enumeration.
+  // Redefining also defeats a spoofed __orkEmptyPayload in the payload itself:
+  // a non-empty input always lands here with emptyPayload === false.
+  Object.defineProperty(input, '__orkEmptyPayload', {
+    value: emptyPayload,
+    enumerable: false,
+    writable: true,
+    configurable: true,
+  });
   return input;
 }
 
@@ -184,11 +232,27 @@ const SILENT_OK = JSON.stringify({ continue: true, suppressOutput: true });
 const SECURITY_HOOKS = new Set([
   'pretool/Write/security-pattern-validator',
   'skill/redact-secrets',
+  // #4220 AF-12: a committed project .claude/hook-overrides.json used to silence
+  // these dispatchers and turn every Bash / Write-Edit guard into a no-op.
+  'pretool/bash/sync-bash-dispatcher',
+  'pretool/write-edit/sync-write-edit-dispatcher',
+  // #4678: /ork:review-pr posts only through this gate, so an unloadable skill
+  // bundle must block (exit 2), not fail open (exit 1).
+  'skill/review-post-gate',
+  // The shipped hooks.json runs every PreToolUse and PostToolUse guard
+  // (including the two dispatchers above and skill/redact-secrets) inside
+  // these two entries, so they inherit the same rules: an unloadable bundle
+  // blocks (exit 2) and a user override cannot disable them.
+  'pretool/tool-dispatcher',
+  'posttool/tool-dispatcher',
 ]);
 
-/** Load hook overrides from .claude/hook-overrides.json (or null). */
-function loadOverrides(projectDir) {
-  const overridesPath = join(projectDir, '.claude', 'hook-overrides.json');
+/**
+ * Load hook overrides from the USER scope only (~/.claude/hook-overrides.json).
+ * Project-committed overrides are ignored so a repo cannot disable guards (#4220 AF-12).
+ */
+function loadOverrides() {
+  const overridesPath = join(homedir(), '.claude', 'hook-overrides.json');
   if (!existsSync(overridesPath)) return null;
   try {
     return JSON.parse(readFileSync(overridesPath, 'utf-8'));
@@ -271,8 +335,7 @@ function silentExit() {
 // Early security-hook override probe — emits the stderr warning even when
 // the bundle can't load. See SECURITY_HOOKS docstring above.
 try {
-  const earlyProjectDir = process.env.CLAUDE_PROJECT_DIR || '.';
-  const earlyOverrides = loadOverrides(earlyProjectDir);
+  const earlyOverrides = loadOverrides();
   if (
     earlyOverrides?.disabled &&
     Array.isArray(earlyOverrides.disabled) &&
@@ -402,8 +465,36 @@ if (bundleLoadError) {
   failBundleLoad(hookName, bundleLoadError, t1);
 }
 
+// #4678: a gate that is the only check on a write must not pass when its
+// code is absent: a missing bundle or a missing handler blocks (exit 2).
+const FAIL_CLOSED_WHEN_MISSING = new Set(['skill/review-post-gate']);
+// #4971: the tool dispatchers are the only tool-event entries in the flag
+// variant, so a missing or stale dispatcher bundle or handler blocks. Only
+// the bundle checks read this set: a dispatcher's input paths (an oversized
+// or empty payload, starved stdin) keep the runner's usual silent continue
+// (b10 HOLD 6560089425), and the dispatchers fail closed on their own
+// lost verdicts inside the handler.
+const FAIL_CLOSED_ON_BUNDLE = new Set([...FAIL_CLOSED_WHEN_MISSING, 'pretool/tool-dispatcher', 'posttool/tool-dispatcher']);
+
+// #4962: the tool dispatchers abandon a handler at its budget (lib/budget.ts)
+// instead of awaiting it. Its timers or I/O would keep this process alive
+// past the verdict until CC killed it, and a killed hook's output is lost, so
+// these exit once their output is flushed.
+const EXIT_AFTER_EMIT = new Set(['pretool/tool-dispatcher', 'posttool/tool-dispatcher']);
+function failMissing(what) {
+  process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" ${what}, so it blocks. Rebuild (cd src/hooks && npm run build) or reinstall the plugin.\n`);
+  process.exit(2);
+}
+
+// #4678: this gate runs only from its own version's bundle, never a cached
+// older or newer one that may lack its rules.
+if (FAIL_CLOSED_ON_BUNDLE.has(hookName) && effectiveDistDir !== distDir) {
+  failMissing("would load another version's bundle from the plugin cache");
+}
+
 if (!hooks) {
   // Bundle file absent: not built yet, or a stale cache with no dist anywhere.
+  if (FAIL_CLOSED_ON_BUNDLE.has(hookName)) failMissing('has no bundle');
   silentExit();
 }
 
@@ -412,6 +503,7 @@ const hookFn = hooks.hooks?.[hookName];
 
 // If hook not found (not migrated yet), output silent success
 if (!hookFn) {
+  if (FAIL_CLOSED_ON_BUNDLE.has(hookName)) failMissing('has no handler in its bundle');
   silentExit();
 }
 
@@ -441,19 +533,52 @@ const MAX_STDIN_BYTES = 512 * 1024;
 // zero bytes in 100ms means a payload was expected and did not arrive in time.
 // The timeout itself is NOT raised: it is a hang guard, and PreToolUse has a
 // sub-50ms budget, so a longer wait would trade a silent failure for a slow one.
-const timeout = setTimeout(() => {
-  if (!stdinClosed) {
-    stdinClosed = true;
-    if (!process.stdin.isTTY && inputBytes === 0) {
-      process.stderr.write(
-        `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
-          `running with an EMPTY payload, so this hook measured nothing. ` +
-          `A slow producer (interpreter startup, multi-stage pipe) loses this race; ` +
-          `write the payload to a file and redirect it instead of generating it inline (#3415).\n`,
-      );
-    }
-    runHook(normalizeInput({}));
+// #4769: a regular file on stdin (`node run-hook.mjs key <payload.json`, how
+// tests/security feeds the runner) is complete before the process starts, so
+// it is read here, synchronously, and the 100ms timer is never armed for it.
+// The timer still raced it: a long synchronous block after the timer was set
+// let the timers phase run before the read callback, the hook ran on {}, and
+// the auto-approve control in Security Tests read passthrough. A file over the
+// 512KB cap, or any fstat failure, falls through to the stream path below,
+// which keeps its truncation and timeout guards.
+let stdinFromFile = false;
+try {
+  const stat = fstatSync(0);
+  stdinFromFile = stat.isFile() && stat.size <= MAX_STDIN_BYTES;
+} catch {
+  // silent: fail-open (no fstat means not a plain file; the stream path handles it)
+  stdinFromFile = false;
+}
+
+// #4825: the timer firing is not proof the pipe is empty. Libuv runs the timers
+// phase BEFORE the poll phase, so a process starved of CPU for 100ms right after
+// this line (pre-push at load 90+) reached the callback with the whole payload
+// already sitting unread in the pipe. Measured on a loaded Mac: `printf | node`
+// starved 24 of 150 runs, every one with all bytes readable at fire time. The
+// callback therefore defers once with setImmediate: the check phase runs after
+// one poll, which reads anything already written. Only a pipe that is still
+// empty after that poll takes the empty-payload path. The window is not raised;
+// the hang guard costs one extra loop turn, and only on the path that used to
+// lose the payload.
+function onStdinTimeout() {
+  if (stdinClosed) return;
+  if (inputBytes > 0) return; // the poll delivered data: the stream path owns it now
+  stdinClosed = true;
+  // #4678: a gate that sees {} would allow; late or absent input blocks.
+  if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got no input in time');
+  if (!process.stdin.isTTY) {
+    process.stderr.write(
+      `[orchestkit] WARNING: stdin delivered 0 bytes in 100ms for hook "${hookName}" - ` +
+        `running with an EMPTY payload, so this hook measured nothing. ` +
+        `A slow producer (interpreter startup, multi-stage pipe) loses this race; ` +
+        `write the payload to a file and redirect it instead of generating it inline (#3415).\n`,
+    );
   }
+  runHook(normalizeInput({}));
+}
+
+const timeout = stdinFromFile ? null : setTimeout(() => {
+  if (!stdinClosed) setImmediate(onStdinTimeout);
 }, 100);
 
 process.stdin.setEncoding('utf8');
@@ -479,14 +604,25 @@ process.stdin.on('data', (chunk) => {
   // Guard: if stdin exceeds max size (e.g. image base64 in prompt),
   // stop reading and run hook with truncated input to avoid OOM
   if (inputBytes > MAX_STDIN_BYTES) {
-    stdinClosed = true;
     process.stdin.destroy();
+    refuseOversized();
+  }
+});
+
+// The input crossed MAX_STDIN_BYTES: run the hook once on what was read, or on
+// {} when that does not parse. Shared by the stream path and the regular-file
+// path (#4770), so a file that grew after its fstat gets the same refusal.
+function refuseOversized() {
+  if (!stdinClosed) {
+    stdinClosed = true;
     const truncKB = Math.round(inputBytes / 1024);
     // `${hookName}`, not `${name}`: there is no local `name` here, so the bare
     // identifier was a ReferenceError in ESM and this warning THREW instead of
     // printing. It sits outside the try/catch below, so the >512KB guard added
     // for an image paste (#620) crashed the hook rather than degrading it (#3415).
     process.stderr.write(`[orchestkit] WARNING: stdin truncated at ${truncKB}KB (max ${MAX_STDIN_BYTES / 1024}KB) for hook "${hookName}" - large payload (image paste?)\n`);
+    // #4678: a gate that sees {} would allow; it blocks an input it cannot read.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got an input over the size limit');
     try {
       // Try to parse what we have — likely incomplete JSON, so fall back to empty
       const parsedInput = input.trim() ? JSON.parse(input) : {};
@@ -497,16 +633,23 @@ process.stdin.on('data', (chunk) => {
       runHook(normalizeInput({}));
     }
   }
-});
+}
 
-process.stdin.on('end', () => {
-  clearTimeout(timeout);
+// The complete input is in `input`: run the hook once. Called by the stream's
+// end event, and directly for a regular-file stdin (#4769).
+function finishInput() {
   if (!stdinClosed) {
     stdinClosed = true;
+    // #4678: an empty or unparseable input blocks this gate (it would see {}).
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && !input.trim()) failMissing('got an empty input');
     try {
       const parsedInput = input.trim() ? JSON.parse(input) : {};
+      // #4678: [] or {} carries no tool call; the gate would see nothing and allow.
+      const emptyCall = Array.isArray(parsedInput) || !parsedInput || typeof parsedInput !== 'object' || Object.keys(parsedInput).length === 0;
+      if (FAIL_CLOSED_WHEN_MISSING.has(hookName) && emptyCall) failMissing('got an input with no tool call');
       runHook(normalizeInput(parsedInput));
     } catch (err) {
+      if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('got input that is not JSON');
       // JSON parse error - output error message but continue
       console.log(JSON.stringify({
         continue: true,
@@ -514,15 +657,56 @@ process.stdin.on('end', () => {
       }));
     }
   }
+}
+
+if (stdinFromFile) {
+  // #4770: never trust the fstat size. The file may have grown since, so read
+  // at most one byte past the cap and refuse the input when that byte arrives,
+  // as the stream path does. A read error is handled like a stream error.
+  const buf = Buffer.allocUnsafe(MAX_STDIN_BYTES + 1);
+  let total = 0;
+  try {
+    let n;
+    while (total < buf.length && (n = readSync(0, buf, total, buf.length - total, null)) > 0) total += n;
+  } catch {
+    // silent: handled below, the same as the stream's error event
+    total = -1;
+  }
+  if (total >= 0) {
+    input = buf.toString('utf8', 0, Math.min(total, MAX_STDIN_BYTES));
+    inputBytes = total;
+  }
+  // #4885: the read stays synchronous, the dispatch waits for a microtask.
+  // This block runs while the module is still evaluating, so a hook that
+  // reaches emitHookResult synchronously (the disabled short-circuit) read
+  // WORKTREE_PATH_EVENTS and the other consts declared below before they
+  // existed and crashed with a TDZ ReferenceError. A microtask runs once the
+  // module body has finished and still before any timer or stream event, so
+  // #4769 holds and stdinClosed still guards the stream handlers below.
+  queueMicrotask(() => {
+    if (total < 0) onStdinError();
+    else if (total > MAX_STDIN_BYTES) refuseOversized();
+    else finishInput();
+  });
+}
+
+process.stdin.on('end', () => {
+  clearTimeout(timeout);
+  finishInput();
 });
 
 process.stdin.on('error', () => {
   clearTimeout(timeout);
+  onStdinError();
+});
+
+function onStdinError() {
   if (!stdinClosed) {
     stdinClosed = true;
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) failMissing('could not read its input');
     runHook(normalizeInput({}));
   }
-});
+}
 
 // SECURITY_HOOKS, loadOverrides, isHookDisabled — hoisted above bundle
 // loading. See the docstrings near line 169.
@@ -726,7 +910,7 @@ const WORKTREE_PATH_EVENTS = new Set(['WorktreeCreate', 'WorktreeRemove']);
  * every non-blocking result, which would otherwise be joined verbatim into the
  * summary prompt.
  */
-function emitHookResult(result, firingEvent, hookType) {
+function emitHookResult(result, firingEvent, hookType, emptyPayload = false) {
   if (WORKTREE_PATH_EVENTS.has(firingEvent)) {
     const worktreePath = result?.hookSpecificOutput?.worktreePath;
     if (!worktreePath) {
@@ -740,7 +924,7 @@ function emitHookResult(result, firingEvent, hookType) {
   if (firingEvent === 'PreCompact' && result?.decision !== 'block') {
     return; // empty stdout — never feed the summarizer an envelope
   }
-  console.log(JSON.stringify(sanitizeOutput(result, firingEvent)));
+  console.log(JSON.stringify(sanitizeOutput(result, firingEvent, emptyPayload)));
 }
 
 /**
@@ -749,7 +933,7 @@ function emitHookResult(result, firingEvent, hookType) {
 async function runHook(parsedInput) {
   // Check hook overrides before execution
   const projectDir = parsedInput.project_dir || process.env.CLAUDE_PROJECT_DIR || '.';
-  const overrides = loadOverrides(projectDir);
+  const overrides = loadOverrides();
 
   if (isHookDisabled(hookName, overrides)) {
     // Through emitHookResult, not a bare SILENT_OK: a disabled PreCompact hook
@@ -759,6 +943,7 @@ async function runHook(parsedInput) {
       { continue: true, suppressOutput: true },
       parsedInput.hook_event || '',
       parsedInput.type,
+      parsedInput.__orkEmptyPayload === true,
     );
     return;
   }
@@ -792,7 +977,7 @@ async function runHook(parsedInput) {
     /** t3: after hook function executed */
     t3 = process.hrtime.bigint();
     const firingEvent = parsedInput.hook_event || '';
-    emitHookResult(result, firingEvent, parsedInput.type);
+    emitHookResult(result, firingEvent, parsedInput.type, parsedInput.__orkEmptyPayload === true);
     if (REWAKE && result && result.continue === false) {
       const reason = String(result.stopReason || 'blocked without a reason').trim();
       process.stderr.write(`[${hookName}] ${reason}\n`);
@@ -802,6 +987,13 @@ async function runHook(parsedInput) {
     /** t3: captured even on error so timing is always recorded */
     t3 = process.hrtime.bigint();
     success = false;
+    // #4678: the post gate blocks on its own error (a throw in the handler or
+    // in buildContext); every other hook keeps the silent success below.
+    if (FAIL_CLOSED_WHEN_MISSING.has(hookName)) {
+      process.stderr.write(`[orchestkit] ERROR: hook "${hookName}" failed (${err.message}), so it blocks.\n`);
+      process.exitCode = 2;
+      return;
+    }
     // On any error, output silent success to not block Claude Code
     // Error path: the synthetic error result has no hookSpecificOutput so
     // sanitizeOutput is a no-op here — but we call it consistently so that
@@ -810,7 +1002,7 @@ async function runHook(parsedInput) {
     emitHookResult({
       continue: true,
       systemMessage: `Hook error (${hookName}): ${err.message}`,
-    }, firingEvent, parsedInput?.type);
+    }, firingEvent, parsedInput?.type, parsedInput?.__orkEmptyPayload === true);
   } finally {
     // Track hook execution (Issue #245)
     const durationMs = Date.now() - startTime;
@@ -824,5 +1016,9 @@ async function runHook(parsedInput) {
     // back to CLAUDE_SESSION_ID). Pass it through so lifecycle events, which
     // carry session_id only in stdin, are no longer invisible to the census.
     trackHookTriggered(hookName, success, durationMs, projectDir, timing, parsedInput?.session_id, verdict);
+  }
+  if (EXIT_AFTER_EMIT.has(hookName)) {
+    // An empty write's callback runs after every earlier stdout write flushed.
+    process.stdout.write('', () => process.exit());
   }
 }

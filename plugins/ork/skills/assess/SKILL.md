@@ -1,37 +1,28 @@
 ---
 name: assess
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Assesses and rates quality 0-10 across multiple dimensions (correctness, maintainability, security, performance, testability, simplicity) with pros/cons analysis. Compares against project conventions and prior decisions from memory. Produces structured evaluation reports with actionable improvement suggestions. Use when evaluating code, designs, architectures, or comparing alternative approaches."
-context: fork
-# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
-background: false
-version: 1.8.0
-author: OrchestKit
-tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Rates code, designs or approaches 0-10 across quality dimensions with pros, cons and fixes. Use when evaluating or comparing options. Not for fixing or building (use implement or fix-issue), PR review (use review-pr) or running tests (use verify)."
 user-invocable: true
-allowed-tools: [AskUserQuestion, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, ToolSearch, mcp__memory__search_nodes, Bash]
+allowed-tools: "AskUserQuestion Read Write Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList ToolSearch mcp__memory__search_nodes Bash"
 skills: [code-review-playbook, quality-gates, architecture-decision-record, memory, chain-patterns]
 argument-hint: "[code-path-or-topic] [--render=markdown|json-render|both] [--effort=low|medium|high|xhigh]"
-complexity: high
-persuasion-type: guidance
 effort: high
 model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/assessment-baseline-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/assessment-baseline-loader"
+          once: true
 metadata:
   category: document-asset-creation
   mcp-server: memory
-triggers:
-  keywords: [assess, asses, rate, evaluate, grade, score, compare, "how good", "how bad", "red flags", "trade-offs", "pros and cons", "good enough"]
-  examples:
-    - "rate this code from 0 to 10"
-    - "is this approach good enough for production?"
-    - "evaluate the trade-offs between Redis vs Postgres"
-  anti-triggers: [fix, implement, build, test, commit, review pr, explore]
+  version: "1.9.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "assessment, evaluation, quality, comparison, pros-cons, rating"
 ---
 
 # Assess
@@ -49,13 +40,13 @@ assess --model=opus the current database schema
 assess frontend/src/components/Dashboard
 ```
 
-### Effort levels (CC 2.1.111+ adds `xhigh`)
+### Effort levels
 
 | Effort | Behavior |
 |---|---|
 | `low` / `medium` | Subset of dimensions, faster turnaround |
-| `high` (default) | All six dimensions with pros/cons |
-| `xhigh` | All six dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
+| `high` (default) | All seven dimensions with pros/cons |
+| `xhigh` | All seven dimensions + one additional assessor pass focused on uncertainty/caveats; emits `confidence` per dimension |
 
 > `xhigh` silently falls back to `high` on a model that does not implement it: no error, no log line. `doctor` Category 14 reports this, and only when it can positively prove the active model lacks the tier.
 
@@ -63,27 +54,12 @@ assess frontend/src/components/Dashboard
 
 ## Argument Resolution
 
-### Step 0: resolve a conversational reference first
+### Step 0: resolve a pronoun target first
 
-`$ARGUMENTS` is often not a path. For a bare pronoun or deictic (`them`, `this`, `that`,
-`these`, `they`, `same`, `the above`, `the last one`, `what we just did`) or an empty target
-after flags are stripped, the subject is in the conversation. Read back for the NEAREST
-concrete one (a file just discussed, a diff or PR just opened, a component just investigated)
-and announce the resolution in one line, so a wrong guess costs a correction rather than a
-turn: *"Reading 'them' as the 3 pretool guards we just probed; say otherwise and I'll switch."*
-
-**Refusing is the bug, not the safe option.** Asking "what does this refer to?" when the
-previous turn named the subject burns a round-trip re-deriving what is already on screen.
-Measured 2026-08-28: the operator sent `assess them throguhly` one message after "bug in
-orchestkit hooks", mid-investigation of `pretool/bash/dangerous-command-blocker`, and this
-skill replied that "them" had "no antecedent anywhere in this conversation". It had two.
-
-Ask only when the conversation is genuinely empty (a fresh session opening with a bare
-pronoun). Every other case: resolve and announce.
-
-> Not unique to this skill: `verify`, `cover`, `fix-issue`, `review-pr` and `implement` all
-> read `$ARGUMENTS` as a literal path or topic, and no skill mentions resolving a reference.
-> Tracked separately; this one fixes its own door.
+`$ARGUMENTS` is often not a path. Load `Read("../../shared/rules/target-resolution.md")`
+and follow its inline half: a bare pronoun or deictic (`them`, `this`, `the above`) or an
+empty target is read back to the nearest concrete subject in the conversation, announced
+in one line, and assessed. Ask only when the conversation is empty.
 
 ```python
 TARGET = "$ARGUMENTS"  # Full argument string, e.g., "backend/app/services/auth.py"
@@ -97,25 +73,25 @@ for token in "$ARGUMENTS".split():
         TARGET = TARGET.replace(token, "").strip()
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5-5`) per CC 2.1.74.
 
 > **Switching to Opus via `/model` (CC 2.1.144+):** `/model` now changes the model for the current session only, so picking Opus for an assess run no longer persists past it. Press `d` in the picker only to set a default for new sessions.
 
-### Effort detection (CC 2.1.120+)
+### Effort detection
 
-`$CLAUDE_EFFORT` is the primary signal. CC 2.1.120 sets this env var from `/effort` or the model picker. `--effort=` token in `$ARGUMENTS` is the explicit override fallback (also covers older CC).
+`$CLAUDE_EFFORT` is the primary signal: Claude Code sets it from `/effort` or the model picker. A `--effort=` token in `$ARGUMENTS` is the explicit override.
 
 ```python
-# Read env first (CC 2.1.120+), then check explicit override
+# Read env first, then check explicit override
 EFFORT = os.environ.get("CLAUDE_EFFORT")  # "low" | "medium" | "high" | "xhigh" | None
 for token in "$ARGUMENTS".split():
     if token.startswith("--effort="):
         EFFORT = token.split("=", 1)[1]   # explicit override wins
         TARGET = TARGET.replace(token, "").strip()
-EFFORT = EFFORT or "high"  # default when CC < 2.1.120 and no flag
+EFFORT = EFFORT or "high"  # default when neither is set
 ```
 
-Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. On CC < 2.1.120 the env var is unset; the explicit `--effort=` override is the only path. `doctor` Category 14 reports a provably unsupported `xhigh` request.
+Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` uncertainty pass — see "Effort levels" table above. `doctor` Category 14 reports a provably unsupported `xhigh` request.
 
 ---
 
@@ -125,7 +101,7 @@ Use `EFFORT` to gate dimension count, agent count, and the optional `xhigh` unce
 
 ```python
 # 1. Probe MCP servers (once at skill start)
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 
 # 2. Store capabilities
@@ -162,7 +138,7 @@ AskUserQuestion(
     "question": "What dimensions to assess?",
     "header": "Dimensions",
     "options": [
-      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance"},
+      {"label": "Full assessment (Recommended)", "description": "All seven dimensions, from correctness to compliance"},
       {"label": "Code quality only", "description": "Readability, complexity, best practices"},
       {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance"},
       {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes"}
@@ -172,21 +148,21 @@ AskUserQuestion(
 )
 ```
 
-**Based on answer, adjust workflow:**
-- **Full assessment**: All 7 phases, parallel agents
-- **Code quality only**: Skip security and performance phases
-- **Security focus**: Prioritize security-auditor agent
-- **Quick score**: Single pass, brief output
+**Based on answer, adjust workflow** (passed to Phase 2 as `focus`):
+- **Full assessment** (`full`): All 7 phases, parallel agents, dimension subset scaled by effort
+- **Code quality only** (`quality`): Skip security and performance phases
+- **Security focus** (`security`): Prioritize security-auditor agent
+- **Quick score** (`quick`): The same Workflow call with `focus: quick`; the executor runs one assessor and brief output
 
 ---
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
 ---
 
-## 🚨 Task Management (CC 2.1.16)
+## 🚨 Task Management
 
 ```python
 # 1. Create main task IMMEDIATELY
@@ -199,7 +175,7 @@ TaskCreate(
 # 2. Create subtasks for each assessment phase
 TaskCreate(subject="Understand target and gather context", activeForm="Understanding target")   # id=2
 TaskCreate(subject="Discover scope and build file list", activeForm="Discovering scope")        # id=3
-TaskCreate(subject="Rate quality across 6 dimensions", activeForm="Rating quality")             # id=4
+TaskCreate(subject="Rate quality across 7 dimensions", activeForm="Rating quality")             # id=4
 TaskCreate(subject="Analyze pros and cons", activeForm="Analyzing pros/cons")                   # id=5
 TaskCreate(subject="Compare alternatives", activeForm="Comparing alternatives")                 # id=6
 TaskCreate(subject="Generate improvement suggestions", activeForm="Generating suggestions")     # id=7
@@ -220,25 +196,13 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 ---
 
-## What This Skill Answers
-
-| Question | How It's Answered |
-|----------|-------------------|
-| "Is this good?" | Quality score 0-10 with reasoning |
-| "What are the trade-offs?" | Structured pros/cons list |
-| "Should we change this?" | Improvement suggestions with effort |
-| "What are the alternatives?" | Comparison with scores |
-| "Where should we focus?" | Prioritized recommendations |
-
----
-
 ## 🔄 Workflow Overview
 
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **1. Target Understanding** | Read code/design, identify scope | Context summary |
 | **1.5. Scope Discovery** | Build bounded file list | Scoped file list |
-| **2. Quality Rating** | 6-dimension scoring (0-10) | Scores with reasoning |
+| **2. Quality Rating** | 7-dimension scoring (0-10) | Scores with reasoning |
 | **3. Pros/Cons Analysis** | Strengths and weaknesses | Balanced evaluation |
 | **4. Alternative Comparison** | Score alternatives | Comparison matrix |
 | **5. Improvement Suggestions** | Actionable recommendations | Prioritized list |
@@ -270,7 +234,7 @@ topic, not a path" and continue to Phase 1.5, which discovers the real file list
 
 Load `Read("references/scope-discovery.md")` for the full file discovery, limit application (MAX 30 files), and sampling priority logic. **Always include the scoped file list** in every agent prompt.
 
-### Progressive Output (CC 2.1.76)
+### Progressive Output
 
 Output results **incrementally** as each evaluation phase completes:
 
@@ -281,41 +245,57 @@ Output results **incrementally** as each evaluation phase completes:
 | 2. Quality Rating | Each dimension's score as the evaluating agent returns |
 | 3. Pros/Cons | Balanced evaluation summary |
 
-For Phase 2 parallel agents, show each dimension's score **as soon as the evaluating agent returns** — don't wait for all 4 agents. If any dimension scores below 4/10, flag it immediately as a priority concern requiring user attention.
+The Phase 2 workflow returns once, so show every dimension's score from its result and lead with `priorityConcerns` (any dimension below 4/10) as a concern needing user attention. Per-agent streaming applies only on the Agent tool fallback.
 
 ---
 
-## Phase 2: Quality Rating (6 Dimensions)
+## Phase 2: Quality Rating (7 Dimensions)
 
 Rate each dimension 0-10 with weighted composite score. Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dimensions, weights, grade interpretation, and per-dimension criteria. Load `Read("references/quality-model.md")` for assess-specific overrides.
 
-Load `Read("references/agent-spawn-definitions.md")` for Task Tool mode spawn patterns and Agent Teams alternative.
+Do NOT hand-roll the assessors. Run the executor, which owns Phases 2 and 2.5:
 
-**Composite Score:** Weighted average of all 6 dimensions (see quality-model.md).
+```python
+result = Workflow(
+  name="ork:assess-fanout",
+  args={"target": TARGET, "effort": EFFORT, "focus": FOCUS,   # FOCUS from STEP 0
+        "mode": "comparison" if COMPARING else "default",     # quality-model.md
+        "domain": "frontend" or "backend",                     # picks the performance engineer
+        "scopeFiles": SCOPE_FILES,                             # Phase 1.5 list
+        "projectContext": MEMORY_CONTEXT,                      # Phase 1 memory search
+        "rubric": Read("rubric.json"), "modelOverride": MODEL_OVERRIDE,
+        "feature": FEATURE})
+Write(".claude/chain/02-evaluation.json", result)
+```
+
+**The script owns the mechanics, not the prose.** It picks the assessors from `focus` and `effort` (security first), gives each a score schema that demands `file:line` evidence, sends every decision-bearing score to blind refuters (Phase 2.5), and computes the weighted composite, grade, rubric verdict and blockers. A score with no `file:line` evidence counts as unscored, a repeated dimension keeps only its first entry, and a selected dimension with a `min_blocker` that nobody scored is a blocker. It returns `composite`, `grade`, `verdict`, `blockers` (producer basis), `postRefutation`, `chainVerdict`, `chainVerdictIfConfirmed`, `revisions`, `confirmationNeeded`, `manualReview`, `advisory`, `priorityConcerns`, `quickWins`, `unscored`, `rejectedDimensions`, `unassessed`, `dimensions`, `ledger` and `reasons`. **It never asks and never writes**: those stay in this shell.
+
+Fallback (no Workflow tool, `ORCHESTKIT_FORCE_TASK_TOOL=1`, or the cross-model lane below): `Read("references/agent-spawn-definitions.md")` for Agent tool and Agent Teams spawns, then run Phase 2.5 by hand.
+
+**Fan-out rule:** a single pass is never a fallback when the selected focus runs Phase 2. Phase 2 runs through the Workflow call or the Agent tool fallback; if neither spawns an assessor, end the run as BLOCKED and say why.
+
+**Composite Score:** Weighted average of the scored dimensions (see quality-model.md).
 
 ---
 
 ## Phase 2.5: Adversarial Refutation (effort-gated)
 
-The assessor that scores a dimension is also its only judge — self-preferential bias.
-A separate **blind refuter** verifies decision-bearing scores before they reach the
-composite. **Effort gate:** `low`/`medium` skip this phase entirely; `high` runs up-to-4
-single refuters (advisory, no auto-swing); `xhigh` runs 3-refuter majority with auto-revise.
+The assessor that scores a dimension is also its only judge, a self-preferential bias. A separate **blind refuter** forms its own band for each decision-bearing score. **Effort gate:** `low`/`medium` skip it; `high` runs up to 4 single advisory refuters (no auto-swing); `xhigh` runs a 3-refuter majority that revises to the near band edge. On the Workflow path the script already ran it; the shell finishes it:
 
-Load the protocol + assess bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `../../shared/rules/adversarial-refutation.md`).
-Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("../../shared/rules/evidence-replay.md")`.
+1. Write the returned `ledger` to `.claude/chain/02b-refutation.json` (engine section 10).
+2. Re-open every cited `file:line` in `revisions` (engine section 3). A citation that does not hold reverts that dimension to its producer score; recompute the composite with the returned `weights`.
+3. If `confirmationNeeded` is non-empty, `AskUserQuestion` before using `chainVerdictIfConfirmed`; otherwise use `chainVerdict`. Refutation alone never raises a score or flips fail to pass (engine section 7).
+4. List `manualReview` dimensions as "not independently refuted", and surface every `advisory` overturn at high effort.
+
+Protocol and assess bindings: `Read("references/adversarial-refutation.md")` (loads the shared engine `../../shared/rules/adversarial-refutation.md`). Producer findings must first pass the evidence-replay gate before entering any score or verdict: `Read("../../shared/rules/evidence-replay.md")`.
 
 ### Cross-model refuter (optional, provenance-labeled, cost-gated)
 
 When `ORK_ALT_MODEL_CMD` is configured and effort is `high`/`xhigh`, one quorum slot per high-weight or boundary-adjacent dimension score can route to a non-Claude model (Codex/GPT) for diverse failure modes. Off by default; substitutes one same-model slot, stamps `refuter_model` for provenance, cannot silently raise the grade (engine §7), owns no credentials/egress (shells out via `ORK_ALT_MODEL_CMD`, matches the egress guard #2533), and degrades to same-model on an absent command. Shares the review-pr operational doc: `Read("../review-pr/references/cross-model-refuter.md")`.
 
-Runs after Phase 2 returns, before the composite/grade and Phases 3-7. Refuters are ALWAYS
-isolated `Agent(...)` Task spawns (never team members, even in Agent Teams mode) fed only the
-serialized claim — no producer score, identity, or prose. Revised scores recompute the
-composite; the refutation ledger (`02b-refutation.json`) records survived/killed/downgraded
-so wrong scores are auditable. Keep the producer-basis score AND a labeled post-refutation
-score — refutation never silently raises the grade.
+The workflow does not run this lane (a script cannot shell out). When the user wants it, choose the Agent tool fallback before Phase 2 and run Phases 2 and 2.5 there.
+
+Refuters are ALWAYS isolated spawns with no `team_name`, fed only the dimension and the scoped files: no producer score, identity, or prose. Keep the producer-basis score AND a labeled post-refutation score.
 
 ---
 
@@ -394,7 +374,7 @@ Mirrors `Yonatan-HQ/hq-ext-plugin#194` (audio_podcast handler) and orchestkit#18
 
 ## Phase 7d: Emit Chain Verdict (stop-gating)
 
-After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict — this is the stop-gate `implement` reads before Phase 1. Mirror the Phase 7b spec-emit pattern: build, write compact JSON, never write a partial file.
+After the composite and grade are final (post-refutation, Phase 2.5), ALWAYS write the machine-readable verdict: this is the stop-gate `implement` reads before Phase 1. On the Workflow path it is the returned `chainVerdict` (or `chainVerdictIfConfirmed` after a yes in Phase 2.5). Mirror the Phase 7b spec-emit pattern: write compact JSON, never a partial file.
 
 ```json
 // .claude/chain/assess-verdict.json
@@ -459,9 +439,9 @@ Load `Read("../quality-gates/references/unified-scoring-framework.md")` for grad
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| 6 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
+| 7 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
 | 0-10 scale | Industry standard | Easy to understand and compare |
-| Parallel assessment | 4 agents (6 dimensions) | Fast, thorough evaluation |
+| Parallel assessment | `workflows/assess-fanout.js`, up to 4 assessors | Scores, refutation and verdict held in code, not prose |
 | Effort/Impact scoring | 1-5 scale | Simple prioritization math |
 
 ---
@@ -491,4 +471,4 @@ Done means all of these hold:
 
 ---
 
-**Version:** 1.8.0 (June 2026) — optional cross-model adversarial refuter lane (provenance + cost gate, #2542)
+**Version:** 1.9.0 (September 2026): Phases 2 and 2.5 run as a Workflow script (`workflows/assess-fanout.js`)

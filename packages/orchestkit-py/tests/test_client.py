@@ -45,7 +45,7 @@ def test_create_client_default_is_product_domain() -> None:
 
 
 def test_search_parses_results_and_ratelimit() -> None:
-    payload = {"results": [{"id": "a", "url": "https://orchestkit.yonyon.ai/x", "title": "X"}]}
+    payload = {"results": [{"id": "a", "url": "https://orchestkit.dev/x", "title": "X"}]}
     headers = {
         "content-type": "application/json",
         "ratelimit-limit": "120",

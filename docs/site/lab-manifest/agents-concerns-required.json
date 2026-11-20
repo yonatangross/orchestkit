@@ -1,0 +1,8 @@
+{
+  "slug": "agents-concerns-required",
+  "source": "docs/fix--agents-concerns-required/index.html",
+  "title": "DONE_WITH_CONCERNS requires a non-empty concerns array",
+  "description": "HOLD b54 follow-up: DONE_WITH_CONCERNS must carry concerns with minItems 1 so a structured caller never sees a landed commit with the reason dropped.",
+  "tags": ["agents", "schema", "status-protocol"],
+  "date": "2026-11-03"
+}

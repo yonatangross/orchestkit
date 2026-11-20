@@ -1,0 +1,12 @@
+{
+  "slug": "ork-dispatcher-review-threads",
+  "source": "docs/fix--ork-dispatcher-review-threads/index.html",
+  "title": "Tool dispatcher follow-up: three fail-open edges closed",
+  "description": "Follow-up to #4962. Pick an edge case of the flag-on tool dispatchers and compare what happened before and after: a missing dispatcher bundle, a proof log with no runs, and a git query that timed out.",
+  "tags": [
+    "hooks",
+    "fail-closed",
+    "posttool"
+  ],
+  "date": "2026-11-01"
+}

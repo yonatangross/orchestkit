@@ -2,10 +2,8 @@
 name: product-strategist
 description: "Product strategist: value proposition validation, feature-business alignment, build/buy/partner decisions, go/no-go."
 model: inherit
-category: product
 maxTurns: 30
 effort: medium
-context: fork
 color: purple
 memory: local
 tools:
@@ -34,20 +32,13 @@ skills:
   - write-prd
   - prd-to-goal
   - github-operations
-  - remember
   - memory
 mcpServers: [tavily]
-taskTypes:
-  - plan
-  - research
-keywords:
-  - "product strategy"
-  - "value proposition"
-  - "build/buy/partner"
-  - "go/no-go"
-examplePrompts:
-  - "Evaluate build vs buy for the notification system"
-  - "Validate the value proposition for the workflow builder"
+metadata:
+  category: "product"
+  taskTypes: "plan, research"
+  keywords: "product strategy, value proposition, build/buy/partner, go/no-go"
+  examplePrompts: "Evaluate build vs buy for the notification system | Validate the value proposition for the workflow builder"
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.
@@ -266,6 +257,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Peer Messaging
 
 - Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
@@ -285,6 +278,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |write-prd:{SKILL.md,references/{output-templates.md,prd-template.md,user-stories-guide.md,value-prop-canvas-guide.md}}|prd,requirements,user-story,acceptance-criteria,invest,value-proposition,go-no-go
 |prd-to-goal:{SKILL.md,references/{recipe-library.md}}|/goal,planning,prd,automation,cc-2.1.139
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,ork-delta.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

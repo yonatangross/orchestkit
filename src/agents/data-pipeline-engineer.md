@@ -1,14 +1,11 @@
 ---
 name: data-pipeline-engineer
 description: "Data pipeline specialist: embeddings, chunking strategies, vector indexes, data transformation for AI consumption."
-category: data
 model: sonnet
 maxTurns: 20
 effort: low
-context: fork
 color: green
 memory: project
-isolation: worktree
 background: true
 initialPrompt: "Check TaskList for pending pipeline tasks. Inventory current embedding configuration and vector index status."
 tools:
@@ -33,22 +30,13 @@ skills:
   - performance
   - browser-tools
   - devops-deployment
-  - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - build
-  - optimize
-keywords:
-  - "embeddings"
-  - "chunking"
-  - "vector"
-  - "data pipeline"
-  - "batch"
-  - "etl"
-examplePrompts:
-  - "Build an embedding pipeline with semantic chunking for the knowledge base"
-  - "Optimize the vector index for hybrid search with pgvector"
+metadata:
+  category: "data"
+  taskTypes: "build, optimize"
+  keywords: "embeddings, chunking, vector, data pipeline, batch, etl"
+  examplePrompts: "Build an embedding pipeline with semantic chunking for the knowledge base | Optimize the vector index for hybrid search with pgvector"
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
@@ -211,7 +199,7 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** rag-retrieval, golden-dataset, context-optimization
+- **Skill references:** rag-retrieval, golden-dataset
 
 ## Delegation (CC 2.1.172+)
 
@@ -233,3 +221,5 @@ The `rag-retrieval` skill is `user-invocable: false` AND `disable-model-invocati
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.

@@ -374,7 +374,7 @@ function createMarker(preset: string, envInfo: EnvironmentInfo, pluginRoot: stri
 /**
  * First run setup hook
  */
-export function firstRunSetup(_input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
+export function firstRunSetup(input: HookInput, hookCtx: HookContext = NOOP_CTX): HookResult {
   const pluginRoot = hookCtx.pluginRoot;
   const mode = process.argv.includes('--silent') ? 'silent' : 'interactive';
 
@@ -388,7 +388,7 @@ export function firstRunSetup(_input: HookInput, hookCtx: HookContext = NOOP_CTX
   if (!valid) {
     hookCtx.log('first-run-setup', 'ERROR: Dependency validation failed');
     const ctx = `OrchestKit setup failed: Missing required dependencies. Install ${missing.join(', ')}.`;
-    return outputWithContext(ctx);
+    return outputWithContext(ctx, input);
   }
 
   // Phase 3: Select preset (default to complete)
@@ -445,5 +445,5 @@ export function firstRunSetup(_input: HookInput, hookCtx: HookContext = NOOP_CTX
       ? `OrchestKit v${CURRENT_VERSION} setup complete! Loaded ${skillCount} skills, ${agentCount} agents, and ${hookCount} hooks. Use /ork:configure to customize settings.`
       : `OrchestKit v${CURRENT_VERSION} initialized (silent mode).`;
 
-  return outputWithContext(ctx);
+  return outputWithContext(ctx, input);
 }

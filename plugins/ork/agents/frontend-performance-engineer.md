@@ -1,14 +1,11 @@
 ---
 name: frontend-performance-engineer
 description: Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM.
-category: frontend
 model: sonnet
 maxTurns: 50
 effort: medium
-context: fork
 color: green
 memory: project
-isolation: worktree
 tools:
   - Read
   - Edit
@@ -27,25 +24,15 @@ tools:
   - mcp__context7__query-docs
 skills:
   - performance
-  - remember
   - memory
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending performance tasks. Audit Core Web Vitals and bundle composition for optimization targets."
-taskTypes:
-  - optimize
-keywords:
-  - "core web vitals"
-  - "lcp"
-  - "inp"
-  - "cls"
-  - "bundle"
-  - "lighthouse"
-  - "rum"
-  - "render"
-examplePrompts:
-  - "Improve LCP by optimizing the critical rendering path"
-  - "Reduce bundle size with code splitting and lazy loading"
+metadata:
+  category: "frontend"
+  taskTypes: "optimize"
+  keywords: "core web vitals, lcp, inp, cls, bundle, lighthouse, rum, render"
+  examplePrompts: "Improve LCP by optimizing the critical rendering path | Reduce bundle size with code splitting and lazy loading"
 ---
 
 ## Directive
@@ -55,7 +42,6 @@ Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), an
 ## MCP Tools (Optional — skip if not configured)
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
-- **Opus 4.8 adaptive thinking** — Complex optimization decision trees. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Browser Automation
 
@@ -326,6 +312,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.
@@ -337,6 +325,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

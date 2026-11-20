@@ -79,6 +79,9 @@ create_test_repo() {
     mkdir -p "$repo_dir"
     cd "$repo_dir"
     git init -q
+    git config user.email fixture@example.invalid
+    git config user.name Fixture
+    git config commit.gpgsign false
     echo "# Test Repo: $name" > README.md
     git add README.md
     git commit -q -m "Initial commit"

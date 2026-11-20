@@ -1,19 +1,17 @@
 ---
 name: market-sizing
-compatibility: "Claude Code 2.1.251+"
-description: "TAM/SAM/SOM market sizing with top-down and bottom-up estimation methods, cross-validation of assumptions, and divergence reconciliation. Generates investor-ready materials with growth projections and confidence intervals. Use when estimating addressable markets, validating opportunity size, or preparing pitch deck market slides."
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "TAM, SAM and SOM with top-down and bottom-up estimates and cross-checked assumptions. Use when sizing a market or preparing pitch market slides."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
-tags: [tam, sam, som, market-size, addressable-market, opportunity-sizing]
-context: fork
-agent: product-strategist
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
-allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "tam, sam, som, market-size, addressable-market, opportunity-sizing"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Market Sizing

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>prompt-enhancer: listed as a beta, opt-in mod</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--fg:#14161a;--mut:#56606d;--faint:#8b93a1;--line:#e2e5ea;--a:#b8860b;--g:#1e8e5a;--r:#c0392b;--term:#161b26;--termfg:#e8ecf1}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:980px;margin:0 auto;padding:40px 20px 60px}
+h1{font-size:28px;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:34px 0 10px}
+p.lead{color:var(--mut);margin-top:0;max-width:760px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+.verdict{border-left:4px solid var(--a)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid>*{min-width:0}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+textarea{width:100%;box-sizing:border-box;font:14px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:10px;min-height:70px}
+.band{display:flex;gap:6px;align-items:center;background:var(--term);color:var(--termfg);border-radius:10px 10px 0 0;padding:8px 10px;font:12.5px ui-monospace,Menlo,monospace}
+.band button{border:1px solid #3a4252;background:#222a38;color:var(--termfg);border-radius:6px;padding:3px 10px;font:12px ui-monospace,Menlo,monospace;cursor:pointer}
+.band button:disabled{opacity:.4;cursor:default}
+.band .sp{flex:1}
+.box{border-radius:0 0 10px 10px;border-top:none}
+.log{background:#f7f8fa;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font:12px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;min-height:90px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;color:var(--faint);font-weight:600}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+.ok{color:var(--g);font-weight:600}.no{color:var(--r);font-weight:600}
+label{display:block;margin:6px 0}
+input[type=range]{width:100%}
+.big{font-size:22px;font-weight:650}
+button.copy{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font:14px -apple-system,sans-serif;cursor:pointer}
+.note{font-size:12.5px;color:var(--faint)}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="prompt-enhancer: listed as a beta, opt-in mod"><meta property="og:description" content="The prompt-enhancer mod (shipped in #4766) is now listed in the OrchestKit marketplace as a beta mod. Try the band rules (Enhance, ++ trigger, Send, Undo) in a simulation with no model call, estimate the model usage per day, and pick where to enable it."><meta property="og:url" content="https://orchestkit.dev/lab/mods-prompt-enhancer-listing.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="prompt-enhancer: listed as a beta, opt-in mod"><meta name="twitter:description" content="The prompt-enhancer mod (shipped in #4766) is now listed in the OrchestKit marketplace as a beta mod. Try the band rules (Enhance, ++ trigger, Send, Undo) in a simulation with no model call, estimate the model usage per day, and pick where to enable it."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>prompt-enhancer: listed as a beta, opt-in mod</h1>
+<p class="lead">This PR adds <code>mods/prompt-enhancer</code> to <code>.claude-plugin/marketplace.json</code> as a beta mod, so <code>claude plugin install prompt-enhancer@orchestkit</code> can find it. The mod itself shipped in #4766 and is unchanged. Nothing turns it on: an install does not enable it for anyone who did not ask.</p>
+
+<div class="card verdict"><b>What changes:</b> one marketplace entry (git-subdir <code>mods/prompt-enhancer</code>, ref <code>main</code>, version <code>0.1.0</code>) and one README line. <b>What does not:</b> the mod code, the <code>ork</code> and <code>ork-alpha</code> entries. <b>Cost:</b> each Enhance is one model call with the <code>haiku</code> alias on the session account, 1024 token cap, 12 second timeout. <b>Needs:</b> Claude Code 2.1.300 or later.</div>
+
+<h2>Try the band (simulated, no model call)</h2>
+<p class="note">This page does not call a model. The rewrite below is a fixed demo transform so you can see the hold, Send and Undo rules. The real mod asks Haiku with the fixed system prompt in <code>src/system.ts</code>.</p>
+<div class="grid">
+<div>
+<div class="band"><span>prompt-enhancer</span><span class="sp"></span>
+<button id="enh">Enhance</button><button id="send">Send</button><button id="undo" disabled>Undo</button></div>
+<textarea id="box" class="box" placeholder="Type a draft. End it with ++ and press Enter to enhance.">fix the flaky test in auth</textarea>
+<p class="note">Enter in the box acts like Claude Code's Enter: a draft ending in <code>++</code> is held and enhanced; anything else is sent.</p>
+</div>
+<div><p class="note" style="margin:0 0 6px">What happened</p><div id="log" class="log"></div></div>
+</div>
+
+<h2>Rules the band follows</h2>
+<table>
+<tr><th>You do</th><th>The mod does</th></tr>
+<tr><td>Press Enhance</td><td>Holds the prompt, puts the rewrite in the box. Never sends during Enhance.</td></tr>
+<tr><td>Type a prompt ending in <code>++</code>, press Enter</td><td>Same as Enhance. The trigger is removed from the rewrite.</td></tr>
+<tr><td>Press Enter on a rewrite that ends in <code>++</code> (for example <code>C++</code>)</td><td>Sends it as is. A rewrite is never enhanced by its own text.</td></tr>
+<tr><td>Want to send a typed <code>++</code> prompt without a rewrite</td><td>Press Send instead of Enter.</td></tr>
+<tr><td>Press Undo</td><td>Puts back your exact first draft, trigger included. After you edit a rewrite, Undo goes back to your edit.</td></tr>
+<tr><td>Edit while the model call runs</td><td>That result is cancelled. Your text stays.</td></tr>
+<tr><td>The call fails or returns nothing</td><td>The original stays in the box and a toast says so.</td></tr>
+<tr><td>Slash commands, attachments, prompts from other sources</td><td>Pass through without enhancement.</td></tr>
+</table>
+
+<h2>How much model usage would this be</h2>
+<div class="card grid">
+<div>
+<label>Enhance clicks per day <b id="cv">20</b><input id="clicks" type="range" min="0" max="200" value="20"></label>
+<label>Sessions that load the mod <b id="sv">1</b><input id="sess" type="range" min="1" max="30" value="1"></label>
+<p class="note">Only clicks cost usage. Loading the mod in a session that never presses Enhance, or never ends a prompt with <code>++</code>, makes no model call.</p>
+</div>
+<div><p class="note" style="margin:0">Upper bound of output tokens per day</p><div class="big" id="tok">20,480</div>
+<p class="note">clicks x 1024 token cap. Input tokens (your draft plus the fixed system prompt) come on top and are not estimated here. No price is shown: it depends on your plan.</p>
+<p class="note" id="risk"></p></div>
+</div>
+
+<h2>Where to enable it</h2>
+<div class="card">
+<label><input type="radio" name="scope" value="none" checked> Listed only. Nobody enables it until they choose to.</label>
+<label><input type="radio" name="scope" value="operator"> Enabled in my interactive sessions only (project or local settings, or <code>--plugin-dir</code>).</label>
+<label><input type="radio" name="scope" value="user"> Enabled at user scope (every session on the machine, unattended lanes included).</label>
+<p id="scopeNote" class="note"></p>
+<button class="copy" id="copy">Copy as prompt</button> <span id="copied" class="note"></span>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const box=$('box'),log=$('log');
+let first=null,lastRewrite=null;
+function say(t){log.textContent=(log.textContent?log.textContent+'\n':'')+t;log.scrollTop=log.scrollHeight;}
+function rewrite(t){
+  const s=t.replace(/\s*\+\+\s*$/,'').trim();
+  return 'Goal: '+s+'.\nFirst read the relevant code and say what you found.\nDone when: the change is made and a check you ran shows it works.\nIf the intent is unclear, ask before editing.';
+}
+function enhance(fromTrigger){
+  const t=box.value;
+  if(!t.trim()){say('empty box: nothing to enhance');return;}
+  if(t.trim().startsWith('/')){say('slash command: passes through, not enhanced');return;}
+  if(first===null||t!==lastRewrite)first=t;
+  say((fromTrigger?'++ trigger: ':'Enhance: ')+'prompt held, not sent');
+  lastRewrite=rewrite(first);box.value=lastRewrite;$('undo').disabled=false;
+  say('rewrite placed in the box. Edit it, then Send or Enter.');
+}
+function send(){
+  say('SENT as your own words:\n  '+box.value.split('\n')[0]+(box.value.includes('\n')?' ...':''));
+  first=null;lastRewrite=null;box.value='';$('undo').disabled=true;
+}
+$('enh').onclick=()=>enhance(false);
+$('send').onclick=send;
+$('undo').onclick=()=>{if(first!==null){box.value=first;say('Undo: first draft restored exactly');first=null;lastRewrite=null;$('undo').disabled=true;}};
+box.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.shiftKey)return;
+  e.preventDefault();
+  const t=box.value;
+  if(/\+\+\s*$/.test(t)&&t!==lastRewrite)enhance(true);
+  else{if(t===lastRewrite&&/\+\+\s*$/.test(t))say('rewrite ends in ++: sent as is, not enhanced again');send();}
+});
+function calc(){
+  const c=+$('clicks').value,s=+$('sess').value;$('cv').textContent=c;$('sv').textContent=s;
+  $('tok').textContent=(c*1024).toLocaleString('en-US');
+  $('risk').textContent=s>1?'More sessions do not multiply the cost by themselves. The risk is a pasted brief that ends in ++ in an unattended lane: it would be held for a rewrite, and nobody presses Send.':'';
+}
+$('clicks').oninput=calc;$('sess').oninput=calc;calc();
+const notes={none:'Default after this PR. Install and enable are separate choices.',operator:'Recommended for daily use: only sessions where a person presses the buttons.',user:'Not recommended: unattended lanes load it too, and a brief ending in ++ would stall there.'};
+function scope(){const v=document.querySelector('input[name=scope]:checked').value;$('scopeNote').textContent=notes[v];return v;}
+document.querySelectorAll('input[name=scope]').forEach(r=>r.onchange=scope);scope();
+$('copy').onclick=async()=>{
+  const v=scope();
+  const text='prompt-enhancer@orchestkit (beta, listed by #4816): scope='+v+'; expected Enhance clicks per day='+$('clicks').value+' (up to '+$('tok').textContent+' output tokens per day). '+(v==='user'?'Enable at user scope in ~/.claude/settings.json enabledPlugins.':v==='operator'?'Enable only in interactive operator sessions, never in unattended lanes.':'Install nothing; keep it listed only.');
+  try{await navigator.clipboard.writeText(text);$('copied').textContent='copied';}catch(e){$('copied').textContent=text;}
+};
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

@@ -48,7 +48,7 @@ function getCurrentBranch(projectDir: string): string | null {
     const out = execSync('git branch --show-current', {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 1000,
+      killSignal: 'SIGKILL', timeout: 1000,
       stdio: ['pipe', 'pipe', 'ignore'],
     }).trim();
     return out || null;
@@ -130,6 +130,7 @@ export function playgroundPresenceWarner(input: HookInput, ctx: HookContext = NO
   return {
     continue: true,
     hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
       additionalContext:
         `[playground-presence-warner] Branch \`${branch}\` has no playground at ` +
         `\`docs/${slug}/\`. The CI \`playground-check\` job will reject this PR ` +

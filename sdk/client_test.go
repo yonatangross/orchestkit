@@ -15,7 +15,7 @@ func TestSearch(t *testing.T) {
 		w.Header().Set("RateLimit-Limit", "120")
 		w.Header().Set("RateLimit-Remaining", "119")
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"results": []map[string]string{{"id": "a", "url": "https://orchestkit.yonyon.ai/x", "title": "X"}},
+			"results": []map[string]string{{"id": "a", "url": "https://orchestkit.dev/x", "title": "X"}},
 		})
 	}))
 	t.Cleanup(srv.Close)

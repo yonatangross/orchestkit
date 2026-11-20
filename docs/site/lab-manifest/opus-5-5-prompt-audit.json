@@ -1,0 +1,8 @@
+{
+  "slug": "opus-5-5-prompt-audit",
+  "source": "docs/feat--opus-5-5-prompt-audit/prompt-audit.html",
+  "title": "Prompt audit for Claude Opus 5.5",
+  "description": "All 377 prompt-audit findings across agents, skills, rules, hooks and MCP tools, filterable by status and slice, with the 35 applied high-confidence fixes.",
+  "tags": ["models", "prompting", "audit"],
+  "date": "2026-09-23"
+}

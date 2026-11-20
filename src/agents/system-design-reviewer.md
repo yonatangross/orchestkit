@@ -1,7 +1,6 @@
 ---
 name: system-design-reviewer
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written.
-category: design
 model: opus
 experimental:
   # Per-agent prompt-cache TTL, used when no subagentPromptCacheTtl setting is
@@ -11,7 +10,6 @@ experimental:
   cacheTtl: 1h
 maxTurns: 60
 effort: medium
-context: inherit
 color: cyan
 memory: project
 tools:
@@ -28,22 +26,15 @@ skills:
   - visualize-plan
   - security-patterns
   - performance
-  - remember
   - memory
 mcpServers: []
 background: true
 initialPrompt: "Check TaskList for pending review tasks. Read the implementation plan or PR under review against the 5-dimension framework."
-taskTypes:
-  - review
-  - design
-keywords:
-  - "system design"
-  - "architecture review"
-  - "scale"
-  - "implementation plan"
-examplePrompts:
-  - "Review the architecture plan for the multi-tenant migration"
-  - "Evaluate the implementation plan against 5 design dimensions"
+metadata:
+  category: "design"
+  taskTypes: "review, design"
+  keywords: "system design, architecture review, scale, implementation plan"
+  examplePrompts: "Review the architecture plan for the multi-tenant migration | Evaluate the implementation plan against 5 design dimensions"
 ---
 # System Design Reviewer Agent
 
@@ -395,3 +386,5 @@ This agent integrates with:
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.

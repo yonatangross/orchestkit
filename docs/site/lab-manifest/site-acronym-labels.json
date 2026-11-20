@@ -1,0 +1,11 @@
+{
+  "slug": "site-acronym-labels",
+  "source": "docs/fix--site-acronym-labels/index.html",
+  "title": "Acronyms stay upper case in docs labels",
+  "description": "The docs sidebar and category pages title-cased slugs word by word, so CI/CD read as Ci Cd and API as Api. Before and after labels for the slugs the fix changes.",
+  "tags": [
+    "docs",
+    "site"
+  ],
+  "date": "2026-11-04"
+}

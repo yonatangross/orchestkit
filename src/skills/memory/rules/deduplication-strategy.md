@@ -46,4 +46,4 @@ Edit(file_path=".claude/memory/MEMORY.md",
 
 ## Hook Exception
 
-The `memory-writer.ts` hook uses Node.js `writeFileSync` -- this is correct for hooks context where full file control is needed. The Edit pattern above is for agent-side SKILL.md operations.
+Hooks that need full file control use Node.js `writeFileSync` directly -- this is correct for hooks context. The Edit pattern above is for agent-side SKILL.md operations.

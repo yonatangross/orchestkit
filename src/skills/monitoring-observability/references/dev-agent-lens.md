@@ -74,19 +74,24 @@ services:
 
 ```yaml
 model_list:
-  - model_name: claude-sonnet-5
+  - model_name: claude-sonnet-5-5
     litellm_params:
-      model: anthropic/claude-sonnet-5
+      model: anthropic/claude-sonnet-5-5
       api_key: os.environ/ANTHROPIC_API_KEY
 
-  - model_name: claude-opus-5
+  - model_name: claude-opus-5-5
     litellm_params:
-      model: anthropic/claude-opus-5
+      model: anthropic/claude-opus-5-5
       api_key: os.environ/ANTHROPIC_API_KEY
 
-  - model_name: claude-haiku-4-5-20251001
+  - model_name: claude-haiku-5-5
     litellm_params:
-      model: anthropic/claude-haiku-4-5-20251001
+      model: anthropic/claude-haiku-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  - model_name: claude-haiku-4-5-20251001  # model-recency-ok: callback-handler.py still calls this id, so the route stays
+    litellm_params:
+      model: anthropic/claude-haiku-4-5-20251001  # model-recency-ok: callback-handler.py still calls this id, so the route stays
       api_key: os.environ/ANTHROPIC_API_KEY
 
 general_settings:
@@ -111,7 +116,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."  # your actual key
 
 With dev-agent-lens forwarding to Langfuse, each Claude API call creates a trace with:
 
-- **Model**: Exact model ID (`claude-sonnet-5`)
+- **Model**: Exact model ID (`claude-sonnet-5-5`)
 - **Tokens**: Input/output/cache token counts
 - **Cost**: Per-request USD cost (Anthropic pricing)
 - **Latency**: Time-to-first-token, total duration

@@ -63,4 +63,4 @@ agent-browser get text @e5  # Extract specific content area, not full page
 - Use `--max-output` (v0.16) to limit extracted content size and reduce data over-collection
 - Respect `--allowed-domains` (v0.16) to scope crawls — prevents accidentally following links to unrelated sites
 
-Reference: robots.txt enforcement is done by the `agent-browser-safety` hook, see `references/ork-delta.md` for the commands it does and does not cover.
+Reference: nothing enforces robots.txt (the `agent-browser-safety` hook was retired 2026-08-31). Follow this rule by hand; see `references/ork-delta.md`.

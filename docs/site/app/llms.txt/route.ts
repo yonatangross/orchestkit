@@ -1,4 +1,6 @@
 import { COUNTS, SITE, YONYON } from "@/lib/constants";
+import { developerResourceLines } from "@/lib/developer-resources";
+import { HOOKS_LIMIT, HOST_SUPPORT, hostSummary } from "@/lib/host-support";
 import { SECTION_ORDER, orderedPages } from "@/lib/docs-content";
 
 // /llms.txt — lean navigation index (kept well under the 30,000-char
@@ -57,34 +59,49 @@ export function GET() {
 	const lines = [
 		`# ${SITE.name}`,
 		"",
-		`> Free, open-source plugin for Claude Code — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks. Install with \`${SITE.installCommand}\`.`,
+		`> Free, open-source skill and agent library for ${hostSummary()}: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
 		"",
 		"## What it is",
 		"",
-		`${SITE.name} is a plugin for Claude Code (Anthropic's agentic CLI). It packages ${COUNTS.skills} reusable skills, ${COUNTS.agents} specialist agents, and ${COUNTS.hooks} lifecycle hooks — encoding auth/migration/API/testing patterns, security gates, and quality checks so the agent works to your standards out of the box. It is not a hosted service and not an editor assistant.`,
+		`${SITE.name} is a library for AI coding agents. On Claude Code it is one plugin with ${COUNTS.skills} reusable skills, ${COUNTS.agents} specialist agents, and ${COUNTS.hooks} lifecycle hooks, encoding auth/migration/API/testing patterns, security gates, and quality checks so the agent works to your standards out of the box. Cursor, Codex, Devin, OpenCode, Muse Code, Pi and Antigravity load the parts their formats support (see Where it runs). It is not a hosted service and not an editor assistant.`,
 		`Publisher: ${SITE.name} is built by Yonyon, an independent software studio (${YONYON.apex}, brand page ${YONYON.apexPage}). The studio name "Yonyon" is unrelated to the musician of the same name; the product and docs live at ${SITE.domain}; see ${SITE.domain}/yonyon.`,
+		"",
+		"## Where it runs",
+		"",
+		...HOST_SUPPORT.map((h) => `- ${h.name}: ${h.gets}. Install: \`${h.install}\``),
+		`- ${HOOKS_LIMIT}`,
 		"",
 		"## Use cases",
 		"",
 		"- Implement a feature end-to-end with parallel specialist agents (`/ork:implement`).",
 		"- Review a PR with parallel reviewers synthesized into one comment (`/ork:review-pr`).",
 		"- Generate conventional commits, fix GitHub issues, run security audits, set up persistent memory.",
-		"- Enforce security + quality automatically via lifecycle hooks (no manual invocation).",
+		"- Enforce security + quality automatically via lifecycle hooks on Claude Code (no manual invocation).",
 		"",
 		"## Constraints",
 		"",
-		"- Requires Claude Code " + `${SITE.ccVersion}` + "; runs locally inside it.",
+		`- Runs locally inside the agent host; on Claude Code it needs version ${SITE.ccVersion}.`,
 		"- Free (MIT), no paid tiers, no account. The public docs/search API is read-only and unauthenticated.",
-		"- Not a standalone CLI or editor — it extends the Claude Code agent.",
+		"- Not a standalone editor or a hosted service; it extends the agent you already run. A separate scripting CLI is listed below.",
 		"",
 		"## For AI agents",
 		"",
 		`- To answer questions about OrchestKit: NLWeb \`/ask\` endpoint at ${SITE.domain}/ask (GET ?query= or POST JSON; SSE streaming via ?streaming=true), or \`GET /api/search?query=...\`.`,
 		"- To read a page as Markdown: append `.md` to its URL, or send `Accept: text/markdown`.",
 		`- To use tools natively: connect to the MCP server (Streamable HTTP) at ${SITE.domain}/api/mcp (read-only tools), or run it locally over stdio: \`docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp\`. Server card: ${SITE.domain}/.well-known/mcp/server-card.json. Registry entry: \`io.github.yonatangross/orchestkit\` on registry.modelcontextprotocol.io.`,
+		`- To plan against the product with zero side effects: the OrchestKit Actions MCP (Streamable HTTP) at ${SITE.domain}/api/mcp/actions exposes three read-only tools (list skills, install plan, doctor check) and executes nothing. Server card: ${SITE.domain}/.well-known/mcp/actions-server-card.json.`,
+		`- To test without side effects (sandbox / test mode): every hosted tool is read-only, so production is the test mode and each call is a dry run. How to try ${SITE.name} safely, including a scratch local project: ${SITE.domain}/docs/getting-started/sandbox (Markdown: append \`.md\`).`,
 		"- The API needs no auth; on transient `5xx`, retry with exponential backoff.",
 		"- Every API response carries IETF `RateLimit-*` headers (120 req/min per IP per endpoint); a `429` also carries `Retry-After`. Pace yourself from the headers rather than probing for the ceiling.",
 		"- An unknown path returns a real `404` (never a `200` shell) whose body lists where to look next, Markdown with `Accept: text/markdown`, RFC 9457 JSON otherwise.",
+		"",
+		// orank "Developer resource discoverability": an agent that knows the
+		// product name must find a recognizable resource type (API docs, OpenAPI
+		// spec, MCP server, auth docs, developer portal, SDK docs). Each line
+		// names the product AND the type, from lib/developer-resources.ts.
+		"## Developer resources",
+		"",
+		...developerResourceLines(),
 		"",
 		"## Documentation",
 		"",
@@ -102,17 +119,16 @@ export function GET() {
 		`- [${SITE.name} NLWeb /ask endpoint: POST a natural-language query; supports SSE streaming](/ask)`,
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
 		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md) · [scoped index](/developers/llms.txt)`,
-		`- [${SITE.name} OpenAPI specification](/openapi) · [spec JSON](/openapi.json)`,
-		`- [${SITE.name} MCP server](/mcp-server) · [transport](/api/mcp)`,
-		`- [${SITE.name} SDK packages](/sdk)`,
+		`- [${SITE.name} llms.txt navigation index](/llms.txt)`,
+		`- [${SITE.name} llms-full.txt full docs dump](/llms-full.txt)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
 		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",
-		`- [${SITE.name} Docs MCP server (Streamable HTTP)](/api/mcp) · [${SITE.name} MCP server card](/.well-known/mcp/server-card.json) · [MCP well-known](/.well-known/mcp)`,
+		`- [${SITE.name} Docs MCP server (Streamable HTTP)](/api/mcp) · [${SITE.name} MCP server card](/.well-known/mcp/server-card.json) · [${SITE.name} Docs MCP server card (draft spec)](/api/mcp/server-card) · [MCP well-known](/.well-known/mcp)`,
+		`- [${SITE.name} Actions MCP server, read-only product tools (Streamable HTTP)](/api/mcp/actions) · [${SITE.name} Actions MCP server card](/.well-known/mcp/actions-server-card.json) · [${SITE.name} Actions MCP server card (draft spec)](/api/mcp/actions/server-card)`,
 		`- [${SITE.name} API catalog (RFC 9727)](/.well-known/api-catalog)`,
 		"- [Changelog](/changelog) · [RSS](/rss.xml)",
 		"- [Pricing](/pricing.md)",
-		"- [Authentication](/auth.md)",
 		`- [${SITE.name} API versioning, deprecation & sunset policy](/api-policy) · [as Markdown](/api-policy.md)`,
 		// registry.npmjs.org, not www.npmjs.com: the www host is behind a
 		// Cloudflare bot challenge and answers any non-browser client with a 403
@@ -126,7 +142,10 @@ export function GET() {
 		"- [CLI: `npx orchestkit` on npm](https://registry.npmjs.org/orchestkit) - install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Also aliased as `ork`.",
 		"- [Python package: orchestkit on PyPI](https://pypi.org/project/orchestkit/)",
 		"- [Python schemas: orchestkit-hook-contract on PyPI](https://pypi.org/project/orchestkit-hook-contract/)",
-		"- [Go module: github.com/yonatangross/orchestkit/sdk](https://pkg.go.dev/github.com/yonatangross/orchestkit/sdk)",
+		// pkg.go.dev/github.com/yonatangross/orchestkit/sdk returns 404 (module
+		// path is real in-repo; proxy has no versions yet). Link the GitHub tree
+		// that answers 200 instead of a dead docs page.
+		"- [Go module source: github.com/yonatangross/orchestkit/sdk](https://github.com/yonatangross/orchestkit/tree/main/sdk)",
 		"- [Docs MCP server image (stdio): ghcr.io/yonatangross/orchestkit-docs-mcp](https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp)",
 		"",
 	];

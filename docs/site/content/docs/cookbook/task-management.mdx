@@ -1,6 +1,6 @@
 ---
 title: Task Management Patterns
-description: Track complex work with TaskCreate, TaskUpdate, and dependency chains — from single-phase tasks to multi-agent coordination.
+description: Track complex work with TaskCreate, TaskUpdate, and dependency chains, from single-phase tasks to multi-agent coordination.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -191,11 +191,11 @@ TaskUpdate(taskId="2", status="completed")
 | Missing `activeForm` | No spinner feedback for users | Add present-continuous text to every `TaskCreate` |
 | Skipping `in_progress` | Breaks status tracking | Always transition through all states |
 | No `addBlockedBy` on sequential phases | Agents start work before dependencies complete | Add dependency chain |
-| Circular dependencies | Deadlock — nothing can start | Restructure with shared prerequisite |
+| Circular dependencies | Deadlock: nothing can start | Restructure with shared prerequisite |
 | Tasks for trivial work | Overhead without value | Only use for 3+ step workflows |
 
 ## Related
 
-- **`task-dependency-patterns` skill** — authoritative reference for all task patterns
-- **[Implement a Feature](/docs/cookbook/implement-feature)** — see tasks in action in a full workflow
-- **`chain-patterns` skill** — pipeline resilience with checkpoint-resume
+- **`task-dependency-patterns` skill**: authoritative reference for all task patterns
+- **[Implement a Feature](/docs/cookbook/implement-feature)**: see tasks in action in a full workflow
+- **`chain-patterns` skill**: pipeline resilience with checkpoint-resume

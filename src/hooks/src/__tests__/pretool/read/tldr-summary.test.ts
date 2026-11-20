@@ -94,6 +94,14 @@ describe('tldrSummary — guard conditions', () => {
     expect(openSync).not.toHaveBeenCalled();
   });
 
+  it('passes through when allow_large is set (CC 2.1.296)', () => {
+    // allow_large asks Read for the whole file in one call; a summary would
+    // only add tokens the model is about to read in full.
+    const result = tldrSummary(makeInput({ allow_large: true }), testCtx);
+    expect(result).toEqual(outputSilentSuccess());
+    expect(openSync).not.toHaveBeenCalled();
+  });
+
   it('passes through for unsupported extension', () => {
     const result = tldrSummary(makeInput({ file_path: '/project/styles.css' }), testCtx);
     expect(result).toEqual(outputSilentSuccess());

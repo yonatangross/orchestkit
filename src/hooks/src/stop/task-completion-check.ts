@@ -120,7 +120,7 @@ export function taskCompletionCheck(input: HookInput, ctx: HookContext = NOOP_CT
     if (orphanInstructions) {
       context += orphanInstructions;
     }
-    return outputWithContext(context);
+    return outputWithContext(context, input);
   }
 
   return outputSilentSuccess();

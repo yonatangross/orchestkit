@@ -33,13 +33,22 @@ export function WhatsNewStrip() {
               What&apos;s new
             </h2>
           </div>
-          <Link
-            href="/changelog"
-            className="inline-flex items-center gap-1.5 font-mono text-[13px] text-fd-primary underline-offset-2 transition-colors hover:underline"
-          >
-            Full changelog
-            <ArrowRight className="h-3 w-3" aria-hidden="true" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link
+              href="/docs/whats-new-v10"
+              className="inline-flex items-center gap-1.5 font-mono text-[13px] text-fd-primary underline-offset-2 transition-colors hover:underline"
+            >
+              What&apos;s new in v10
+              <ArrowRight className="h-3 w-3" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/changelog"
+              className="inline-flex items-center gap-1.5 font-mono text-[13px] text-fd-primary underline-offset-2 transition-colors hover:underline"
+            >
+              Full changelog
+              <ArrowRight className="h-3 w-3" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
 
         <ChronoBoard cards={cards} labelledBy="whats-new-heading" />

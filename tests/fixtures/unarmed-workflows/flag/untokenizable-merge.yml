@@ -1,0 +1,17 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a run value shell quoting cannot split (an unbalanced quote). The
+# checker must not pass what it could not read; it falls back to the
+# quote-stripped scan, which still finds the merge.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Unbalanced quote
+        run: |
+          echo it's armed
+          gh pr merge 123 --auto

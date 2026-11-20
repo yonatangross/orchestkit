@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every session records the plugin version and the rules it ran under</title>
+<meta name="description" content="Edit a rule file and watch the session's rules_hash change, see the two fail tokens, and list the sessions that ran under one rule version.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  p{font-size:.85rem;margin:.4rem 0}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  textarea,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  textarea{width:100%;min-height:4.2rem;resize:vertical}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.6rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;word-break:break-all}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)} .warn{color:var(--status-warn)}
+  table{width:100%;border-collapse:collapse;font-size:.78rem}
+  th,td{text-align:left;padding:.3rem .4rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  code{color:var(--pg-accent)}
+  .hash{font-size:.95rem;color:var(--pg-accent);word-break:break-all}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Every session records the plugin version and the rules it ran under"><meta property="og:description" content="Edit a rule file and watch the session's rules_hash change, see the two fail tokens, and list the sessions that ran under one rule version."><meta property="og:url" content="https://orchestkit.dev/lab/session-stamp.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Every session records the plugin version and the rules it ran under"><meta name="twitter:description" content="Edit a rule file and watch the session's rules_hash change, see the two fail tokens, and list the sessions that ran under one rule version."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Every session records the plugin version and the rules it ran under</h1>
+<p class="sub">Branch fix/session-stamp-ork-version. Before this change sessions.db had ork_version NULL on 11534 of 11534 rows and no record of the rules a session ran under, so after a bad rule was rolled back nobody could list the sessions it touched. Logic mirrors src/hooks/src/lib/rules-hash.ts and src/hooks/src/lifecycle/session-registrar.ts.</p>
+
+<section><h2>What a session row now records</h2>
+<table>
+<tr><th>column</th><th>value</th><th>when it cannot be read</th></tr>
+<tr><td><code>ork_version</code></td><td>the <code>version</code> in <code>.claude-plugin/plugin.json</code> (then <code>plugin.json</code>) above the running hook bundle</td><td class="bad">ork_version_unresolved + one log line</td></tr>
+<tr><td><code>rules_hash</code></td><td>sha256 over CLAUDE.md, its @ imports, rules/**/*.md (sorted) and the active output style, each as <code>path NUL content NUL</code></td><td class="bad">rules_hash_empty + one log line</td></tr>
+</table>
+<p>NULL now means only "row written before migration 006". A failure is never NULL and never the hash of nothing.</p>
+</section>
+
+<section><h2>Try it: edit a rule, watch the hash</h2>
+<p>These boxes stand in for files under ~/.claude. An empty box means the file is missing. The backup file is not loaded by Claude Code, so it is not hashed.</p>
+<label for="f-claude">CLAUDE.md</label><textarea id="f-claude"></textarea>
+<label for="f-rtk">RTK.md (imported by the @RTK.md line)</label><textarea id="f-rtk"></textarea>
+<label for="f-rule">rules/visual-style.md</label><textarea id="f-rule"></textarea>
+<label for="f-style">output-styles/yonatan.md (the active style)</label><textarea id="f-style"></textarea>
+<label for="f-bak">rules/visual-style.md.bak-2026-08-19 (decoy, not hashed)</label><textarea id="f-bak"></textarea>
+<label><input type="checkbox" id="manifest" checked> the plugin manifest is found above the bundle</label>
+<div class="grid">
+  <div><h3>Files hashed, in order</h3><div class="out" id="files"></div></div>
+  <div><h3>Session row written by the registrar</h3><div class="out" id="row"></div></div>
+</div>
+<p>rules_hash: <span class="hash" id="hash"></span></p>
+<p id="delta" class="warn"></p>
+<button id="reset" type="button">Reset files</button>
+<button id="copy" type="button">Copy prompt</button>
+</section>
+
+<section><h2>Paired probe on a real machine (2026-11-15)</h2>
+<p>Copies of the 8 live rule files, hashed in a temp dir, never editing ~/.claude. A probe that does not change with the edit is discarded.</p>
+<table>
+<tr><th>run</th><th>sha256</th><th></th></tr>
+<tr><td>live ~/.claude</td><td>c499981ef57a1cf4edeb2c80adb56a86375d899dd7c4415ba5ef0d8a3868dd9d</td><td></td></tr>
+<tr><td>copy, no edit</td><td>c499981ef57a1cf4edeb2c80adb56a86375d899dd7c4415ba5ef0d8a3868dd9d</td><td class="ok">same</td></tr>
+<tr><td>copy, hashed again</td><td>c499981ef57a1cf4edeb2c80adb56a86375d899dd7c4415ba5ef0d8a3868dd9d</td><td class="ok">same</td></tr>
+<tr><td>one line edited in rules/visual-style.md</td><td>4555c12d334360a8f92c9339360cbe83031804c31033855a03d31ce0e5fc3467</td><td class="warn">changed</td></tr>
+<tr><td>edit reverted</td><td>c499981ef57a1cf4edeb2c80adb56a86375d899dd7c4415ba5ef0d8a3868dd9d</td><td class="ok">same</td></tr>
+</table>
+</section>
+
+<section><h2>After a rollback: sessions-under</h2>
+<p>Read only. Matches a full rules_hash, an 8+ hex prefix, or an ork_version. Exit 0 with rows, 1 with a stderr line when nothing matches, 2 on bad usage or a DB from before migration 006.</p>
+<div class="out" id="under"></div>
+</section>
+
+<script>
+// HASH-START (mirrors src/hooks/src/lib/rules-hash.ts for the files on this page)
+async function rulesHash(files) {
+  const present = files.filter(f => f.content !== '');
+  if (present.length === 0) return { ok: false, reason: 'no CLAUDE.md, rules/*.md or output style under ~/.claude' };
+  const enc = new TextEncoder();
+  const parts = [];
+  for (const f of present) parts.push(enc.encode(f.label), new Uint8Array([0]), enc.encode(f.content), new Uint8Array([0]));
+  const total = parts.reduce((n, p) => n + p.length, 0);
+  const buf = new Uint8Array(total);
+  let at = 0;
+  for (const p of parts) { buf.set(p, at); at += p.length; }
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  const hex = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+  return { ok: true, hash: hex, files: present.map(f => f.label) };
+}
+// HASH-END
+
+const DEFAULTS = {
+  'f-claude': '@RTK.md\n\n# Global rules\n- Answer first.\n',
+  'f-rtk': '# RTK\nToken-optimized CLI proxy.\n',
+  'f-rule': '# Visual style\nOne render per reply.\nVerdict first.\n',
+  'f-style': '---\nname: Yonatan\n---\nAnswer first, plain words.\n',
+  'f-bak': 'old copy of the visual style rule\n',
+};
+const ids = Object.keys(DEFAULTS);
+const el = id => document.getElementById(id);
+let baseline = null;
+
+function inputs() {
+  // Order is fixed: CLAUDE.md, its imports, rules sorted by path, active style.
+  const claude = el('f-claude').value;
+  const files = [{ label: 'CLAUDE.md', content: claude }];
+  if (claude !== '' && /^@RTK\.md$/m.test(claude)) files.push({ label: 'RTK.md', content: el('f-rtk').value });
+  files.push({ label: 'rules/visual-style.md', content: el('f-rule').value });
+  files.push({ label: 'output-styles/yonatan.md', content: el('f-style').value });
+  return files;
+}
+
+async function render() {
+  const r = await rulesHash(inputs());
+  const ork = el('manifest').checked ? '10.13.0' : 'ork_version_unresolved';
+  const rules = r.ok ? r.hash : 'rules_hash_empty';
+  el('files').textContent = r.ok ? r.files.join('\n') : '(none)';
+  el('hash').textContent = rules;
+  el('hash').className = r.ok ? 'hash' : 'hash bad';
+  const logs = [];
+  if (!el('manifest').checked) logs.push('ork_version_unresolved: no plugin.json within 5 levels above .../hooks/dist/lifecycle.mjs');
+  if (!r.ok) logs.push('rules_hash_empty: ' + r.reason);
+  el('row').textContent = JSON.stringify({ sid: '3f2c9a1e-...', branch: 'fix/session-stamp-ork-version', ork_version: ork, rules_hash: rules }, null, 2) + (logs.length ? '\n\nlog:\n' + logs.join('\n') : '\n\nlog: (nothing, both resolved)');
+  if (baseline === null && r.ok) baseline = r.hash;
+  el('delta').textContent = !r.ok ? 'Nothing to hash: the row gets the token, not a hash of nothing.' : r.hash === baseline ? 'Same hash as the starting files.' : 'Hash changed: sessions from now on are told apart from the ones before the edit.';
+  const key = r.ok ? r.hash.slice(0, 12) : 'rules_hash_empty';
+  el('under').textContent = '$ node hooks/bin/sessions-under.mjs ' + key + '\n' +
+    'started\tended\tstatus\trepo\tbranch\tworktree\tsid\tork_version\trules_hash\n' +
+    '2026-11-15T15:02:11Z\t2026-11-15T16:40:03Z\tended\t/code/orchestkit\tmain\t-\t3f2c9a1e\t' + ork + '\t' + (r.ok ? r.hash.slice(0, 12) : rules) + '\n' +
+    '2026-11-15T15:31:47Z\t-\trunning\t/code/orchestkit\tfix/session-stamp-ork-version\t/code/orchestkit/.worktrees/session-stamp\t9b07d4c2\t' + ork + '\t' + (r.ok ? r.hash.slice(0, 12) : rules) + '\n' +
+    '2 session(s) under ' + key + '\n\n' +
+    '$ node hooks/bin/sessions-under.mjs deadbeefdeadbeef\n' +
+    'sessions-under: 0 sessions match deadbeefdeadbeef in ~/.local/state/orchestkit/sessions.db   (exit 1)';
+}
+
+function reset() {
+  for (const id of ids) el(id).value = DEFAULTS[id];
+  el('manifest').checked = true;
+  render();
+}
+
+for (const id of ids) el(id).addEventListener('input', render);
+el('manifest').addEventListener('change', render);
+el('reset').addEventListener('click', reset);
+el('copy').addEventListener('click', async () => {
+  const r = await rulesHash(inputs());
+  const key = r.ok ? r.hash : 'rules_hash_empty';
+  navigator.clipboard.writeText('List the OrchestKit sessions that ran under rules_hash ' + key + ': run `node hooks/bin/sessions-under.mjs ' + key + '` from the installed ork plugin and report repo, branch, worktree, start and end for each.');
+});
+reset();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

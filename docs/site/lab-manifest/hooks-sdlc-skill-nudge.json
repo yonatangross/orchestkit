@@ -1,0 +1,13 @@
+{
+  "slug": "hooks-sdlc-skill-nudge",
+  "source": "docs/feat--hooks-sdlc-skill-nudge/index.html",
+  "title": "gh pr create meets the repo's own PR skill",
+  "description": "A PreToolUse Bash nudge: when a session runs gh pr create in a repo that ships its own PR skill under .claude/skills, the hook names that skill. Type a command and pick the repo's skills to see when it speaks and when it stays silent.",
+  "tags": [
+    "hooks",
+    "pretool",
+    "bash",
+    "skills"
+  ],
+  "date": "2026-11-02"
+}

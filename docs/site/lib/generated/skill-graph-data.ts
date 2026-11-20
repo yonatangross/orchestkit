@@ -26,7 +26,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ai-ui-generation",
-    "label": "Ai Ui Generation",
+    "label": "AI UI Generation",
     "type": "reference",
     "complexity": "medium",
     "category": "frontend",
@@ -56,7 +56,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "api-design",
-    "label": "Api Design",
+    "label": "API Design",
     "type": "reference",
     "complexity": "medium",
     "category": "backend",
@@ -117,7 +117,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "audit-full",
     "label": "Audit Full",
-    "type": "reference",
+    "type": "command",
     "complexity": "max",
     "category": "security",
     "hasDeps": true,
@@ -137,7 +137,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   {
     "id": "bare-eval",
     "label": "Bare Eval",
-    "type": "reference",
+    "type": "command",
     "complexity": "medium",
     "category": "testing",
     "hasDeps": false,
@@ -151,7 +151,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 18,
+    "depCount": 17,
     "usedByCount": 0
   },
   {
@@ -175,6 +175,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "careful",
+    "label": "Careful",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "chain-patterns",
     "label": "Chain Patterns",
     "type": "reference",
@@ -186,7 +196,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ci-debug",
-    "label": "Ci Debug",
+    "label": "CI Debug",
     "type": "command",
     "complexity": "medium",
     "category": "workflow",
@@ -196,12 +206,12 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ci-sentinel",
-    "label": "Ci Sentinel",
+    "label": "CI Sentinel",
     "type": "command",
-    "complexity": "medium",
+    "complexity": "low",
     "category": "workflow",
-    "hasDeps": true,
-    "depCount": 2,
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -209,7 +219,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Code Review Playbook",
     "type": "reference",
     "complexity": "low",
-    "category": "other",
+    "category": "testing",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 3
@@ -242,7 +252,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 3
+    "usedByCount": 2
   },
   {
     "id": "configure",
@@ -262,7 +272,17 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": true,
     "depCount": 8,
-    "usedByCount": 1
+    "usedByCount": 0
+  },
+  {
+    "id": "create-plan",
+    "label": "Create Plan",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
   },
   {
     "id": "create-pr",
@@ -272,6 +292,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": true,
     "depCount": 3,
+    "usedByCount": 0
+  },
+  {
+    "id": "create-research",
+    "label": "Create Research",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -301,27 +331,27 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "frontend",
     "hasDeps": true,
-    "depCount": 3,
-    "usedByCount": 3
+    "depCount": 2,
+    "usedByCount": 2
   },
   {
     "id": "design-import",
     "label": "Design Import",
     "type": "command",
-    "complexity": "medium",
+    "complexity": "low",
     "category": "workflow",
-    "hasDeps": true,
-    "depCount": 6,
-    "usedByCount": 1
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
   },
   {
     "id": "design-ship",
     "label": "Design Ship",
     "type": "command",
-    "complexity": "complex",
+    "complexity": "low",
     "category": "workflow",
-    "hasDeps": true,
-    "depCount": 5,
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -342,7 +372,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 4
+    "usedByCount": 3
   },
   {
     "id": "design-to-code",
@@ -351,8 +381,8 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "complex",
     "category": "frontend",
     "hasDeps": true,
-    "depCount": 6,
-    "usedByCount": 2
+    "depCount": 4,
+    "usedByCount": 1
   },
   {
     "id": "dev",
@@ -373,6 +403,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 1
+  },
+  {
+    "id": "disk-cleanup",
+    "label": "Disk Cleanup",
+    "type": "command",
+    "complexity": "low",
+    "category": "devops",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
   },
   {
     "id": "distributed-systems",
@@ -399,7 +439,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "Documentation Patterns",
     "type": "reference",
     "complexity": "low",
-    "category": "other",
+    "category": "devops",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -418,7 +458,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "id": "dream",
     "label": "Dream",
     "type": "command",
-    "complexity": "medium",
+    "complexity": "low",
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
@@ -432,6 +472,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": false,
     "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "error-analysis",
+    "label": "Error Analysis",
+    "type": "reference",
+    "complexity": "high",
+    "category": "testing",
+    "hasDeps": true,
+    "depCount": 2,
     "usedByCount": 0
   },
   {
@@ -452,7 +502,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "testing",
     "hasDeps": true,
     "depCount": 3,
-    "usedByCount": 1
+    "usedByCount": 0
   },
   {
     "id": "explore",
@@ -481,7 +531,17 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 5,
+    "depCount": 4,
+    "usedByCount": 0
+  },
+  {
+    "id": "freeze",
+    "label": "Freeze",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
     "usedByCount": 0
   },
   {
@@ -492,7 +552,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "other",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 3
+    "usedByCount": 2
   },
   {
     "id": "glyph",
@@ -529,7 +589,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "label": "I18n Date Patterns",
     "type": "reference",
     "complexity": "low",
-    "category": "other",
+    "category": "frontend",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -565,6 +625,26 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "iterate-plan",
+    "label": "Iterate Plan",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "iterate-research",
+    "label": "Iterate Research",
+    "type": "command",
+    "complexity": "medium",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "json-render-catalog",
     "label": "Json Render Catalog",
     "type": "reference",
@@ -586,7 +666,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "llm-integration",
-    "label": "Llm Integration",
+    "label": "LLM Integration",
     "type": "reference",
     "complexity": "medium",
     "category": "ai-llm",
@@ -606,7 +686,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "mcp-patterns",
-    "label": "Mcp Patterns",
+    "label": "MCP Patterns",
     "type": "reference",
     "complexity": "high",
     "category": "security",
@@ -616,7 +696,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "mcp-visual-output",
-    "label": "Mcp Visual Output",
+    "label": "MCP Visual Output",
     "type": "reference",
     "complexity": "medium",
     "category": "ai-llm",
@@ -628,11 +708,11 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "id": "memory",
     "label": "Memory",
     "type": "command",
-    "complexity": "low",
+    "complexity": "medium",
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 18
+    "usedByCount": 17
   },
   {
     "id": "memory-fabric",
@@ -666,7 +746,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "multimodal-llm",
-    "label": "Multimodal Llm",
+    "label": "Multimodal LLM",
     "type": "reference",
     "complexity": "high",
     "category": "ai-llm",
@@ -765,6 +845,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
+    "id": "prompt-focus",
+    "label": "Prompt Focus",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
     "id": "python-backend",
     "label": "Python Backend",
     "type": "reference",
@@ -786,7 +876,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "rag-retrieval",
-    "label": "Rag Retrieval",
+    "label": "RAG Retrieval",
     "type": "reference",
     "complexity": "high",
     "category": "ai-llm",
@@ -832,7 +922,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 8
+    "usedByCount": 0
   },
   {
     "id": "responsive-patterns",
@@ -840,6 +930,16 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "type": "reference",
     "complexity": "medium",
     "category": "frontend",
+    "hasDeps": false,
+    "depCount": 0,
+    "usedByCount": 0
+  },
+  {
+    "id": "review-artifact-comments",
+    "label": "Review Artifact Comments",
+    "type": "command",
+    "complexity": "low",
+    "category": "workflow",
     "hasDeps": false,
     "depCount": 0,
     "usedByCount": 0
@@ -885,16 +985,6 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "usedByCount": 0
   },
   {
-    "id": "storybook-mcp-integration",
-    "label": "Storybook Mcp Integration",
-    "type": "reference",
-    "complexity": "medium",
-    "category": "frontend",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 1
-  },
-  {
     "id": "storybook-testing",
     "label": "Storybook Testing",
     "type": "reference",
@@ -936,7 +1026,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "testing-e2e",
-    "label": "Testing E2e",
+    "label": "Testing E2E",
     "type": "reference",
     "complexity": "medium",
     "category": "testing",
@@ -956,23 +1046,13 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "testing-llm",
-    "label": "Testing Llm",
+    "label": "Testing LLM",
     "type": "reference",
     "complexity": "medium",
     "category": "testing",
     "hasDeps": false,
     "depCount": 0,
-    "usedByCount": 2
-  },
-  {
-    "id": "testing-patterns",
-    "label": "Testing Patterns",
-    "type": "reference",
-    "complexity": "low",
-    "category": "testing",
-    "hasDeps": false,
-    "depCount": 0,
-    "usedByCount": 0
+    "usedByCount": 3
   },
   {
     "id": "testing-perf",
@@ -996,7 +1076,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
   },
   {
     "id": "ui-components",
-    "label": "Ui Components",
+    "label": "UI Components",
     "type": "reference",
     "complexity": "medium",
     "category": "other",
@@ -1031,7 +1111,7 @@ export const GRAPH_NODES: SkillGraphNode[] = [
     "complexity": "medium",
     "category": "workflow",
     "hasDeps": true,
-    "depCount": 6,
+    "depCount": 5,
     "usedByCount": 0
   },
   {
@@ -1127,10 +1207,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "brainstorm",
-    "target": "remember"
-  },
-  {
-    "source": "brainstorm",
     "target": "scope-appropriate-architecture"
   },
   {
@@ -1194,14 +1270,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
     "target": "memory"
   },
   {
-    "source": "ci-sentinel",
-    "target": "github-operations"
-  },
-  {
-    "source": "ci-sentinel",
-    "target": "memory"
-  },
-  {
     "source": "commit",
     "target": "chain-patterns"
   },
@@ -1255,54 +1323,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "design-context-extract",
-    "target": "remember"
-  },
-  {
-    "source": "design-context-extract",
-    "target": "memory"
-  },
-  {
-    "source": "design-import",
-    "target": "design-to-code"
-  },
-  {
-    "source": "design-import",
-    "target": "component-search"
-  },
-  {
-    "source": "design-import",
-    "target": "design-context-extract"
-  },
-  {
-    "source": "design-import",
-    "target": "design-system-tokens"
-  },
-  {
-    "source": "design-import",
-    "target": "remember"
-  },
-  {
-    "source": "design-import",
-    "target": "memory"
-  },
-  {
-    "source": "design-ship",
-    "target": "design-import"
-  },
-  {
-    "source": "design-ship",
-    "target": "cover"
-  },
-  {
-    "source": "design-ship",
-    "target": "expect"
-  },
-  {
-    "source": "design-ship",
-    "target": "remember"
-  },
-  {
-    "source": "design-ship",
     "target": "memory"
   },
   {
@@ -1319,15 +1339,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "design-to-code",
-    "target": "storybook-mcp-integration"
-  },
-  {
-    "source": "design-to-code",
     "target": "design-context-extract"
-  },
-  {
-    "source": "design-to-code",
-    "target": "remember"
   },
   {
     "source": "design-to-code",
@@ -1336,6 +1348,14 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "doctor",
     "target": "configure"
+  },
+  {
+    "source": "error-analysis",
+    "target": "testing-llm"
+  },
+  {
+    "source": "error-analysis",
+    "target": "memory"
   },
   {
     "source": "expect",
@@ -1380,10 +1400,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "fix-issue",
     "target": "memory"
-  },
-  {
-    "source": "fix-issue",
-    "target": "remember"
   },
   {
     "source": "fix-issue",
@@ -1463,7 +1479,7 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   },
   {
     "source": "setup",
-    "target": "remember"
+    "target": "memory"
   },
   {
     "source": "setup",
@@ -1544,10 +1560,6 @@ export const GRAPH_EDGES: SkillGraphEdge[] = [
   {
     "source": "visualize-plan",
     "target": "memory"
-  },
-  {
-    "source": "visualize-plan",
-    "target": "remember"
   },
   {
     "source": "visualize-plan",

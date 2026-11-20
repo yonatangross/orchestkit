@@ -1,1 +1,352 @@
-[]
+[
+  {
+    "skill": "analytics",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "skill_doctor_command",
+    "category": "new_attr",
+    "gap_score": 85,
+    "description": "New /skill-doctor reports which loaded skills go unused and what they cost in context.",
+    "reference_changelog_line": "Added `/skill-doctor` to show which loaded skills go unused and what they cost in context, so you can prune them"
+  },
+  {
+    "skill": "audit-activation",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "skill_doctor_command",
+    "category": "new_attr",
+    "gap_score": 85,
+    "description": "New /skill-doctor reports which loaded skills go unused and what they cost in context.",
+    "reference_changelog_line": "Added `/skill-doctor` to show which loaded skills go unused and what they cost in context, so you can prune them"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "skill_doctor_command",
+    "category": "new_attr",
+    "gap_score": 85,
+    "description": "New /skill-doctor reports which loaded skills go unused and what they cost in context.",
+    "reference_changelog_line": "Added `/skill-doctor` to show which loaded skills go unused and what they cost in context, so you can prune them"
+  },
+  {
+    "skill": "analytics",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "bash_task_output_max_chars",
+    "category": "new_attr",
+    "gap_score": 55,
+    "description": "New bashOutputMaxChars and taskOutputMaxChars settings raise the inline output ceiling to 128K characters before spill-to-file.",
+    "reference_changelog_line": "Added `bashOutputMaxChars` and `taskOutputMaxChars` settings to raise how much command and background-task output Claude receives inline before it is saved to a file, up to 128K characters"
+  },
+  {
+    "skill": "configure",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "bash_task_output_max_chars",
+    "category": "new_attr",
+    "gap_score": 55,
+    "description": "New bashOutputMaxChars and taskOutputMaxChars settings raise the inline output ceiling to 128K characters before spill-to-file.",
+    "reference_changelog_line": "Added `bashOutputMaxChars` and `taskOutputMaxChars` settings to raise how much command and background-task output Claude receives inline before it is saved to a file, up to 128K characters"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.259",
+    "feature_slug": "plugin_validate_json",
+    "category": "new_attr",
+    "gap_score": 55,
+    "description": "claude plugin validate gains --json for a machine-readable report.",
+    "reference_changelog_line": "Added `--json` to `claude plugin validate` for a machine-readable validation report"
+  },
+  {
+    "skill": "bare-eval",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.259",
+    "feature_slug": "permission_prompts_none_headless",
+    "category": "new_attr",
+    "gap_score": 50,
+    "description": "New --permission-prompts none denies anything that would prompt, while the active permission mode keeps deciding.",
+    "reference_changelog_line": "Added `--permission-prompts none` for unattended headless hosts"
+  },
+  {
+    "skill": "ci-sentinel",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.259",
+    "feature_slug": "permission_prompts_none_headless",
+    "category": "new_attr",
+    "gap_score": 50,
+    "description": "New --permission-prompts none denies anything that would prompt, while the active permission mode keeps deciding.",
+    "reference_changelog_line": "Added `--permission-prompts none` for unattended headless hosts"
+  },
+  {
+    "skill": "analytics",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.260",
+    "feature_slug": "prompt_cache_miss_cause_in_cost",
+    "category": "new_attr",
+    "gap_score": 45,
+    "description": "/cost and the status line's prompt_cache field now name a likely cause for a cache miss.",
+    "reference_changelog_line": "Added a likely cause for prompt-cache misses (e.g. tool definitions or system prompt changed, idle past the TTL) to `/cost` and the status line's `prompt_cache` field"
+  },
+  {
+    "skill": "bare-eval",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.274",
+    "feature_slug": "claude_code_mcp_startup_wait_ms",
+    "category": "new_attr",
+    "gap_score": 35,
+    "description": "CLAUDE_CODE_MCP_STARTUP_WAIT_MS bounds how long the first non-interactive turn waits for connecting MCP servers; 0 skips the wait.",
+    "reference_changelog_line": "Added `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` to bound how long the first non-interactive turn waits for connecting MCP servers (`0` = don't wait)"
+  },
+  {
+    "skill": "ci-sentinel",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.274",
+    "feature_slug": "claude_code_mcp_startup_wait_ms",
+    "category": "new_attr",
+    "gap_score": 35,
+    "description": "CLAUDE_CODE_MCP_STARTUP_WAIT_MS bounds how long the first non-interactive turn waits for connecting MCP servers; 0 skips the wait.",
+    "reference_changelog_line": "Added `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` to bound how long the first non-interactive turn waits for connecting MCP servers (`0` = don't wait)"
+  },
+  {
+    "skill": "cover",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.277",
+    "feature_slug": "subagent_result_header_marking",
+    "category": "new_attr",
+    "gap_score": 35,
+    "description": "Subagent results now reach the main agent under a header marking them as subagent output, so a result cannot pass as the session's own instructions.",
+    "reference_changelog_line": "Changed subagent results to reach the main agent under a header marking them as subagent output, with the result indented, so text in a subagent's result cannot pass as the session's own instructions"
+  },
+  {
+    "skill": "implement",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.277",
+    "feature_slug": "subagent_result_header_marking",
+    "category": "new_attr",
+    "gap_score": 35,
+    "description": "Subagent results now reach the main agent under a header marking them as subagent output, so a result cannot pass as the session's own instructions.",
+    "reference_changelog_line": "Changed subagent results to reach the main agent under a header marking them as subagent output, with the result indented, so text in a subagent's result cannot pass as the session's own instructions"
+  },
+  {
+    "skill": "verify",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.277",
+    "feature_slug": "subagent_result_header_marking",
+    "category": "new_attr",
+    "gap_score": 35,
+    "description": "Subagent results now reach the main agent under a header marking them as subagent output, so a result cannot pass as the session's own instructions.",
+    "reference_changelog_line": "Changed subagent results to reach the main agent under a header marking them as subagent output, with the result indented, so text in a subagent's result cannot pass as the session's own instructions"
+  },
+  {
+    "skill": "bare-eval",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "append_subagent_system_prompt_file",
+    "category": "new_attr",
+    "gap_score": 30,
+    "description": "New --append-subagent-system-prompt-file reads a subagent system prompt from a file.",
+    "reference_changelog_line": "Added `--append-subagent-system-prompt-file` to read the subagent system prompt from a file, for prompts too large to pass on the command line"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.261",
+    "feature_slug": "org_policy_line_status_doctor",
+    "category": "new_attr",
+    "gap_score": 30,
+    "description": "/status and claude doctor now explain why an organization policy could not be loaded.",
+    "reference_changelog_line": "Added an \"Organization policy\" line to `/status` and `claude doctor` that says why your organization's policy could not be loaded, such as a proxy not passing the endpoint through"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.260",
+    "feature_slug": "reload_plugins_headless",
+    "category": "new_attr",
+    "gap_score": 20,
+    "description": "/reload-plugins is now available in headless sessions and listed in Desktop and SDK command lists.",
+    "reference_changelog_line": "Added `/reload-plugins` to headless sessions, so it appears in the Claude Code Desktop and SDK command lists"
+  },
+  {
+    "skill": "configure",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "block_reads_outside_working_dirs",
+    "category": "new_perm",
+    "gap_score": 12,
+    "description": "Auto mode prompts once before the first file read outside the working directories; permissions.blockReadsOutsideWorkingDirectories blocks such reads.",
+    "reference_changelog_line": "Added a one-time prompt in auto mode before the first file read outside the working directories, with the option to block such reads (`permissions.blockReadsOutsideWorkingDirectories`)"
+  },
+  {
+    "skill": "configure",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "containment_escape_auto_mode_rule",
+    "category": "new_perm",
+    "gap_score": 12,
+    "description": "Auto mode no longer auto-approves cloud metadata-credential fetches, egress evasion, or cross-tenant reach unless the environment marks them expected.",
+    "reference_changelog_line": "Added a Containment Escape rule to auto mode so cloud metadata-credential fetches, egress evasion, and cross-tenant reach are no longer auto-approved unless your environment marks them expected"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "block_reads_outside_working_dirs",
+    "category": "new_perm",
+    "gap_score": 12,
+    "description": "Auto mode prompts once before the first file read outside the working directories; permissions.blockReadsOutsideWorkingDirectories blocks such reads.",
+    "reference_changelog_line": "Added a one-time prompt in auto mode before the first file read outside the working directories, with the option to block such reads (`permissions.blockReadsOutsideWorkingDirectories`)"
+  },
+  {
+    "skill": "security-patterns",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "block_reads_outside_working_dirs",
+    "category": "new_perm",
+    "gap_score": 12,
+    "description": "Auto mode prompts once before the first file read outside the working directories; permissions.blockReadsOutsideWorkingDirectories blocks such reads.",
+    "reference_changelog_line": "Added a one-time prompt in auto mode before the first file read outside the working directories, with the option to block such reads (`permissions.blockReadsOutsideWorkingDirectories`)"
+  },
+  {
+    "skill": "security-patterns",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "containment_escape_auto_mode_rule",
+    "category": "new_perm",
+    "gap_score": 12,
+    "description": "Auto mode no longer auto-approves cloud metadata-credential fetches, egress evasion, or cross-tenant reach unless the environment marks them expected.",
+    "reference_changelog_line": "Added a Containment Escape rule to auto mode so cloud metadata-credential fetches, egress evasion, and cross-tenant reach are no longer auto-approved unless your environment marks them expected"
+  },
+  {
+    "skill": "setup",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "block_reads_outside_working_dirs",
+    "category": "new_perm",
+    "gap_score": 12,
+    "description": "Auto mode prompts once before the first file read outside the working directories; permissions.blockReadsOutsideWorkingDirectories blocks such reads.",
+    "reference_changelog_line": "Added a one-time prompt in auto mode before the first file read outside the working directories, with the option to block such reads (`permissions.blockReadsOutsideWorkingDirectories`)"
+  },
+  {
+    "skill": "agent-orchestration",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "subagent_model_force_env",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "CLAUDE_CODE_SUBAGENT_MODEL_FORCE applies CLAUDE_CODE_SUBAGENT_MODEL (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides.",
+    "reference_changelog_line": "Added `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` to apply `CLAUDE_CODE_SUBAGENT_MODEL` (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides"
+  },
+  {
+    "skill": "analytics",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "fable_5_1_default_model",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "claude-fable-5-1 is the default Fable model: 1M context, $10/$50 per MTok, cache reads $0.25/MTok.",
+    "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model — 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads"
+  },
+  {
+    "skill": "brainstorm",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "fork_keeps_prompt_cache",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "/fork keeps the original conversation's prompt cache in the new background session; the worktree briefing arrives as a message, not a system-prompt change.",
+    "reference_changelog_line": "Improved `/fork` to keep the original conversation's prompt cache in the new background session: its worktree briefing now arrives as a message instead of a system-prompt change"
+  },
+  {
+    "skill": "chain-patterns",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "background_session_lifecycle_fixes",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "Background sessions: start during macOS npm self-update, state.json detail, Completed ordering, --bg from a deleted dir, --resume double listing, --continue opens finished sessions, old-binary retirement, agents --json raw-mode fix, stashed prompt kept.",
+    "reference_changelog_line": "Fixed `claude agents --json` briefly switching the terminal to raw mode and undoing another program's terminal settings on exit"
+  },
+  {
+    "skill": "chain-patterns",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "fork_keeps_prompt_cache",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "/fork keeps the original conversation's prompt cache in the new background session; the worktree briefing arrives as a message, not a system-prompt change.",
+    "reference_changelog_line": "Improved `/fork` to keep the original conversation's prompt cache in the new background session: its worktree briefing now arrives as a message instead of a system-prompt change"
+  },
+  {
+    "skill": "configure",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.252",
+    "feature_slug": "bug_fixes_only_252",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "Four fixes: macOS 'task output swap refused' Bash failures, always-allow not saving in a project with no settings.local.json yet, Remote Control stalls on degraded connections, oversized background-task failure notifications exceeding the API size limit.",
+    "reference_changelog_line": "Fixed \"always allow\" not saving in a project that has no .claude/settings.local.json yet"
+  },
+  {
+    "skill": "configure",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "subagent_model_force_env",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "CLAUDE_CODE_SUBAGENT_MODEL_FORCE applies CLAUDE_CODE_SUBAGENT_MODEL (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides.",
+    "reference_changelog_line": "Added `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` to apply `CLAUDE_CODE_SUBAGENT_MODEL` (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "fable_5_1_default_model",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "claude-fable-5-1 is the default Fable model: 1M context, $10/$50 per MTok, cache reads $0.25/MTok.",
+    "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model — 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads"
+  },
+  {
+    "skill": "doctor",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "subagent_model_force_env",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "CLAUDE_CODE_SUBAGENT_MODEL_FORCE applies CLAUDE_CODE_SUBAGENT_MODEL (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides.",
+    "reference_changelog_line": "Added `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` to apply `CLAUDE_CODE_SUBAGENT_MODEL` (or the main model) to every subagent, ignoring per-spawn and agent-definition model overrides"
+  },
+  {
+    "skill": "llm-integration",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "fable_5_1_default_model",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "claude-fable-5-1 is the default Fable model: 1M context, $10/$50 per MTok, cache reads $0.25/MTok.",
+    "reference_changelog_line": "Added Claude Fable 5.1 (`claude-fable-5-1`), now the default Fable model — 1M context, $10/$50 per Mtok with $0.25/Mtok cache reads"
+  },
+  {
+    "skill": "review-pr",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "code_review_comment_gitlab",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "/code-review --comment posts findings on GitLab merge requests via glab mr note.",
+    "reference_changelog_line": "Improved `/code-review --comment` to post findings on GitLab merge requests via `glab mr note` instead of reporting the target as unsupported"
+  },
+  {
+    "skill": "setup",
+    "skill_floor": "2.1.251",
+    "introduced_in": "2.1.257",
+    "feature_slug": "add_dir_inside_cwd_loads_components",
+    "category": "new_attr",
+    "gap_score": 5,
+    "description": "/add-dir accepts a directory inside the cwd and loads its skills, commands and agents like --add-dir does at startup.",
+    "reference_changelog_line": "Fixed `/add-dir` rejecting a directory inside the current working directory; it now loads that directory's skills, commands, and agents like `--add-dir` does at startup"
+  }
+]

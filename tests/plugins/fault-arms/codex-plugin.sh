@@ -24,6 +24,11 @@
 #           that keeps a fresh machine off fault3's error.
 #   fault5  the profile is on disk but the manifest stops naming it, which is
 #           the two-sources-of-truth drift with no warning.
+#   fault6  glyph disappears from both trees, so only the export assertion
+#           can catch it, not the source-versus-built diff.
+#   fault7  glyph remains on disk but disappears from the source manifest.
+#   fault8  the built manifest points to a skill tree without glyph, while
+#           the original glyph file remains present but undiscoverable.
 #
 # The fixture copies the real src/ and plugins/ codex trees rather than
 # synthesising them: the gate diffs source against built output, so a
@@ -88,6 +93,24 @@ d.pop("profiles", None)
 p.write_text(json.dumps(d, indent=2) + "\n")
 PYX
 
+build_tree "$FIX/fault6"
+rm -rf "$FIX/fault6/src/codex/ork-codex/skills/ork-glyph" \
+  "$FIX/fault6/plugins/ork-codex/skills/ork-glyph"
+
+build_tree "$FIX/fault7"
+jq '.skills -= ["ork-glyph"]' "$FIX/fault7/manifests/codex/ork-codex.json" \
+  > "$FIX/fault7/manifest.tmp"
+mv "$FIX/fault7/manifest.tmp" "$FIX/fault7/manifests/codex/ork-codex.json"
+
+build_tree "$FIX/fault8"
+for tree in src/codex/ork-codex plugins/ork-codex; do
+  cp -R "$FIX/fault8/$tree/skills" "$FIX/fault8/$tree/exported-skills"
+  rm -rf "$FIX/fault8/$tree/exported-skills/ork-glyph"
+done
+jq '.skills = "./exported-skills/"' \
+  "$FIX/fault8/plugins/ork-codex/.codex-plugin/plugin.json" > "$FIX/fault8/manifest.tmp"
+mv "$FIX/fault8/manifest.tmp" "$FIX/fault8/plugins/ork-codex/.codex-plugin/plugin.json"
+
 run_arm() {
   CLAUDE_PROJECT_DIR="$1" bash "$GATE" >"$2" 2>&1
 }
@@ -98,6 +121,9 @@ run_arm "$FIX/fault2"  "$FIX/fault2.log";  fault2_rc=$?
 run_arm "$FIX/fault3"  "$FIX/fault3.log";  fault3_rc=$?
 run_arm "$FIX/fault4"  "$FIX/fault4.log";  fault4_rc=$?
 run_arm "$FIX/fault5"  "$FIX/fault5.log";  fault5_rc=$?
+run_arm "$FIX/fault6"  "$FIX/fault6.log";  fault6_rc=$?
+run_arm "$FIX/fault7"  "$FIX/fault7.log";  fault7_rc=$?
+run_arm "$FIX/fault8"  "$FIX/fault8.log";  fault8_rc=$?
 
 {
   echo "--- control tail ---"; tail -3 "$FIX/control.log"
@@ -106,7 +132,11 @@ run_arm "$FIX/fault5"  "$FIX/fault5.log";  fault5_rc=$?
   echo "--- fault3 tail ---";  tail -3 "$FIX/fault3.log"
   echo "--- fault4 tail ---";  tail -3 "$FIX/fault4.log"
   echo "--- fault5 tail ---";  tail -3 "$FIX/fault5.log"
+  echo "--- fault6 tail ---";  tail -3 "$FIX/fault6.log"
+  echo "--- fault7 tail ---";  tail -3 "$FIX/fault7.log"
+  echo "--- fault8 tail ---";  tail -3 "$FIX/fault8.log"
 } >&2
 
-printf 'RESULT gate=%s control=%s fault=%s fault2=%s fault3=%s fault4=%s fault5=%s\n' \
-  "codex-plugin" "$control_rc" "$fault_rc" "$fault2_rc" "$fault3_rc" "$fault4_rc" "$fault5_rc"
+printf 'RESULT gate=%s control=%s fault=%s fault2=%s fault3=%s fault4=%s fault5=%s fault6=%s fault7=%s fault8=%s\n' \
+  "codex-plugin" "$control_rc" "$fault_rc" "$fault2_rc" "$fault3_rc" "$fault4_rc" "$fault5_rc" \
+  "$fault6_rc" "$fault7_rc" "$fault8_rc"

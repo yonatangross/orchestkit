@@ -1,0 +1,47 @@
+# PLANTED SAFE FIXTURE for tests/ci/test-workflow-issue-text-credentials.sh.
+# The post-#4747 split, condensed: the job that reads issue text holds only
+# a read-only GITHUB_TOKEN; the job holding the model secret never touches
+# issue text; the issues:write job only posts a file.
+name: Safe triage fixture
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  fetch-issue:
+    permissions:
+      issues: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the issue with a read-only token
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue view "${{ inputs.issue_number }}" --json title,body
+
+  triage:
+    needs: fetch-issue
+    permissions:
+      issues: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Model runs on the sanitized artifact, no issue fetch
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: cat issue-sanitized.md > triage-prompt.txt
+
+  comment:
+    needs: [fetch-issue, triage]
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the model output file
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: "123"
+        run: gh issue comment "$ISSUE_NUMBER" --body-file triage.md

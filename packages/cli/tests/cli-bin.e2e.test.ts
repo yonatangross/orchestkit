@@ -55,6 +55,21 @@ describe.skipIf(!built)("built binary, direct exec", () => {
 		expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+/);
 	});
 
+	it("a subcommand --help prints help instead of running the command", async () => {
+		const { stdout, stderr, code } = await spawnBin(["install", "--help"]);
+		expect(code).toBe(0);
+		expect(stderr).toBe("");
+		expect(stdout).toContain("orchestkit <command>");
+	});
+
+	it("a subcommand --version prints the version instead of running the command", async () => {
+		const { stdout, stderr, code } = await spawnBin(["mcp", "--version"]);
+		expect(code).toBe(0);
+		expect(stderr).toBe("");
+		expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+/);
+		expect(stdout).not.toContain("mcpServers");
+	});
+
 	it("mcp stdio emits parseable client config", async () => {
 		const { stdout, code } = await spawnBin(["mcp", "stdio"]);
 		expect(code).toBe(0);
@@ -63,6 +78,20 @@ describe.skipIf(!built)("built binary, direct exec", () => {
 
 	it("an unknown command exits 2", async () => {
 		expect((await spawnBin(["frobnicate"])).code).toBe(2);
+	});
+
+	it.each([
+		["--limit"],
+		["--limit", "--all"],
+		["--base-url"],
+		["--base-url", "--json"],
+		["--base-url", "-v"],
+	])("reports a missing value for %s as a usage error", async (option, next) => {
+		const args = next === undefined ? [option] : [option, next];
+		const { code, stderr, stdout } = await spawnBin(["install", ...args]);
+		expect(code).toBe(2);
+		expect(stderr).toBe(`${option} requires a value.\n`);
+		expect(stdout).toBe("");
 	});
 });
 
@@ -90,6 +119,16 @@ describe.skipIf(!built)("built binary, networked commands", () => {
 		expect(code).toBe(0);
 		expect(stdout).toContain("A doc");
 		expect(stdout).toContain("118/120");
+	});
+
+	it("rejects an invalid search limit as a usage error", async () => {
+		const { code, stderr, stdout } = await spawnBin(
+			["search", "x", "--limit", "abc", ...base],
+			true,
+		);
+		expect(code).toBe(2);
+		expect(stderr).toBe("--limit requires an integer.\n");
+		expect(stdout).toBe("");
 	});
 
 	it("read fetches the Markdown twin of a docs page", async () => {

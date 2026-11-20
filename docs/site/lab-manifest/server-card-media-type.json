@@ -1,0 +1,11 @@
+{
+  "slug": "server-card-media-type",
+  "source": "docs/fix--4834-server-card-media/index.html",
+  "title": "Server card media type by request",
+  "description": "Pick what a client asks for and compare the content type the MCP server cards answered before and after.",
+  "tags": [
+    "mcp",
+    "docs"
+  ],
+  "date": "2026-11-08"
+}

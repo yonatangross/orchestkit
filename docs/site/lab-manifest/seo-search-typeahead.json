@@ -1,0 +1,14 @@
+{
+  "slug": "seo-search-typeahead",
+  "source": "docs/feat--seo-search-autocomplete/index.html",
+  "title": "Search Typeahead, Deterministic First",
+  "description": "The search box now suggests from a generated index of page titles and headings: tiered prefix scoring, a 1-edit fuzzy pass on longer queries, and a stable tiebreak, all client-side. Try the dev toggle the Jev demo is built around: deterministic, a ~40 ms System One rerank, or a chat-model baseline, with live p50, p95 and cost.",
+  "tags": [
+    "seo",
+    "docs-site",
+    "search",
+    "jev",
+    "autocomplete"
+  ],
+  "date": "2026-09-19"
+}

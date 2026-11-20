@@ -1,15 +1,15 @@
 ---
 title: "Composing Skills Into Workflows"
-description: "How command skills, reference skills, hooks, and agents combine to form intelligent workflows -- and when to use each composition pattern."
+description: "How command skills, reference skills, hooks, and agents combine to form intelligent workflows, and when to use each composition pattern."
 ---
 
 ## The Composition Model
 
 OrchestKit does not have a single orchestration engine. Instead, skill composition emerges from three independent mechanisms working together:
 
-1. **Hook-based injection** -- The `skill-auto-suggest` hook matches keywords in your prompt and injects relevant skills into context.
-2. **Command skill composition** -- A command skill's `skills:` frontmatter field loads reference skills alongside the workflow.
-3. **Agent skill injection** -- An agent's `skills:` frontmatter field ensures it always has domain-specific knowledge.
+1. **Hook-based injection**: The `skill-auto-suggest` hook matches keywords in your prompt and injects relevant skills into context.
+2. **Command skill composition**: A command skill's `skills:` frontmatter field loads reference skills alongside the workflow.
+3. **Agent skill injection**: An agent's `skills:` frontmatter field ensures it always has domain-specific knowledge.
 
 These mechanisms stack. A single interaction can involve all three, producing a rich context that combines workflow instructions, domain knowledge, and project-specific patterns.
 
@@ -91,7 +91,7 @@ How should I structure the database schema for user permissions?
 
 The hook detects "database" and "schema", injects `database-schema-designer` (confidence 80) and potentially `auth-patterns` (confidence 60) into the response context. Claude then uses those patterns to answer.
 
-**When to use:** For questions and exploratory conversations. You do not need to remember which skills exist -- the hook handles discovery.
+**When to use:** For questions and exploratory conversations. You do not need to remember which skills exist; the hook handles discovery.
 
 ### Pattern 4: Agent Cascade
 
@@ -138,7 +138,7 @@ When multiple skills are injected, the platform prioritizes by relevance score. 
 
 | Pattern | Approximate extra tokens | When it pays off |
 |---------|--------------------------|-------------------|
-| Hook auto-suggest (1-3 skills) | 500-1,500 | Always -- nearly free, prevents common mistakes |
+| Hook auto-suggest (1-3 skills) | 500-1,500 | Always: nearly free, prevents common mistakes |
 | Command skill + references | 2,000-4,000 | Multi-step tasks where the workflow prevents rework |
 | Command + parallel agents | 10,000-30,000 | Complex features where parallel work saves wall-clock time |
 
@@ -146,7 +146,7 @@ When multiple skills are injected, the platform prioritizes by relevance score. 
 
 The highest cost scenario is `/ork:implement` with full-stack scope on a large codebase. It spawns multiple agents, each loading multiple skills, each reading many source files. For a typical feature implementation, expect 50,000-100,000 tokens total across all agents.
 
-This is almost always worthwhile for real features, because the alternative -- implementing without tests, missing security patterns, or forgetting to validate types -- costs more in debugging and rework.
+This is almost always worthwhile for real features, because the alternative (implementing without tests, missing security patterns, or forgetting to validate types) costs more in debugging and rework.
 
 ---
 
@@ -156,18 +156,18 @@ This is almost always worthwhile for real features, because the alternative -- i
 
 Some skill combinations produce better results than either alone:
 
-- `api-design-framework` + `fastapi-advanced` -- General API principles applied through FastAPI-specific patterns.
-- `database-schema-designer` + `alembic-migrations` -- Schema design with migration-aware constraints.
-- `owasp-top-10` + `input-validation` -- Vulnerability awareness paired with concrete prevention code.
-- `unit-testing` + `pytest-advanced` -- Test philosophy combined with framework-specific techniques.
+- `api-design-framework` + `fastapi-advanced`: General API principles applied through FastAPI-specific patterns.
+- `database-schema-designer` + `alembic-migrations`: Schema design with migration-aware constraints.
+- `owasp-top-10` + `input-validation`: Vulnerability awareness paired with concrete prevention code.
+- `unit-testing` + `pytest-advanced`: Test philosophy combined with framework-specific techniques.
 
 ### Skills That Set Boundaries
 
 Some skills constrain each other constructively:
 
-- `clean-architecture` + `backend-architecture-enforcer` -- Design principles paired with automated enforcement.
-- `type-safety-validation` + `integration-testing` -- Static guarantees complemented by runtime verification.
-- `quality-gates` + `test-standards-enforcer` -- Quality thresholds applied to test coverage and conventions.
+- `clean-architecture` + `backend-architecture-enforcer`: Design principles paired with automated enforcement.
+- `type-safety-validation` + `integration-testing`: Static guarantees complemented by runtime verification.
+- `quality-gates` + `test-standards-enforcer`: Quality thresholds applied to test coverage and conventions.
 
 ---
 
@@ -180,7 +180,7 @@ Check whether the skill was actually injected:
 1. Run `/ork:doctor` to verify the skill exists and is loadable.
 2. Check if the skill's keywords match your prompt (for hook auto-suggest).
 3. Check if the agent you are using lists the skill in its frontmatter.
-4. Check if the context budget was exhausted -- if many skills competed, lower-priority ones may have been truncated.
+4. Check if the context budget was exhausted: if many skills competed, lower-priority ones may have been truncated.
 
 ### "Too many skills are being suggested"
 
@@ -192,6 +192,6 @@ The hook cannot be tuned per-session today. If auto-suggestions are consistently
 
 ## What's Next
 
-- [23 Command Skills](/docs/skills/command-skills) -- See the full list of commands and what they compose.
-- [61 Reference Skills](/docs/skills/reference-skills) -- Browse the knowledge library by domain.
-- [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Add skills tailored to your project.
+- [Command Skills](/docs/skills/command-skills): See the full list of commands and what they compose.
+- [Reference Skills](/docs/skills/reference-skills): Browse the knowledge library by domain.
+- [Create Your Own SKILL.md](/docs/skills/writing-skills): Add skills tailored to your project.

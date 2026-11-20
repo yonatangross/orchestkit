@@ -1,0 +1,8 @@
+{
+  "slug": "docs-gen-skip-pycache",
+  "source": "docs/fix--docs-gen-skip-pycache/index.html",
+  "title": "Docs gen: skip __pycache__ and .pyc",
+  "description": "scanFolderStructure leaked local __pycache__ and .pyc/.pyo into skills-data.ts. Filter them so generated docs stay a pure function of tracked inputs.",
+  "tags": ["docs", "generator", "python", "purity"],
+  "date": "2026-09-23"
+}

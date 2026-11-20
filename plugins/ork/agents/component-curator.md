@@ -2,10 +2,8 @@
 name: component-curator
 description: "Component library curator: audits project component usage, searches 21st.dev registry for alternatives, tracks component freshness, and recommends upgrades for design consistency."
 model: sonnet
-category: frontend
 maxTurns: 25
 effort: low
-context: fork
 background: true
 initialPrompt: "Check TaskList for pending tasks. Inventory all React components and analyze usage patterns against design tokens."
 color: pink
@@ -19,7 +17,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
-  # This agent declares `required_mcp_servers: [21st-dev-magic]` below, but
+  # This agent declares `metadata.required_mcp_servers` below, but
   # granted none of its tools — so every "recommend a 21st.dev alternative"
   # run fell through to WebFetch scraping. Read-only surface only; curating
   # never publishes to or deletes from the registry.
@@ -35,28 +33,23 @@ tools:
   # WebSearch. Read-only surface; resolve the library ID first, then query.
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  # mcpServers storybook-mcp is metadata only (F12).
+  # Docs toolset only (design-to-code, Storybook mode, Toolset Selection).
+  - mcp__storybook-mcp__list-all-documentation
+  - mcp__storybook-mcp__get-documentation
+  - mcp__storybook-mcp__get-documentation-for-story
 skills:
   - component-search
-  - storybook-mcp-integration
+  - design-to-code
   - design-system-tokens
-  - remember
   - memory
 mcpServers: [storybook-mcp, context7]
-required_mcp_servers: [21st-dev-magic]
-taskTypes:
-  - review
-  - research
-keywords:
-  - "component"
-  - "library"
-  - "21st.dev"
-  - "design system"
-  - "audit"
-  - "freshness"
-  - "registry"
-examplePrompts:
-  - "Audit all React components and recommend 21st.dev alternatives"
-  - "Track component freshness and identify outdated patterns"
+metadata:
+  category: "frontend"
+  taskTypes: "review, research"
+  keywords: "component, library, 21st.dev, design system, audit, freshness, registry"
+  examplePrompts: "Audit all React components and recommend 21st.dev alternatives | Track component freshness and identify outdated patterns"
+  required_mcp_servers: "21st-dev-magic"
 ---
 ## Directive
 Audit and curate a project's component library. Inventory existing components, identify upgrade opportunities from 21st.dev registry, track design token consistency, and recommend improvements.
@@ -177,6 +170,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.
@@ -188,8 +183,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |component-search:{SKILL.md}|components,21st-dev,react,ui,search,registry,tailwind,shadcn
-|storybook-mcp-integration:{SKILL.md}|storybook,mcp,component-discovery,story-preview,component-testing,a11y,design-system,react
+|design-to-code:{SKILL.md,references/{export-formats.md,import-mode.md,ship-mode.md}}|design-to-code,claude-design,design-export,design-import,design-ship,stitch,21st-dev,storybook,mcp,ui-generation,mockup,component,react,frontend
 |design-system-tokens:{SKILL.md,references/{style-dictionary-config.md,token-naming-conventions.md,w3c-token-spec.md}}|design-tokens,w3c-tokens,oklch,style-dictionary,theming,dark-mode,css-variables,tailwind-theme,design-system,color-spaces
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

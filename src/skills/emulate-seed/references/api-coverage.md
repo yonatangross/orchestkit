@@ -124,7 +124,7 @@ Full list of supported API endpoints per emulate service.
 - `POST /{tenant}/oauth2/v2.0/token` — Token exchange with refresh rotation
 - `GET /{tenant}/oauth2/v2.0/logout` — Logout endpoint
 
-## AWS (`:4006`)
+## AWS (`:4007`)
 
 ### S3
 - `PUT /{bucket}` — Create bucket

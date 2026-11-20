@@ -1,12 +1,12 @@
 ---
-description: "Creates commits with Conventional Commits format (feat/fix/docs/refactor/test/chore), automatic scope detection, co-author attribution, and pre-commit hook compliance. Validates staged changes, generates descriptive messages focusing on the 'why', and prevents secrets or generated-only files from being committed. Use for requests to commit, stage and commit, save progress, or write a commit message, whether or not they name this skill. Do not invoke it for git commits you make incidentally during other work; those stay a bare CLI call."
+description: "Creates Conventional Commits with scope detection, co-author lines and hook compliance; blocks secrets and generated-only files. Use when asked to commit, save progress or write a commit message, not for incidental commits."
 argument-hint: "[message]"
 disable-model-invocation: false
 effort: low
 context: inherit
 user-invocable: true
 name: commit
-allowed-tools: [Bash, Read, Write, AskUserQuestion]
+allowed-tools: "Bash Read Write AskUserQuestion"
 ---
 
 # Auto-generated from skills/commit/SKILL.md

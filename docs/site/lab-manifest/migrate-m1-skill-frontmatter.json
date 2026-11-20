@@ -1,0 +1,13 @@
+{
+  "slug": "migrate-m1-skill-frontmatter",
+  "source": "docs/feat--migrate-m1-skill-frontmatter/index.html",
+  "title": "m1: skill frontmatter moves to the spec shape",
+  "description": "One script moves version, author, complexity and tags under metadata in all 107 skills and drops the unread persuasion-type key; the shared parsers lift them back so readers see identical values. G1 violations fall from 977 to 443.",
+  "tags": [
+    "frontmatter",
+    "skills",
+    "standards",
+    "migration"
+  ],
+  "date": "2026-09-28"
+}

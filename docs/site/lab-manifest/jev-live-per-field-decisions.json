@@ -1,0 +1,12 @@
+{
+  "slug": "jev-live-per-field-decisions",
+  "source": "docs/feat--jev-formbench-2/index.html",
+  "title": "Jev live per-field decisions in expect form steps",
+  "description": "jev_shadow.py gains --task-doc field decisions: Jev picks a value per field, acts when its confidence clears a floor and defers to the incumbent below it, logging jev_pick, jev_confidence, incumbent_pick, agree, floor, decided_by, prompt_id and session_id for every decision. The page replays 240 sealed checks from ten fresh-session runs and lets you move the confidence floor to see which fields Jev would have decided and which it would have handed back.",
+  "tags": [
+    "jev",
+    "expect",
+    "shadow"
+  ],
+  "date": "2026-09-20"
+}

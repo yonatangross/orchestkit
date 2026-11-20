@@ -1,46 +1,22 @@
 ---
 name: write-prd
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Write PRD — Product Requirements Documents with structured 8-section templates, user stories, acceptance criteria, and value proposition validation. Use when writing PRDs, defining product requirements, creating user stories with INVEST criteria, or building go/no-go decision frameworks."
-tags: [prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go]
+compatibility: "Claude Code 2.1.277+."
+description: "Product Requirements Documents: 8-section template, user stories, acceptance criteria, go/no-go. Use when writing a PRD or user stories."
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 agent: product-strategist
-version: 2.0.1
-author: OrchestKit
 user-invocable: true
 argument-hint: "product name or feature"
 disable-model-invocation: false
-complexity: medium
-persuasion-type: collaborative
 metadata:
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Bash
-  - WebFetch
-  - WebSearch
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
-  - Agent
-  - mcp__memory__search_nodes
-  - mcp__memory__create_entities
-  - mcp__memory__add_observations
-  - mcp__memory__create_relations
-triggers:
-  keywords: [prd, "product requirements", "requirements document", "requirements for", "define the requirements", "user stories", "acceptance criteria", "product spec", "formal spec"]
-  examples:
-    - "write a PRD for the SSO invite flow"
-    - "create a product requirements document for billing"
-    - "i need user stories and acceptance criteria for the dashboard"
-  anti-triggers: [implement, build, brainstorm, explore, review]
+  version: "2.0.1"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "prd, requirements, user-story, acceptance-criteria, invest, value-proposition, go-no-go"
+allowed-tools: "Read Write Edit Glob Grep Bash WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate Agent mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__add_observations mcp__memory__create_relations"
 ---
 
 # PRD — Product Requirements Document

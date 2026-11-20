@@ -14,9 +14,9 @@
  *
  * Why a block (not a notify):
  *   The drift CI check fails the PR later; surfacing this at Write time
- *   prevents a wasted push/CI roundtrip. `continueOnBlock: true` in
- *   hooks.json keeps the edit applied — only the next tool call is
- *   gated.
+ *   prevents a wasted push/CI roundtrip. PostToolUse runs after the edit
+ *   is applied. CC honors `continueOnBlock` on prompt hooks only, so the
+ *   block is not softened (#4684).
  *
  * Why time-window the snapshot:
  *   A stale snapshot from a long-running session would false-positive
@@ -76,20 +76,46 @@ export function loadSnapshot(projectDir: string): PluginsDriftSnapshot | null {
   }
 }
 
+/** Did a sync git call fail because it ran out of time (killed at its timeout)? */
+export function gitTimedOut(err: unknown): boolean {
+  const e = err as { code?: string; signal?: string } | null;
+  return e?.code === 'ETIMEDOUT' || e?.signal === 'SIGKILL';
+}
+
+/**
+ * The rebuild evidence from the two git queries. `null` is a query that
+ * timed out: unknown, which is not the same as "not rebuilt", so it never
+ * produces a block on its own.
+ */
+export function rebuildEvidence(touched: boolean | null, dirty: boolean | null): 'rebuilt' | 'none' | 'unknown' {
+  if (touched === true || dirty === true) return 'rebuilt';
+  if (touched === null || dirty === null) return 'unknown';
+  return 'none';
+}
+
 /**
  * Has `plugins/` been touched in any commit since `sinceIso`?
- * Returns false on git failure (treat as "no rebuild evidence").
+ * Returns false on git failure (treat as "no rebuild evidence"), null when
+ * the query timed out (unknown).
  */
-export function pluginsTouchedSince(projectDir: string, sinceIso: string): boolean {
+/**
+ * Each git call stays well inside this hook's 5 s budget (two calls, plus the
+ * snapshot reads). A timeout throws like any git failure and is treated the
+ * same way ("no rebuild evidence"). Folded into the tool dispatcher, an
+ * untimed call could not be interrupted and held every guard (#4962).
+ */
+const GIT_TIMEOUT_MS = 2000;
+
+export function pluginsTouchedSince(projectDir: string, sinceIso: string): boolean | null {
   try {
     const out = execFileSync(
       'git',
       ['-C', projectDir, 'log', `--since=${sinceIso}`, '--name-only', '--pretty=format:', '--', 'plugins/'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], killSignal: 'SIGKILL', timeout: GIT_TIMEOUT_MS },
     );
     return out.trim().length > 0;
-  } catch {
-    return false;
+  } catch (err) {
+    return gitTimedOut(err) ? null : false;
   }
 }
 
@@ -103,18 +129,19 @@ export function pluginsTouchedSince(projectDir: string, sinceIso: string): boole
  * match, and the rebuild evidence never appears). Uncommitted plugins/
  * changes count as rebuild evidence; the snapshot refresh re-baselines
  * hashes, so a later src/ edit still re-arms the check.
- * Returns false on git failure (treat as "no rebuild evidence").
+ * Returns false on git failure (treat as "no rebuild evidence"), null when
+ * the query timed out (unknown).
  */
-export function pluginsDirtyNow(projectDir: string): boolean {
+export function pluginsDirtyNow(projectDir: string): boolean | null {
   try {
     const out = execFileSync(
       'git',
       ['--no-optional-locks', '-C', projectDir, 'status', '--porcelain', '--', 'plugins/'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], killSignal: 'SIGKILL', timeout: GIT_TIMEOUT_MS },
     );
     return out.trim().length > 0;
-  } catch {
-    return false;
+  } catch (err) {
+    return gitTimedOut(err) ? null : false;
   }
 }
 
@@ -149,7 +176,13 @@ export function checkPluginsDrift(
   // Build inputs changed — has plugins/ been rebuilt since snapshot?
   // Evidence: a commit touching plugins/ OR uncommitted plugins/ changes
   // (npm run build rewrites the working tree without committing).
-  if (pluginsTouchedSince(ctx.projectDir, snapshot.at) || pluginsDirtyNow(ctx.projectDir)) {
+  const evidence = rebuildEvidence(pluginsTouchedSince(ctx.projectDir, snapshot.at), pluginsDirtyNow(ctx.projectDir));
+  if (evidence === 'unknown') {
+    // A timed-out git query is not proof of drift: no block on it alone.
+    ctx.log(HOOK_NAME, 'git timed out checking plugins/ rebuild evidence; not blocking');
+    return outputSilentSuccess();
+  }
+  if (evidence === 'rebuilt') {
     // Treat as "already rebuilt": refresh snapshot so we don't re-fire.
     try {
       const refreshed = buildSnapshot(ctx.projectDir);

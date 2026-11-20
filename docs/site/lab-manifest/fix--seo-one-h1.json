@@ -1,0 +1,12 @@
+{
+  "slug": "fix--seo-one-h1",
+  "source": "docs/fix--seo-one-h1/index.html",
+  "title": "One H1 per docs page, before and after",
+  "description": "Skill and agent pages rendered two H1 headings; the page title stays the one H1 and the SKILL.md body heading renders as an H2 with the same anchor.",
+  "tags": [
+    "seo",
+    "headings",
+    "docs"
+  ],
+  "date": "2026-11-15"
+}

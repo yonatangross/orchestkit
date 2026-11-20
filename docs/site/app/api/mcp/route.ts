@@ -4,7 +4,19 @@ import { SITE } from "@/lib/constants";
 import { getDocMarkdown } from "@/lib/doc-markdown";
 import { searchDocs } from "@/lib/doc-search";
 import { mcpTelemetryEvents } from "@/lib/mcp-telemetry";
+import {
+	buildInstallPicker,
+	buildSkillCard,
+	installPickerText,
+	skillCardText,
+} from "@/lib/mcp-cards";
 import { SEARCH_RESULTS_HTML, UI_SEARCH_RESULTS } from "@/lib/mcp-ui";
+import {
+	INSTALL_PICKER_HTML,
+	SKILL_CARD_HTML,
+	UI_INSTALL_PICKER,
+	UI_SKILL_CARD,
+} from "@/lib/mcp-ui-cards";
 
 // Stateless MCP server over Streamable HTTP (JSON-RPC 2.0 on POST). Dependency-
 // free: MCP's transport is JSON-RPC, so a stateless handler covering
@@ -34,6 +46,22 @@ const UI_RESOURCES = [
 		mimeType: "text/html;profile=mcp-app",
 		text: SEARCH_RESULTS_HTML,
 	},
+	{
+		uri: UI_SKILL_CARD,
+		name: "OrchestKit skill card",
+		description:
+			"Renders one skill as a card: what it does, which plugin ships it, and the install line with a copy button.",
+		mimeType: "text/html;profile=mcp-app",
+		text: SKILL_CARD_HTML,
+	},
+	{
+		uri: UI_INSTALL_PICKER,
+		name: "OrchestKit install picker",
+		description:
+			"Renders a host picker (Claude Code, Cursor, Codex) that shows the exact install command for the picked host, with a copy button.",
+		mimeType: "text/html;profile=mcp-app",
+		text: INSTALL_PICKER_HTML,
+	},
 ];
 
 // Tool descriptions are prompts: each says when to use it, what to pass, and what
@@ -50,6 +78,27 @@ const TOOLS = [
 			},
 			required: ["query"],
 		},
+		// MCP: a tool that returns structuredContent declares its shape, so a
+		// client can validate it (orank Usability, SEO gaps row 12).
+		outputSchema: {
+			type: "object",
+			properties: {
+				results: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							id: { type: "string" },
+							title: { type: "string" },
+							url: { type: "string" },
+							content: { type: "string" },
+						},
+						required: ["id", "title", "url", "content"],
+					},
+				},
+			},
+			required: ["results"],
+		},
 		// MCP Apps: results render inline via the ui:// template above.
 		uiResource: UI_SEARCH_RESULTS,
 		run: (args: Record<string, unknown>): ToolResult => {
@@ -59,7 +108,7 @@ const TOOLS = [
 			const textBody =
 				hits.length === 0
 					? `No documentation matched "${query}". Try broader terms, or list sections at ${SITE.domain}/docs/llms.txt.`
-					: hits.map((h) => `- ${h.title} — ${h.url}\n  ${h.content}`).join("\n");
+					: hits.map((h) => `- ${h.title}: ${h.url}\n  ${h.content}`).join("\n");
 			return {
 				content: [{ type: "text", text: textBody }],
 				structuredContent: { results: hits },
@@ -81,6 +130,14 @@ const TOOLS = [
 			},
 			required: ["path"],
 		},
+		outputSchema: {
+			type: "object",
+			properties: {
+				path: { type: "string", description: "The page path that was read." },
+				markdown: { type: "string", description: "The page as Markdown." },
+			},
+			required: ["path", "markdown"],
+		},
 		run: async (args: Record<string, unknown>): Promise<ToolResult> => {
 			const path = String(args.path ?? "").trim();
 			if (!path) return errText("Provide a `path`, e.g. /docs/foundations/overview.");
@@ -90,14 +147,109 @@ const TOOLS = [
 					`No page at "${path}". Use orchestkit_docs_search to find a valid path.`,
 				);
 			}
-			return text(md);
+			return {
+				content: [{ type: "text", text: md }],
+				structuredContent: { path, markdown: md },
+			};
+		},
+	},
+	{
+		name: "orchestkit_skill_get",
+		description:
+			"Show one OrchestKit skill as a card: what it does, which plugin ships it (ork or ork-extras), and the Claude Code install line. Use when a person asks about a skill by name. Input: the skill name, e.g. 'brainstorm'. An unknown name returns a 'no such skill' card with the nearest names.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				name: {
+					type: "string",
+					description: "Skill name, e.g. brainstorm. A leading / or ork: is fine.",
+				},
+			},
+			required: ["name"],
+		},
+		// One shape per outcome: a found skill, or the nearest names to a miss.
+		outputSchema: {
+			type: "object",
+			properties: {
+				found: { type: "boolean" },
+				name: { type: "string" },
+				description: { type: "string" },
+				summary: { type: "string" },
+				useWhen: { type: ["string", "null"] },
+				plugin: { type: "string", enum: ["ork", "ork-extras"] },
+				version: { type: "string" },
+				invoke: { type: ["string", "null"] },
+				installCommand: { type: "string" },
+				docsUrl: { type: "string" },
+				query: { type: "string" },
+				suggestions: { type: "array", items: { type: "string" } },
+				browseUrl: { type: "string" },
+			},
+			required: ["found"],
+		},
+		uiResource: UI_SKILL_CARD,
+		run: (args: Record<string, unknown>): ToolResult => {
+			const name = String(args.name ?? "").trim();
+			if (!name) return errText("Provide a skill `name`, e.g. brainstorm.");
+			const card = buildSkillCard(name);
+			return {
+				content: [{ type: "text", text: skillCardText(card) }],
+				structuredContent: card,
+				_meta: { ui: { resourceUri: UI_SKILL_CARD } },
+			};
+		},
+	},
+	{
+		name: "orchestkit_install",
+		description:
+			"Show how to install OrchestKit as a picker: Claude Code, Cursor or Codex, with the exact command for the picked host and a copy button. Use when a person asks how to install or set it up. Input: an optional host (claude, cursor or codex) to preselect.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				host: {
+					type: "string",
+					enum: ["claude", "cursor", "codex"],
+					description: "Host to preselect. Defaults to claude.",
+				},
+			},
+		},
+		outputSchema: {
+			type: "object",
+			properties: {
+				selected: { type: "string", enum: ["claude", "cursor", "codex"] },
+				hosts: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							id: { type: "string" },
+							name: { type: "string" },
+							what: { type: "string" },
+							where: { type: "string" },
+							commands: { type: "array", items: { type: "string" } },
+							copy: { type: "string" },
+							prompt: { type: "boolean" },
+							copyLabel: { type: "string" },
+							docsUrl: { type: "string" },
+						},
+						required: ["id", "name", "commands", "copy"],
+					},
+				},
+			},
+			required: ["selected", "hosts"],
+		},
+		uiResource: UI_INSTALL_PICKER,
+		run: (args: Record<string, unknown>): ToolResult => {
+			const picker = buildInstallPicker(args.host);
+			return {
+				content: [{ type: "text", text: installPickerText(picker) }],
+				structuredContent: picker,
+				_meta: { ui: { resourceUri: UI_INSTALL_PICKER } },
+			};
 		},
 	},
 ] as const;
 
-function text(value: string): ToolResult {
-	return { content: [{ type: "text", text: value }] };
-}
 function errText(value: string): ToolResult {
 	return { content: [{ type: "text", text: value }], isError: true };
 }
@@ -129,7 +281,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 				},
 				serverInfo: { name: `${SITE.name} Docs MCP`, version: SITE.version },
 				instructions:
-					"Search the OrchestKit docs with orchestkit_docs_search, then read a page with orchestkit_docs_get.",
+					"Read-only access to the OrchestKit documentation. Call orchestkit_docs_search with a question to get ranked page URLs, then orchestkit_docs_get with one page path to read that page as Markdown. Call orchestkit_skill_get with a skill name for a skill card, or orchestkit_install for an install picker (Claude Code, Cursor, Codex). No tool changes anything.",
 			});
 		case "ping":
 			return rpcResult(req.id, {});
@@ -141,8 +293,9 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 						name: t.name,
 						description: t.description,
 						inputSchema: t.inputSchema,
-						// Both tools only read documentation — agents can call them
-						// without user confirmation.
+						outputSchema: t.outputSchema,
+						// Every tool only reads documentation or generated data, so
+						// agents can call them without user confirmation.
 						annotations: {
 							title: t.name,
 							readOnlyHint: true,

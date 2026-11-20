@@ -1,12 +1,13 @@
 import { CHANGELOG_ENTRIES, type ChangelogEntry } from "@/lib/generated/changelog-data";
+import { SITE as SITE_CONSTANTS } from "@/lib/constants";
 
-// Release feed for orchestkit.yonyon.ai. Until this route existed there was no
+// Release feed for orchestkit.dev. Until this route existed there was no
 // subscribable surface anywhere: releases landed on the changelog page and
 // nowhere a feed reader could see. Zero new data plumbing, the same generated
 // changelog-data.ts the timeline renders.
 export const revalidate = 3600;
 
-const SITE = "https://orchestkit.yonyon.ai";
+const SITE = SITE_CONSTANTS.domain;
 const FEED_LIMIT = 30;
 
 function escapeXml(s: string): string {

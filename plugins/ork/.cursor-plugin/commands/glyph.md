@@ -1,12 +1,12 @@
 ---
-description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead."
-argument-hint: "[topic-to-render]"
+description: "Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, comparisons, rankings, pipelines or show-me-visually asks. Not for definitions. For a full plan playground, use visualize-plan."
+argument-hint: "[--chat|--ask|--page] [--eli5] [--decide] [--signoff] [topic-to-render]"
 disable-model-invocation: false
 effort: low
 context: inherit
 user-invocable: true
 name: glyph
-allowed-tools: [Read, Grep, Glob]
+allowed-tools: "Read Grep Glob AskUserQuestion"
 ---
 
 # Auto-generated from skills/glyph/SKILL.md
@@ -22,17 +22,20 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 ## Execution (run this, do not ask first)
 
 **A human asking "how do I use this" gets a URL, not a paraphrase:**
-https://orchestkit.yonyon.ai/docs/reference/skills/glyph#examples (what it draws,
+https://orchestkit.dev/docs/reference/skills/glyph#examples (what it draws,
 the two picks, three real renders, the exact invocation; generated from this
 skill's `skills/glyph/examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
 
+**Already loaded means render, not hand off.** Once this file is loaded, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads a skill again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate. A user may have a personal skill also named `glyph` (`/glyph`); it lives in a separate namespace, may call this skill for its chat route, and is never called from here (`skills/glyph/references/dials.md`, "Personal skills named glyph").
+
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
 
-1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format, do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
+0. **Resolve the two dials, then announce them in one line.** Surface is chat, ask or page (default chat); audience is operator or novice (default operator). A flag beats inference: `--chat`, `--ask`, `--page`, `--eli5`, `--decide`, `--signoff`. Print exactly `→ chat · operator` (surface, then audience) and a blank line before the answer. Inference rules, the ask guardrail and the `--decide` shapes: `Read("skills/glyph/references/dials.md")`.
+1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format (the ask surface and `--signoff` are the only questions this skill asks), do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
 2. **Pick the form from the shape of the data**, using the pattern library below:
 
    | Topic shape | Form |
@@ -44,18 +47,25 @@ Given a topic (or the conversation, when none is given):
    | containment, layers, layout | nested boxes / tree |
    | ranked list, scores, counts | table + bar meters |
    | over time | sparkline or milestone track |
+   | triage open issues, what is left, categorize the backlog | **triage page** (`templates/triage.html`). Not an inline render. |
+   | explainer page, NOW vs IDEAL, "show it moving" (page route only) | **JS art piece** on the page (`skills/glyph/references/js-art.md`). Chat stays ASCII. |
 
-3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
+3. **Emit inline in the reply, except the triage page.** Never write a file unless the user asked for one. The triage row above is the exception: that answer is `templates/triage.html`, not an inline render. Every other answer stays in the reply.
 4. **Use the closed status set, the domain-icon legend and the box-drawing vocabulary** defined in `skills/glyph/rules/visual-style.md` (shipped with this skill) and `tokens.json` (`icons.*`). Status icons pair with a word (✅ done, ❌ failed, ⚠️ warning, 🔴 high risk, ℹ️ caveat). Domain icons (🐳 docker, 📦 package, 🧪 test, ...) go one per row in the leading column so they scan as a legend; never inside a prose sentence, never in chains.
 5. **Stay inside the budget: ONE render per reply, up to about 50 lines, every line 76 cells or fewer.** Two competing renders in one reply is flooding. Above 50 lines it is a page, not a chat answer. The 2026-08-09 budget (12 lines, 40 percent) over-corrected and was reset by operator word on 2026-09-17; the history is in `skills/glyph/rules/visual-style.md`.
 6. **Verdict first, then the render, then what the numbers told me.** One prose line states the point before the render. After the render, two or three bold-led bullets say what is not obvious from the chart. If the reader has to parse the render to find out what happened, the reply failed.
 7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
-8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and `scripts/render-ascii.sh key-value` renders the narrow form of the same data (GH-4159).
+8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and the narrow form of the same data fits in 72 (GH-4159; the OrchestKit repo keeps a reference renderer for it, render-ascii.sh, which does not ship with the plugin).
 
-**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
+**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or any file output other than the triage page, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline. The triage page stays here.
 
-**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve <path>` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
 
+**Triage is a page, every time.** Asks shaped like "triage open issues", "what is left", or "categorize this for me" use `templates/triage.html` and no other layout. This overrides the inline-only rule and the visualize-plan handoff: the page is glyph's, then `/page-serve PATH`. Fill issues from one snapshot, `gh issue list --state open --json number,title,labels,milestone`. Put every gh-sourced string in the hidden snapshot textarea as one base64 blob of the JSON, not as raw JSON and not in the lane markup or the raw dump. A title that contains `</textarea` must never appear as raw markup inside that textarea, or it breaks out before escapeHtml runs. The page decodes the blob, then calls escapeHtml when it inserts each lane item and the raw dump, so a title stays literal text. The open-PRs tile is not in that snapshot. Fill it from `gh pr list --state open --json number`, and if that command was not run print `?`, never a guessed count. Keep the six parts in order: KPI strip, lanes, a route tag on every issue (`devin`, `ork:NAME`, `hq-ext`, `21st-dev`, `human`, `external`), capability map, DECIDE block, collapsed raw snapshot. Hand the file over with `/page-serve PATH`. Never paste a bare path. The copy button must emit `wave=LANE followups=CSV`. When no follow-up is checked, that is `followups=` with nothing after the equals, never `followups=0`.
+
+**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve PATH` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
+
+
+**JS art is for pages; chat stays ASCII.** When the answer is already a page (an explainer, a NOW vs IDEAL plan), the page carries one animated piece above its first beat: an inline `<canvas>`, a Now/Ideal toggle, a Play/Pause button, and a text alt on the canvas. Build it from `skills/glyph/references/js-art.md`: paste one pattern (flow dots, gate, before/after meter, or real-data bars from a JSON array in the page), then the kernel. `draw(ctx, t, mode)` is pure, so `window.seek(t)` can capture any frame to mp4 or gif; `prefers-reduced-motion` gets one still frame and no animation loop; no `Math.random`, no network. A piece that shows measured numbers draws `?` for a value you do not have. Never put JS art in a chat reply.
 
 ## Render anatomy (the v3 reference shape)
 
@@ -239,8 +249,8 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Rule | Description |
 |------|-------------|
 | Font | Always monospace; box-drawing requires fixed-width |
-| Weight | Standard for normal, Heavy for emphasis, Double for titles |
-| Arrows | `─>`, `──>`, or `│` with `v`/`^` for direction |
+| Weight | `default` for normal, `emphasis` for focus, `title` for titles |
+| Arrows | `──▶` for flow; `->` or `│` with `v`/`^` in the `portable` set |
 | Alignment | Right-pad labels to match column widths |
 | Annotations | `!!` for risk, `**` for new, `[A/M/D]` for change type |
 | Width | 76 cells or fewer in a terminal; at most 72 per line in a non-TTY surface, as one narrow table or vertical list (GH-4159) |
@@ -260,7 +270,16 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Progress bars | Status tracking, completion metrics |
 | Inventory render | Disk, spend, backlog, dependency audits; anything with sections and totals |
 
+## Done sign-off (`--signoff`)
+
+With `--signoff`, the render is the last thing before the gate: lead with any failure,
+then ask the one sign-off question from `Read("../../shared/rules/done-signoff.md")`
+with its three labels unchanged ("Accept done", "Show me the evidence", "Not
+satisfied"). In a non-interactive run, print the verdict and skip the question.
+
 ## Related Skills
+
+- `verify`: grades the work, then ends with the same done sign-off
 
 - `brainstorm`: Design exploration where diagrams communicate ideas
 - `architecture-patterns`: System architecture that benefits from ASCII diagrams

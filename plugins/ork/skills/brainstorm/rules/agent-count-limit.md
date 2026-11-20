@@ -7,7 +7,7 @@ tags: agents, parallelism, limits, tokens, cost, orchestration
 
 # Agent Count Limit
 
-Never spawn more than 5 parallel brainstorm agents (Task tool or Agent Teams). Beyond 5, each additional agent produces diminishing returns while consuming significant tokens, and the synthesis phase struggles to meaningfully integrate outputs from too many sources.
+Never spawn more than 5 parallel brainstorm agents (Agent tool or Agent Teams). Beyond 5, each additional agent produces diminishing returns while consuming significant tokens, and the synthesis phase struggles to meaningfully integrate outputs from too many sources.
 
 ## Problem
 

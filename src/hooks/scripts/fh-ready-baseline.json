@@ -62,7 +62,6 @@
     "src/pretool/bash/playground-presence-warner.ts",
     "src/pretool/bash/pre-commit-test-gate.ts",
     "src/pretool/bash/worktree-merge-verifier.ts",
-    "src/pretool/input-mod/write-headers.ts",
     "src/pretool/mcp/context7-tracker.ts",
     "src/pretool/read/tldr-summary.ts",
     "src/pretool/skill/skill-tracker.ts",

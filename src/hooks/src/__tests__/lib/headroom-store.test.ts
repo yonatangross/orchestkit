@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -20,12 +20,15 @@ import {
   HASH_LEN,
   HEADROOM_DEFAULT_TTL_MS,
   getHeadroomDir,
+  getSessionHeadroomDir,
   hashContent,
   stashPath,
   stashOriginal,
+  stashSecretResult,
   buildPointer,
   gcHeadroom,
 } from '../../lib/headroom-store.js';
+import { getSessionTempDir } from '../../lib/paths.js';
 
 describe('lib/headroom-store (#2264)', () => {
   let home: string;
@@ -152,5 +155,120 @@ describe('lib/headroom-store (#2264)', () => {
     const res = gcHeadroom(0, home, Date.now() + 1); // TTL 0 → evict all eligible
     expect(res.scanned).toBe(1);                      // only the .txt counted
     expect(existsSync(stray)).toBe(true);             // .lock untouched
+  });
+});
+
+describe('lib/headroom-store stashSecretResult (#4510)', () => {
+  const madeSessions: string[] = [];
+
+  afterEach(() => {
+    for (const sid of madeSessions.splice(0)) {
+      try { rmSync(getSessionTempDir(sid), { recursive: true, force: true }); } catch { /* best-effort */ }
+    }
+  });
+
+  function sid(tag: string): string {
+    const id = `hs-sec-${tag}-${Date.now()}`;
+    madeSessions.push(id);
+    return id;
+  }
+
+  test('writes the full text verbatim at mode 0600 under the session dir', () => {
+    const text = `{"uploadUrl":"https://s3.example/k?X-Amz-Security-Token=abc"}${'z'.repeat(3000)}`;
+    const { hash, path, written } = stashSecretResult(text, sid('write'));
+
+    expect(written).toBe(true);
+    expect(hash).toBe(hashContent(text));
+    expect(path).toBe(join(getSessionHeadroomDir(madeSessions[0]), `${hash}.txt`));
+    expect(readFileSync(path, 'utf8')).toBe(text);
+    expect(statSync(path).mode & 0o777).toBe(0o600);
+  });
+
+  test('same session + same content dedups to one file with written:false', () => {
+    const text = 'secret payload '.repeat(200);
+    const s = sid('dedup');
+    const first = stashSecretResult(text, s);
+    const mtime1 = statSync(first.path).mtimeMs;
+
+    const second = stashSecretResult(text, s);
+
+    expect(second.written).toBe(false);
+    expect(second.path).toBe(first.path);
+    expect(statSync(first.path).mtimeMs).toBe(mtime1);
+    expect(readdirSync(getSessionHeadroomDir(s)).filter((f) => f.endsWith('.txt'))).toHaveLength(1);
+  });
+
+  test.each(['', '../escape', 'a/b', 'a\\b', '{bad}'])(
+    'refuses invalid session id %j rather than falling into a shared bucket',
+    (bad) => {
+      expect(() => stashSecretResult('x'.repeat(100), bad)).toThrow(/invalid session id/);
+    },
+  );
+
+  test('tightens a pre-existing group-accessible session dir to 0700', () => {
+    const s = sid('mode');
+    mkdirSync(getSessionTempDir(s), { recursive: true });
+    chmodSync(getSessionTempDir(s), 0o755);
+
+    const { path } = stashSecretResult('payload', s);
+
+    expect(statSync(getSessionTempDir(s)).mode & 0o077).toBe(0);
+    expect(statSync(getSessionHeadroomDir(s)).mode & 0o077).toBe(0);
+    expect(statSync(path).mode & 0o777).toBe(0o600);
+  });
+
+  test('refuses a symlinked headroom dir', () => {
+    const s = sid('dirlink');
+    const sessionDir = getSessionTempDir(s);
+    mkdirSync(sessionDir, { recursive: true });
+    const realDir = mkdtempSync(join(tmpdir(), 'hs-real-'));
+    symlinkSync(realDir, join(sessionDir, 'headroom'));
+
+    try {
+      expect(() => stashSecretResult('payload', s)).toThrow(/not a real directory/);
+      expect(readdirSync(realDir)).toHaveLength(0); // nothing written through the link
+    } finally {
+      rmSync(realDir, { recursive: true, force: true });
+    }
+  });
+
+  test('refuses a planted symlink at the content-addressed path', () => {
+    const s = sid('filelink');
+    const dir = getSessionHeadroomDir(s);
+    mkdirSync(dir, { recursive: true });
+    const target = join(tmpdir(), `hs-target-${Date.now()}.txt`);
+    writeFileSync(target, 'do-not-touch');
+    const text = 'link-victim '.repeat(50);
+    symlinkSync(target, join(dir, `${hashContent(text)}.txt`));
+
+    try {
+      expect(() => stashSecretResult(text, s)).toThrow(/non-regular stash path/);
+      expect(readFileSync(target, 'utf8')).toBe('do-not-touch');
+      expect(lstatSync(join(dir, `${hashContent(text)}.txt`)).isSymbolicLink()).toBe(true);
+    } finally {
+      rmSync(target, { force: true });
+    }
+  });
+
+  test('a relaxed-mode existing stash file is tightened to 0600 on dedup', () => {
+    const s = sid('chmod');
+    const dir = getSessionHeadroomDir(s);
+    mkdirSync(dir, { recursive: true });
+    const text = 'chmod me '.repeat(50);
+    const path = join(dir, `${hashContent(text)}.txt`);
+    writeFileSync(path, text, { mode: 0o644 });
+
+    const res = stashSecretResult(text, s);
+
+    expect(res.written).toBe(false);
+    expect(statSync(path).mode & 0o777).toBe(0o600);
+  });
+
+  test('leaves no stray tmp files behind on success', () => {
+    const s = sid('clean');
+    stashSecretResult('payload', s);
+    const entries = readdirSync(getSessionHeadroomDir(s));
+    expect(entries.filter((f) => f.includes('.tmp.'))).toHaveLength(0);
+    expect(entries.filter((f) => f.endsWith('.txt'))).toHaveLength(1);
   });
 });

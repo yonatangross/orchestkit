@@ -53,8 +53,17 @@ describe('mcp-health-check: tavily key sourcing', () => {
     writeMcpConfig({
       tavily: {
         command: 'sh',
-        args: ['-c', "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@0.2.20"],
+        args: ['-c', "TAVILY_API_KEY=$(op read 'op://<vault>/<item>/<field>') exec npx -y tavily-mcp@0.2.20"],
       },
+    });
+    expect(warning(run())).toBe('');
+  });
+
+  it('does NOT warn when secrets are injected by op run with no key literal in the command', () => {
+    // Positive control for SECRET_MANAGER_RE: no TAVILY_API_KEY text anywhere,
+    // so the env/cmdline shortcuts cannot mask a regex regression.
+    writeMcpConfig({
+      tavily: { command: 'op', args: ['run', '--', 'npx', '-y', 'tavily-mcp'] },
     });
     expect(warning(run())).toBe('');
   });

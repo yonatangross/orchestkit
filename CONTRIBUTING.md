@@ -41,6 +41,87 @@ useful signal in itself.
 5. **Test your changes** thoroughly
 6. **Submit a Pull Request** to the `main` branch
 
+### Docs-site setup
+
+From the repository root, install the docs-site dependencies with:
+
+```bash
+npm run setup --prefix docs/site
+```
+
+No token is required. This uses the same installer as CI and Vercel previews:
+if the private analytics package returns an authentication error, it installs
+the local no-op stub instead, preserving `package.json` and `package-lock.json`.
+With registry access, the real package is installed as usual. Vercel production
+still refuses the stub. Then run `npm run dev --prefix docs/site`.
+
+### Your first pull request
+
+For a small first change, add a documentation scope example to the commit
+reference. Starting in your cloned fork, create a branch and install dependencies:
+
+```bash
+git checkout -b docs/commit-scope-example
+npm install
+```
+
+Find the source file, even if you first saw the reference under `plugins/`:
+
+```bash
+git ls-files 'src/*' | grep 'commit/references/conventional-commits.md'
+# src/skills/commit/references/conventional-commits.md
+```
+
+Open that `src/` file in your editor. Under **Scope Examples**, add this line:
+
+```markdown
+- `docs(commit): clarify scope examples`
+```
+
+Regenerate the plugin mirror, review the diff, and stage both copies:
+
+```bash
+npm run build
+npm run build # Confirm the build has settled, as described below.
+git diff
+git add src/skills/commit/references/conventional-commits.md \
+  plugins/ork/skills/commit/references/conventional-commits.md
+git status --short
+```
+
+For this change, the status should show both files staged (`M` in the first
+column), with no unstaged changes:
+
+```text
+M  plugins/ork/skills/commit/references/conventional-commits.md
+M  src/skills/commit/references/conventional-commits.md
+```
+
+Run the checks, then commit with a conventional-commit title under 72 characters,
+push to your fork, and open a PR to `main` using the GitHub CLI:
+
+```bash
+npm test
+npm run test:security
+git commit -m "docs(commit): add a scope example"
+git push -u origin docs/commit-scope-example
+gh pr create --repo yonatangross/orchestkit --base main --web
+```
+
+In the PR form, describe the change and checks you ran. If it resolves an issue,
+include `Closes #NNN` with the real issue number.
+
+Four common traps:
+
+- **Editing `plugins/` instead of `src/`:** `plugins/` is generated; the next
+  build overwrites hand edits. Edit the source and commit its regenerated mirror.
+- **Skipping `npm run build`:** CI checks that source and generated output agree.
+  Rebuild before staging, even for a one-line source documentation change.
+- **A commit title over 72 characters:** the local `commit-msg` hook rejects it
+  before the commit completes. Keep the title short and put details in the body.
+- **Skipping `npm install` in a fresh worktree:** `git worktree add` does not copy
+  `node_modules`. Run `npm install` inside each new worktree before building.
+
 ### If you are contributing from a fork
 
 Your CI will not start on its own. Every required check will sit at
@@ -104,6 +185,13 @@ Reviews are tied to a head. A review at an older head still counts only if the
 PR's own files are byte-identical at the new head because the update merge
 touched none of them. Otherwise, ask for a fresh read.
 
+Secret-shaped strings in reviews and comments: when a review, verdict or issue
+comment quotes the input of a redaction probe, write a placeholder such as
+`mongodb+srv://<user>:<pw>@<host>/` or `ASIA<16 chars>`, never the literal
+value. GitHub secret scanning reads PR and issue comments, and
+`.github/secret_scanning.yml` only exempts files under
+`src/hooks/src/__tests__/`, so a quoted fixture raises a public alert.
+
 Workflow files under `.github/workflows` and `plugin.json` files are merged by
 the maintainer only.
 
@@ -115,7 +203,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # <!--ork:skills-->107<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
+├── skills/               # <!--ork:skills-->115<!--/ork--> skills (flat SKILL.md structure, CC 2.1.59+)
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
@@ -123,11 +211,13 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # <!--ork:agents-->36<!--/ork--> specialized AI personas
-└── hooks/                # <!--ork:hooks-->171<!--/ork--> TypeScript hooks in 11 split bundles
+└── hooks/                # <!--ork:hooks-->163<!--/ork--> TypeScript hooks in 11 split bundles
 
 manifests/                # Plugin definition
-└── ork.json              # Single plugin (<!--ork:skills-->107<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->171<!--/ork--> hooks)
+└── ork.json              # Single plugin (<!--ork:skills-->115<!--/ork--> skills, <!--ork:agents-->36<!--/ork--> agents, <!--ork:hooks-->163<!--/ork--> hooks)
 ```
+
+The hook count comes from `bin/count-hooks.sh`: <!--ork:hooks-global-->151<!--/ork--> entries in `src/hooks/hooks.json` plus <!--ork:hooks-skill-->12<!--/ork--> `type: command` or `type: http` handlers in skill frontmatter, <!--ork:hooks-->163<!--/ork--> in total. Write any count in docs as a marker, so `scripts/stamp-counts.sh` keeps it current.
 
 ### Generated Files (Do Not Edit, But Do Commit)
 
@@ -164,7 +254,7 @@ spec/          # Hook-event contract. hook-events.spec.yml is globbed by 4 CI
 vendor/        # Vendored 3rd-party data. sync-vercel-skills.sh reads
                # vercel-skills/mapping.json.
 designs/       # Output dir for /ork:visualize-plan (designs/<branch>.md).
-swarm-specs/   # Input specs for /ork:swarm-migrate (globs swarm-specs/**/*.yaml).
+swarm-specs/   # Input specs for /ork-extras:swarm-migrate (globs swarm-specs/**/*.yaml).
 ```
 
 ### Build System
@@ -359,15 +449,24 @@ npm run test:agents
 
 ### Agent Taxonomy Fields (for docs generation)
 
-All agents require these frontmatter fields for the auto-generated `agents-data.ts`:
+All agents require these fields for the auto-generated `agents-data.ts`. They are ork house keys, not Claude Code subagent keys, so they live under `metadata:` as quoted strings (m3, `scripts/migrate-agent-frontmatter-m3.py`); the shared parser (`scripts/lib/parse-frontmatter.js`) splits them back into lists:
 
-| Field | Type | Description |
+| Field (under `metadata`) | Stored as | Description |
 |-------|------|-------------|
-| `taskTypes` | string[] | What the agent does: `build`, `review`, `debug`, `test`, `deploy`, `design`, `research`, `document`, `optimize`, `secure`, `plan` |
-| `keywords` | string[] | Search terms for the agent selector (3-8 keywords) |
-| `examplePrompts` | string[] | Exactly 2 example prompts showing typical usage |
+| `category` | string | Agent index group, for example `backend` |
+| `taskTypes` | `"a, b"` | What the agent does: `build`, `review`, `debug`, `test`, `deploy`, `design`, `research`, `document`, `optimize`, `secure`, `plan` |
+| `keywords` | `"a, b, c"` | Search terms for the agent selector (3-8 keywords) |
+| `examplePrompts` | `"first \| second"` | Exactly 2 example prompts, joined with ` \| ` because a prompt may hold commas |
 
-These fields are validated by `tests/agents/test-agent-frontmatter.sh`.
+```yaml
+metadata:
+  category: "frontend"
+  taskTypes: "build"
+  keywords: "react, typescript, component"
+  examplePrompts: "Build a data table with sorting, filtering, and pagination | Create a multi-step form"
+```
+
+Agents carry no `context:` key (it is a skill key; nothing shows Claude Code reads it on a subagent). These fields are validated by `tests/agents/test-agent-frontmatter.sh`.
 
 ## Vendor Upstream Skills (Option E)
 

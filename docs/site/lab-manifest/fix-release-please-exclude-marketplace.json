@@ -1,0 +1,11 @@
+{
+  "slug": "fix-release-please-exclude-marketplace",
+  "source": "docs/fix--release-please-exclude-marketplace/index.html",
+  "title": "Stop the stable pin from cutting a release",
+  "description": "A commit that touches only .claude-plugin/ (the stable-channel pin) no longer counts toward a release, so each pin stops opening a noise release PR.",
+  "tags": [
+    "release",
+    "ci"
+  ],
+  "date": "2026-10-23"
+}

@@ -10,8 +10,10 @@ import {
 } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
 import defaultMdxComponents from "fumadocs-ui/mdx";
+import { ContentH1 } from "@/components/content-h1";
 import { SITE } from "@/lib/constants";
 import { docsHtmlCanonical } from "@/lib/docs-canonical";
+import { docsSearchDescription, docsSearchTitle } from "@/lib/search-copy";
 import {
   breadcrumbNode,
   organizationNode,
@@ -29,6 +31,10 @@ import { getSectionGlyph } from "@/components/world/station-glyphs";
 import { DocsTable, HookEventTable } from "@/components/hook-event-table";
 import { TrackedCodeBlock } from "@/components/tracked-code-block";
 import { SKILLS } from "@/lib/generated/skills-data";
+import { RelatedPages } from "@/components/related-pages";
+import { getRelatedPages } from "@/lib/related-pages";
+import { slugLabel } from "@/lib/slug-label";
+import { TocPopoverRole } from "@/components/toc-popover-role";
 
 /**
  * A skill reference page is /docs/reference/skills/<name> where <name>
@@ -57,10 +63,7 @@ export default async function Page(props: {
   const skillSlug = skillSlugOf(page.slugs);
   // Section identity row above the title: glyph chip + section label.
   const SectionGlyph = getSectionGlyph(page.slugs[0] ?? "");
-  const sectionLabel = (page.slugs[0] ?? "")
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+  const sectionLabel = slugLabel(page.slugs[0] ?? "");
   const lastModified =
     page.data.lastModified instanceof Date
       ? page.data.lastModified
@@ -87,6 +90,14 @@ export default async function Page(props: {
     skillMeta?.skills && skillMeta.skills.length > 0
       ? skillMeta.skills.join(", ")
       : undefined;
+
+  // Build-time "Related" block on skill/agent/hook reference pages:
+  // deterministic scorer over the link graph (lib/related-pages), optional
+  // Jev re-rank behind ORK_SITE_JEV_RERANK. Empty for non-reference pages.
+  const related = await getRelatedPages({
+    url: page.url,
+    title: page.data.title,
+  });
 
   // A single self-contained @graph per page rather than techArticleNode's
   // bare {"@id": ...} references to Organization/Person nodes emitted only on
@@ -125,7 +136,25 @@ export default async function Page(props: {
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      breadcrumb={{ enabled: true }}
+      // Deep reference paths truncated every crumb to "Ref..." at 390 (QA N04);
+      // let the trail wrap instead of clipping each item.
+      breadcrumb={{
+        enabled: true,
+        className: "flex-wrap gap-y-1 [&>a]:whitespace-normal [&>span]:whitespace-normal",
+      }}
+      // The popover trigger's name was built from its content, so screen
+      // readers heard the progress ring value first ("0.0294118 Security
+      // Gates..."; QA #20). Name the control for what it is.
+      // Its <header> also sat outside any landmark, so below xl every docs page
+      // had two banners (axe landmark-no-duplicate-banner). Inside a
+      // navigation landmark a <header> is not a banner.
+      tableOfContentPopover={{
+        container: { role: "navigation", "aria-label": "On this page" },
+        trigger: { "aria-label": "Table of contents" },
+      }}
+      // The desktop TOC was a plain div, so axe counted every entry as content
+      // outside any landmark (region). Make it the page's own navigation.
+      tableOfContent={{ container: { role: "navigation", "aria-labelledby": "toc-title" } }}
       footer={{
         items: neighbours,
         children: (
@@ -171,10 +200,13 @@ export default async function Page(props: {
       {skillSlug ? <SkillDossier slug={skillSlug} /> : null}
       {/* The shape of the skill, above the verbatim SKILL.md body below. */}
       {skillSlug ? <SkillFlow slug={skillSlug} /> : null}
+      <TocPopoverRole />
       <DocsBody>
         <MDX
           components={{
             ...defaultMdxComponents,
+            // DocsTitle above is the page's one H1; a body "# " renders as H2.
+            h1: ContentH1,
             pre: TrackedCodeBlock,
             table: DocsTable,
             HookEventTable,
@@ -185,6 +217,7 @@ export default async function Page(props: {
         />
         <GeorgeDivider />
       </DocsBody>
+      <RelatedPages items={related} />
     </DocsPage>
   );
 }
@@ -210,12 +243,24 @@ export async function generateMetadata(props: {
     ? `${SITE.domain}/docs/${slugPath}.md`
     : `${SITE.domain}/docs.md`;
 
+  // A page with `seoTitle` sets the full search result title. It already
+  // names OrchestKit, so it skips the "%s | OrchestKit" template. A page
+  // without it keeps the short `title` plus the template.
+  // Every docs title is now built whole by docsSearchTitle (30 to 60
+  // characters, says what the page is), so it is absolute, and the meta
+  // description is fitted to 140 to 160 characters with a number. The page's
+  // own frontmatter description stays the Markdown twin's text.
+  const slug = params.slug ?? [];
+  const searchTitle = docsSearchTitle(slug, page.data.title, page.data.seoTitle);
+  const searchDescription = docsSearchDescription(slug, page.data.description);
+  const socialTitle = page.data.seoTitle ?? page.data.title;
+
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title: { absolute: searchTitle },
+    description: searchDescription,
     openGraph: {
-      title: page.data.title,
-      description: page.data.description,
+      title: socialTitle,
+      description: searchDescription,
       url,
       siteName: SITE.name,
       type: "article",
@@ -223,8 +268,8 @@ export async function generateMetadata(props: {
     },
     twitter: {
       card: "summary_large_image",
-      title: page.data.title,
-      description: page.data.description,
+      title: socialTitle,
+      description: searchDescription,
     },
     alternates: {
       canonical: url,

@@ -93,14 +93,22 @@ catches this regression. See PR #1399 for the original incident.
 ---
 name: my-skill
 description: What it does AND when to use it. Write in third person.
-tags: [tag1, tag2, tag3]
-version: 2.0.0
-author: OrchestKit
 user-invocable: false    # true for /slash-command skills
-complexity: low | medium | high
 effort: low | high              # CC 2.1.80+: override model effort level (omit for auto)
+metadata:                # ork house keys: quoted strings, never top level
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "low"      # low | medium | high
+  tags: "tag1, tag2, tag3"
 ---
 ```
+
+`version`, `author`, `complexity` and `tags` are ork house keys, not Agent Skills
+spec keys, so they live under `metadata:` as a one-level map of quoted strings
+(`tags` is comma-separated there). `scripts/check-frontmatter.py` (configs/standards.json)
+reports any of them at top level. The build and docs readers lift them back out
+of `metadata` through `scripts/lib/parse-frontmatter.js`, so read them through
+that parser rather than grepping for `^tags:`.
 
 The `description` is critical — Claude uses it to decide whether to load the skill. Include both **what** (capabilities) and **when** (trigger conditions). Max 1024 chars.
 
@@ -111,7 +119,8 @@ The `description` is critical — Claude uses it to decide whether to load the s
 ### Optional Frontmatter
 
 ```yaml
-context: fork            # Run in isolated subagent
+context: fork            # Run in isolated subagent (task skills only; see Prompt caching rule 1)
+background: false        # With context: fork, the parent waits for the result (CC 2.1.218+)
 agent: backend-system-architect  # Which subagent type (requires context: fork)
 disable-model-invocation: true   # Manual-only (/slash-command) — DEFAULT
 disable-model-invocation: false  # CC auto-selects via description matching
@@ -152,7 +161,7 @@ keep-coding-instructions: true   # CC 2.1.94+: for plugin output styles only —
 
 ### Skill-Scoped Hooks
 
-Skills can declare hooks in frontmatter. These run only while the skill is active:
+Skills can declare hooks in frontmatter. Claude Code registers them when the skill is invoked and keeps them for the rest of the session (see Lifetime below):
 
 ```yaml
 hooks:
@@ -163,6 +172,19 @@ hooks:
 ```
 
 Use `once: true` for one-shot setup (context loading, env detection, precondition checks). Omit `once` for guards that must run on every tool call (security, pattern enforcement).
+
+Lifetime: Claude Code registers a skill's hooks when the skill is invoked and keeps running them for the rest of the session, not only during the skill's own turn (https://code.claude.com/docs/en/hooks, "Hooks in skills and agents"). That is what makes an on-demand guard possible: `careful` and `freeze` register a PreToolUse hook that stays on once the operator invokes them. A guard like that ships as a self-contained script in the skill's own `scripts/` (Node stdlib, deny with exit 2 and the reason on stderr, fail closed on unreadable input) and uses the documented nested shape:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: 'node "${CLAUDE_PLUGIN_ROOT}/skills/careful/scripts/careful-guard.mjs"'
+```
+
+It does not go through `run-hook.mjs`, which fails open on a bundle error and depends on the release-built `hooks/dist`.
 
 > **CC 2.1.94 unlock**: Before CC 2.1.94, plugin skill hooks declared in YAML frontmatter were **silently ignored** — the commands were never executed. CC 2.1.94 fixed this, activating the context loaders across OrchestKit skills (assess, implement, verify, brainstorm, review-pr, fix-issue, doctor, explore, cover, setup, commit, quality-gates, visualize-plan, code-review-playbook). These previously-dead hooks now fire on every skill invocation.
 >
@@ -485,9 +507,9 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 ### Rules
 
-1. **Use `context: fork` for complex skills.** Forked skills reuse the parent conversation's cached prefix (system prompt + tools + CLAUDE.md). The fork only adds the skill content as new tokens. This is the most cache-efficient pattern for skills that spawn subagents or do heavy work.
+1. **Use `context: fork` only for skills with task steps, and set `background: false`.** Forked skills reuse the parent conversation's cached prefix (system prompt + tools + CLAUDE.md), and the fork only adds the skill content as new tokens. Since CC 2.1.218 a fork runs in the background by default: the Skill call returns at once and the parent carries on without the result, so a task skill sets `background: false` to make the parent wait. A guideline-only reference skill (`user-invocable: false`, no task) never forks: per the CC skills docs, such a fork "receives the guidelines but no actionable prompt, and returns without meaningful output". Without the fork its content loads into the parent turn, which is the point of a reference skill. `tests/skills/structure/test-reference-skill-fork.sh` enforces this.
 
-2. **Never suggest model changes in skill instructions.** Switching models mid-conversation rebuilds the entire cache. Use subagents (`Task` tool) for different models — each subagent is a separate conversation with its own cache.
+2. **Never suggest model changes in skill instructions.** Switching models mid-conversation rebuilds the entire cache. Use subagents (`Agent` tool) for different models: each subagent is a separate conversation with its own cache.
 
 3. **Never add or remove tools dynamically.** Tools are part of the cached prefix. Skills should use state transitions via messages (like `EnterPlanMode`), not tool-set changes.
 
@@ -495,7 +517,7 @@ Prompt caching works by prefix matching: static system prompt, then tools, then 
 
 5. **Don't add MCP servers mid-session.** MCP tools are part of the cached prefix. Adding a server invalidates the cache for the entire conversation.
 
-6. **MCP tool descriptions are capped at 2KB** (CC 2.1.84+). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions concise. Local MCP config wins over claude.ai connectors when both define the same server.
+6. **MCP tool descriptions and server instructions are each capped at 4,096 characters by default** (CC 2.1.296; it was 2,048 from CC 2.1.84 to 2.1.295; descriptions loaded through tool search are cut at 16,384 since CC 2.1.295; adjustable per session with `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` since CC 2.1.280). OpenAPI-generated MCP servers with verbose descriptions will be truncated. Keep tool descriptions and server instructions concise. Local MCP config wins over claude.ai connectors when both define the same server.
 
 7. **Prefer `additionalContext` in messages over system prompt changes.** Hooks and skills should inject dynamic information via `<system-reminder>` tags in user messages, never by modifying the system prompt.
 
@@ -681,10 +703,20 @@ If your SKILL.md uses ALWAYS or NEVER in caps, reframe with reasoning so the mod
 
 #### Description Requirements
 
-Skill descriptions must be **50-200 words** and include:
+For every model-facing skill, `description` + `when_to_use` must total **at most 260 bytes**
+(UTF-8, parsed YAML values), as enforced by Test 4b in
+`tests/performance/test-token-overhead.sh`. There is no word minimum. Include:
 - **WHAT** the skill does (capabilities)
 - **WHEN** to use it (trigger conditions, in third person)
 - **Negative boundary**: "Do NOT use for..." to prevent false triggers
+
+The listing total (name + description + when_to_use) must also fit the down-only
+ceiling in `tests/performance/skill-listing-ratchet.txt`. Do not raise it to fit longer text.
+Measure the combined parsed values for a skill before submitting:
+
+```bash
+python3 -c 'import sys,yaml; d=yaml.safe_load(open(sys.argv[1]).read().split("---",2)[1]); print(sum(len((d.get(k) or "").encode("utf-8")) for k in ("description","when_to_use")))' src/skills/my-skill/SKILL.md
+```
 
 #### Running Evals Locally (CC Max)
 
@@ -798,7 +830,7 @@ For complex skills where agents benefit from debate/cross-pollination, offer a m
 ```
 
 Decision guidance:
-- **Star (Task tool)**: Independent tasks, cost-sensitive, < 3 agents
+- **Star (Agent tool)**: Independent tasks, cost-sensitive, < 3 agents
 - **Mesh (Agent Teams)**: Cross-cutting concerns, agents need to talk, 3+ agents
 
 ### Skill Chain Dependencies

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Export ork skills to the Gemini app</title>
+<style>
+  body { font: 16px/1.55 system-ui, sans-serif; max-width: 780px; margin: 40px auto; padding: 0 20px; color: #1d1d1b; background: #faf8f3; }
+  h1 { font-size: 22px; } h2 { font-size: 18px; margin-top: 28px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { border: 1px solid #d8d3c7; padding: 6px 10px; text-align: left; vertical-align: top; }
+  .ok { color: #1f5e3a; } .no { color: #8a2d1f; }
+  label { display: block; margin: 4px 0; }
+  button { font: inherit; padding: 6px 12px; border: 1px solid #1d1d1b; background: #fff; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+  code { background: #f1efe8; padding: 1px 4px; border-radius: 4px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Gemini skill export"><meta property="og:description" content="Inspect the local skill export rules, zip files, and refusal cases before a manual upload."><meta property="og:url" content="https://orchestkit.dev/lab/gemini-skills-export.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Gemini skill export"><meta name="twitter:description" content="Inspect the local skill export rules, zip files, and refusal cases before a manual upload."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<h1>Export ork skills to the Gemini app</h1>
+<p>The Gemini app takes a skill as a <code>SKILL.md</code> file, or a folder or .zip with a <code>SKILL.md</code> in its main folder (Gemini Apps Help, answer 17094296). <code>scripts/export-gemini-skills.mjs</code> turns chosen ork skills into one .zip each, and refuses any skill that would not work in a chat app.</p>
+
+<h2>What the script checks</h2>
+<table>
+  <tr><th>Rule</th><th>Why</th></tr>
+  <tr><td>Name is lowercase words joined by hyphens, and matches the folder</td><td>Gemini app rule</td></tr>
+  <tr><td>Description is 1024 characters or less</td><td>Gemini app limit</td></tr>
+  <tr><td>Plain-text files only, no hidden files such as .DS_Store</td><td>Gemini app upload rules</td></tr>
+  <tr><td>No MCP tool names, subagent calls, GitHub CLI calls or hook files in the text</td><td>A chat app has no tools to run them</td></tr>
+  <tr><td>All zips together under 100 MB</td><td>Gemini app upload limit</td></tr>
+</table>
+<p>The frontmatter is cut to <code>name</code> and <code>description</code>. <code>test-cases.json</code> stays out of the zip; it is for our own grading.</p>
+
+<h2>First run on the proposed set of 8</h2>
+<table>
+  <tr><th>Skill</th><th>Result</th></tr>
+  <tr><td>business-case</td><td class="ok">exported, 9,859 bytes</td></tr>
+  <tr><td>prioritization</td><td class="ok">exported</td></tr>
+  <tr><td>market-sizing</td><td class="ok">exported</td></tr>
+  <tr><td>user-research</td><td class="ok">exported</td></tr>
+  <tr><td>okr-design</td><td class="ok">exported</td></tr>
+  <tr><td>scope-appropriate-architecture</td><td class="ok">exported</td></tr>
+  <tr><td>competitive-analysis</td><td class="no">refused: runs the GitHub CLI</td></tr>
+  <tr><td>architecture-decision-record</td><td class="no">refused: runs the GitHub CLI</td></tr>
+</table>
+
+<h2>Pick skills for a run</h2>
+<div id="picks"></div>
+<button id="copy">Copy as prompt</button>
+<script>
+  const names = ['business-case','prioritization','market-sizing','user-research','okr-design','scope-appropriate-architecture'];
+  const box = document.getElementById('picks');
+  names.forEach(function (n) {
+    const l = document.createElement('label');
+    l.innerHTML = '<input type="checkbox" checked value="' + n + '"> ' + n;
+    box.appendChild(l);
+  });
+  document.getElementById('copy').addEventListener('click', function () {
+    const chosen = Array.from(box.querySelectorAll('input:checked')).map(function (i) { return i.value; });
+    const text = 'Run node scripts/export-gemini-skills.mjs --skills ' + chosen.join(',') +
+      ' and give me the zips from dist/gemini-skills/ with the manifest.';
+    navigator.clipboard.writeText(text);
+    this.textContent = 'Copied';
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

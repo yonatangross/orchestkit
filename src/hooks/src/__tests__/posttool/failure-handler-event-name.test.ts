@@ -83,38 +83,31 @@ describe('failureHandler event-name stamp', () => {
     expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUseFailure');
   });
 
-  it('stamps PostToolUseFailure on the regex-suggestion path', () => {
-    const result = failureHandler(
-      makeInput({ error: 'ENOENT: no such file or directory', exit_code: 1 }),
-      testCtx,
-    );
-
-    // Prove we actually took the regex fallback branch.
-    expect(result.hookSpecificOutput?.additionalContext).toContain('File not found');
-    expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUseFailure');
-  });
-
   it('never emits the PostToolUse name that CC rejects on this event', () => {
-    for (const error of [STRUCTURED_ERROR, 'EACCES: permission denied']) {
-      const result = failureHandler(makeInput({ error, exit_code: 1 }), testCtx);
-      expect(result.hookSpecificOutput?.hookEventName).not.toBe('PostToolUse');
-    }
+    // The regex-suggestion path that used to be the second emitter was cut, so the
+    // structured path is the only context-bearing exit. Assert it emitted at all, so an
+    // absent stamp cannot pass as "not PostToolUse".
+    const result = failureHandler(makeInput({ error: STRUCTURED_ERROR, exit_code: 1 }), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toBeTruthy();
+    expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUseFailure');
+    expect(result.hookSpecificOutput?.hookEventName).not.toBe('PostToolUse');
   });
 
-  it('leaves PostToolUse as the default for every other outputWithContext caller', () => {
-    // The shared helper has ~40 non-test callers on the PostToolUse event.
-    // Widening it must not change what they emit.
-    expect(outputWithContext('ctx').hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+  it('has no PostToolUse default: every caller names its event (#4683)', () => {
+    // The old default mislabelled ~40 callers on other events (PreToolUse,
+    // Setup, skill loaders). The event is now required.
+    expect(outputWithContext('ctx', 'PostToolUse').hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+    expect(outputWithContext('ctx', { hook_event: 'PreToolUse' }).hookSpecificOutput?.hookEventName).toBe('PreToolUse');
   });
 
   it('silent exits carry no event name at all, which is why it looked intermittent', () => {
     const noError = failureHandler(makeInput({ exit_code: 0 }), testCtx);
     expect(noError.hookSpecificOutput).toBeUndefined();
 
-    const noPatternMatched = failureHandler(
-      makeInput({ error: 'zzz unrecognised failure text zzz', exit_code: 1 }),
+    const notStructured = failureHandler(
+      makeInput({ error: 'ENOENT: no such file or directory', exit_code: 1 }),
       testCtx,
     );
-    expect(noPatternMatched.hookSpecificOutput).toBeUndefined();
+    expect(notStructured.hookSpecificOutput).toBeUndefined();
   });
 });

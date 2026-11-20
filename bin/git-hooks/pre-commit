@@ -108,8 +108,10 @@ fi
 
 # ===== 7. Quick Lint Tests =====
 if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude-plugin/)"; then
-  if [[ -x "tests/run-all-tests.sh" ]]; then
+  if [[ -x "tests/ci/lint.sh" ]]; then
     echo -n "  Running quick lint tests... "
+    # The --lint orchestrator also runs CI Meta and index-generation tests.
+    # Keep commit-time lint static; CI runs the full orchestrator in ci.yml.
     # A hook inherits GIT_INDEX_FILE (absolute in a linked worktree) and can
     # inherit GIT_DIR / GIT_WORK_TREE. Several lint tests build throwaway git
     # repos (git init, git add -A); with that env leaked, their `git add` writes
@@ -118,9 +120,9 @@ if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude
     # (#3822 lane). The lint suite gets a scrubbed environment.
     if ! env -u GIT_INDEX_FILE -u GIT_DIR -u GIT_WORK_TREE -u GIT_PREFIX \
          -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY \
-         ./tests/run-all-tests.sh --lint >/dev/null 2>&1; then
+         CLAUDE_PROJECT_DIR="$PROJECT_ROOT" ./tests/ci/lint.sh >/dev/null 2>&1; then
       echo "FAILED"
-      echo "    Run './tests/run-all-tests.sh --lint' for details"
+      echo "    Run './tests/ci/lint.sh' for details"
       ERRORS=$((ERRORS + 1))
     else
       echo "OK"
@@ -174,13 +176,46 @@ fi
 # fails ci.yml's "release-owned" gate. Keep the locally built bundles on disk
 # for tests; just do not stage them. Release automation sets ORK_DIST_COMMIT=1.
 if [[ "${ORK_DIST_COMMIT:-0}" != "1" ]]; then
-  # silent: known-noise (grep returns 1 when no bundle is staged; that's the no-op case)
-  DIST_STAGED=$(echo "$STAGED_FILES" | grep -E '^(src/hooks/dist|plugins/ork/hooks/dist)/' || true)
-  if [[ -n "$DIST_STAGED" ]]; then
-    echo "  Hook bundles are release-owned (#3578) and must not be committed from a feature branch:"
-    echo "$DIST_STAGED" | sed 's/^/    /'
-    echo "    Unstage them: git restore --staged src/hooks/dist plugins/ork/hooks/dist"
+  # The helper prints nothing when no release-owned bundle is staged.
+  if DIST_STAGED=$(echo "$STAGED_FILES" | bash "$PROJECT_ROOT/bin/git-hooks/release-dist-paths.sh" 2>&1); then
+    if [[ -n "$DIST_STAGED" ]]; then
+      echo "  Hook bundles are release-owned (#3578) and must not be committed from a feature branch:"
+      echo "$DIST_STAGED" | sed 's/^/    /'
+      echo "    Unstage them: git restore --staged src/hooks/dist plugins/ork/hooks/dist"
+      ERRORS=$((ERRORS + 1))
+    fi
+  else
+    DIST_GUARD_STATUS=$?
+    echo "  Release-owned hook bundle check FAILED (release-dist-paths.sh exited $DIST_GUARD_STATUS)"
+    [[ -n "$DIST_STAGED" ]] && echo "$DIST_STAGED" | sed 's/^/    /'
     ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# ===== 10. Generated-skill drift (plugins/ without src/) =====
+# plugins/ is generated output: an edit staged under plugins/ork/skills/
+# without the matching src/skills/ file is overwritten by the next build, and
+# today only the CI drift gate catches it — after the contributor has pushed
+# (#3495, #3499). Pure path comparison over the staged list; no build.
+# grep -q against a here-string, never a pipe: -q early-exits and would
+# SIGPIPE the producer, flipping this test under pipefail (#603).
+if grep -qE '^plugins/ork/skills/' <<< "$STAGED_FILES"; then
+  echo -n "  Checking plugins/ edits carry src/ counterparts... "
+  # Paths this branch already changed against the default branch: a regen may
+  # follow its src/ edit in a later commit (#4661). No merge base (detached,
+  # shallow, no origin/main) leaves the list empty, which is the strict rule.
+  # --diff-filter=d drops deleted paths: a src/ file removed earlier on the
+  # branch cannot excuse a staged plugins/ edit when nothing is left to edit.
+  GUARD_BRANCH_FILES=""
+  if GUARD_BASE=$(git merge-base origin/main HEAD 2>/dev/null); then
+    GUARD_BRANCH_FILES=$(git -c core.quotePath=false diff --name-only --diff-filter=d "$GUARD_BASE" HEAD 2>/dev/null) || GUARD_BRANCH_FILES=""
+  fi
+  if ! GUARD_OUT=$(echo "$STAGED_FILES" | PLUGINS_SRC_GUARD_BRANCH_FILES="$GUARD_BRANCH_FILES" bash bin/git-hooks/plugins-src-guard.sh 2>&1); then
+    echo "FAILED"
+    echo "$GUARD_OUT" | sed 's/^/    /'
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "OK"
   fi
 fi
 

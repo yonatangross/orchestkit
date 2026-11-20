@@ -1,25 +1,18 @@
 ---
 name: golden-dataset
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines.
-tags: [golden-dataset, evaluation, dataset-curation, dataset-validation, quality, llm-testing]
-context: fork
-agent: data-pipeline-engineer
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: guidance
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "data-pipeline-engineer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "golden-dataset, evaluation, dataset-curation, dataset-validation, quality, llm-testing"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Golden Dataset
@@ -178,8 +171,8 @@ House thresholds these must enforce: `references/ork-delta.md`.
 
 ## Related Skills
 
-- `ork:rag-retrieval` - Retrieval evaluation using golden dataset
-- `ork:monitoring-observability` - Langfuse tracing patterns for curation workflows
+- `ork-extras:rag-retrieval` - Retrieval evaluation using golden dataset
+- `ork-extras:monitoring-observability` - Langfuse tracing patterns for curation workflows
 - `ork:testing-llm` - Evaluation harnesses that consume golden datasets
 - `ork:testing-unit` - Unit testing patterns and strategies
 

@@ -1,29 +1,23 @@
 ---
 name: design-stylecards
 license: MIT
-compatibility: "Claude Code 2.1.251+"
-description: "Declarative catalog of named aesthetic recipes — exact shadow stacks, glass surfaces, gradient treatments, and type scales as copy-paste values with Use-When and Avoid rules. Use when the user asks for polished elevation, glassmorphism, a border gradient, a mesh background, or any 'make it look like X' request where taste should come from a versioned recipe instead of being reinvented per session."
+compatibility: "Claude Code 2.1.277+"
+description: "Catalog of named aesthetic recipes: shadow stacks, glass, gradients, type scales as copy-paste values. Use for polished elevation, glassmorphism, mesh backgrounds or any make-it-look-like-X ask."
 argument-hint: "[list | <recipe-name> | apply <recipe> to <file>]"
-tags: [design, stylecards, shadows, glass, gradients, typography, tailwind, css, aesthetics]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.0.0
-author: OrchestKit
 user-invocable: true
-complexity: low
-persuasion-type: collaborative
 model: sonnet
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Edit
-  - Write
+allowed-tools: "Read Grep Glob Edit Write"
 skills:
   - design-system-tokens
 metadata:
   category: document-asset-creation
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "design, stylecards, shadows, glass, gradients, typography, tailwind, css, aesthetics"
 triggers:
   keywords: ["stylecard", "beautiful shadows", "glassmorphism", "glass card", "border gradient", "mesh gradient", "elevation recipe", "make it look polished"]
   examples:

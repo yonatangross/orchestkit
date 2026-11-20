@@ -29,8 +29,10 @@
 // How it is gated: init keeps replay DISABLED, and lib/replay-gate.ts is the
 // only thing that turns it on, on a full load of a reference page or an App
 // Router navigation into one. Leaving the reference tree stops it before the
-// next page renders. This gate is complete on its own; a URL trigger in the
-// PostHog project can narrow it further but is not relied on.
+// next page renders. A URL trigger in the PostHog project applies ON TOP of
+// this gate: it can only narrow recording, and one that names a host we do not
+// serve stops all of it, silently. Set it to the full reference URL pattern:
+// ^https://orchestkit\.dev/docs/reference/.*$
 // Limits, stated plainly:
 //   - Nothing records until session replay is enabled in the PostHog project
 //     settings. The SDK requires that server side flag as well as this gate.
@@ -39,28 +41,39 @@
 //   - Entering a reference page starts replay once the URL has committed, so
 //     the recording opens on the reference page, not the page being left.
 
-import posthog from "posthog-js";
+// CONSENT (2026-11-07, cookieless count 2026-11-09): posthog-js is NOT
+// imported here. startPostHog from lib/posthog-loader.ts imports it
+// dynamically. Before the visitor answers the banner (components/analytics-
+// consent-banner.tsx, lib/analytics-consent.ts) it runs cookieless: memory
+// persistence, no person profiles, replay off, so page views are counted and
+// nothing is stored. Allow upgrades it to the consented client configured
+// below; Decline stops it, and a stored Decline loads nothing at all. The
+// replay gate is created in the `loaded` callback but starts only with
+// consent (isPostHogLoaded is false for the cookieless client).
+import { isPostHogLoaded, startPostHog } from "@/lib/posthog-loader";
 import {
 	createReplayGate,
 	isReplayPath,
 	maskNetworkRequest,
 	pathnameOf,
+	type ReplayControls,
+	type ReplayGate,
 } from "@/lib/replay-gate";
+import { installViewTransitionGuard } from "@/lib/view-transition-guard";
+
+// Before PostHog (or React) can observe VT abort rejections: serialize
+// startViewTransition and swallow only the benign abort class.
+installViewTransitionGuard();
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-const replay = createReplayGate(posthog);
+// Created once PostHog has loaded; it starts a recording only with consent.
+let replay: ReplayGate | null = null;
 
 if (KEY) {
-	posthog.init(KEY, {
-		// Same-origin proxy — see the CSP note above.
-		api_host: "/ingest",
-		// Where the PostHog UI lives, so in-app links resolve. Note the missing
-		// "i": ingest is eu.i.posthog.com, the app is eu.posthog.com.
-		ui_host: "https://eu.posthog.com",
-		// Pinned defaults bundle, as required by PostHog.
-		defaults: "2026-01-30",
-
+	// The loader supplies the same-origin /ingest proxy (see the CSP note
+	// above), the EU UI host and the pinned "2026-01-30" defaults bundle.
+	startPostHog(KEY, {
 		// Off by default everywhere. lib/replay-gate.ts turns it on for
 		// /docs/reference/* only (see SESSION REPLAY above). Do not flip this to
 		// false: that would record every path the project settings allow.
@@ -78,20 +91,42 @@ if (KEY) {
 			maskCapturedNetworkRequestFn: maskNetworkRequest,
 		},
 
-		// The docs site is fully anonymous — it has no login, so there is never a
-		// distinct id to attach. "always" would mint a billable person row for
-		// every crawler and drive-by reader.
+		// The docs site is fully anonymous: it has no login, so there is never
+		// a distinct id to attach. "always" would mint a billable person row for
+		// every crawler and drive-by reader. This is the consented value; the
+		// loader forces "never" for the cookieless client before consent.
 		person_profiles: "identified_only",
 
-		// Client-side exception capture. The first-party ClientErrorReporter keeps
-		// its own /api/analytics send; this is the mirror half.
+		debug: process.env.NODE_ENV === "development",
+
+		// This site uploads source maps (posthog-sourcemaps), so exception
+		// traces are readable. The first-party ClientErrorReporter keeps its own
+		// /api/analytics send; this is the mirror half.
 		capture_exceptions: true,
 
-		debug: process.env.NODE_ENV === "development",
+		// Runs once, from inside posthog-js init() (cookieless or consented). It only
+		// CREATES the gate: capture is not on yet at this point (the loader opts
+		// in after init returns), so nothing starts here. The first start comes
+		// from the consent callback below, which the loader calls right after
+		// the opt-in (b119 and CodeRabbit, #5106).
+		loaded: (ph: ReplayControls) => {
+			// canStart = PostHog loaded and capture on. A start refused while
+			// consent is withdrawn (or during init) records no request, so a
+			// later sync() starts for real.
+			replay = createReplayGate(ph, isPostHogLoaded);
+			// Both orders: if posthog-js ever runs `loaded` after init returns
+			// (so after the opt-in and the consent callback, which found no
+			// gate), start here. In the synchronous order canStart is still
+			// false, so this does nothing (b119, #5106).
+			replay.sync(window.location.pathname);
+		},
+	}, (capturing) => {
+		// Capture turned on (first load or a re-allow) or off (a withdraw).
+		// The loader has already stopped any recording on a withdraw; stop()
+		// clears the gate's own flag to match.
+		if (capturing) replay?.sync(window.location.pathname);
+		else replay?.stop();
 	});
-
-	// Full page load (or hard refresh) straight onto a page.
-	replay.sync(window.location.pathname);
 } else if (process.env.NODE_ENV === "development") {
 	// Loud in dev, silent no-op in production: a missing key must never break the
 	// site, but it must also never fail silently on a developer's machine.
@@ -115,17 +150,22 @@ export function onRouterTransitionStart(url: string): void {
 	const id = ++navigation;
 
 	// Leaving the reference tree: stop NOW, before the next page renders, so
-	// none of its DOM reaches the recording.
-	if (target === null || !isReplayPath(target)) replay.stop();
+	// none of its DOM reaches the recording. No gate yet means PostHog has not
+	// loaded (declined, or still downloading), so there is nothing to stop.
+	if (target === null || !isReplayPath(target)) replay?.stop();
 
 	// Then settle against where the browser actually ended up. For a navigation
 	// into a reference page this starts replay only after the URL has committed;
-	// for a cancelled or redirected navigation it corrects course.
+	// for a cancelled or redirected navigation it corrects course. The settle
+	// runs even when there is no gate yet: if the SDK finishes loading during
+	// the navigation, `loaded` syncs the OLD page, and this settle is what
+	// reconciles the destination (Codex P2, #5098). It reads `replay` at settle
+	// time, not at navigation start.
 	const deadline = performance.now() + COMMIT_WAIT_MS;
 	const settle = () => {
 		if (id !== navigation) return;
 		if (window.location.pathname === target || performance.now() > deadline) {
-			replay.sync(window.location.pathname);
+			replay?.sync(window.location.pathname);
 			return;
 		}
 		requestAnimationFrame(settle);

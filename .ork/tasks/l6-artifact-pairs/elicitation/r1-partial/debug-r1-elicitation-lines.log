@@ -1,0 +1,41 @@
+2180:2026-10-24T02:58:16.253Z [DEBUG] MCP server "l6elicit": Elicitation request received in print mode: {"method":"elicitation/create","params":{"mode":"form","message":"Please give your color","requestedSchema":{"type":"object","properties":{"color":{"type":"string","description":"Your color"}},"required":["color"]}}}
+2199:2026-10-24T02:58:16.857Z [DEBUG] Hooks: Registering async hook async_hook_13975 (Elicitation:l6elicit) with timeout 15000ms
+2200:2026-10-24T02:58:16.857Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2228:2026-10-24T02:58:20.734Z [DEBUG] Elicitation:l6elicit [cat > $TMPDIR/l6-elicit/payload-r1-Elicitation-$$.json] completed with status 0
+2281:2026-10-24T02:58:22.137Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-guard] cancelled
+2282:2026-10-24T02:58:22.137Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.Elicitation settled in 5883.3ms (native link, next() included)
+2284:2026-10-24T02:58:22.577Z [DEBUG] Hooks: Registering async hook async_hook_17169 (ElicitationResult:l6elicit) with timeout 15000ms
+2285:2026-10-24T02:58:22.577Z [DEBUG] ElicitationResult:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2294:2026-10-24T02:58:22.682Z [DEBUG] ElicitationResult:l6elicit [cat > $TMPDIR/l6-elicit/payload-r1-ElicitationResult-$$.json] completed with status 0
+2297:2026-10-24T02:58:23.674Z [DEBUG] "Hook Elicitation:l6elicit (Elicitation) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2309:2026-10-24T02:58:28.818Z [DEBUG] ElicitationResult:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-result-logger] cancelled
+2310:2026-10-24T02:58:28.819Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.ElicitationResult settled in 6663.7ms (native link, next() included)
+2335:2026-10-24T02:58:30.220Z [DEBUG] "Hook ElicitationResult:l6elicit (ElicitationResult) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2377:2026-10-24T02:58:36.501Z [DEBUG] Hooks: Creating attachment for async_hook_13975 (Elicitation:l6elicit): {"continue":true,"suppressOutput":true}
+2378:2026-10-24T02:58:36.501Z [DEBUG] Hooks: Creating attachment for async_hook_17169 (ElicitationResult:l6elicit): {"continue":true,"suppressOutput":true}
+2507:2026-10-24T02:58:39.088Z [DEBUG] MCP server "l6elicit": Elicitation request received in print mode: {"method":"elicitation/create","params":{"mode":"form","message":"Please give your api_key","requestedSchema":{"type":"object","properties":{"api_key":[REDACTED],"description":"Your api_key"}},"required":["api_key"]}}}
+2510:2026-10-24T02:58:39.262Z [DEBUG] Hooks: Registering async hook async_hook_25218 (Elicitation:l6elicit) with timeout 15000ms
+2511:2026-10-24T02:58:39.262Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2513:2026-10-24T02:58:39.282Z [DEBUG] Elicitation:l6elicit [cat > $TMPDIR/l6-elicit/payload-r1-Elicitation-$$.json] completed with status 0
+2522:2026-10-24T02:58:42.306Z [DEBUG] "Hook Elicitation:l6elicit (Elicitation) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2523:2026-10-24T02:58:42.506Z [DEBUG] Hooks: Checking first line for async: {"continue":false,"stopReason":"Blocked: MCP server \"l6elicit\" attempted to collect \"api_key\" via an elicitation form. Secrets must not be entered into form fields exposed to the LLM context.","decision":"block","reason":"Blocked: MCP server \"l6elicit\" attempted to collect \"api_key\" via an elicitation form. Secrets
+2524:2026-10-24T02:58:42.506Z [DEBUG] Hooks: Parsed initial response: {"continue":false,"stopReason":"Blocked: MCP server \"l6elicit\" attempted to collect \"api_key\" via an elicitation form. Secrets must not be entered into form fields exposed to the LLM context.","decision":"block","reason":"Blocked: MCP server \"l6elicit\" attempted to collect \"api_key\" via an elicitation form. Secrets must 
+2526:2026-10-24T02:58:42.518Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-guard] completed with status 0
+2528:2026-10-24T02:58:42.519Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.Elicitation settled in 3430.1ms (native link, next() included)
+2529:2026-10-24T02:58:42.519Z [DEBUG] MCP server "l6elicit": Elicitation resolved by hook: {"action":"decline"}
+2570:2026-10-24T02:58:48.370Z [DEBUG] Hooks: Creating attachment for async_hook_25218 (Elicitation:l6elicit): {"continue":true,"suppressOutput":true}
+2678:2026-10-24T02:58:50.719Z [DEBUG] MCP server "l6elicit": Elicitation request received in print mode: {"method":"elicitation/create","params":{"mode":"form","message":"Please give your color","requestedSchema":{"type":"object","properties":{"color":{"type":"string","description":"Your color"}},"required":["color"]}}}
+2680:2026-10-24T02:58:50.734Z [DEBUG] Hooks: Registering async hook async_hook_36759 (Elicitation:l6elicit) with timeout 15000ms
+2681:2026-10-24T02:58:50.734Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2683:2026-10-24T02:58:51.071Z [DEBUG] Elicitation:l6elicit [cat > $TMPDIR/l6-elicit/payload-r1-Elicitation-$$.json] completed with status 0
+2690:2026-10-24T02:58:56.342Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-guard] cancelled
+2691:2026-10-24T02:58:56.342Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.Elicitation settled in 5622.3ms (native link, next() included)
+2693:2026-10-24T02:58:56.349Z [DEBUG] Hooks: Registering async hook async_hook_41773 (ElicitationResult:l6elicit) with timeout 15000ms
+2694:2026-10-24T02:58:56.349Z [DEBUG] ElicitationResult:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2696:2026-10-24T02:58:56.372Z [DEBUG] ElicitationResult:l6elicit [cat > $TMPDIR/l6-elicit/payload-r1-ElicitationResult-$$.json] completed with status 0
+2699:2026-10-24T02:58:56.600Z [DEBUG] "Hook Elicitation:l6elicit (Elicitation) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2705:2026-10-24T02:58:59.612Z [DEBUG] ElicitationResult:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-result-logger] completed with status 0
+2707:2026-10-24T02:58:59.613Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.ElicitationResult settled in 3270.6ms (native link, next() included)
+2731:2026-10-24T02:58:59.798Z [DEBUG] "Hook ElicitationResult:l6elicit (ElicitationResult) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2765:2026-10-24T02:59:06.348Z [DEBUG] Hooks: Creating attachment for async_hook_36759 (Elicitation:l6elicit): {"continue":true,"suppressOutput":true}
+2767:2026-10-24T02:59:06.348Z [DEBUG] Hooks: Creating attachment for async_hook_41773 (ElicitationResult:l6elicit): {"continue":true,"suppressOutput":true}

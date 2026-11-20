@@ -112,13 +112,32 @@ async function postBatch(url, token, lines) {
 // Main
 // ---------------------------------------------------------------------------
 
+function isHttpsUrl(url) {
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
-  const hookUrl = process.env.ORCHESTKIT_HOOK_URL;
-  const hookToken = process.env.ORCHESTKIT_HOOK_TOKEN;
+  // Resolved config (#1270): manifest userConfig (CLAUDE_PLUGIN_OPTION_*) with
+  // the ORCHESTKIT_HOOK_* env vars as fallback for existing installs.
+  const hookUrl = process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL || process.env.ORCHESTKIT_HOOK_URL;
+  const hookToken = process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN || process.env.ORCHESTKIT_HOOK_TOKEN;
 
   if (!hookUrl || !hookToken) {
     console.log('[telemetry-sync] No ORCHESTKIT_HOOK_URL or TOKEN configured. Nothing to sync.');
+    process.exit(0);
+  }
+
+  // https only, same rule as the HTTP sinks (src/lib/sink-url-policy.ts): the
+  // body is the local telemetry log and the header carries the Bearer token,
+  // so a plaintext or unparseable destination is refused before anything is
+  // read or sent. The URL itself is not printed (it may carry credentials).
+  if (!isHttpsUrl(hookUrl)) {
+    console.log('[telemetry-sync] Refusing a non-https webhook URL. Nothing sent; set an https:// URL.');
     process.exit(0);
   }
 

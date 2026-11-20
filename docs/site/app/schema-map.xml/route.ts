@@ -32,6 +32,11 @@ const FEEDS: Array<{ url: string; type: string; title: string }> = [
 		title: "MCP server card",
 	},
 	{
+		url: `${SITE.domain}/.well-known/mcp/actions-server-card.json`,
+		type: "mcp/server-card",
+		title: "OrchestKit Actions MCP server card",
+	},
+	{
 		url: `${SITE.domain}/llms-full.txt`,
 		type: "llmstxt/full",
 		title: "Full documentation in one file",

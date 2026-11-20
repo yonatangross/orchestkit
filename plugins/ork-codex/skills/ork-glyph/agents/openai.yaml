@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ork Glyph"
+  short_description: "Render compact inline diagrams and status boards."
+  default_prompt: "Use $ork-glyph to visualize the current topic or conversation."

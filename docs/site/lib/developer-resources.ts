@@ -13,11 +13,28 @@
 
 import { COUNTS } from "@/lib/constants";
 
+// The resource types orank's "Developer resource discoverability" check
+// recognizes (methodology, 2026-09-27: "API docs, OpenAPI specs, MCP server,
+// auth docs, developer portal, SDK documentation"), plus the plugin's own
+// install guide and reference, which are what a developer searches for first.
+export type DeveloperResourceKind =
+	| "API docs"
+	| "OpenAPI spec"
+	| "MCP server"
+	| "SDK documentation"
+	| "Auth docs"
+	| "Sandbox and test mode"
+	| "Install guide"
+	| "Reference docs";
+
 export type DeveloperResource = {
 	title: string;
 	desc: string;
 	href: string;
 	external?: boolean;
+	/** Set on the named, product-titled landing pages. These feed the
+	 * "Developer resources" section of /llms.txt and /llms-full.txt. */
+	kind?: DeveloperResourceKind;
 };
 
 export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
@@ -25,85 +42,138 @@ export const DEVELOPER_RESOURCES: ReadonlyArray<DeveloperResource> = [
 		title: "OrchestKit OpenAPI specification",
 		desc: "Human page for the OpenAPI 3.1 docs API spec. Machine copy at /openapi.json.",
 		href: "/openapi",
+		kind: "OpenAPI spec",
 	},
 	{
 		title: "OrchestKit MCP server",
 		desc: "How to connect the hosted Streamable HTTP server and the Docker stdio image. Transport stays at /api/mcp and /mcp.",
-		href: "/mcp-server",
+		href: "/docs/mcp",
+		kind: "MCP server",
+	},
+	{
+		title: "OrchestKit Actions MCP server",
+		desc: "Read-only product MCP: list skills, plan installs, check config fragments. Executes nothing. Endpoint /api/mcp/actions; card /.well-known/mcp/actions-server-card.json.",
+		href: "/docs/foundations/mcp-servers",
+		kind: "MCP server",
 	},
 	{
 		title: "OrchestKit SDK packages",
 		desc: "Official clients: npm CLI, PyPI orchestkit, Go module github.com/yonatangross/orchestkit/sdk.",
-		href: "/sdk",
+		href: "/docs/sdk",
+		kind: "SDK documentation",
 	},
 	{
-		title: "Documentation",
-		desc: `Install guides, concepts, and reference for all ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} hooks.`,
+		title: "OrchestKit sandbox and test mode",
+		desc: "How agents try OrchestKit with no side effects: every hosted tool is read-only (each call is a dry run), install plans execute nothing, and a scratch project holds local runs.",
+		href: "/docs/getting-started/sandbox",
+		kind: "Sandbox and test mode",
+	},
+	{
+		title: "OrchestKit plugin install and setup",
+		desc: "Install the plugin on Claude Code, Cursor, Codex, Devin, OpenCode, Muse Code, Pi or Antigravity, then configure it.",
 		href: "/docs/getting-started/installation",
+		kind: "Install guide",
 	},
 	{
-		title: "OpenAPI specification",
-		desc: "OpenAPI 3.1 description of the public, read-only docs API — search, Markdown fetch, batch, async jobs.",
+		title: "OrchestKit skills reference",
+		desc: `Reference page for each of the ${COUNTS.skills} skills: triggers, arguments, and the files each one ships.`,
+		href: "/docs/reference/skills",
+		kind: "Reference docs",
+	},
+	{
+		title: "OrchestKit agents reference",
+		desc: `Reference page for each of the ${COUNTS.agents} agents: model, tools, skills, and when to use it.`,
+		href: "/docs/reference/agents",
+		kind: "Reference docs",
+	},
+	{
+		title: "OrchestKit hooks reference",
+		desc: "Every global lifecycle hook entry, grouped by Claude Code event, with what it checks.",
+		href: "/docs/reference/hooks",
+		kind: "Reference docs",
+	},
+	{
+		title: "OrchestKit API docs (OpenAPI 3.1 JSON)",
+		desc: "OpenAPI 3.1 description of the public, read-only docs API: search, Markdown fetch, batch, async jobs.",
 		href: "/api/openapi",
+		kind: "API docs",
 	},
 	{
-		title: "MCP server (hosted, Streamable HTTP)",
+		title: "OrchestKit Docs MCP server (hosted, Streamable HTTP)",
 		desc: "Connect AI agents to the docs natively. No auth. Server card at /.well-known/mcp/server-card.json.",
 		href: "/api/mcp",
 	},
 	{
-		title: "MCP server (stdio, Docker image)",
-		desc: "Run locally: docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp — multi-arch (amd64 + arm64).",
+		title: "OrchestKit Docs MCP server (stdio, Docker image)",
+		desc: "Run locally: docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp. Multi-arch (amd64 + arm64).",
 		href: "https://github.com/yonatangross/orchestkit/pkgs/container/orchestkit-docs-mcp",
 		external: true,
 	},
 	{
-		title: "NLWeb natural-language endpoint",
+		title: "OrchestKit NLWeb natural-language endpoint",
 		desc: "POST or GET /ask with a question; JSON or SSE streaming responses (NLWeb protocol).",
 		href: "/ask?query=what+is+orchestkit",
 	},
 	{
-		title: "CLI (npm)",
+		title: "OrchestKit CLI (npm)",
 		desc: "orchestkit, the official CLI: install, search, ask, read, mcp, doctor. Zero deps, Node >= 20. Run it with npx orchestkit or npx ork.",
 		href: "https://www.npmjs.com/package/orchestkit",
 		external: true,
 	},
 	{
-		title: "Python package (PyPI)",
+		title: "OrchestKit Python package (PyPI)",
 		desc: "orchestkit: docs API client. orchestkit-hook-contract: typed hook I/O schemas.",
 		href: "https://pypi.org/project/orchestkit/",
 		external: true,
 	},
 	{
-		title: "Authentication policy",
-		desc: "The API is public and anonymous-only — auth.md states it in the WorkOS auth.md shape, with RFC 9728 PRM.",
+		title: "OrchestKit auth docs",
+		desc: "The API is public and anonymous-only; auth.md states it in the WorkOS auth.md shape, with RFC 9728 PRM.",
 		href: "/auth.md",
+		kind: "Auth docs",
 	},
 	{
-		title: "API versioning & deprecation policy",
+		title: "OrchestKit API versioning and deprecation policy",
 		desc: "Versioning scheme, RFC 8594 Deprecation/Sunset headers, and the 6-month sunset guarantee.",
 		href: "/api-policy.md",
 	},
 	{
-		title: "llms.txt",
-		desc: "Machine-readable site index for AI agents — canonical description, use cases, and resource map.",
+		title: "OrchestKit llms.txt",
+		desc: "Machine-readable site index for AI agents: canonical description, use cases, and resource map.",
 		href: "/llms.txt",
 	},
 	{
-		title: "API catalog (RFC 9727)",
+		title: "OrchestKit API catalog (RFC 9727)",
 		desc: "Linkset of every discoverable API surface at /.well-known/api-catalog.",
 		href: "/.well-known/api-catalog",
 	},
 	{
-		title: "Source code (GitHub)",
+		title: "OrchestKit source code (GitHub)",
 		desc: "MIT-licensed monorepo: plugin source, hooks, MCP server, docs site, and CI.",
 		href: "https://github.com/yonatangross/orchestkit",
 		external: true,
 	},
 	{
-		title: "MCP registry entry",
-		desc: "io.github.yonatangross/orchestkit on the official Model Context Protocol registry — republished every release.",
+		title: "OrchestKit MCP registry entry",
+		desc: "io.github.yonatangross/orchestkit on the official Model Context Protocol registry, republished every release.",
 		href: "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit",
 		external: true,
 	},
 ];
+
+/** The named landing pages, in list order: one per recognized resource type
+ * (plus the three reference indexes). Each title carries the product name. */
+export const NAMED_DEVELOPER_RESOURCES = DEVELOPER_RESOURCES.filter(
+	(r): r is DeveloperResource & { kind: DeveloperResourceKind } => r.kind !== undefined,
+);
+
+/** "- [title](href): kind. desc" lines for llms.txt-style indexes. `base`
+ * makes site-relative hrefs absolute (llms-full.txt is often read detached). */
+export function developerResourceLines(base = ""): string[] {
+	return [
+		`- [OrchestKit developer portal](${base}/developers): Developer portal. One page linking every resource below; Markdown twin at ${base}/developers.md.`,
+		...NAMED_DEVELOPER_RESOURCES.map(
+			(r) => `- [${r.title}](${r.external ? r.href : `${base}${r.href}`}): ${r.kind}. ${r.desc}`,
+		),
+	];
+}

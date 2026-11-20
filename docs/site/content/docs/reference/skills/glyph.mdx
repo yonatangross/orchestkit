@@ -1,6 +1,6 @@
 ---
 title: "Glyph"
-description: "Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask. Not for definitions, conceptual explanations, or one-sentence and one-paragraph asks; those have no shape to draw. For a full multi-artifact plan playground, use visualize-plan instead."
+description: "Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, comparisons, rankings, pipelines or show-me-visually asks. Not for definitions. For a full plan playground, use visualize-plan."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
@@ -11,7 +11,7 @@ description: "Render an answer as ASCII art plus semantic emojis inline, right n
 
 <ContextualSkillSidebar slug="glyph" />
 
-> **Glyph** Render an answer as ASCII art plus semantic emojis inline, right now, with no setup questions: one render per reply, up to about 50 lines, verdict first. Use for any answer with shape: status, inventories, audits, budgets, comparisons, rankings, pipelines, 'what is using X', or any ad-hoc 'show me X visually' ask.
+> **Glyph** Renders an answer as inline ASCII art with emojis, verdict first, one render per reply. Use for status, inventories, comparisons, rankings, pipelines or show-me-visually asks. Not for definitions. For a full plan playground, use visualize-plan.
 
 ## Examples
 
@@ -27,9 +27,11 @@ any more and glyph hands off to a page instead.
 | Pick | Options | Default | It escalates when |
 |---|---|---|---|
 | **audience** | operator (dense, internal names allowed) or novice (plain words, an analogy first) | operator | you name a reader who is not you ("for Nir", "explain to the client", "eli5") |
-| **surface** | chat (inline, one render up to ~50 lines) or page (a served HTML explainer) | chat | the drawing needs more than ~50 lines, or it has to persist, or you asked for a file |
+| **surface** | chat (inline, one render up to ~50 lines), ask (one question, 2 to 4 options) or page (a served HTML explainer) | chat | ask: a real fork must be settled first; page: the drawing needs more than ~50 lines, or it has to persist, or you asked for a file |
 
-Both picks are announced in one line before the render, so you can override with a word.
+Both picks are announced in one line before the render (`→ chat · operator`), so you can
+override with a word or a flag. See every mode side by side on the
+[output modes page](/docs/guides/output-modes).
 
 ### The reference render: an inventory
 
@@ -130,11 +132,19 @@ is a mock-up.
 ```bash
 /ork:glyph                  # draw where the conversation is right now
 /ork:glyph <topic>          # one thing: an inventory, a comparison, a state
-/ork:glyph --eli5 <topic>   # novice audience, and a page if it needs one
-/glyph                      # the front door: same dials, may route to page
+/ork:glyph --eli5 <topic>   # novice audience; a page unless you name a surface
+/ork:glyph --chat --eli5    # novice audience, kept inline
+/ork:glyph --ask <topic>    # one question with 2 to 4 options, then the picked branch
+/ork:glyph --page <topic>   # a served page
+/ork:glyph --decide <topic> # a DECIDE block, or a decision page with real controls
+/ork:glyph --signoff        # end with: Accept done | Show me the evidence | Not satisfied
 ```
 
-What it will never do: ask you a setup question, use a status emoji that is not in its
+A personal skill you named `glyph` stays `/glyph` and is a different skill; plugin
+skills always carry the `ork:` prefix, so the two never collide.
+
+What it will never do: ask you a setup question (the ask surface and `--signoff` ask
+about your work, never about format), use a status emoji that is not in its
 closed set (done, failed, warning, in progress, waiting, idea, hard block, goal, top
 priority, doc, agent, hook, caveat, and the three risk colours), put a domain icon
 anywhere but the leading column of a row, or stack two renders in one reply. Over about
@@ -158,17 +168,20 @@ Render the answer as ASCII art plus semantic emojis, inline, immediately. All ou
 ## Execution (run this, do not ask first)
 
 **A human asking "how do I use this" gets a URL, not a paraphrase:**
-https://orchestkit.yonyon.ai/docs/reference/skills/glyph#examples (what it draws,
+https://orchestkit.dev/docs/reference/skills/glyph#examples (what it draws,
 the two picks, three real renders, the exact invocation; generated from this
 skill's `examples/_featured.md`, so it cannot drift from the skill).
 
 The whole point is speed, so there is no setup phase.
 
+**Already loaded means render, not hand off.** Once this file is loaded, draw the answer here. Do not call the Skill tool for `glyph`, `/glyph`, or `/ork:glyph`. A second invocation loads a skill again and re-runs the planning step. The 2026-09-15 Devin transcript showed "Invoked skill glyph" then "Invoked skill ork:glyph", one render stacked on another. Whether that re-entry is also why the Thoughts text repeated is not verified here; do not re-enter either way. The front door does not delegate. A user may have a personal skill also named `glyph` (`/glyph`); it lives in a separate namespace, may call this skill for its chat route, and is never called from here (`references/dials.md`, "Personal skills named glyph").
+
 **With no argument, the topic is the current conversation.** Measured over a real 13-prompt session: zero asks supplied a self-contained topic, and the one direct invocation passed nothing at all. `glyph` on its own means "render where we are right now": the open work, the decision just reached, the state of the thing being discussed. Render that; do not ask what to draw.
 
 Given a topic (or the conversation, when none is given):
 
-1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format, do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
+0. **Resolve the two dials, then announce them in one line.** Surface is chat, ask or page (default chat); audience is operator or novice (default operator). A flag beats inference: `--chat`, `--ask`, `--page`, `--eli5`, `--decide`, `--signoff`. Print exactly `→ chat · operator` (surface, then audience) and a blank line before the answer. Inference rules, the ask guardrail and the `--decide` shapes: `Read("references/dials.md")`.
+1. **Render immediately.** Do NOT call `AskUserQuestion` to pick a format (the ask surface and `--signoff` are the only questions this skill asks), do NOT call `TaskCreate`, do NOT spawn an `Agent`. Choose the form yourself from the topic shape and draw it. Asking first defeats the skill.
 2. **Pick the form from the shape of the data**, using the pattern library below:
 
    | Topic shape | Form |
@@ -180,18 +193,25 @@ Given a topic (or the conversation, when none is given):
    | containment, layers, layout | nested boxes / tree |
    | ranked list, scores, counts | table + bar meters |
    | over time | sparkline or milestone track |
+   | triage open issues, what is left, categorize the backlog | **triage page** (`templates/triage.html`). Not an inline render. |
+   | explainer page, NOW vs IDEAL, "show it moving" (page route only) | **JS art piece** on the page (`references/js-art.md`). Chat stays ASCII. |
 
-3. **Emit inline in the reply.** Never write a file unless the user asked for one. This is a chat answer, not an artifact.
+3. **Emit inline in the reply, except the triage page.** Never write a file unless the user asked for one. The triage row above is the exception: that answer is `templates/triage.html`, not an inline render. Every other answer stays in the reply.
 4. **Use the closed status set, the domain-icon legend and the box-drawing vocabulary** defined in `rules/visual-style.md` (shipped with this skill) and `tokens.json` (`icons.*`). Status icons pair with a word (✅ done, ❌ failed, ⚠️ warning, 🔴 high risk, ℹ️ caveat). Domain icons (🐳 docker, 📦 package, 🧪 test, ...) go one per row in the leading column so they scan as a legend; never inside a prose sentence, never in chains.
 5. **Stay inside the budget: ONE render per reply, up to about 50 lines, every line 76 cells or fewer.** Two competing renders in one reply is flooding. Above 50 lines it is a page, not a chat answer. The 2026-08-09 budget (12 lines, 40 percent) over-corrected and was reset by operator word on 2026-09-17; the history is in `rules/visual-style.md`.
 6. **Verdict first, then the render, then what the numbers told me.** One prose line states the point before the render. After the render, two or three bold-led bullets say what is not obvious from the chart. If the reader has to parse the render to find out what happened, the reply failed.
 7. **Stay honest.** If a number is unknown, print `?` rather than inventing one. A confident-looking chart built on guesses is worse than prose.
-8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and `scripts/render-ascii.sh key-value` renders the narrow form of the same data (GH-4159).
+8. **Match the width to the host.** A render that fits a terminal wraps into a wall in a host that reflows text: CI logs, chat widgets, VS Code chat, web transcripts, agent desktops. Read the surface from the environment the same way you already infer audience and surface: with a terminal (TTY), render as below; without one, cap every diagram line at 72 columns, and render key/value or comparison data as one narrow table or a vertical list, never side-by-side columns. The line budget does not change. Measured failure the rule prevents: a side-by-side key/value board for 5 rows lands at 113 columns, and the narrow form of the same data fits in 72 (GH-4159; the OrchestKit repo keeps a reference renderer for it, render-ascii.sh, which does not ship with the plugin).
 
-**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or anything needing file output, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline.
+**When NOT to use this skill:** if the deliverable is a multi-section HTML playground, a persisted plan artifact, or any file output other than the triage page, use `visualize-plan` instead. Glyph is the cheap inline path; visualize-plan is the full pipeline. The triage page stays here.
 
-**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve &lt;path&gt;` (a port-free `https://&lt;name&gt;.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
 
+**Triage is a page, every time.** Asks shaped like "triage open issues", "what is left", or "categorize this for me" use `templates/triage.html` and no other layout. This overrides the inline-only rule and the visualize-plan handoff: the page is glyph's, then `/page-serve PATH`. Fill issues from one snapshot, `gh issue list --state open --json number,title,labels,milestone`. Put every gh-sourced string in the hidden snapshot textarea as one base64 blob of the JSON, not as raw JSON and not in the lane markup or the raw dump. A title that contains `</textarea` must never appear as raw markup inside that textarea, or it breaks out before escapeHtml runs. The page decodes the blob, then calls escapeHtml when it inserts each lane item and the raw dump, so a title stays literal text. The open-PRs tile is not in that snapshot. Fill it from `gh pr list --state open --json number`, and if that command was not run print `?`, never a guessed count. Keep the six parts in order: KPI strip, lanes, a route tag on every issue (`devin`, `ork:NAME`, `hq-ext`, `21st-dev`, `human`, `external`), capability map, DECIDE block, collapsed raw snapshot. Hand the file over with `/page-serve PATH`. Never paste a bare path. The copy button must emit `wave=LANE followups=CSV`. When no follow-up is checked, that is `followups=` with nothing after the equals, never `followups=0`.
+
+**Over budget is the same signal.** If the honest rendering needs more than ~50 lines, that is not a bigger chat answer, it is a different deliverable: write the playground or file, then hand the human a URL with `/page-serve PATH` (a port-free `https://<name>.localhost/` route, with a stop) instead of a bare file path or a hand-started `python3 -m http.server`. Keep a 10-line excerpt in chat next to the URL. The old escape hatch fired on artifact TYPE only, so an over-budget inline reply never tripped it.
+
+
+**JS art is for pages; chat stays ASCII.** When the answer is already a page (an explainer, a NOW vs IDEAL plan), the page carries one animated piece above its first beat: an inline `<canvas>`, a Now/Ideal toggle, a Play/Pause button, and a text alt on the canvas. Build it from `references/js-art.md`: paste one pattern (flow dots, gate, before/after meter, or real-data bars from a JSON array in the page), then the kernel. `draw(ctx, t, mode)` is pure, so `window.seek(t)` can capture any frame to mp4 or gif; `prefers-reduced-motion` gets one still frame and no animation loop; no `Math.random`, no network. A piece that shows measured numbers draws `?` for a value you do not have. Never put JS art in a chat reply.
 
 ## Render anatomy (the v3 reference shape)
 
@@ -201,7 +221,6 @@ part only when the data has nothing for it. The full template with the
 column widths is `templates/inventory.md`; the worked example is in
 `examples/_featured.md`.
 
-&lt;!-- ascii-lint-disable: density-min --&gt;
 ```
 🖥️  MACINTOSH HD  ·  /System/Volumes/Data              header: icon, subject
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]                                 headline meter
@@ -242,7 +261,6 @@ This block intentionally shows multiple sets together as a key. Authors
 should use ONE set per real diagram; the `single-set` lint rule enforces
 this on production diagrams.
 
-&lt;!-- ascii-lint-disable: single-set,single-arrow-style,density-min --&gt;
 ```
 default:   ┌─┐ │ └─┘  ├─┤ ┬ ┴ ┼
 emphasis:  ┏━┓ ┃ ┗━┛  ┣━┫ ┳ ┻ ╋
@@ -375,8 +393,8 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Rule | Description |
 |------|-------------|
 | Font | Always monospace; box-drawing requires fixed-width |
-| Weight | Standard for normal, Heavy for emphasis, Double for titles |
-| Arrows | `─>`, `──>`, or `│` with `v`/`^` for direction |
+| Weight | `default` for normal, `emphasis` for focus, `title` for titles |
+| Arrows | `──▶` for flow; `->` or `│` with `v`/`^` in the `portable` set |
 | Alignment | Right-pad labels to match column widths |
 | Annotations | `!!` for risk, `**` for new, `[A/M/D]` for change type |
 | Width | 76 cells or fewer in a terminal; at most 72 per line in a non-TTY surface, as one narrow table or vertical list (GH-4159) |
@@ -396,7 +414,16 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 | Progress bars | Status tracking, completion metrics |
 | Inventory render | Disk, spend, backlog, dependency audits; anything with sections and totals |
 
+## Done sign-off (`--signoff`)
+
+With `--signoff`, the render is the last thing before the gate: lead with any failure,
+then ask the one sign-off question from `Read("../../shared/rules/done-signoff.md")`
+with its three labels unchanged ("Accept done", "Show me the evidence", "Not
+satisfied"). In a non-interactive run, print the verdict and skip the question.
+
 ## Related Skills
+
+- `verify`: grades the work, then ends with the same done sign-off
 
 - `brainstorm`: Design exploration where diagrams communicate ideas
 - `architecture-patterns`: System architecture that benefits from ASCII diagrams
@@ -412,14 +439,14 @@ Phase 4  [........????????]  IRREVERSIBLE        (drop column)
 
 ## ASCII Architecture Visualization Patterns
 
-**Incorrect — flat text descriptions:**
+**Incorrect, flat text descriptions:**
 ```
 The system has a frontend that talks to a backend API which uses
 a database and a cache layer. There's also a message queue for
 async processing.
 ```
 
-**Correct — layered architecture diagram:**
+**Correct, layered architecture diagram:**
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Load Balancer                      │
@@ -497,7 +524,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
 
 ## ASCII Diagram Fundamentals
 
-**Incorrect — inconsistent characters and alignment:**
+**Incorrect, inconsistent characters and alignment:**
 ```
 +-------+    +-------+
 | Frontend | -> | Backend |
@@ -508,7 +535,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
           +--------+
 ```
 
-**Correct — proper box-drawing characters with alignment:**
+**Correct, proper box-drawing characters with alignment:**
 ```
 Box-Drawing Characters:
 ┌─┐│└─┘  Standard weight
@@ -570,7 +597,7 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
 
 | Rule | Description |
 |------|-------------|
-| Font | Always monospace — box-drawing characters require fixed-width |
+| Font | Always monospace, box-drawing characters require fixed-width |
 | Weight | Standard (─│) for normal, Heavy (━┃) for emphasis |
 | Arrows | Use ─>, ──>, or │ with v/^ for direction |
 | Alignment | Right-pad labels to match column widths |
@@ -604,7 +631,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ▓▒░     fill: high/med/low          decoration
 ```
 
-### Incorrect — generic decoration
+### Incorrect: generic decoration
 
 ```
 * Build passed
@@ -612,7 +639,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 - Linter clean
 ```
 
-### Correct — semantic glyphs
+### Correct: semantic glyphs
 
 ```
 ✓ Build passed
@@ -620,7 +647,7 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ✓ Linter clean
 ```
 
-### Anti-pattern — repurposing a semantic for decoration
+### Anti-pattern: repurposing a semantic for decoration
 
 ```
 ✓ Item 1
@@ -628,17 +655,17 @@ GLYPH   SEMANTIC                    DON'T USE FOR
 ✓ Item 3
 ```
 
-A list of items isn't passing/failing — `✓` is reserved for pass/completed
+A list of items isn't passing/failing, `✓` is reserved for pass/completed
 states. Use `●` for active items and `○` for inactive/pending ones, or
 plain `-` for an unmarked list.
 
-### Anti-pattern — mixing semantically-loaded glyphs with decoration
+### Anti-pattern: mixing semantically-loaded glyphs with decoration
 
 ```
 ■  Phase 1   ✓  Phase 2   ◉  Phase 3
 ```
 
-`■` and `◉` are not in the vocabulary — they read as decoration. Pick
+`■` and `◉` are not in the vocabulary, they read as decoration. Pick
 exactly one glyph from the table above per slot:
 
 ```
@@ -673,7 +700,6 @@ thin table.
 
 ## Anatomy of a render (the reference shape)
 
-&lt;!-- ascii-lint-disable: density-min --&gt;
 ```
 🖥️  MACINTOSH HD  ·  /System/Volumes/Data
 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░]
@@ -748,7 +774,6 @@ Domain icons are chat-only; the PR-body validator does not admit them.
 Use these character sets only; it keeps rendering predictable across
 terminals, GitHub, and CI logs.
 
-&lt;!-- ascii-lint-disable: single-set --&gt;
 ```
 Box drawing:  ┌─┐ │ ┘─└   (light)
               ╔═╗ ║ ╝═╚   (heavy, reserve for top-level section headers)
@@ -763,10 +788,14 @@ or any character that requires a non-default monospace font.
 
 ## Triggering
 
-- The `visual-style-nudge` hook fires on every qualifying prompt. It means "if
-  this answer has shape, render it", not "draw something every turn".
+- The `visual-style-nudge` hook is opt-in (`ORK_VISUAL_STYLE_NUDGE=1`). When on,
+  it fires on qualifying prompts and means "if this answer has shape, render
+  it", not "draw something every turn".
 - `/ork:glyph` is the reference implementation; use it unprompted whenever
-  rule 1 applies.
+  rule 1 applies. Once it is loaded, render in place and
+  do not invoke the other name (`glyph`, `/glyph`, `/ork:glyph`): a second
+  invocation re-enters a skill instead of drawing (GH-4159). A personal
+  `/glyph` is a separate skill.
 - "Where do we stand / what's next" always gets a render plus ranked next
   steps.
 
@@ -822,7 +851,7 @@ bytes.
 
 - **Allowed:** one emoji per H2 heading.
 - **Forbidden:** ASCII boxes, multi-line diagrams, decorative dividers.
-  Extract to `docs/&lt;topic&gt;.md` with a one-line pointer.
+  Extract to `docs/<topic>.md` with a one-line pointer.
 
 ### ✅ PR bodies
 
@@ -891,7 +920,431 @@ mitigation; reject PRs that add status glyphs outside the list.
 
 ---
 
-## References (1)
+## References (3)
+
+### Dials
+
+# Glyph dials: surface and audience
+
+Glyph picks two things before it draws. Both have a default, both can be inferred
+from the request, and a flag always beats inference.
+
+|              | **chat** (inline)        | **ask** (one question)          | **page** (served file)        |
+|--------------|--------------------------|---------------------------------|-------------------------------|
+| **operator** | dense render, internal names allowed | options side by side, a pick unblocks the next step | KPI strip, charts, raw evidence below a fold |
+| **novice**   | plain words, analogy first | same fork, plain words         | explainer: one idea per beat, consequence cards |
+
+## The announce line
+
+Print exactly one line, then a blank line, then the answer:
+
+```
+→ chat · operator
+```
+
+The surface comes first, then the audience. Nothing else on that line: no "I will
+now", no restated request. For the ask surface, the audience in the announce line is
+the person who answers the question (the operator), even when the artifact that
+follows is written for a novice.
+
+## Flags
+
+| Flag | Effect |
+|---|---|
+| `--chat` | Surface chat. One render, up to about 50 lines, 76 cells wide. |
+| `--ask` | Surface ask. One `AskUserQuestion`, 2 to 4 options, then render the picked branch. |
+| `--page` | Surface page. Read references/page-route.md first; never overwrite an existing file. Write the HTML (Write is not pre-approved, so the user approves each file) and hand it over with `/ork:page-serve PATH`. |
+| `--eli5` | Audience novice, and page unless a surface flag is given. The bare word "eli5" in the request acts the same. |
+| `--decide` | The answer is a decision. Chat: a DECIDE block. Page: a decision beat with real controls. |
+| `--signoff` | After the render, run the done sign-off gate from `../../shared/rules/done-signoff.md`. |
+
+Flags combine: `/ork:glyph --chat --eli5` is a plain-word chat render;
+`/ork:glyph --ask --eli5 --signoff` asks the fork, renders the pick for a novice,
+then asks for sign-off.
+
+## Inference when no flag is given
+
+**Audience** defaults to operator. Pick novice when the request:
+
+- says "eli5" or "explain like",
+- names a reader who is not the operator ("for the client", "explain to Nir",
+  "for onboarding"),
+- asks what a thing is or how it works in general ("how does OAuth work" is novice;
+  "is our OAuth broken" is operator).
+
+**The eli5 rule, settled.** eli5 (the flag or the word) sets novice, and eli5 also picks page
+unless a surface flag (`--chat`, `--ask`, `--page`) is given: `--chat --eli5` stays inline. The
+other novice triggers (a named reader, a "how does X work" question) set the audience only; the
+surface is then chosen by the table below, so a short plain-word answer stays in chat.
+
+Novice means: a one-clause gloss for every term, no internal file or host names
+unless defined on the spot, an analogy before the mechanism. It does not mean less
+accurate.
+
+**Surface** defaults to chat. Escalate only on a real trigger:
+
+| Pick | When |
+|---|---|
+| chat | The honest render fits one render of about 50 lines. The common case. |
+| ask | There is a real 2 to 4 way fork that must be settled before the next step. |
+| page | Over about 50 lines, or it must persist (a client deliverable, a doc to link), or a file was asked for. |
+
+## The ask guardrail
+
+`AskUserQuestion` blocks until someone answers. Use it only when the pick changes
+what happens next, never as a nicer way to print a list.
+
+- Each option may carry a `preview` (monospace, shown beside the list). On Claude
+  Code 2.1.291 the arrow keys moved the highlight with previews on (tested
+  2026-10-06, one tester). Earlier builds lost arrow keys in preview mode
+  (`brainstorm/SKILL.md`, "Picker fallback"), so keep each preview short and
+  never put the only copy of a fact in it.
+- With `ORK_ASK_FALLBACK=text` set, ask the same options as a numbered text list.
+- After the answer, render the picked branch. Do not ask again.
+
+## --decide
+
+Chat form, plain text so it can be copied:
+
+```
+DECIDE: <one-line question>
+( ) option A, <one-line consequence>
+( ) option B, <one-line consequence>   <- recommended, because <one clause>
+after you pick:
+[ ] <step that follows>
+```
+
+Page form: one decision beat per fork with real radio controls, a consequence beside
+each option, and one answer bar whose copy button stays disabled until every fork has
+a pick. If a dedicated decision-page skill is listed in the session (for example
+`hq-ext:decision`), hand the page to it; if none is listed, use the decision beat in
+`templates/explainer.html` and say so in one clause.
+
+## Personal skills named glyph
+
+A user may also have a personal skill named `glyph` (invoked as `/glyph`). Claude Code
+keeps personal skills and plugin skills in separate namespaces, so `/glyph` and
+`/ork:glyph` do not collide. A personal front door may call `ork:glyph` for its chat
+route; that call lands here, and the flags above apply. This skill never calls a
+skill named glyph in return.
+
+
+### Js Art
+
+# JS art: the moving piece on a glyph page
+
+Chat stays ASCII. A glyph **page** that explains a change (an explainer, a NOW vs
+IDEAL plan, "show it moving") carries one small animated piece: an inline
+`<canvas>` driven by a pure timeline function. This file is the contract and
+four patterns to start from (three drawn, one from real numbers). It is the page half of `/ork:glyph`: the
+page route in `src/skills/glyph/references/page-route.md` sends NOW vs IDEAL
+pages here, and the live demo of all four is the OrchestKit Lab entry
+`glyph-js-art-patterns`. `tests/unit/test-glyph-js-art.mjs` runs every
+`js` block below in node with a stub canvas, so a pattern that breaks the
+contract fails CI.
+
+## The contract
+
+| Part | Rule |
+|---|---|
+| `draw(ctx, t, mode)` | Pure. Same `t` and `mode` draw the same frame. It reads no clock, no `Math.random`, no state that a previous frame left. |
+| `LOOP`, `HERO_T` | Loop length in seconds, and the one frame that tells the story best. |
+| `CAPTION` | `{ now, ideal }`: one sentence per mode, plain words, at most 12 words. |
+| `ALT` | One sentence (at most 25 words) that says what the piece shows. The kernel puts `ALT` plus the current caption on the canvas `aria-label`, so a screen reader hears the piece, not "image". |
+| Real numbers | A piece that shows measured data reads it from a JSON array in the page (pattern 4). An unknown value is `null` and draws as `?`, never as a guessed bar. |
+| `window.seek(t)` | Pauses and draws frame `t`. A capture script steps it to make an mp4 or gif. |
+| `window.setMode(m)` | `'now'` or `'ideal'`. The toggle buttons carry `aria-pressed`. |
+| Reduced motion | `prefers-reduced-motion: reduce` draws `HERO_T` once and never calls `requestAnimationFrame`. The toggle still works. |
+| Pause | A Play/Pause button, so motion is never forced on the reader. `pause()` cancels the queued frame by its id. `tick` also returns when `playing` is false, as a second stop. The flag alone is not enough: Play before that frame fires would start a second animation chain. |
+| Randomness | `rng(seed)` (seeded) at the top level of the pattern, never inside `draw`. |
+| Page | Self-contained: no network, no CDN, light paper colors from `C`, no em dash. |
+
+Why pure: a piece that keeps state between frames (positions it moves by `dt`,
+a `Math.random` per frame) cannot jump to frame `t`. Then it cannot be
+captured frame by frame, and two screenshots of "the same" page differ.
+
+**Incorrect** (state plus randomness, cannot seek):
+
+```text
+x += speed * dt;  if (Math.random() < 0.5) badge = 'b';
+```
+
+**Correct** (position is a function of t):
+
+```text
+x = 40 + ((t / LOOP + i / N) % 1) * (w - 80);
+```
+
+## Page skeleton
+
+One piece per page, above the first beat. The pattern goes first in the
+script, the kernel after it, because the kernel reads `LOOP`, `HERO_T`,
+`ALT`, `CAPTION` and `draw`.
+
+```html
+<figure class="art">
+  <div role="group" aria-label="Compare">
+    <button data-mode="now" aria-pressed="true">Now</button>
+    <button data-mode="ideal" aria-pressed="false">Ideal</button>
+    <button id="art-play">Pause</button>
+  </div>
+  <canvas id="art" width="960" height="320" role="img"
+          aria-label="Animated comparison of now and ideal"></canvas>
+  <figcaption id="art-caption"></figcaption>
+</figure>
+<!-- pattern 4 only: the real numbers, one row per item. Write "<" in a
+     string as \u003c so the JSON can never close this script tag. -->
+<script type="application/json" id="art-data">
+  [{ "label": "review", "now": 14, "ideal": 3 }]
+</script>
+<script>
+  /* 1. one pattern block from below */
+  /* 2. the kernel block */
+</script>
+```
+
+## The kernel (paste once, after the pattern)
+
+```js
+// js-art kernel. Reads LOOP, HERO_T, ALT, CAPTION and draw() from the pattern.
+const C = { ink: '#1a1a1a', muted: '#6b6b6b', line: '#e2e2e2',
+  accent: '#2f6f4e', warn: '#b45309', stop: '#b91c1c' };
+const cv = document.getElementById('art');
+const ctx = cv.getContext('2d');
+const still = !!(window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const playBtn = document.getElementById('art-play');
+let mode = 'now';
+let playing = false;
+let frameId = 0; // the one queued animation frame; pause() cancels it
+let last = HERO_T;
+
+function rng(seed) { // mulberry32: same seed, same sequence
+  return function () {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let r = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function render(t) {
+  last = ((t % LOOP) + LOOP) % LOOP;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  draw(ctx, last, mode);
+}
+function label() { if (playBtn) playBtn.textContent = playing ? 'Pause' : 'Play'; }
+function play() {
+  if (still) { render(HERO_T); return; } // reduced motion: one still frame
+  cancelAnimationFrame(frameId); // never two chains: drop any queued frame
+  playing = true;
+  label();
+  const start = performance.now() - last * 1000;
+  frameId = requestAnimationFrame(function tick(now) {
+    if (!playing) return; // second stop, if a cancel is ever missed
+    render((now - start) / 1000);
+    frameId = requestAnimationFrame(tick);
+  });
+}
+function pause() {
+  cancelAnimationFrame(frameId); // a frame queued before the pause never runs
+  playing = false;
+  label();
+}
+
+window.seek = function (t) { pause(); render(t); };
+window.setMode = function (m) {
+  mode = m;
+  for (const b of document.querySelectorAll('[data-mode]')) {
+    b.setAttribute('aria-pressed', String(b.dataset.mode === m));
+  }
+  const cap = document.getElementById('art-caption');
+  if (cap) cap.textContent = CAPTION[m];
+  cv.setAttribute('aria-label', ALT + ' ' + CAPTION[m]);
+  render(last);
+};
+for (const b of document.querySelectorAll('[data-mode]')) {
+  b.addEventListener('click', () => window.setMode(b.dataset.mode));
+}
+if (playBtn) {
+  playBtn.hidden = still;
+  playBtn.addEventListener('click', () => (playing ? pause() : play()));
+}
+window.setMode('now');
+play();
+```
+
+## Pattern 1: flow dots
+
+Items travel along a path. Spacing and speed carry the message: in NOW they
+bunch up at the start, in IDEAL they move at one even pace.
+
+```js
+const LOOP = 8;
+const HERO_T = 3.2;
+const ALT = 'Twelve dots travel left to right along one line.';
+const CAPTION = {
+  now: 'Now: work moves in bursts and piles up at the start.',
+  ideal: 'Ideal: work moves at one steady pace.',
+};
+const N = 12;
+const DRAG = Array.from({ length: N }, (_, i) => rng(7 + i)());
+
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const y = ctx.canvas.height / 2;
+  ctx.strokeStyle = C.line;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w - 40, y); ctx.stroke();
+  for (let i = 0; i < N; i++) {
+    const phase = (t / LOOP + i / N) % 1;
+    const p = mode === 'now' ? Math.pow(phase, 1 + DRAG[i] * 2) : phase;
+    ctx.fillStyle = mode === 'now' ? C.warn : C.accent;
+    ctx.beginPath(); ctx.arc(40 + p * (w - 80), y, 8, 0, Math.PI * 2); ctx.fill();
+  }
+}
+```
+
+## Pattern 2: gate
+
+Items arrive at a gate and wait until it opens. In NOW the gate opens once,
+late, for a short time (a person checks by hand), and the line grows. In
+IDEAL it checks each item as it arrives. Each item's place is computed from
+`t` alone: its arrival time and the first open window after it.
+
+```js
+const LOOP = 10;
+const HERO_T = 6;
+const ALT = 'Dots arrive at a gate, wait in a line while it is red, and pass when it is green.';
+const CAPTION = {
+  now: 'Now: the gate opens only when someone checks by hand.',
+  ideal: 'Ideal: the gate checks each item as it arrives.',
+};
+const N = 10;
+const GAP = 0.25;    // seconds between two items through the gate
+const TRAVEL = 2;    // seconds from the gate to the right edge
+const OPEN = { now: [[7, 8.5]], ideal: [[0, LOOP]] };
+
+function passTime(arrive, prev, mode) {
+  const ready = Math.max(arrive, prev + GAP);
+  for (const [a, b] of OPEN[mode]) if (ready < b) return Math.max(ready, a);
+  return Infinity; // still waiting when the loop ends
+}
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const y = ctx.canvas.height / 2;
+  const gx = w / 2;
+  const open = OPEN[mode].some(([a, b]) => t >= a && t < b);
+  ctx.fillStyle = open ? C.accent : C.stop;
+  ctx.fillRect(gx - 4, y - 40, 8, 80);
+  let prev = -Infinity;
+  let waiting = 0;
+  for (let i = 0; i < N; i++) {
+    const arrive = i * 0.6;
+    const pass = passTime(arrive, prev, mode);
+    prev = pass;
+    if (t < arrive) continue;
+    let x;
+    if (t < pass) { x = gx - 24 - waiting * 20; waiting++; }
+    else x = gx + 24 + ((t - pass) / TRAVEL) * (w / 2 - 64);
+    if (x > w - 20) continue;
+    ctx.fillStyle = t < pass ? C.warn : C.accent;
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = C.muted;
+  ctx.font = '16px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText('waiting: ' + waiting, 40, 40);
+}
+```
+
+## Pattern 3: before/after meter
+
+The same scene in two modes, so the toggle is the whole explanation. In NOW
+the bar rises and falls back (work redone), in IDEAL it fills once and stays.
+
+```js
+const LOOP = 6;
+const HERO_T = 4.5;
+const ALT = 'One progress bar that shows how much of the work is done.';
+const CAPTION = {
+  now: 'Now: half the work is redone, so the bar never fills.',
+  ideal: 'Ideal: done once, the bar fills and stays full.',
+};
+
+function level(t, mode) {
+  const u = t / LOOP;
+  if (mode === 'ideal') return Math.min(1, u * 1.25);
+  return 0.1 + 0.35 * Math.abs(Math.sin(2 * Math.PI * u));
+}
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const v = level(t, mode);
+  ctx.fillStyle = C.line;
+  ctx.fillRect(40, h / 2 - 20, w - 80, 40);
+  ctx.fillStyle = mode === 'now' ? C.warn : C.accent;
+  ctx.fillRect(40, h / 2 - 20, (w - 80) * v, 40);
+  ctx.fillStyle = C.ink;
+  ctx.font = '600 18px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText(Math.round(v * 100) + ' % done', 40, h / 2 - 32);
+}
+```
+
+## Pattern 4: real-data bars
+
+The operator wants pieces built from real numbers, not only synthetic dots.
+The data sits in the page as a JSON array (see the skeleton), one row per
+item, both modes in the same unit. Bars grow in, then hold, so the capture
+still has motion. Fill the array from the command that measured it, and keep
+`null` for a value you do not have: it draws `?` and no bar.
+
+```js
+const DATA = JSON.parse(document.getElementById('art-data').textContent);
+const LOOP = 6;
+const HERO_T = 5;
+const ALT = 'Bar chart of hours per step, now against ideal, from the numbers in this page.';
+const CAPTION = {
+  now: 'Now: hours each step takes today.',
+  ideal: 'Ideal: hours each step takes after the change.',
+};
+const MAX = Math.max(1, ...DATA.flatMap((d) => [d.now, d.ideal]).filter((v) => typeof v === 'number'));
+
+function draw(ctx, t, mode) {
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const grow = Math.min(1, t / 1.5); // grow in, then hold
+  const row = (h - 40) / Math.max(1, DATA.length);
+  const track = w - 280;
+  ctx.font = '15px ui-sans-serif, system-ui, sans-serif';
+  DATA.forEach((d, i) => {
+    const y = 20 + i * row;
+    const v = d[mode];
+    const known = typeof v === 'number';
+    const bw = known ? track * (v / MAX) * grow : 0;
+    ctx.fillStyle = C.ink;
+    ctx.fillText(String(d.label), 40, y + row / 2 + 5);
+    ctx.fillStyle = C.line;
+    ctx.fillRect(180, y + row * 0.2, track, row * 0.6);
+    ctx.fillStyle = mode === 'now' ? C.warn : C.accent;
+    ctx.fillRect(180, y + row * 0.2, bw, row * 0.6);
+    ctx.fillStyle = C.muted;
+    ctx.fillText(known ? String(v) : '?', 190 + bw, y + row / 2 + 5);
+  });
+}
+```
+
+## Capture to mp4 or gif
+
+Because `draw` is pure, a headless browser can step `window.seek(i / fps)`
+for `i` in `0 .. LOOP * fps` and screenshot the canvas each step; `ffmpeg`
+joins the frames. No screen recording, no dropped frames, and the same
+input always gives the same file.
+
+## Before you call it done
+
+Same rule as `page-route.md` section 4: open the page, look at it in both
+modes and with reduced motion on, and read the pixels. A test that runs the
+script proves the contract, not that the piece explains anything.
+
 
 ### Page Route
 
@@ -920,12 +1373,12 @@ Only when the kit is absent does `templates/explainer.html` in this skill apply.
 
 | Topic is about | Write to |
 |---|---|
-| how we build / ship / test | `docs/playgrounds/dev/&lt;slug&gt;-explainer.html` |
-| servers, CI, deploys, cost | `docs/playgrounds/infra/&lt;slug&gt;-explainer.html` |
-| a named client or prospect | `clients/&lt;clientSlug&gt;/playgrounds/&lt;slug&gt;-explainer.html` |
-| the business, money, billing | `docs/playgrounds/ops/&lt;slug&gt;-explainer.html` |
-| design, UI, brand | `docs/playgrounds/design/&lt;slug&gt;-explainer.html` |
-| marketing, content, social | `docs/playgrounds/marketing/&lt;slug&gt;-explainer.html` |
+| how we build / ship / test | `docs/playgrounds/dev/<slug>-explainer.html` |
+| servers, CI, deploys, cost | `docs/playgrounds/infra/<slug>-explainer.html` |
+| a named client or prospect | `clients/<clientSlug>/playgrounds/<slug>-explainer.html` |
+| the business, money, billing | `docs/playgrounds/ops/<slug>-explainer.html` |
+| design, UI, brand | `docs/playgrounds/design/<slug>-explainer.html` |
+| marketing, content, social | `docs/playgrounds/marketing/<slug>-explainer.html` |
 
 Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline is both "how we ship" and "servers"), prefer `dev` when the reader cares about the process and `infra` when they care about the machines.
 
@@ -940,6 +1393,7 @@ Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline 
 - **Every beat ends in a consequence AND a do-nothing line.** A picture of a gate with lamps is not an explanation until the reader knows what happens and what happens if nothing is done. Two side-by-side cards under the drawing, "What it means" and "If we do nothing" (the second styled as a warning), ≤ 12 words each, in the reader's terms.
 - **≤ 20 words per beat** (the two consequence lines are extra), 4 to 6 beats total. More than six means split the topic.
 - **One idea per beat**, and the visual carries it, not the caption.
+- **A NOW vs IDEAL or "how it moves" page carries one JS art piece** above the first beat, built from `js-art.md` in this folder (pure `draw(ctx, t, mode)`, `seek(t)`, reduced-motion still frame, text alt). The beats below still carry the words.
 - **If the topic IS a decision, the page carries the controls.** One decision block per fork: radio group, consequence column beside each option, checkboxes for the follow-ups the pick unlocks. ONE sticky bottom answer bar collects every block into a fixed-width `key: value` summary the agent can parse, reports `N/M chosen`, and keeps "copy my answers" DISABLED until every block has a pick, so a half-answered page cannot be pasted back as if complete. Clipboard needs a select-and-Cmd+C fallback (`navigator.clipboard` is denied in some contexts). A page that only pictures the options is a poster; the decision still happens somewhere else, which defeats the page. Source the controls from a component library or house kit when one is reachable; the template's built-in block is the floor so every decision page looks the same, not the ceiling.
 - **Plain words inside the diagram too.** Visual labels are where insider language leaks most: check names, branch names and service names as chart labels are a FAIL for a novice page.
 - **No leftover template markers.** The baseline ships bare `TITLE` / `DATE`; none may survive into the emitted file.
@@ -951,11 +1405,11 @@ Slug is kebab-case from the topic. If a topic straddles two rows (a CI pipeline 
 
 Operator feedback, three rounds in one evening across four pages ("how didn't you verify it yourself, as part of glyph"). These are normative for every page route.
 
-1. **Screenshot and read the pixels before claiming done.** Verify scripts, SVG counts and DOM probes are blind to layout and collision defects; a numeric gate that passes is not a render that looks right. Serve the page via portless (`portless alias &lt;name&gt; &lt;port&gt;` in front of a static server; URL `https://&lt;name&gt;.localhost/...`, never a `:port`), open it with `agent-browser --cdp &lt;port&gt; --no-pin-tab` (a pinned session dies with `tab_gone` after tab churn), take viewport screenshots at several scroll positions, and READ the images. Not computer-use. Never open `file://` in the operator's live browser window with a forced viewport: it lands as a squished window on their screen. If no browser path works from your session, hand the URL to a peer with one and wait for the measured verdict; do not report done on a page you have not seen.
+1. **Screenshot and read the pixels before claiming done.** Verify scripts, SVG counts and DOM probes are blind to layout and collision defects; a numeric gate that passes is not a render that looks right. Serve the page via portless (`portless alias <name> <port>` in front of a static server; URL `https://<name>.localhost/...`, never a `:port`), open it with `agent-browser --cdp <port> --no-pin-tab` (a pinned session dies with `tab_gone` after tab churn), take viewport screenshots at several scroll positions, and READ the images. Not computer-use. Never open `file://` in the operator's live browser window with a forced viewport: it lands as a squished window on their screen. If no browser path works from your session, hand the URL to a peer with one and wait for the measured verdict; do not report done on a page you have not seen.
 2. **Two CDP traps.** (a) `screenshot --full` over CDP can stitch a tile mosaic (hero repeated per tile, sticky bars stamped into each) rather than one page; take viewport shots at scroll positions instead. (b) with `--no-pin-tab`, a later `eval` or `screenshot` targets whatever tab is ACTIVE in that Chrome; after `open`, re-target explicitly or verify the page title in the result before trusting a capture. A PASS on the wrong page is the worst false positive of all.
-3. **RTL in SVG.** Under `dir=rtl`, SVG `&lt;text&gt;` runs RTL from its anchor with no bidi isolation: Hebrew phrases, punctuation AND digit groups flip or spill. Hebrew goes in HTML captions, never SVG text. Numbers that must stay in-SVG use `text-anchor="middle" direction="ltr"`. Single-word Hebrew labels survive only while they stay single words, center-anchored, with a warning comment beside them.
+3. **RTL in SVG.** Under `dir=rtl`, SVG `<text>` runs RTL from its anchor with no bidi isolation: Hebrew phrases, punctuation AND digit groups flip or spill. Hebrew goes in HTML captions, never SVG text. Numbers that must stay in-SVG use `text-anchor="middle" direction="ltr"`. Single-word Hebrew labels survive only while they stay single words, center-anchored, with a warning comment beside them.
 4. **What "richer than prose" meant when it was accepted.** Semantic emoji in tab labels, headings, card titles and list leads; a KPI strip under the hero; a sticky tab bar with hash routing when the page has more than one view; several real diagrams per page. Hex colors only inside any diagram library's class definitions (hsl is a known bug in one of them). Never inline a multi-megabyte diagram bundle; it hung a renderer and read as "broken".
-5. **Kit markup gotchas seen in the wild.** A meter is `span.name / div.track > div.fill / span.val`; a `<span>&lt;i&gt;&lt;b&gt;` shape renders no bar. Keep `.val` strings short. A pill is a TAG, not a form control: radios, checkboxes and buttons need real control markup or the page reads as "ugly and broken".
+5. **Kit markup gotchas seen in the wild.** A meter is `span.name / div.track > div.fill / span.val`; a `<span><i><b>` shape renders no bar. Keep `.val` strings short. A pill is a TAG, not a form control: radios, checkboxes and buttons need real control markup or the page reads as "ugly and broken".
 
 ## 5. Reference pages that passed all rounds
 

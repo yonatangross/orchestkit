@@ -1,0 +1,8 @@
+{
+  "slug": "fix-devin-triggers-frontmatter",
+  "source": "docs/fix--devin-triggers-frontmatter/index.html",
+  "title": "Devin now loads all 107 skills",
+  "description": "Issue #4147: Devin's plugin loader silently dropped the 31 skills with object-shaped triggers frontmatter, listing 76 of 107. The build now strips triggers from the generated copy only; live install verified 107 skills.",
+  "tags": ["build", "plugins", "devin", "frontmatter"],
+  "date": "2026-09-19"
+}

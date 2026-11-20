@@ -49,12 +49,23 @@ afterEach(() => {
   }
 });
 
-function makeBashInput(command: string, output: string, sessionId = 'sid-test'): HookInput {
+// CC's real PostToolUse Bash payload carries `tool_response` as
+// {stdout, stderr, interrupted}; `tool_output` is a legacy alias nothing sends.
+// Feeding tool_output here would hide a hook that reads the wrong field.
+function makeBashInput(
+  command: string,
+  output: string | { stdout: string; stderr: string; interrupted: boolean },
+  sessionId = 'sid-test',
+): HookInput {
+  const tool_response =
+    typeof output === 'string'
+      ? { stdout: output, stderr: '', interrupted: false }
+      : output;
   return {
     tool_name: 'Bash',
     session_id: sessionId,
     tool_input: { command } as Record<string, unknown>,
-    tool_output: output,
+    tool_response,
   };
 }
 
@@ -180,7 +191,12 @@ describe('sessionHeartbeatPublisher', () => {
       testCtx,
     );
     sessionHeartbeatPublisher(
-      makeBashInput('git push origin feat/x', ' * [new branch]      feat/x -> feat/x'),
+      makeBashInput('git push origin feat/x', {
+        stdout: '',
+        // git push reports ref updates on stderr, not stdout.
+        stderr: ' * [new branch]      feat/x -> feat/x',
+        interrupted: false,
+      }),
       testCtx,
     );
     const state = readStateFor();

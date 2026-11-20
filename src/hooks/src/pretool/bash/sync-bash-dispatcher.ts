@@ -21,6 +21,7 @@ import { outputSilentSuccess, outputWithUpdatedInput, logHook, extractContext } 
 
 // Import consolidated hook implementations
 import { networkEgressGuard } from './network-egress-guard.js';
+import { npmCiSymlinkGuard } from './npm-ci-symlink-guard.js';
 import { unifiedBashAdvisoryDispatcher } from './unified-advisory-dispatcher.js';
 
 // Phase 0: Headless deferral (merged from separate hooks.json group — #optimization)
@@ -68,6 +69,10 @@ const BASH_HOOKS: BlockingHookConfig[] = [
   // 2026-09-06 (#3877): CC 2.1.263 ran `curl | sh` from an allowlisted host with
   // nothing intervening; see shared/rules/cc-native-first.md.
   { name: 'network-egress-guard', fn: networkEgressGuard },
+  // npm ci through a symlinked node_modules empties the linked (main) tree.
+  // dangerous-command-blocker denied it until #3841; a deny rule cannot see
+  // the symlink, so this guard checks it and denies only that case.
+  { name: 'npm-ci-symlink-guard', fn: npmCiSymlinkGuard },
   // Phase 2: Git/GH enforcement (previously separate process spawns + new)
   { name: 'issue-reference-checker', fn: issueReferenceChecker },
   { name: 'gh-label-enforcer', fn: ghLabelEnforcer },
@@ -158,16 +163,20 @@ function buildMergedResult(
  * 3. unified-advisory-dispatcher (context + input modifier)
  *
  * On first block: SHORT-CIRCUIT immediately.
- * On pass: merge additionalContext and updatedInput from all hooks.
+ * On pass: merge additionalContext; apply each updatedInput on top of the
+ * previous one and pass the result to the next hook.
  */
 export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   const systemMessages: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
+  // Each hook sees the input as rewritten by the hooks before it, so a later
+  // modifier (default-timeout-setter) cannot undo an earlier one (gh-label-enforcer).
+  let currentInput = input;
 
   for (const hook of BASH_HOOKS) {
     try {
-      const result = hook.fn(input, ctx);
+      const result = hook.fn(currentInput, ctx);
 
       if (!result.continue) {
         ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
@@ -191,7 +200,11 @@ export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
       }
 
       if (result.hookSpecificOutput?.updatedInput) {
-        updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
+        updatedInput = {
+          ...currentInput.tool_input,
+          ...(result.hookSpecificOutput.updatedInput as Record<string, unknown>),
+        };
+        currentInput = { ...currentInput, tool_input: updatedInput };
         ctx.log(HOOK_NAME, `${hook.name}: updatedInput collected`);
       }
 

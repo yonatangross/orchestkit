@@ -107,7 +107,7 @@ describe('prefill-guard', () => {
   describe('model detection', () => {
     test('skips guard when not running on Opus model', () => {
       // Arrange
-      process.env.CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+      process.env.CLAUDE_MODEL = 'claude-sonnet-5-5';
       const input = createHookInput();
 
       // Act

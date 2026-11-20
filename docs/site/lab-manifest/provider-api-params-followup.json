@@ -1,0 +1,8 @@
+{
+  "slug": "provider-api-params-followup",
+  "source": "docs/fix--provider-api-params-followup/provider-api-followup.html",
+  "title": "Provider API follow-up fixes",
+  "description": "The two commits that landed on fix/provider-api-params after #4381 merged: retired and wrong Gemini model IDs replaced, and four provider claims tightened to what their sources actually say.",
+  "tags": ["models", "providers", "audit"],
+  "date": "2026-09-23"
+}

@@ -38,8 +38,8 @@
 # fields) is parsed.
 #
 # Any future test that parses rsync output must prove itself on both dialects:
-# macOS dry-run output is silent without -v and the banner wording differs,
-# which #4079 proved on CI GNU rsync.
+# For #4079, CI verified the GNU rsync half. A local macOS openrsync run
+# verified the macOS half, including dry-run silence and banner wording.
 # =============================================================================
 
 set -uo pipefail

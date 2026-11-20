@@ -27,10 +27,11 @@ import { outputSilentSuccess, outputSessionStartContext } from '../lib/common.js
 import { NOOP_CTX } from '../lib/context.js';
 import { writeWithRetry } from '../lib/session-registry.js';
 import { resolveRunningCC } from './cc-version-check.js';
+import { computeRulesHash, RULES_HASH_EMPTY } from '../lib/rules-hash.js';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HOOK_NAME = 'lifecycle/session-registrar';
@@ -132,22 +133,78 @@ function getWorktreePath(cwd: string, repoPath: string): string | null {
   }
 }
 
-/** Best-effort read of the OrchestKit package version. */
-function getOrkVersion(): string | null {
-  try {
-    const __filename = fileURLToPath(import.meta.url);
-    // Walk up from src/hooks/dist/lifecycle/... to find the nearest package.json
-    // with name "@orchestkit/hooks" or skip if we can't find it.
-    const here = __filename;
-    // Hooks ship as bundled .mjs — package.json sits next to dist/.
-    // Conservative: just return null when not resolvable.
-    const pkgPath = join(here, '..', '..', '..', 'package.json');
-    const raw = readFileSync(pkgPath, 'utf8');
-    const j = JSON.parse(raw) as { version?: string };
-    return j.version ?? null;
-  } catch {
-    return null;
+type OrkVersionResult = { ok: true; version: string; manifest: string } | { ok: false; reason: string };
+
+/** Value stored in sessions.ork_version when no plugin manifest resolves. */
+const ORK_VERSION_UNRESOLVED = 'ork_version_unresolved';
+
+/**
+ * Directories walked above the bundle. Installed: hooks/dist/lifecycle.mjs is 2
+ * levels under the plugin root. Source tree (tests): src/hooks/src/lifecycle/
+ * is 4 levels under the repo root, whose plugin.json carries the same version.
+ */
+const MANIFEST_WALK_LEVELS = 5;
+
+/**
+ * Resolve the OrchestKit version from the plugin manifest above the running
+ * bundle: `.claude-plugin/plugin.json` first, then `plugin.json`, nearest
+ * directory wins.
+ *
+ * Was: `package.json` three levels above the bundle, error swallowed into
+ * NULL. The installed root has no package.json there (only hooks/package.json,
+ * version 1.0.0, which is not the plugin version), so ork_version was NULL on
+ * every row. A failure is now returned with its reason, never as a version.
+ */
+function getOrkVersion(fromFile: string = fileURLToPath(import.meta.url)): OrkVersionResult {
+  let dir = dirname(fromFile);
+  const tried: string[] = [];
+  for (let level = 0; level <= MANIFEST_WALK_LEVELS; level++) {
+    for (const candidate of [join(dir, '.claude-plugin', 'plugin.json'), join(dir, 'plugin.json')]) {
+      if (!existsSync(candidate)) continue;
+      tried.push(candidate);
+      try {
+        const j = JSON.parse(readFileSync(candidate, 'utf8')) as { version?: unknown };
+        if (typeof j.version === 'string' && j.version.trim()) {
+          return { ok: true, version: j.version.trim(), manifest: candidate };
+        }
+      } catch {
+        /* unparsable manifest: keep walking, it is listed in the reason */
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
+  return {
+    ok: false,
+    reason: tried.length
+      ? `no version in ${tried.join(', ')}`
+      : `no plugin.json within ${MANIFEST_WALK_LEVELS} levels above ${fromFile}`,
+  };
+}
+
+/** The two stamp fields for one session row, each a value or an explicit error token. */
+interface SessionStamp {
+  ork_version: string;
+  rules_hash: string;
+}
+
+/**
+ * Compute the session stamp. Fails loud: an unresolved manifest or an empty
+ * rule set is stored as its error token and logged as one line, never NULL.
+ */
+function computeStamp(
+  ctx: HookContext,
+  opts: { bundleFile?: string; claudeDir?: string } = {},
+): SessionStamp {
+  const ork = getOrkVersion(opts.bundleFile);
+  if (!ork.ok) ctx.log(HOOK_NAME, `${ORK_VERSION_UNRESOLVED}: ${ork.reason}`);
+  const rules = computeRulesHash(opts.claudeDir);
+  if (!rules.ok) ctx.log(HOOK_NAME, `${RULES_HASH_EMPTY}: ${rules.reason}`);
+  return {
+    ork_version: ork.ok ? ork.version : ORK_VERSION_UNRESOLVED,
+    rules_hash: rules.ok ? rules.hash : RULES_HASH_EMPTY,
+  };
 }
 
 /**
@@ -216,7 +273,8 @@ function register(
     branch: string | null;
     now: number;
     cc_version: string | null;
-    ork_version: string | null;
+    ork_version: string;
+    rules_hash: string;
     messaging_socket: string | null;
   },
 ): void {
@@ -224,11 +282,11 @@ function register(
     `INSERT INTO sessions (
        sid, pid, cwd, repo_hash, repo_path, worktree_path, branch,
        status, started_at, last_heartbeat, cc_version, ork_version,
-       messaging_socket
+       rules_hash, messaging_socket
      ) VALUES (
        @sid, @pid, @cwd, @repo_hash, @repo_path, @worktree_path, @branch,
        'running', @now, @now, @cc_version, @ork_version,
-       @messaging_socket
+       @rules_hash, @messaging_socket
      )
      ON CONFLICT(sid) DO UPDATE SET
        pid              = excluded.pid,
@@ -239,8 +297,10 @@ function register(
        branch           = excluded.branch,
        status           = 'running',
        last_heartbeat   = excluded.last_heartbeat,
+       ended_at         = NULL,
        cc_version       = excluded.cc_version,
        ork_version      = excluded.ork_version,
+       rules_hash       = excluded.rules_hash,
        messaging_socket = excluded.messaging_socket`,
   ).run(row);
 }
@@ -348,7 +408,7 @@ export function sessionRegistrar(
   const branch = getBranch(cwd);
   const nowSec = Math.floor(Date.now() / 1000);
   const ccVersion = getCcVersion(input);
-  const orkVersion = getOrkVersion();
+  const stamp = computeStamp(ctx);
 
   let peers: PeerRow[] = [];
   try {
@@ -366,7 +426,8 @@ export function sessionRegistrar(
         branch,
         now: nowSec,
         cc_version: ccVersion,
-        ork_version: orkVersion,
+        ork_version: stamp.ork_version,
+        rules_hash: stamp.rules_hash,
       });
       // Peer-collision detection (#2242) runs in the same txn so it observes the
       // just-swept state. Self-excluded via sid; safe cases return [] (no query).
@@ -389,6 +450,9 @@ export const __internals = {
   register,
   getRepoPath,
   getCcPid,
+  getOrkVersion,
+  computeStamp,
+  ORK_VERSION_UNRESOLVED,
   isPeerLive,
   findPeers,
   formatPeerWarning,

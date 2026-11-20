@@ -30,6 +30,7 @@
  * @see https://github.com/yonatangross/orchestkit/issues/4233
  */
 
+import { TYPESAFE_KEY_ENV, resolveTypesafeKey } from './jev-key.js';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
@@ -38,9 +39,13 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  linkSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { basename, join } from 'node:path';
+import type { HookInput } from '../types.js';
+import { safeIdentifier } from './safe-fs.js';
 import defaults from './route-judgment.defaults.json';
 import { getSessionStorageDir } from './paths.js';
 import {
@@ -60,8 +65,7 @@ export const ROUTE_FLOOR_ENV = 'ORK_ROUTE_JEV_FLOOR';
 export const ROUTE_DAILY_TOKENS_ENV = 'ORK_ROUTE_JEV_DAILY_TOKENS';
 export const ROUTE_ENDPOINT_ENV = 'ORK_ROUTE_JEV_ENDPOINT';
 export const ROUTE_TIMEOUT_ENV = 'ORK_ROUTE_JEV_TIMEOUT_MS';
-/** The one key variable, shared with the other two Jev lanes. Never logged, never written. */
-export const TYPESAFE_KEY_ENV = 'ORK_TYPESAFE_API_KEY';
+export { TYPESAFE_KEY_ENV, resolveTypesafeKey } from './jev-key.js';
 
 export const ROUTE_MODEL = defaults.model;
 export const ROUTE_ENDPOINT = defaults.endpoint;
@@ -95,7 +99,10 @@ export function resolveRouteMode(env: NodeJS.ProcessEnv = process.env): RouteMod
 export function resolveRouteConfig(env: NodeJS.ProcessEnv = process.env): RouteConfig {
   return {
     mode: resolveRouteMode(env),
-    floor: numberEnv(env, ROUTE_FLOOR_ENV, defaults.floor),
+    floor: (() => {
+      const value = numberEnv(env, ROUTE_FLOOR_ENV, defaults.floor);
+      return value <= 1 ? value : defaults.floor;
+    })(),
     timeoutMs: numberEnv(env, ROUTE_TIMEOUT_ENV, defaults.timeout_ms),
     endpoint: (env[ROUTE_ENDPOINT_ENV] || '').trim() || defaults.endpoint,
     model: defaults.model,
@@ -104,11 +111,6 @@ export function resolveRouteConfig(env: NodeJS.ProcessEnv = process.env): RouteC
     dailyTokens: numberEnv(env, ROUTE_DAILY_TOKENS_ENV, defaults.daily_tokens),
     tripHours: defaults.trip_hours,
   };
-}
-
-export function resolveTypesafeKey(env: NodeJS.ProcessEnv = process.env): string | null {
-  const key = (env[TYPESAFE_KEY_ENV] || '').trim();
-  return key || null;
 }
 
 // ---------------------------------------------------------------------------
@@ -204,18 +206,44 @@ export function clientTokensFromNames(names: string[]): string[] {
 
 /** Read `<projectDir>/clients/`. A project without one is the common case, not an error. */
 export function readClientDirNames(projectDir: string): string[] {
+  return readClientNamesIn(join(projectDir, 'clients'));
+}
+
+/** Directory names inside a clients dir; a missing dir yields none. */
+export function readClientNamesIn(clientsDir: string): string[] {
   try {
-    return readdirSync(join(projectDir, 'clients'), { withFileTypes: true })
-      .filter((e) => e.isDirectory())
-      .map((e) => e.name);
+    return readClientNamesInStrict(clientsDir);
   } catch {
     return [];
   }
 }
 
+/**
+ * Directory names inside a clients dir. Errors propagate so replay scripts can
+ * reject a bad `--clients-dir` instead of treating it as an empty list.
+ */
+export function readClientNamesInStrict(clientsDir: string): string[] {
+  return readdirSync(clientsDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+}
+
 export function buildClientPattern(tokens: string[]): RegExp | null {
   if (tokens.length === 0) return null;
   return new RegExp(`\\b(?:${tokens.map(escapeRegExp).join('|')})\\b`, 'gi');
+}
+
+/** Profile of a redaction with no client tokens. */
+export const REDACTION_PROFILE_NONE = 'none';
+
+/**
+ * Identifies which client tokens a prompt was redacted with, so a replay can
+ * rebuild the same pattern (#4239): sha256 of the sorted token list, or
+ * `none` when there are no tokens. Carries no client name.
+ */
+export function redactionProfile(tokens: string[]): string {
+  if (tokens.length === 0) return REDACTION_PROFILE_NONE;
+  return sha256([...tokens].sort().join('\n'));
 }
 
 export interface Redaction {
@@ -348,6 +376,11 @@ function num(v: unknown): number | null {
   return null;
 }
 
+/** A routing gate accepts only a JSON number in the closed probability range. */
+function probability(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
+}
+
 function noul(answer: unknown): number | null {
   if (typeof answer !== 'object' || answer === null) return null;
   const a = answer as Record<string, unknown>;
@@ -389,7 +422,7 @@ export function parseRouteAnswer(body: unknown): RouteAnswer | null {
     typeof usage === 'object' && usage !== null ? num((usage as Record<string, unknown>).input_tokens) : null;
   return {
     intent,
-    confidence: num(ia.confidence),
+    confidence: probability(ia.confidence),
     probabilities,
     worktree: noul(all.needs_worktree),
     browser: noul(all.needs_browser),
@@ -576,6 +609,9 @@ export function postRouteRequestSync(
   } catch {
     return { ok: false, error: 'malformed child reply', status: null, latencyMs };
   }
+  if (!reply || typeof reply !== 'object' || Array.isArray(reply)) {
+    return { ok: false, error: 'malformed child reply', status: null, latencyMs };
+  }
   if (typeof reply.error === 'string') return { ok: false, error: reply.error, status: null, latencyMs };
   const status = num(reply.status) ?? 0;
   if (status < 200 || status >= 300) return { ok: false, error: `http ${status}`, status, latencyMs };
@@ -593,6 +629,13 @@ export function postRouteRequestSync(
 export type DecidedBy = 'jev' | 'table' | 'off' | 'budget' | 'egress';
 
 export interface RouteVerdict {
+  session_id?: string;
+  prompt_id?: string;
+  incumbent_pick?: string | null;
+  tool_use_id?: string | null;
+  incumbent_model?: string;
+  /** Actual observed incumbent pick, never inferred from decided_by. */
+  incumbent_intent?: RouteIntent | null;
   decided_by: DecidedBy;
   intent: RouteIntent | null;
   conf: number | null;
@@ -607,12 +650,21 @@ export interface RouteVerdict {
   redacted: number;
   flag: RouteMode;
   input_sha256: string | null;
+  /** Client token profile the hashed prompt was redacted with (#4239). */
+  redaction_profile: string | null;
   /** The executor the top class maps to, or null when the class has none. */
   target: RouteTarget | null;
   error: string | null;
 }
 
 export interface RouteJudgmentOptions {
+  /**
+   * Shared runtime correlation token, never derived from timestamps. Required
+   * for live recording. Offline evaluators set `record: false` and may omit it.
+   */
+  promptId?: string;
+  /** Supply only an independently observed incumbent classification. */
+  incumbentIntent?: RouteIntent;
   prompt: string;
   sessionId: string;
   projectDir: string;
@@ -628,10 +680,14 @@ export interface RouteJudgmentOptions {
 }
 
 interface Prepared {
+  sessionId: string;
+  promptId?: string;
+  incumbentIntent: RouteIntent | null;
   config: RouteConfig;
   env: NodeJS.ProcessEnv;
   apiKey: string;
   built: BuiltRequest;
+  redactionProfile: string;
   sessionDir: string;
   dataDir: string;
   now: () => number;
@@ -655,6 +711,7 @@ function baseVerdict(config: RouteConfig, decidedBy: DecidedBy, extra: Partial<R
     redacted: 0,
     flag: config.mode,
     input_sha256: null,
+    redaction_profile: null,
     target: null,
     error: null,
     ...extra,
@@ -671,21 +728,47 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const sessionDir = routeSessionDir(opts.sessionId, opts.projectDir, env);
   const dataDir = routeDataDir(opts.projectDir, env);
   const at = now();
+  const hasPromptId = typeof opts.promptId === 'string' && opts.promptId.trim().length > 0;
 
+  // A live request without its runtime token cannot be joined to the router
+  // that made the eventual executor choice. Do not infer or persist a row in
+  // that case. Replay tooling remains explicitly offline with record:false.
+  if (record && config.mode !== 'off' && !hasPromptId) {
+    return { verdict: baseVerdict(config, 'table', {
+      session_id: opts.sessionId,
+      error: 'missing prompt_id',
+      incumbent_intent: opts.incumbentIntent ?? null,
+    }) };
+  }
+  const openingTurn = !existsSync(sessionDir);
+  if (record && config.mode !== 'off' && opts.promptId) {
+    try {
+      mkdirSync(sessionDir, { recursive: true });
+      publishOnce(`${correlationStem(sessionDir, opts.promptId)}.active`, { promptId: opts.promptId });
+    } catch { /* fail open */ }
+  }
+
+  const early = (decidedBy: DecidedBy, error: string): { verdict: RouteVerdict } => {
+    const verdict = baseVerdict(config, decidedBy, { session_id: opts.sessionId, prompt_id: opts.promptId, error, incumbent_intent: opts.incumbentIntent ?? null });
+    if (record) appendRouteRecord(sessionDir, verdict, at);
+    return { verdict };
+  };
   if (config.mode === 'off') return { verdict: baseVerdict(config, 'off') };
   const apiKey = resolveTypesafeKey(env);
-  if (!apiKey) return { verdict: baseVerdict(config, 'table', { error: 'no key' }) };
+  if (!apiKey) return early('table', 'no key');
   if (isTripped(dataDir, at, config.tripHours)) {
-    return { verdict: baseVerdict(config, 'budget', { error: 'tripped' }) };
+    return early('budget', 'tripped');
   }
   if (readBudgetTokens(dataDir, at) >= config.dailyTokens) {
-    return { verdict: baseVerdict(config, 'budget', { error: 'daily tokens' }) };
+    return early('budget', 'daily tokens');
   }
 
   const clientNames = opts.clientNames ?? readClientDirNames(opts.projectDir);
-  const clientPattern = buildClientPattern(clientTokensFromNames(clientNames));
+  const clientTokens = clientTokensFromNames(clientNames);
+  const clientPattern = buildClientPattern(clientTokens);
+  const profile = redactionProfile(clientTokens);
   const built = buildRouteRequest(opts.prompt, {
-    openingTurn: !existsSync(sessionDir),
+    openingTurn,
     repo: basename(opts.projectDir || ''),
     config,
     clientPattern,
@@ -693,23 +776,30 @@ function prepare(opts: RouteJudgmentOptions): { verdict: RouteVerdict } | { prep
   const leak = egressScan(built.request, clientPattern);
   if (leak) {
     const verdict = baseVerdict(config, 'egress', {
+      session_id: opts.sessionId,
+      prompt_id: opts.promptId,
       error: `egress ${leak}`,
       redacted: built.redacted,
       input_sha256: built.inputSha256,
+      redaction_profile: profile,
     });
     if (record) appendRouteRecord(sessionDir, verdict, at);
     return { verdict };
   }
-  return { prepared: { config, env, apiKey, built, sessionDir, dataDir, now, log, record } };
+  return { prepared: { sessionId: opts.sessionId, promptId: opts.promptId, incumbentIntent: opts.incumbentIntent ?? null, config, env, apiKey, built, redactionProfile: profile, sessionDir, dataDir, now, log, record } };
 }
 
 /** Parse, floor, budget, record. */
 function settle(p: Prepared, result: TransportResult): RouteVerdict {
   const at = p.now();
   const common: Partial<RouteVerdict> = {
+    session_id: p.sessionId,
+    prompt_id: p.promptId,
+    incumbent_intent: p.incumbentIntent,
     latency_ms: Math.round(result.latencyMs),
     redacted: p.built.redacted,
     input_sha256: p.built.inputSha256,
+    redaction_profile: p.redactionProfile,
   };
   let verdict: RouteVerdict;
   if (!result.ok) {
@@ -765,12 +855,95 @@ export function routeJudgmentSync(opts: RouteJudgmentOptions): RouteVerdict {
 }
 
 // ---------------------------------------------------------------------------
+// Replay join (#4239)
+// ---------------------------------------------------------------------------
+
+export interface ReplayJoin<R> {
+  verdicts: Map<string, R>;
+  /** Profile the replay redacted with, from the supplied client names. */
+  profile: string;
+  /** Set when the replay is refused; `verdicts` is then empty. */
+  error: string | null;
+}
+
+/**
+ * Join seam records to replay cases on the sha256 of the redacted prompt.
+ * The cases are redacted with the supplied client names, so a record whose
+ * prompt carried a client token joins. Records that predate the profile
+ * field (null) count as profile none, so they join with modern none rows and
+ * refuse when the supplied clients give another profile. A replay is refused
+ * when the records mix profiles, or when their profile differs from the
+ * supplied clients.
+ */
+export function joinReplayRecords<R extends { input_sha256?: string | null; redaction_profile?: string | null }>(
+  records: R[],
+  cases: Array<{ id: string; text: string }>,
+  opts: { clientNames: string[]; maxPromptChars: number },
+): ReplayJoin<R> {
+  const tokens = clientTokensFromNames(opts.clientNames);
+  const profile = redactionProfile(tokens);
+  const verdicts = new Map<string, R>();
+  const joinable = records.filter((r) => typeof r.input_sha256 === 'string' && r.input_sha256);
+  // Legacy null and explicit none are the same profile for join checks.
+  const recorded = new Set(
+    joinable.map((r) => (r.redaction_profile == null ? REDACTION_PROFILE_NONE : r.redaction_profile)),
+  );
+  if (recorded.size > 1) {
+    return { verdicts, profile, error: `records mix redaction profiles (${[...recorded].map(String).sort().join(', ')}); replay one profile at a time` };
+  }
+  const [only] = recorded;
+  if (typeof only === 'string' && only !== profile) {
+    return {
+      verdicts,
+      profile,
+      error:
+        only === REDACTION_PROFILE_NONE
+          ? `records carry no redaction profile (legacy or none), the supplied clients give ${profile}; pass no clients or the list the records were made with`
+          : `records carry redaction profile ${only}, the supplied clients give ${profile}; pass the clients list or dir the records were made with`,
+    };
+  }
+  const bySha = new Map<string, R>();
+  for (const r of joinable) bySha.set(r.input_sha256 as string, r);
+  const pattern = buildClientPattern(tokens);
+  for (const c of cases) {
+    const hit = bySha.get(sha256(redactPrompt(c.text, opts.maxPromptChars, pattern).text));
+    if (hit) verdicts.set(c.id, hit);
+  }
+  return { verdicts, profile, error: null };
+}
+
+// ---------------------------------------------------------------------------
 // Record and log line
 // ---------------------------------------------------------------------------
 
 export interface RouteRecord {
+  seam: 'route';
+  session_id: string | null;
+  router: 'ork:auto';
+  handoff_to: null;
+  prompt_id: string | null;
+  decision_id: string | null;
+  incumbent_model: string | null;
+  phase: 'pending' | 'paired';
+  tool_use_id: string | null;
+  /** Canonical Jev pick. `intent` remains for existing report consumers. */
+  jev_pick: string | null;
+  /** Canonical Jev confidence. `conf` remains for existing report consumers. */
+  jev_confidence: number | null;
+  /** Observed incumbent pick, never a classification inferred by this seam. */
+  incumbent_pick: string | null;
+  /** Why no incumbent pick is available for this record, otherwise null. */
+  incumbent_pick_reason: 'model_route_not_run_at_prompt_submit' | null;
+  /** Legacy name retained for existing report consumers. */
+  incumbent_intent: RouteIntent | null;
+  agree: boolean | null;
+  below_floor: boolean | null;
+  high_confidence_disagreement: boolean | null;
+  error: string | null;
   ts: string;
   input_sha256: string | null;
+  /** sha256 of the sorted client token list the prompt was redacted with, `none` when empty. */
+  redaction_profile: string | null;
   intent: RouteIntent | null;
   conf: number | null;
   top3: Array<[RouteIntent, number]>;
@@ -787,9 +960,33 @@ export interface RouteRecord {
 }
 
 export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
+  const jevPick = routePick(v.intent);
+  const incumbent = v.incumbent_pick ?? routePick(v.incumbent_intent ?? null);
+  const agree = incumbent && jevPick ? incumbent === jevPick : null;
+  const belowFloor = v.conf === null ? null : v.conf < v.floor;
   return {
+    seam: 'route',
+    session_id: v.session_id ?? null,
+    router: 'ork:auto',
+    handoff_to: null,
+    prompt_id: v.prompt_id ?? null,
+    decision_id: v.prompt_id ? sha256(v.prompt_id) : null,
+    incumbent_model: v.incumbent_model ?? null,
+    phase: incumbent === null ? 'pending' : 'paired',
+    tool_use_id: v.tool_use_id ?? null,
+    jev_pick: jevPick,
+    jev_confidence: v.conf,
+    incumbent_pick: incumbent,
+    // Pending prompt observations are completed by the PostToolUse observer.
+    incumbent_pick_reason: incumbent === null ? 'model_route_not_run_at_prompt_submit' : null,
+    incumbent_intent: v.incumbent_intent ?? null,
+    agree,
+    below_floor: belowFloor,
+    high_confidence_disagreement: agree === null || belowFloor === null ? null : !agree && !belowFloor,
+    error: v.error,
     ts: new Date(now).toISOString(),
     input_sha256: v.input_sha256,
+    redaction_profile: v.redaction_profile ?? null,
     intent: v.intent,
     conf: v.conf,
     top3: v.top3,
@@ -806,10 +1003,103 @@ export function toRouteRecord(v: RouteVerdict, now: number): RouteRecord {
   };
 }
 
+/** Compare executor names, avoiding a fabricated inverse intent classification. */
+function routePick(intent: RouteIntent | null): string | null {
+  if (!intent) return null;
+  const target = ROUTE_CLASS_TO_EXECUTOR[intent];
+  return target ? `${target.kind}:${target.kind === 'skill' ? 'ork:' : ''}${target.name}` : 'no_executor';
+}
+
+function correlationStem(sessionDir: string, promptId: string): string {
+  return join(sessionDir, `jev-route-${sha256(promptId)}`);
+}
+
+/** Publish a complete immutable JSON file atomically; concurrent readers never see a prefix. */
+function publishOnce(path: string, value: unknown): void {
+  const temporary = `${path}.${process.pid}.${Math.random().toString(16).slice(2)}.tmp`;
+  try {
+    writeFileSync(temporary, JSON.stringify(value), { mode: 0o600 });
+    try { linkSync(temporary, path); } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    }
+  } finally {
+    try { unlinkSync(temporary); } catch { /* fail open */ }
+  }
+}
+
+/** Both writers call after publishing: the second publication always sees both. */
+function completeRoutePair(sessionDir: string, stem: string): boolean {
+  if (!existsSync(`${stem}.jev.json`) || !existsSync(`${stem}.executor.json`)) return false;
+  const { verdict, now } = JSON.parse(readFileSync(`${stem}.jev.json`, 'utf8')) as { verdict: RouteVerdict; now: number };
+  const observed = JSON.parse(readFileSync(`${stem}.executor.json`, 'utf8')) as { pick: string; toolUseId: string | null; model?: string };
+  const paired = toRouteRecord({ ...verdict, incumbent_pick: observed.pick, tool_use_id: observed.toolUseId, incumbent_model: observed.model }, now);
+  // Append before marking completion: an interrupted/failed append remains
+  // retryable. Concurrent completions can append duplicates, which consumers
+  // collapse by session + decision_id with paired rows superseding pending.
+  if (existsSync(`${stem}.paired`)) return true;
+  appendFileSync(join(sessionDir, FILE_ROUTE_RECORDS), `${JSON.stringify(paired)}\n`, { mode: 0o600 });
+  publishOnce(`${stem}.paired`, { decision_id: paired.decision_id });
+  return true;
+}
+
+/** Record the model's requested executor before dispatch, including blocked/failed attempts. */
+export function observeRouteExecutor(input: HookInput): void {
+  if (!input.prompt_id || !input.session_id || input.agent_id) return;
+  let pick: string;
+  if (input.tool_name === 'Skill' && typeof input.tool_input?.skill === 'string') {
+    const name = input.tool_input.skill.replace(/^\//, '');
+    if (name === 'ork:auto' || name === 'hq-ext:auto' || name === 'auto') return;
+    pick = `skill:${name}`;
+  } else if (input.tool_name === 'Agent' && typeof input.tool_input?.subagent_type === 'string') {
+    pick = `agent:${input.tool_input.subagent_type}`;
+  } else return;
+  persistRouteObservation(input, { pick, toolUseId: input.tool_use_id ?? null, model: typeof input.tool_input.model === 'string' ? input.tool_input.model : undefined });
+}
+
+/** Stop proves a completed response chose no executor, rather than leaving a false pending row. */
+export function observeRouteCompletion(input: HookInput): void {
+  if (!input.prompt_id || !input.session_id || input.agent_id) return;
+  persistRouteObservation(input, { pick: 'no_executor', toolUseId: null });
+}
+
+function persistRouteObservation(input: HookInput, observation: { pick: string; toolUseId: string | null; model?: string }): void {
+  try {
+    const sessionDir = routeSessionDir(safeIdentifier(input.session_id, 'invalid'), input.project_dir || process.cwd());
+    const stem = correlationStem(sessionDir, input.prompt_id!);
+    if (!existsSync(`${stem}.active`)) return;
+    publishOnce(`${stem}.executor.json`, observation);
+    completeRoutePair(sessionDir, stem);
+  } catch { /* observational telemetry must never fail the tool */ }
+}
+
+/** PostToolUse can retry a failed append, but never infer the first choice from completion order. */
+export function retryRoutePair(input: HookInput): void {
+  if (!input.prompt_id || !input.session_id || input.agent_id) return;
+  try {
+    const sessionDir = routeSessionDir(safeIdentifier(input.session_id, 'invalid'), input.project_dir || process.cwd());
+    completeRoutePair(sessionDir, correlationStem(sessionDir, input.prompt_id));
+  } catch { /* fail open */ }
+}
+
 /** Append one record, mode 0600, no prompt text. An unwritable dir only loses the sample. */
 export function appendRouteRecord(sessionDir: string, verdict: RouteVerdict, now: number): void {
   try {
     mkdirSync(sessionDir, { recursive: true });
+    if (verdict.prompt_id) {
+      const stem = correlationStem(sessionDir, verdict.prompt_id);
+      if (existsSync(`${stem}.executor.json`)) {
+        const observed = JSON.parse(readFileSync(`${stem}.executor.json`, 'utf8')) as { pick: string; toolUseId: string | null; model?: string };
+        // The caller logs this same verdict after settle. Preserve an executor
+        // already observed while the asynchronous Jev request was in flight.
+        verdict.incumbent_pick = observed.pick;
+        verdict.tool_use_id = observed.toolUseId;
+        verdict.incumbent_model = observed.model;
+      }
+      publishOnce(`${stem}.jev.json`, { verdict, now });
+      if (completeRoutePair(sessionDir, stem)) return;
+      // Prompt-time observation only. The first real executor produces the
+      // authoritative paired row, even if this request settled first.
+    }
     appendFileSync(join(sessionDir, FILE_ROUTE_RECORDS), `${JSON.stringify(toRouteRecord(verdict, now))}\n`, {
       encoding: 'utf8',
       mode: 0o600,
@@ -824,10 +1114,16 @@ const f2 = (n: number | null): string => (n === null ? 'na' : n.toFixed(2));
 /** The one hook log line, same shape in both plugins. */
 export function formatRouteLogLine(v: RouteVerdict): string {
   const top3 = v.top3.map(([k, p]) => `${k}:${p.toFixed(2)}`).join(',');
+  const jevPick = routePick(v.intent);
+  const incumbent = v.incumbent_pick ?? routePick(v.incumbent_intent ?? null);
+  const agree = incumbent && jevPick ? incumbent === jevPick : null;
+  const incumbentReason = incumbent === null ? 'model_route_not_run_at_prompt_submit' : 'none';
   return (
-    `route jev: intent=${v.intent ?? 'none'} conf=${f2(v.conf)} top3=${top3 || 'none'} ` +
+    `route jev: jev_pick=${jevPick ?? 'none'} jev_confidence=${v.conf ?? 'null'} incumbent_pick=${incumbent ?? 'none'} ` +
+    `incumbent_pick_reason=${incumbentReason} agree=${agree} top3=${top3 || 'none'} ` +
     `worktree=${f2(v.worktree)} browser=${f2(v.browser)} mutation=${v.mutation === null ? 'na' : v.mutation.toFixed(1)} ` +
-    `operator=${f2(v.operator)} floor=${f2(v.floor)} decided_by=${v.decided_by} ` +
+    `operator=${f2(v.operator)} floor=${v.floor} decided_by=${v.decided_by} ` +
+    `router=ork:auto session_id=${JSON.stringify(v.session_id ?? null)} prompt_id=${JSON.stringify(v.prompt_id ?? null)} ` +
     `latency_ms=${v.latency_ms} input_tokens=${v.input_tokens ?? 0} redacted=${v.redacted}`
   );
 }

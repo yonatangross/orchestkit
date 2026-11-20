@@ -1,0 +1,14 @@
+{
+  "slug": "mods-promote-lights-compact-band",
+  "source": "docs/fix--promote-lights-compact-band/index.html",
+  "title": "promote-lights: a compact band that shows problems, not a wall of green",
+  "description": "The promote-lights band above the prompt is now one summary line plus one line per check that is not green, full names, red first; all green is one line.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "promote-lights",
+    "ci"
+  ],
+  "date": "2026-09-26"
+}

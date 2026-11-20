@@ -1,0 +1,11 @@
+{
+  "slug": "feat--glyph-triage",
+  "source": "docs/feat--glyph-triage/index.html",
+  "title": "glyph: triage page and DECIDE pick",
+  "description": "Issue 4162: one triage layout. KPI strip, lanes, route tags, capability map, a DECIDE line the next prompt can parse, and the raw snapshot.",
+  "tags": [
+    "glyph",
+    "triage"
+  ],
+  "date": "2026-09-19"
+}

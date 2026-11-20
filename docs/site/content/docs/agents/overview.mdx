@@ -1,6 +1,7 @@
 ---
 title: Agents Overview
-description: "37 specialized agents -- how they activate, what they know, and when to use each."
+seoTitle: "OrchestKit Agents: Specialist Subagents for Claude Code"
+description: "Each OrchestKit agent is a specialist subagent for Claude Code. See how agents start from your prompt, which model each one uses, and which agent fits a task."
 full: true
 ---
 
@@ -17,14 +18,14 @@ An OrchestKit **agent** is a specialized AI persona built from four components:
 | **Skills** | Knowledge modules auto-injected into the agent's context |
 | **Directive** | The system prompt that defines the agent's role, boundaries, and output format |
 
-Together these four pieces turn a general-purpose LLM into a focused specialist -- a security auditor that only reads code and never modifies it, a backend architect that designs APIs but never touches the frontend, or a debug investigator that forms hypotheses and traces execution paths.
+Together these four pieces turn a general-purpose LLM into a focused specialist: a security auditor that only reads code and never modifies it, a backend architect that designs APIs but never touches the frontend, or a debug investigator that forms hypotheses and traces execution paths.
 
 ## What Is an Agent?
 
 Every agent is defined in a single Markdown file at `src/agents/<name>.md`. The file has two parts:
 
-1. **YAML frontmatter** -- structured metadata (model, tools, skills, hooks, category, color)
-2. **Markdown body** -- the directive, task boundaries, output format, and integration notes
+1. **YAML frontmatter**: structured metadata (model, tools, skills, hooks, category, color)
+2. **Markdown body**: the directive, task boundaries, output format, and integration notes
 
 Here is a minimal example:
 
@@ -33,7 +34,6 @@ Here is a minimal example:
 name: my-agent
 description: What this agent does. Activates for keyword1, keyword2
 model: sonnet
-context: fork
 tools:
   - Read
   - Write
@@ -41,6 +41,11 @@ tools:
 skills:
   - relevant-skill-1
   - relevant-skill-2
+metadata:
+  category: "backend"
+  taskTypes: "build"
+  keywords: "keyword1, keyword2"
+  examplePrompts: "First example prompt | Second example prompt"
 ---
 
 ## Directive
@@ -91,10 +96,9 @@ Use the interactive selector to find the right specialist for your task.
 | `name` | Yes | kebab-case string | Unique identifier used in `subagent_type` |
 | `description` | Yes | String with keywords | Agent summary and auto-activation keywords |
 | `model` | Yes | `opus`, `sonnet`, `inherit` | LLM model assignment |
-| `context` | Yes | `fork`, `inherit` | `fork` = isolated context, `inherit` = shares parent |
 | `tools` | Yes | Array of tool names | Which Claude Code tools the agent can access |
 | `skills` | Yes | Array of skill names | Knowledge modules auto-injected at spawn |
-| `category` | No | `backend`, `frontend`, `security`, etc. | Organizational grouping |
+| `metadata` | Yes | One-level string map | Ork house keys: `category` (`backend`, `frontend`, `security`, etc.), `taskTypes`, `keywords`, `examplePrompts` |
 | `color` | No | CSS color name | Visual indicator in task display |
 | `memory` | No | `project`, `local` | Memory persistence scope |
 | `hooks` | No | Object with hook definitions | Agent-scoped hooks (e.g., block writes for read-only agents) |
@@ -103,17 +107,14 @@ Use the interactive selector to find the right specialist for your task.
 
 The `model` field controls which LLM powers the agent:
 
-- **`opus`** -- Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 6 agents use Opus.
-- **`sonnet`** -- Used for focused production tasks (debug, db, llm, perf, video, web research). 10 agents use Sonnet.
-- **`haiku`** -- Used for low-stakes, fast tasks. 7 agents use Haiku.
-- **`inherit`** -- Uses whatever model the parent session is running. 13 agents inherit. This is the most flexible option and is recommended for most agents.
+- **`opus`**: Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 6 agents use Opus.
+- **`sonnet`**: Used for focused production tasks (debug, db, llm, perf, video, web research). 10 agents use Sonnet.
+- **`haiku`**: Used for low-stakes, fast tasks. 7 agents use Haiku.
+- **`inherit`**: Uses whatever model the parent session is running. 13 agents inherit. This is the most flexible option and is recommended for most agents.
 
-### Context Isolation
+### Why No `context` Field
 
-The `context` field determines how the agent's context relates to the parent:
-
-- **`fork`** -- The agent runs in an isolated context. It cannot see or modify the parent's state. This is the default for most agents and prevents unintended side effects.
-- **`inherit`** -- The agent shares the parent's context. Used when the agent needs to see the current conversation state, such as the `debug-investigator` or `code-quality-reviewer`.
+Agents do not declare `context:`. It is a skill frontmatter key (`context: fork` runs a skill in a subagent), and nothing shows Claude Code reads it on a subagent definition, so it was dropped from every agent in m3. Every spawned agent already runs in its own context window.
 
 ## Agent Lifecycle
 
@@ -162,7 +163,7 @@ This pattern is used by read-only agents like `security-auditor`, `debug-investi
 
 ## The 36 Agents by Category
 
-Categories collapse the 11 raw `category:` values from `src/agents/*.md` frontmatter into 7 readable groups. Singletons (data, git, research) fold into adjacent categories.
+Categories collapse the 11 raw `metadata.category` values from `src/agents/*.md` frontmatter into 7 readable groups. Singletons (data, git, research) fold into adjacent categories.
 
 ### Frontend & Design (11 agents)
 | Agent | Model | Purpose |
@@ -232,10 +233,10 @@ Categories collapse the 11 raw `category:` values from `src/agents/*.md` frontma
 
 Each agent carries a tailored set of skills. The `backend-system-architect`, for example, loads 31 skills covering API design, database schemas, caching, auth patterns, and more. The `debug-investigator` loads just 5 skills focused on root cause analysis and observability.
 
-Skills are auto-injected when the agent spawns -- no manual loading required. The platform scales skill content to fit within 2% of the context window (CC 2.1.33+).
+Skills are auto-injected when the agent spawns, no manual loading required. The platform scales skill content to fit within 2% of the context window (CC 2.1.33+).
 
 ## What's Next
 
-- [Choosing an Agent](/docs/agents/choosing-an-agent) -- Decision tree for picking the right agent for your task
-- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- How `/ork:implement` and `/ork:review-pr` orchestrate agents in parallel
-- [Writing Agents](/docs/agents/writing-agents) -- Create your own specialized agent
+- [Choosing an Agent](/docs/agents/choosing-an-agent): Decision tree for picking the right agent for your task
+- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns): How `/ork:implement` and `/ork:review-pr` orchestrate agents in parallel
+- [Writing Agents](/docs/agents/writing-agents): Create your own specialized agent

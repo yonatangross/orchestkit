@@ -1,18 +1,18 @@
 ---
 title: Claude Design → PR
-description: Turn a claude.ai/design handoff bundle into a reviewable GitHub PR with one command — the closed-loop pipeline from design exploration to production code.
+description: Turn a claude.ai/design handoff bundle into a reviewable GitHub PR with one command, the closed-loop pipeline from design exploration to production code.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Files, Folder, File } from 'fumadocs-ui/components/files';
 import { MinCC } from '@/components/count';
 
-[Claude Design](https://claude.ai/design) generates prototypes, mockups, slides, and one-pagers from natural-language prompts. Once a design is ready to build, it ships a **handoff bundle** that Claude Code can consume directly. OrchestKit's `/ork:design-ship` workflow turns that bundle into a reviewable pull request — with components scaffolded against your existing codebase, Storybook stories generated, browser verification run, and a PR opened with screenshots embedded.
+[Claude Design](https://claude.ai/design) generates prototypes, mockups, slides, and one-pagers from natural-language prompts. Once a design is ready to build, it ships a **handoff bundle** that Claude Code can consume directly. OrchestKit's `/ork:design-ship` workflow turns that bundle into a reviewable pull request, with components scaffolded against your existing codebase, Storybook stories generated, browser verification run, and a PR opened with screenshots embedded.
 
 This cookbook walks through the full design-to-PR loop end-to-end.
 
 <Callout type="info">
-Claude Design is in research preview. The handoff bundle schema is provisional — the `claude-design-orchestrator` agent adapts to schema changes and surfaces deviations rather than failing silently.
+Claude Design is in research preview. The handoff bundle schema is provisional; the `claude-design-orchestrator` agent adapts to schema changes and surfaces deviations rather than failing silently.
 </Callout>
 
 ## What You'll Use
@@ -32,9 +32,9 @@ Claude Design is in research preview. The handoff bundle schema is provisional �
 
 ## Prerequisites
 
-1. **Connect your repo to Claude Design** — in claude.ai/design, link the GitHub repo so Claude reads your design tokens, Tailwind config, and existing components. Generated visuals will then stay on-brand automatically.
-2. **OrchestKit installed** — `ork` plugin enabled in Claude Code <MinCC /> or later.
-3. **`gh` CLI authenticated** — required for the PR-opening step.
+1. **Connect your repo to Claude Design**: in claude.ai/design, link the GitHub repo so Claude reads your design tokens, Tailwind config, and existing components. Generated visuals will then stay on-brand automatically.
+2. **OrchestKit installed**: `ork` plugin enabled in Claude Code <MinCC /> or later.
+3. **`gh` CLI authenticated**: required for the PR-opening step.
 
 ---
 
@@ -42,7 +42,7 @@ Claude Design is in research preview. The handoff bundle schema is provisional �
 
 Open [claude.ai/design](https://claude.ai/design) and prompt for what you want:
 
-> "Generate a pricing section for a developer-tools SaaS — three tiers, highlight the middle one, match our existing brand."
+> "Generate a pricing section for a developer-tools SaaS, three tiers, highlight the middle one, match our existing brand."
 
 Because the repo is connected, Claude Design reads your tokens and produces visuals that already use your colors, typography, and spacing scale. Refine in-canvas with direct edits or follow-up prompts until you're happy.
 
@@ -112,9 +112,9 @@ Tokens:
 ```
 
 Three decisions per component:
-- **`scaffold`** — no existing match found; new file written
-- **`reuse`** — existing component matches; nothing touched on disk (still referenced by the design intent)
-- **`adapt`** — partial match; the existing component is updated rather than duplicated
+- **`scaffold`**: no existing match found; new file written
+- **`reuse`**: existing component matches; nothing touched on disk (still referenced by the design intent)
+- **`adapt`**: partial match; the existing component is updated rather than duplicated
 
 The orchestrator agent runs `component-search` (Storybook MCP first, then 21st.dev, then filesystem) so duplicates do not slip through.
 
@@ -126,7 +126,7 @@ If the bundle declares tokens that conflict with your project's tokens, the impo
 
 | Diff | Action |
 |---|---|
-| Added (new tokens) | Appended automatically — safe |
+| Added (new tokens) | Appended automatically, safe |
 | Modified (different value) | `AskUserQuestion`: keep project, accept bundle, or open editor |
 | Conflicts (same name, different semantics) | Block scaffolding; resolve before continuing |
 
@@ -176,7 +176,7 @@ Every imported bundle writes a provenance file to `.claude/design-handoffs/<bund
 }
 ```
 
-This makes design intent traceable backward from any merged PR — the answer to "why does this component exist?" is one `git log → grep` away.
+This makes design intent traceable backward from any merged PR: the answer to "why does this component exist?" is one `git log → grep` away.
 
 ---
 
@@ -193,15 +193,15 @@ This makes design intent traceable backward from any merged PR — the answer to
 
 ## Limitations (current preview)
 
-- **No public Claude Design API yet** — bundles are a one-shot export. To iterate on a design, re-export from claude.ai/design and re-run `/ork:design-ship`. The reverse path (detect that the live UI has drifted from the imported design and emit a refinement prompt for claude.ai/design) is tracked as **M124 — Claude Design Drift Sync (Bet B)** with 5 issues: design-drift-detector agent (#1395), `/ork:design-iterate` skill (#1393), design-review PR hook (#1391), drift-sync cookbook (#1394), monthly dogfood report (#1397).
-- **No auto-merge** — the skill opens the PR; humans review and merge.
-- **Schema is provisional** — the orchestrator agent adapts to schema changes but may need updates as the Claude Design bundle format stabilizes.
+- **No public Claude Design API yet**: bundles are a one-shot export. To iterate on a design, re-export from claude.ai/design and re-run `/ork:design-ship`. The reverse path (detect that the live UI has drifted from the imported design and emit a refinement prompt for claude.ai/design) is tracked as **M124: Claude Design Drift Sync (Bet B)** with 5 issues: design-drift-detector agent (#1395), `/ork:design-iterate` skill (#1393), design-review PR hook (#1391), drift-sync cookbook (#1394), monthly dogfood report (#1397).
+- **No auto-merge**: the skill opens the PR; humans review and merge.
+- **Schema is provisional**: the orchestrator agent adapts to schema changes but may need updates as the Claude Design bundle format stabilizes.
 
 ---
 
 ## Related
 
-- [Implement a feature](/docs/cookbook/implement-feature) — the same agent-orchestration pattern for non-design work
-- [Review a PR](/docs/cookbook/review-pr) — what reviewers should look for in design-driven PRs
-- [Design to code](/docs/skills/design-to-code) — the underlying scaffold pipeline this workflow composes
-- [Claude Design](https://claude.ai/design) — the design tool itself
+- [Implement a feature](/docs/cookbook/implement-feature): the same agent-orchestration pattern for non-design work
+- [Review a PR](/docs/cookbook/review-pr): what reviewers should look for in design-driven PRs
+- [Design to code](/docs/skills/design-to-code): the underlying scaffold pipeline this workflow composes
+- [Claude Design](https://claude.ai/design): the design tool itself

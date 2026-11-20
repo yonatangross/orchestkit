@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The advisor that asked about what you forbade</title>
+<meta name="description" content="12 measured task-agent-advisor rows from #4835, before and after: nudges decided on the description, and guard-rail sentences that no longer raise a permission ask.">
+<style>
+  :root { --bg:#fbfaf7; --ink:#1d1d1b; --muted:#6b6862; --line:#e4e1d9; --bad:#b4442f; --good:#2f7a4a; --accent:#3557a8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#17171a; --ink:#ecebe7; --muted:#a3a09a; --line:#2e2e33; --bad:#e2735e; --good:#6cc38c; --accent:#8aa6ea; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .verdict { font-size: 17px; margin: 0 0 22px; color: var(--muted); }
+  .kpis { display:flex; gap:12px; flex-wrap:wrap; margin-bottom: 20px; }
+  .kpi { border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width: 150px; }
+  .kpi b { display:block; font-size: 22px; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 14px; }
+  button { font:inherit; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:6px; padding:5px 12px; cursor:pointer; }
+  button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--good); font-weight: 600; }
+  .same { color: var(--muted); }
+  section { margin-top: 28px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  #copy-out { width:100%; min-height: 70px; font: 13px ui-monospace, monospace; background: transparent; color: var(--ink); border:1px solid var(--line); border-radius:6px; padding:8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The advisor that asked about what you forbade</h1>
+  <p class="verdict">8 of 12 measured rows were wrong on main; all 12 are right after this fix. A prompt no longer silences a nudge, and a sentence that forbids X no longer asks you to spawn the agent for X.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b id="k-wrong">8 / 12</b>wrong on main</div>
+    <div class="kpi"><b>12 / 12</b>right after the fix</div>
+    <div class="kpi"><b id="k-asks">5</b>false permission asks removed</div>
+  </div>
+
+  <div class="controls" role="group" aria-label="Filter rows">
+    <button data-f="all" aria-pressed="true">All 12</button>
+    <button data-f="1" aria-pressed="false">Part 1: nudges</button>
+    <button data-f="2" aria-pressed="false">Part 2: guard rails</button>
+    <button data-f="changed" aria-pressed="false">Changed only</button>
+  </div>
+
+  <table aria-label="Measured rows, before and after">
+    <thead><tr><th>#</th><th>Description</th><th>Prompt</th><th>main</th><th>this fix</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <section>
+    <h2>Why it happened</h2>
+    <ul>
+      <li><b>Part 1.</b> The read and worktree nudges were vetoed by any reasoning word in the prompt (create, explain). The Agent tool always carries a prompt, so a realistic one turned the nudge into silence or a domain ask. The shape is now decided on the description; the prompt only turns the nudge off when it asks to build.</li>
+      <li><b>Part 1, row 7.</b> The second-step check read the <code>to</code> inside <code>intro-to-terraform.md</code> as "and then". File names are now removed before that check.</li>
+      <li><b>Part 2.</b> Domain matching ran on the raw text, so "Do not deploy to production" matched the deployment row. Prohibitions and obstacle stops ("if you hit merge conflicts, stop and report") are now removed first, and a task that says "report only" or "read only" gets a note, never an ask.</li>
+      <li><b>Row 12.</b> "changelog" won before "React component". A changelog or release-notes page, component or view now stays with the frontend row.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Copy as prompt</h2>
+    <p class="same">Pick rows with the filter above, then copy them as a note for a review session.</p>
+    <button id="copy">Copy visible rows</button>
+    <textarea id="copy-out" readonly aria-label="Copied text"></textarea>
+  </section>
+</main>
+<script>
+  const ROWS = [
+    [1, 1, 'Create a git worktree for the fix', '', 'worktree note', 'worktree note'],
+    [2, 1, 'Create a git worktree for the fix', 'Create a git worktree for the fix branch and print its path.', 'silent', 'worktree note'],
+    [3, 1, 'Create a git worktree for the fix', 'Run git worktree add ../wt -b fix/x and report the path.', 'silent', 'worktree note'],
+    [4, 1, 'Read example-bot.yml workflow', '', 'read note', 'read note'],
+    [5, 1, 'Read example-bot.yml workflow', 'Read .github/workflows/example-bot.yml and explain what triggers it.', 'ASK ci-cd-engineer', 'read note'],
+    [6, 1, 'Read apply-db.sh', 'Read apply-db.sh and report what it does.', 'read note', 'read note'],
+    [7, 1, 'Read docs/intro-to-terraform.md', '', 'ASK infrastructure-architect', 'read note'],
+    [8, 1, 'Read docs/terraform-intro.md', '', 'read note', 'read note'],
+    [9, 2, 'Summarize the design doc', 'If you hit merge conflicts, stop and report.', 'ASK git-operations-engineer', 'silent'],
+    [10, 2, 'Update the docs', 'Do not deploy to production.', 'ASK deployment-manager', 'silent'],
+    [11, 2, 'Review the release notes', 'Do not commit and push. Report only.', 'ASK release-engineer', 'note release-engineer'],
+    [12, 2, 'Build the changelog page React component', '', 'ASK release-engineer', 'ASK frontend-ui-developer'],
+  ];
+  let filter = 'all';
+  const visible = () => ROWS.filter(r => filter === 'all' || (filter === 'changed' ? r[4] !== r[5] : String(r[1]) === filter));
+  function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]); }
+  function render() {
+    document.getElementById('rows').innerHTML = visible().map(r => {
+      const changed = r[4] !== r[5];
+      return `<tr><td>${r[0]}</td><td><code>${esc(r[2])}</code></td><td><code>${esc(r[3] || '(empty)')}</code></td>` +
+        `<td class="${changed ? 'bad' : 'same'}">${esc(r[4])}</td><td class="${changed ? 'good' : 'same'}">${esc(r[5])}</td></tr>`;
+    }).join('');
+  }
+  document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = 'task-agent-advisor rows from orchestkit #4835 (general-purpose, default mode):\n' +
+      visible().map(r => `${r[0]}. "${r[2]}" + prompt "${r[3] || '(empty)'}": main ${r[4]}, fix ${r[5]}`).join('\n');
+    document.getElementById('copy-out').value = text;
+    try { await navigator.clipboard.writeText(text); } catch (e) { /* the textarea still holds the text */ }
+  });
+  render();
+</script>
+</body>
+</html>

@@ -215,7 +215,7 @@ function readPage(paths, entry, warn) {
 // ---------- lab chrome ----------
 // Kept in step with docs/site/lib/constants.ts SITE by hand: this generator is
 // plain Node and cannot import the TypeScript module.
-export const SITE_ORIGIN = "https://orchestkit.yonyon.ai";
+export const SITE_ORIGIN = "https://orchestkit.dev";
 const SITE_NAME = "OrchestKit";
 const GITHUB_URL = "https://github.com/yonatangross/orchestkit";
 // The site-wide default share card, app/opengraph-image.tsx.

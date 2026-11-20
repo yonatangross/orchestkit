@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson cards: exact tool filter</title>
+<style>
+body{margin:0;background:#f7f5ef;color:#17242b;font:18px/1.5 system-ui,sans-serif}
+main{max-width:780px;margin:60px auto;padding:24px}h1{font-size:40px;line-height:1.15}
+label{display:block;margin:20px 0}select{font:inherit;padding:8px;margin-left:12px}
+table{width:100%;border-collapse:collapse;margin:28px 0;background:white}
+th,td{text-align:left;padding:16px;border-bottom:1px solid #ccd4d6}
+caption{text-align:left;font-weight:700;padding:12px 0}output{font-weight:700}
+small{display:block;color:#435964}code{background:#e9e6dc;padding:3px}
+</style>
+</head>
+<body>
+<main>
+<p>OrchestKit · Issue 4730</p>
+<h1>Match the tool that ran</h1>
+<p>Choose a lesson entry and a tool. See when the entry raises a lesson card.</p>
+<label>Entry tool names
+<select id="entry"><option value="Edit">Edit only</option><option value="Write">Write only</option><option value="Bash">Bash only</option><option value="none">No tool names</option></select>
+</label>
+<label>Tool call
+<select id="tool"><option>Edit</option><option>Write</option><option>Bash</option></select>
+</label>
+<p>The entry pattern is <code>secret</code>. The command or file content contains <code>secret</code>. All other filters pass.</p>
+<table>
+<caption>Tool filter result</caption>
+<thead><tr><th scope="col">Version</th><th scope="col">Lesson card</th></tr></thead>
+<tbody><tr><th scope="row">Before</th><td id="before"></td></tr><tr><th scope="row">After</th><td id="after"></td></tr></tbody>
+</table>
+<p><output id="reason" aria-live="polite"></output></p>
+<small>This demo isolates tool selection. File globs, repository filters, quote handling, and card rendering are outside this demo.</small>
+</main>
+<script>
+const entry = document.getElementById('entry');
+const tool = document.getElementById('tool');
+function update() {
+  const names = entry.value === 'none' ? null : [entry.value];
+  const isFile = tool.value === 'Edit' || tool.value === 'Write';
+  const before = names === null || (isFile ? names.includes('Edit') || names.includes('Write') : names.includes('Bash'));
+  const after = names === null ? isFile : names.includes(tool.value);
+  document.getElementById('before').textContent = before ? 'Fires' : 'Quiet';
+  document.getElementById('after').textContent = after ? 'Fires' : 'Quiet';
+  document.getElementById('reason').textContent = names === null
+    ? 'Entries without tool names apply to file edits only.'
+    : 'An entry fires only when its tool names include the actual tool.';
+}
+entry.addEventListener('change', update);
+tool.addEventListener('change', update);
+update();
+</script>
+</body>
+</html>

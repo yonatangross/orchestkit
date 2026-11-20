@@ -18,12 +18,10 @@
  *      consume-and-destroy it (#2919). Idempotent: writing twice with the
  *      same name+session just overwrites.
  *
- *   2. `consumeWorktreeAdvisories` (called from UserPromptSubmit hook) reads
- *      the pending advisory files OWNED BY THIS SESSION (plus legacy
- *      un-keyed files, so pre-upgrade advisories still deliver instead of
- *      orphaning), concatenates them, deletes them, returns the joined
- *      text. Returns `null` if nothing pending — caller emits silent
- *      success.
+ *   2. `readWorktreeAdvisories` selects pending files OWNED BY THIS SESSION
+ *      (plus legacy un-keyed files) and returns their joined text. The
+ *      dispatcher acknowledges those exact contents only after adding them
+ *      to its output; `consumeWorktreeAdvisories` remains for direct callers.
  *
  * This way the next user prompt after a worktree create receives the
  * `sparsePaths` nudge as `additionalContext` — which CC DOES consume on
@@ -83,6 +81,79 @@ export function writeWorktreeAdvisory(
   }
 }
 
+export interface PendingWorktreeAdvisories {
+  content: string;
+  /**
+   * `remainder` is set on a file that was only partly delivered (#4922):
+   * acknowledging it rewrites the file with the undelivered lines instead of
+   * deleting it, so the rest arrives on the next prompt.
+   */
+  files: Array<{ name: string; content: string; originalContent: string; remainder?: string }>;
+}
+
+const ADVISORY_JOIN = '\n\n---\n\n';
+
+/** Appended to a delivered part when the rest of that advisory is kept on disk. */
+export const ADVISORY_CONTINUES_NOTE = '[worktree advisory continues on the next prompt]';
+
+function lineCount(text: string): number {
+  return text.split('\n').length;
+}
+
+/**
+ * Narrow `pending` to what fits in `maxChars` and `maxLines` (#4922). Whole
+ * advisories are kept in order while they fit; the first one that does not is
+ * split at a line boundary, its undelivered lines are carried as `remainder`,
+ * and later advisories are left out (they stay on disk untouched). Returns
+ * null when not even one line fits.
+ */
+export function fitWorktreeAdvisories(
+  pending: PendingWorktreeAdvisories,
+  maxChars: number,
+  maxLines: number,
+): PendingWorktreeAdvisories | null {
+  if (pending.content.length <= maxChars && lineCount(pending.content) <= maxLines) return pending;
+
+  const files: PendingWorktreeAdvisories['files'] = [];
+  const parts: string[] = [];
+  let chars = 0;
+  let lines = 0;
+  for (const file of pending.files) {
+    const joinChars = parts.length > 0 ? ADVISORY_JOIN.length : 0;
+    const joinLines = parts.length > 0 ? lineCount(ADVISORY_JOIN) - 1 : 0;
+    const wholeLines = lineCount(file.content);
+    if (chars + joinChars + file.content.length <= maxChars && lines + joinLines + wholeLines <= maxLines) {
+      parts.push(file.content);
+      files.push(file);
+      chars += joinChars + file.content.length;
+      lines += joinLines + wholeLines;
+      continue;
+    }
+
+    // Split this advisory: keep its first lines plus the continuation note.
+    const roomChars = maxChars - chars - joinChars - ADVISORY_CONTINUES_NOTE.length - 1;
+    const roomLines = maxLines - lines - joinLines - 1;
+    const fileLines = file.content.split('\n');
+    let take = 0;
+    let takeChars = 0;
+    while (take < fileLines.length && take < roomLines) {
+      const next = takeChars + (take > 0 ? 1 : 0) + fileLines[take].length;
+      if (next > roomChars) break;
+      takeChars = next;
+      take++;
+    }
+    if (take > 0) {
+      const head = fileLines.slice(0, take).join('\n');
+      parts.push(`${head}\n${ADVISORY_CONTINUES_NOTE}`);
+      files.push({ ...file, content: head, remainder: fileLines.slice(take).join('\n') });
+    }
+    break;
+  }
+
+  if (files.length === 0) return null;
+  return { content: parts.join(ADVISORY_JOIN), files };
+}
+
 /**
  * True when the advisory filename belongs to `sessionId` — or is a legacy
  * un-keyed file (no dot-separated session segment), which any session may
@@ -96,14 +167,14 @@ function advisoryBelongsTo(fileName: string, sessionId: string): boolean {
 }
 
 /**
- * Read and delete all pending advisory files. Returns concatenated content
- * joined by blank lines, or `null` if nothing pending.
+ * Read the pending advisory files owned by this session and return their
+ * concatenated content plus file snapshots for later acknowledgement.
  *
- * Deletion happens AFTER successful read of each file. If reading one file
- * throws (e.g. EBUSY), the others are still processed and returned —
- * partial-results semantics so a single bad file doesn't suppress the rest.
+ * Unreadable files remain on disk. If reading one file throws (e.g. EBUSY),
+ * the others are still processed and returned so one bad file does not
+ * suppress the rest.
  */
-export function consumeWorktreeAdvisories(projectDir: string, sessionId = ''): string | null {
+export function readWorktreeAdvisories(projectDir: string, sessionId = ''): PendingWorktreeAdvisories | null {
   if (!projectDir) return null;
   const dir = join(projectDir, ADVISORY_DIR);
   if (!existsSync(dir)) return null;
@@ -122,18 +193,48 @@ export function consumeWorktreeAdvisories(projectDir: string, sessionId = ''): s
 
   if (advisoryFiles.length === 0) return null;
 
-  const collected: string[] = [];
+  const files: PendingWorktreeAdvisories['files'] = [];
   for (const file of advisoryFiles) {
     const fullPath = join(dir, file);
     try {
-      const content = readFileSync(fullPath, 'utf8').trimEnd();
-      if (content.length > 0) collected.push(content);
-      // Delete only after successful read — keeps file as fallback if read failed
-      try { unlinkSync(fullPath); } catch { /* best-effort cleanup */ }
+      const originalContent = readFileSync(fullPath, 'utf8');
+      const content = originalContent.trimEnd();
+      if (content.length > 0) files.push({ name: file, content, originalContent });
+      else unlinkSync(fullPath);
     } catch {
       // Skip this file on read error; leave it on disk for the next prompt.
     }
   }
 
-  return collected.length > 0 ? collected.join('\n\n---\n\n') : null;
+  if (files.length === 0) return null;
+  return { content: files.map(file => file.content).join(ADVISORY_JOIN), files };
+}
+
+/**
+ * Delete only the exact advisory contents that were accepted for delivery.
+ * A partly delivered file is rewritten with its remainder instead (#4922).
+ */
+export function acknowledgeWorktreeAdvisories(
+  projectDir: string,
+  pending: PendingWorktreeAdvisories,
+): void {
+  if (!projectDir) return;
+  const dir = join(projectDir, ADVISORY_DIR);
+  for (const file of pending.files) {
+    const fullPath = join(dir, file.name);
+    try {
+      if (readFileSync(fullPath, 'utf8') !== file.originalContent) continue;
+      if (file.remainder?.trim()) writeFileSync(fullPath, `${file.remainder.trimEnd()}\n`, 'utf8');
+      else unlinkSync(fullPath);
+    } catch {
+      // Preserve files that changed or could not be read/deleted for a retry.
+    }
+  }
+}
+
+export function consumeWorktreeAdvisories(projectDir: string, sessionId = ''): string | null {
+  const pending = readWorktreeAdvisories(projectDir, sessionId);
+  if (!pending) return null;
+  acknowledgeWorktreeAdvisories(projectDir, pending);
+  return pending.content;
 }

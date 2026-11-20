@@ -43,7 +43,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: 'npm'
@@ -70,7 +70,7 @@ jobs:
         shell: pwsh
         run: |
           $payload = '{"tool_name":"Bash","session_id":"winsmoke","tool_input":{"command":"echo hello"}}'
-          $result = $payload | node src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker
+          $result = $payload | node src/hooks/bin/run-hook.mjs pretool/bash/sync-bash-dispatcher
           Write-Output "Hook result: $result"
           if ($LASTEXITCODE -ne 0) { throw "Hook invocation failed with exit $LASTEXITCODE" }
 

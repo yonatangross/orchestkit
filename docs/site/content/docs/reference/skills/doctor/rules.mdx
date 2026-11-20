@@ -24,7 +24,7 @@ Detailed procedures for each health check category in `/ork:doctor`.
 **Correct:**
 ```
 ✓ Skills: 69/69 valid (frontmatter, token budget, links)
-✗ Hooks: dist/memory-writer.mjs missing — run: cd src/hooks && npm run build
+✗ Hooks: dist/pretool.mjs missing - run: cd src/hooks && npm run build
 ✓ Agents: 38/38 CC 2.1.6 compliant
 ```
 
@@ -103,6 +103,17 @@ Read `.claude/memory/decisions.jsonl` directly to validate JSONL integrity (each
 
 See [Memory Health](../references/memory-health.md) for details.
 
+Per-agent `memory:` dirs are a separate check. Load `references/agent-memory-dir.md` and run:
+
+```bash
+bash src/skills/doctor/scripts/check-agent-memory.sh \
+  --memory-root .claude/agent-memory \
+  --agents-dir src/agents
+```
+
+Pass `--activity-file` (name, tab, unix epoch) only when you know the agent ran. Without it, staleness is skipped so an idle agent is not reported stale.
+
+
 ---
 
 ## 5. Build System
@@ -156,23 +167,34 @@ Checks optional tool availability:
 # agent-browser (vercel-labs/agent-browser)
 # Prefer the structured `agent-browser doctor --json` from 0.26.0+ (CC 2.1.121+).
 # Falls back to the fuzzy "is the binary on PATH + symlink present?" probe on older versions.
+#
+# Version floor (#5289): an old build on PATH is flagged WARN with the upgrade command.
+# The minimum lives in ONE place, MIN_VERSION in scripts/check-agent-browser-version.sh
+# (the expect skill's prose floor must say the same number; a unit test checks it).
+# Exit 1 = outdated; doctor reports WARN and continues.
+bash "${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-agent-browser-version.sh" || true
 if command -v agent-browser >/dev/null 2>&1; then
-  if agent-browser doctor --json >/tmp/ab-doctor.json 2>/dev/null; then
+  # Redirect to a file with stdin closed, never a pipe: a command that may start the
+  # daemon hands it the pipe's write end on native Windows (Git Bash) and the reader
+  # never sees EOF. mktemp, not a hardcoded /tmp path.
+  ab_json="$(mktemp)"
+  if agent-browser doctor --json >"$ab_json" 2>/dev/null </dev/null; then
     # Structured snapshot: surface only high-severity issues + a one-line health summary.
     jq -r '
       "agent-browser: " +
       (if (.daemon.status // "unknown") == "running" then "OK" else "DEGRADED" end) +
       " (chrome=" + (.chrome.version // "?") +
       ", net=" + (if .network.reachable then "✓" else "✗" end) + ")"
-    ' /tmp/ab-doctor.json
+    ' "$ab_json"
     # Promote any high-severity issue into doctor's findings stream.
-    jq -r '.issues[]? | select(.severity == "high") | "  ↳ HIGH: " + .message' /tmp/ab-doctor.json
+    jq -r '.issues[]? | select(.severity == "high") | "  ↳ HIGH: " + .message' "$ab_json"
   else
     # Fallback for agent-browser < 0.26 (no `doctor` subcommand)
     test -L "$HOME/.claude/skills/agent-browser" \
       && echo "agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)" \
       || echo "agent-browser: SYMLINK MISSING at ~/.claude/skills/agent-browser"
   fi
+  rm -f "$ab_json"
 else
   echo "agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)"
 fi
@@ -244,7 +266,7 @@ claude plugin validate
 
 ## 14. Stale Project State (CC >= 2.1.126, #1582, fixed in #1587)
 
-CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when canonical project paths no longer exist on disk.
+CC 2.1.126 added `claude project purge [path]`, deletes all CC state (transcripts, tasks, file history, config entry) for a project. Surface this as an info-severity diagnostic when canonical project paths no longer exist on disk.
 
 ```bash
 # Check CC version supports project purge (>= 2.1.126)
@@ -273,7 +295,7 @@ CC 2.1.126 added `claude project purge [path]` — deletes all CC state (transcr
 
 **Why info, never warn or fail:** the user may have moved a project rather than deleted it; aggressive removal would lose transcript history. Always recommend `--dry-run` first. Mirrors the pattern from `claude plugin prune` (Category 13b).
 
-**Why not parse `~/.claude/projects/` directly:** the directory naming is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode produces ambiguous results — `~/.claude/projects/Users-me-my-project` could be `/Users/me/my-project`, `/Users/me/my/project`, `/Users/me/my.project`, or other combinations. The dry-run output above is the canonical source.
+**Why not parse `~/.claude/projects/` directly:** the directory naming is a lossy collapse of the original path (`/` and `.` both become `-`). A naive `sed 's|-|/|g'` decode produces ambiguous results, `~/.claude/projects/Users-me-my-project` could be `/Users/me/my-project`, `/Users/me/my/project`, `/Users/me/my.project`, or other combinations. The dry-run output above is the canonical source.
 
 
 ### MCP Status Checks: HIGH
@@ -299,6 +321,21 @@ Validates `.mcp.json` entries for enabled/disabled state and required credential
 #   Skip the warning on CC < 2.1.121 (key would be silently ignored).
 # - claude plugin orphans (CC 2.1.121+, #1544): suggest `claude plugin prune`
 #   when `claude plugin list --json` shows orphaned auto-installed deps.
+# - claude plugin row health (CC 2.1.268+, #4054): each row of the
+#   `claude plugin list` JSON output may carry `errorDetails` and
+#   `noteDetails`. Both keys are omitted on clean rows (measured on CC
+#   2.1.300: zero of the installed rows carried either field), so treat
+#   an absent field as empty. Surface every row with a non-empty
+#   errorDetails field as a warning (it marks a plugin that errored
+#   while loading) and every noteDetails row at info severity. The
+#   verdict reports warnings instead of an all-ok line while
+#   errorDetails rows exist. Run `claude plugin list --json` first and
+#   read these keys from its rows.
+# - plugin stdio redaction (CC 2.1.285+): `claude mcp get` hides the command,
+#   arguments and environment values of stdio MCP servers provided by plugins
+#   (variable names are still shown). A redacted value is unmeasured, not a
+#   missing credential: verify the non-secret settings against the plugin
+#   manifest or the effective config source, never a personal credential file.
 ```
 
 **Incorrect:**

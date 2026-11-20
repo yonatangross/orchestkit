@@ -59,7 +59,7 @@ Agent(subagent_type="ork:backend-system-architect",
   SHARED TYPES (read-only): src/types/
   DO NOT TOUCH: src/components/, src/pages/, tests/
   If you need a shared type, create it in src/types/auth.types.ts""",
-  run_in_background=True)
+  run_in_background=True, isolation="worktree")
 
 Agent(subagent_type="ork:frontend-ui-developer",
   prompt="""Implement frontend for user auth.
@@ -67,7 +67,7 @@ Agent(subagent_type="ork:frontend-ui-developer",
   SHARED TYPES (read-only): src/types/
   DO NOT TOUCH: src/api/routes/, src/services/, src/models/
   Import API client from src/api/client.ts — do not modify it""",
-  run_in_background=True)
+  run_in_background=True, isolation="worktree")
 ```
 
 ### Shared File Protocol

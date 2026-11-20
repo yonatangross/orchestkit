@@ -1,0 +1,36 @@
+CONSENT BANNER, MORE VISIBLE · orchestkit.dev · mockup v1 (AWAITS YONATAN'S APPROVAL)
+supersedes the look of posthog-consent-mockup.txt, not its behaviour (that file stays as approved)
+
+01 / BANNER (fixed, bottom of viewport, every page, until answered)
+┌──────────────────────────────────────────────────────────────────────┐
+│ Docs pages (still readable and clickable around the card)            │
+│                                                                      │
+│   ┏ analytics consent ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓   │
+│   ┃ <explanatory sentence, unchanged by this PR>                 ┃   │
+│   ┃ Privacy notice                                               ┃   │
+│   ┃ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾          ┌─────────┐  ┌─────────────────┐     ┃   │
+│   ┃                         │ Decline │  │ Allow analytics │     ┃   │
+│   ┃                         └─────────┘  └─────────────────┘     ┃   │
+│   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛   │
+└──────────────────────────────────────────────────────────────────────┘
+
+02 / WHAT MAKES IT VISIBLE
+  card       solid bg-fd-card (was translucent bg-fd-background/95), rounded,
+             2px border in the primary color, larger shadow, inset from the edges
+  text       text-fd-card-foreground (was muted), on the card color:
+             light #080b14 on #f8fafe = 18.85:1, dark #e5e8f0 on #0c0f19 = 15.57:1
+  buttons    one class string for both: same size (min-h-10, px-4 py-2), same
+             weight (font-semibold), same border and fill
+  focus      2px outline in the primary color, offset 2px, on both buttons and the link
+             (light 6.42:1, dark 5.08:1 against the card)
+  link       exactly "Privacy notice", underlined, goes to /privacy
+
+03 / WHAT STAYS THE SAME
+  non-modal: no overlay, no focus trap, no dialog role, no aria-modal; the page
+  outside the card keeps working (pointer-events pass through the margin)
+  role="region" aria-label="Analytics consent"; exactly one banner
+  neutral answer text: "Decline" and "Allow analytics"
+  a choice stays dismissed across reloads (localStorage "cookie-consent")
+  the explanatory sentence (the cookieless PR changes it)
+
+◆ YONATAN APPROVES THIS DESIGN before the PR merges

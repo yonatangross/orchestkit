@@ -1,0 +1,21 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: the old snapshot-PR shape, arm split across backslash continuations.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enable auto-merge
+        env:
+          PR_NUMBER: "1"
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --auto \
+            --squash \
+            --delete-branch

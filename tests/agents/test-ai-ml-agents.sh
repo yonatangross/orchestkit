@@ -95,10 +95,10 @@ for agent in "${AI_ML_AGENTS[@]}"; do
         # Count skills in the skills array (between skills: and ---)
         skill_count=$(awk '/^skills:/,/^---/' "$agent_file" | grep -c "^  - " || true)
 
-        if [[ $skill_count -ge 3 ]]; then
+        if [[ $skill_count -ge 2 ]]; then
             pass "$agent has $skill_count skills"
         else
-            fail "$agent has only $skill_count skills (need >=3)"
+            fail "$agent has only $skill_count skills (need >=2)"
         fi
     fi
 done

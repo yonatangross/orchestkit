@@ -1,0 +1,206 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { canonical, decisionSha256, normalize, summarize, readRows, validateLegacyShadow } from '../../scripts/jev-shadow-report.mjs';
+
+const route = (extra = {}) => ({ intent: 'dev_fix', conf: 0.9, floor: 0.8, flag: 'shadow', ...extra });
+const labelFor = (row, fields) => ({ ...fields, decision_sha256: decisionSha256(row) });
+const high = route({ incumbent_intent: 'dev_build' });
+const low = route({ incumbent_intent: 'dev_build', conf: 0.7 });
+const agree = route({ incumbent_intent: 'dev_fix', conf: 0.8 });
+const rows = [
+  normalize(high, 'high', labelFor(high, { correct: 'dev_build' })),
+  normalize(low, 'low'),
+  normalize(agree, 'agree'),
+  normalize(route(), 'unknown'),
+  normalize(route({ conf: 2 }), 'invalid'),
+  normalize(route({ intent: null, conf: null, error: 'timeout' }), 'error'),
+];
+const [s] = summarize(rows);
+assert.deepEqual([s.rows, s.paired, s.agreements, s.highDisagreements, s.highPaired, s.belowFloor, s.errors, s.falseHigh, s.labeledHigh], [6, 3, 1, 1, 2, 1, 1, 1, 1]);
+assert.equal(s.examples[0].source, 'high');
+assert.equal(s.bands[2].agreements, 1);
+assert.equal(rows[3].agree, null);
+assert.equal(rows[4].confidence, null);
+const labeled = route();
+assert.equal(normalize(labeled, 'label', labelFor(labeled, { incumbent: 'dev_build' })).highDisagreement, true);
+assert.equal(normalize({ haiku: 'fix', jev: 'feature', jev_confidence: 0.8, threshold: 0.8, provider: 'shadow' }, 'category').highDisagreement, true);
+assert.equal(normalize({ step_id: 's', jev_action: 'click_e1', model_action_key: null, agree: false, jev_confidence: 0.9 }, 'legacy').highDisagreement, false);
+assert.deepEqual(canonical({ b: { y: 2, x: 1 }, a: [{ d: 4, c: 3 }] }), { a: [{ c: 3, d: 4 }], b: { x: 1, y: 2 } });
+assert.equal(
+  decisionSha256({ b: { y: 2, x: 1 }, a: [{ d: 4, c: 3 }] }),
+  decisionSha256({ a: [{ c: 3, d: 4 }], b: { x: 1, y: 2 } }),
+);
+const replaced = route({ intent: 'dev_build' });
+const staleLabel = normalize(replaced, 'rewritten:1', labelFor(route(), { incumbent: 'dev_fix', correct: 'dev_fix' }));
+assert.equal(staleLabel.labelMismatch, true);
+assert.equal(staleLabel.correct, null);
+assert.equal(staleLabel.falseHigh, false);
+const invalidRoute = normalize(high, 'invalid-route', labelFor(high, { correct: 'dev_fxi' }));
+assert.equal(invalidRoute.invalidLabel, true);
+assert.equal(invalidRoute.correct, null);
+assert.equal(invalidRoute.falseHigh, false);
+const category = { haiku: 'bugfix', jev: 'feature', jev_confidence: 0.9, threshold: 0.8, provider: 'shadow' };
+assert.equal(normalize(category, 'category', labelFor(category, { correct: 'feature' })).invalidLabel, false);
+assert.equal(normalize(category, 'invalid-category', labelFor(category, { correct: 'review' })).invalidLabel, true);
+const expectRow = { step_id: 's', jev_action: 'click:@e2', model_action_key: 'click:@e1', jev_confidence: 0.95, floor: 0.5 };
+assert.equal(normalize(expectRow, 'expect', labelFor(expectRow, { correct: 'click:@e2' })).invalidLabel, false);
+assert.equal(normalize(expectRow, 'invalid-expect', labelFor(expectRow, { correct: 'press:@e1' })).invalidLabel, true);
+const invalidWeak = normalize(high, 'weak', { kind: 'weak', ...labelFor(high, { correct: 'dev_build' }) });
+assert.equal(invalidWeak.invalidLabel, true);
+assert.equal(invalidWeak.correct, null);
+assert.equal(invalidWeak.falseHigh, false);
+const weak = normalize(route(), 'weak', { kind: 'weak', outcome: 'wrong', signal: 'operator_redirect', decision_sha256: normalize(route(), 'weak').decisionHash, correct: 'dev_build', incumbent: 'dev_build' });
+assert.equal(weak.correct, null, 'weak corrected picks are not adjudication');
+assert.equal(weak.incumbent, null, 'weak labels cannot manufacture incumbent agreement');
+assert.equal(weak.falseHigh, false);
+assert.equal(weak.labeledHigh, false);
+assert.equal(summarize([weak])[0].weakHighWrong, 1);
+assert.equal(summarize([normalize(route({ conf: 0.8 }), 'boundary', { kind: 'weak', outcome: 'wrong', signal: 'alternate_executor', decision_sha256: normalize(route({ conf: 0.8 }), 'boundary').decisionHash })])[0].weakHighWrong, 1);
+const staleWeak = normalize(route({ prompt_id: 'new' }), 'weak', { kind: 'weak', outcome: 'wrong', signal: 'alternate_executor', decision_sha256: normalize(route({ prompt_id: 'old' }), 'weak').decisionHash });
+assert.equal(staleWeak.weak, 'unknown', 'rotated source lines cannot reuse another prompt outcome');
+assert.equal(summarize([staleWeak])[0].weakMismatches, 1);
+assert.equal(summarize([staleWeak])[0].weakHighWrong, 0);
+for (const changed of [{ ts: 'new' }, { input_hash: 'new' }, { error: 'timeout' }, { nested: { request: ['new'] } }]) {
+  const original = route({ ts: 'old', input_hash: 'old', nested: { request: ['old'] } });
+  const label = { kind: 'weak', outcome: 'correct', signal: 'clean_completion', decision_sha256: normalize(original, 'same').decisionHash };
+  assert.equal(normalize({ ...original, ...changed }, 'same', label).weak, 'unknown', 'every raw decision field must be fingerprinted');
+  const reordered = Object.fromEntries(Object.entries(original).reverse());
+  assert.equal(normalize(reordered, 'same', label).weak, 'correct', 'key order is not a new decision');
+}
+const dir = mkdtempSync(join(tmpdir(), 'jev-report-'));
+try {
+  const file = join(dir, 'samples.jsonl');
+  const loggedRoute = route();
+  writeFileSync(file, `${JSON.stringify(loggedRoute)}\n{bad\nJEV_SHADOW|s|${JSON.stringify({ step_id: 's', jev_action: 'click_e2', model_action_key: 'click_e1', jev_confidence: 0.95, floor: 0.5 })}\n${JSON.stringify(route({ flag: 'steer' }))}\n`);
+  writeFileSync(join(dir, 'session-identity.shadow.json'), JSON.stringify({ haiku: 'fix', jev: 'feature', provider: 'shadow', jev_confidence: 0.8, threshold: 0.8 }, null, 2));
+  const input = readRows([dir, file]);
+  assert.equal(input.rows.length, 4);
+  assert.equal(input.malformed, 1);
+  const staleInput = readRows([file], new Map([[`${file}:1`, labelFor(route({ intent: 'dev_build' }), { correct: 'dev_build' })]]));
+  assert.equal(staleInput.labelMismatches, 1);
+  assert.equal(staleInput.rows[0].correct, null);
+  const invalidInput = readRows([file], new Map([[`${file}:1`, labelFor(loggedRoute, { correct: 'dev_fxi' })]]));
+  assert.equal(invalidInput.invalidLabels, 1);
+  assert.equal(invalidInput.rows[0].falseHigh, false);
+  const labels = join(dir, 'labels.txt');
+  writeFileSync(labels, JSON.stringify({ source: `${file}:1`, ...labelFor(loggedRoute, { incumbent: 'dev_build', correct: 'dev_build' }) }));
+  const output = execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, dir], { encoding: 'utf8' });
+  assert.match(output, /3 rows; malformed=1; ignored=0; invalid_labels=0; label_mismatches=0; excluded_modes=1/);
+  assert.match(output, /route: rows=1 paired=1 unpaired=0 agreement=0\/1/);
+  assert.match(output, /expect: rows=1 paired=1/);
+  assert.match(output, /category: rows=1 paired=1/);
+  assert.match(output, /labeled false-high=1\/1/);
+  assert.match(output, /share_high_paired=100.0%/);
+  const canonicalFile = join(dir, 'canonical.jsonl');
+  const cases = ['route', 'expect', 'category'].flatMap((seam) => [
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'b', agree: false, jev_confidence: 0.8, floor: 0.8 },
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'b', agree: false, jev_confidence: 0.79, floor: 0.8 },
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'a', agree: true, jev_confidence: 0.9, floor: 0.8 },
+    { seam, mode: 'shadow', jev_pick: 'a', incumbent_pick: 'unparsed', agree: null, jev_confidence: 0.9, floor: 0.8 },
+  ]);
+  writeFileSync(canonicalFile, cases.map((row) => JSON.stringify(row)).join('\n'));
+  assert.equal(normalize(cases[3], 'unparsed').paired, false);
+  const queue = execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--confident-wrong', canonicalFile], { encoding: 'utf8' }).trim().split('\n').map(JSON.parse);
+  assert.deepEqual(queue.map((row) => row.seam), ['route', 'expect', 'category']);
+  for (const row of queue) {
+    assert.equal(row.agree, false);
+    assert.equal(row.jev_confidence, row.floor);
+    assert.equal(row.review_status, 'awaiting_adjudication');
+    assert.equal(row.outcome_label, null);
+    assert.ok('decided_by' in row);
+  }
+  const revisions = join(dir, 'revisions.jsonl');
+  const pending = { ...cases[0], incumbent_pick: null, agree: null, decision_id: 'prompt-a', phase: 'pending' };
+  const paired = { ...cases[0], decision_id: 'prompt-a', phase: 'paired' };
+  writeFileSync(revisions, [pending, paired, pending, paired, { ...paired, decision_id: 'prompt-b' }].map(JSON.stringify).join('\n'));
+  const deduped = readRows([revisions]);
+  assert.equal(deduped.rows.length, 2);
+  assert.equal(deduped.superseded, 3);
+  assert.equal(deduped.rows[0].source, `${revisions}:2`);
+  assert.ok(deduped.rows.every((row) => row.phase === 'paired' && row.agree === false));
+  const otherSession = join(dir, 'other-session.jsonl');
+  writeFileSync(otherSession, JSON.stringify(paired));
+  assert.equal(readRows([revisions, otherSession]).rows.length, 3);
+  const hqFile = join(dir, 'hq-route.jsonl');
+  const orkFile = join(dir, 'ork-route.jsonl');
+  const shared = { ...paired, session_id: 'shared-session', prompt_id: 'runtime-prompt' };
+  const hq = { ...shared, router: 'hq-ext:auto', handoff_to: 'ork:auto', incumbent_pick: 'skill:ork:auto', agree: false };
+  const ork = { ...shared, router: 'ork:auto', handoff_to: null, incumbent_pick: 'a', agree: true };
+  writeFileSync(hqFile, [hq, { ...hq, phase: 'invoked' }].map(JSON.stringify).join('\n'));
+  writeFileSync(orkFile, [ork, { ...ork, phase: 'pending', incumbent_pick: null, agree: null }].map(JSON.stringify).join('\n'));
+  for (const paths of [[hqFile, orkFile], [orkFile, hqFile]]) {
+    const combined = readRows(paths);
+    assert.equal(combined.rows.length, 1, 'cross-file router handoff counts once');
+    assert.equal(combined.superseded, 2);
+    assert.equal(combined.ignored, 1, 'router invocation is not a decision');
+    assert.equal(combined.rows[0].router, 'ork:auto');
+    assert.equal(combined.rows[0].promptId, 'runtime-prompt');
+    assert.equal(combined.rows[0].agree, true, 'upstream disagreement must not leak into the queue');
+    assert.equal(summarize(combined.rows)[0].highDisagreements, 0);
+  }
+  const telemetry = { session_id: 'shared-session', prompt_id: 'runtime-prompt', router: 'hq-ext:auto', handoff_to: 'ork:auto', phase: 'handoff' };
+  writeFileSync(hqFile, JSON.stringify(telemetry));
+  assert.equal(readRows([hqFile, orkFile]).rows.length, 1, 'HQ handoff telemetry needs no fabricated Jev fields');
+  assert.equal(readRows([hqFile, orkFile]).rows[0].router, 'ork:auto');
+  assert.equal(readRows([hqFile]).rows[0].paired, false, 'unresolved handoff stays unpaired');
+  assert.equal(readRows([hqFile]).rows[0].highDisagreement, false);
+  writeFileSync(orkFile, [ork, { ...ork, session_id: 'another-session' }, { ...ork, prompt_id: 'another-prompt' }].map(JSON.stringify).join('\n'));
+  assert.equal(readRows([hqFile, orkFile]).rows.length, 3, 'sessions and prompts never cross-pair');
+  writeFileSync(orkFile, JSON.stringify({ ...ork, agree: false, incumbent_pick: 'b' }));
+  const handedQueue = execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--confident-wrong', hqFile, orkFile], { encoding: 'utf8' }).trim().split('\n').map(JSON.parse);
+  assert.equal(handedQueue.length, 1);
+  assert.equal(handedQueue[0].router, 'ork:auto');
+  assert.equal(handedQueue[0].session_id, 'shared-session');
+  assert.equal(handedQueue[0].prompt_id, 'runtime-prompt');
+  const weakLabels = join(dir, 'weak-labels.txt');
+  writeFileSync(weakLabels, JSON.stringify({ source: `${file}:1`, kind: 'weak', ...labelFor(loggedRoute, { correct: 'dev_build' }) }));
+  assert.throws(
+    () => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', weakLabels, file], { encoding: 'utf8', stdio: 'pipe' }),
+    /Invalid adjudicated label/,
+  );
+  writeFileSync(labels, JSON.stringify({ source: `${file}:1`, kind: 'weak', outcome: 'unknown', signal: 'missing_prompt_id' }));
+  const weakOutput = execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { encoding: 'utf8' });
+  assert.match(weakOutput, /weak outcomes: correct=0 wrong=0 unknown=1/);
+  assert.match(weakOutput, /labeled false-high=0\/0/);
+  writeFileSync(labels, JSON.stringify({ source: `${file}:1`, kind: 'weak', outcome: 'maybe', correct: 'dev_fix', signal: 'guess' }));
+  assert.throws(() => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { stdio: 'pipe' }), /Command failed/);
+  writeFileSync(labels, [
+    { source: `${file}:1`, ...labelFor(loggedRoute, { correct: 'dev_fix' }) },
+    { source: `${file}:1`, kind: 'weak', outcome: 'wrong', signal: 'alternate_executor' },
+  ].map(JSON.stringify).join('\n'));
+  assert.throws(() => execFileSync(process.execPath, ['scripts/jev-shadow-report.mjs', '--labels', labels, file], { stdio: 'pipe' }), /Duplicate label source/);
+} finally { rmSync(dir, { recursive: true, force: true }); }
+// #4297: executor-target route labels share the vocabulary of new route picks.
+{
+  const executorRow = { seam: 'route', mode: 'shadow', jev_pick: 'skill:ork:fix-issue', incumbent_pick: 'skill:ork:implement',
+    agree: false, jev_confidence: 0.9, floor: 0.8, decided_by: 'jev', session_id: 's', prompt_id: 'p' };
+  const agreed = normalize(executorRow, 'executor', labelFor(executorRow, { incumbent: 'skill:ork:fix-issue' }));
+  assert.equal(agreed.invalidLabel, false, 'executor-target label is valid on an executor-target row');
+  assert.equal(agreed.agree, true, 'matching executor-target label counts as agreement');
+  assert.equal(agreed.highDisagreement, false);
+  const agentLabel = normalize(executorRow, 'executor', labelFor(executorRow, { correct: 'agent:Explore' }));
+  assert.equal(agentLabel.invalidLabel, false, 'agent executor targets are valid route labels');
+  assert.equal(normalize(executorRow, 'executor', labelFor(executorRow, { correct: 'no_executor' })).invalidLabel, false);
+  const crossed = normalize(executorRow, 'executor', labelFor(executorRow, { incumbent: 'dev_fix' }));
+  assert.equal(crossed.invalidLabel, true, 'an intent-ID label cannot be compared with an executor-target pick');
+  assert.equal(crossed.agree, false, 'the invalid label leaves the recorded comparison untouched');
+  const legacy = route({ incumbent_intent: 'dev_build' });
+  assert.equal(normalize(legacy, 'legacy', labelFor(legacy, { incumbent: 'skill:ork:fix-issue' })).invalidLabel, true,
+    'an executor-target label cannot be compared with an intent-ID pick');
+  assert.equal(normalize(legacy, 'legacy', labelFor(legacy, { incumbent: 'dev_fix' })).agree, true);
+}
+
+// #4297: only the documented failure object counts as a structured incumbent.
+{
+  const base = { jev_pick: 'bugfix', jev_confidence: 0.9, agree: null, floor: 0.8, decided_by: 'jev' };
+  const failure = { status: 'no_valid_result', choice: null, reason: 'incumbent_classifier_failed' };
+  assert.deepEqual(validateLegacyShadow({ ...base, incumbent_pick: failure }), []);
+  for (const bad of [{}, { status: 'no_valid_result', choice: null }, { status: 'no_valid_result', choice: null, reason: '' },
+    { status: 'ok', choice: null, reason: 'x' }, { status: 'no_valid_result', choice: 'bugfix', reason: 'x' }]) {
+    assert.ok(validateLegacyShadow({ ...base, incumbent_pick: bad }).includes('invalid:incumbent_pick'), JSON.stringify(bad));
+  }
+}
+console.log('PASS: Jev shadow report counts, confidence bands, labels, legacy unknowns, malformed rows and CLI');

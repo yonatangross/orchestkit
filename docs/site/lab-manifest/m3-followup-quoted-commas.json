@@ -1,0 +1,12 @@
+{
+  "slug": "m3-followup-quoted-commas",
+  "source": "docs/fix--4533-m3-followup/index.html",
+  "title": "m3 follow-up: quoted commas and validate before write",
+  "description": "The m3 frontmatter script now keeps a comma inside a quoted list item and validates every agent before writing any, so a refusal never leaves a half-migrated tree. Planted inputs show the #4531 script beside this one.",
+  "tags": [
+    "frontmatter",
+    "agents",
+    "migration"
+  ],
+  "date": "2026-09-28"
+}

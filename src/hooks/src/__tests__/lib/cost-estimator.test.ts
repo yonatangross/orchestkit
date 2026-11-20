@@ -88,6 +88,12 @@ describe('cost-estimator vocab canaries (#2338)', () => {
   // ratio it bends; the other stays on the convention.
   const CACHE_RATIO_EXCEPTIONS: Record<string, { read?: number; write?: number }> = {
     'claude-fable-5-1': { read: 0.025 },
+    // CC 2.1.321 CHANGELOG: $8 input with $0.20/Mtok cache reads, a 0.025x read.
+    'claude-fable-5-2': { read: 0.025 },
+    // CC 2.1.280 CHANGELOG: $4 input with $0.20/Mtok cache reads, a 0.05x read.
+    'claude-opus-5-5': { read: 0.05 },
+    // Pricing page 2026-10-10, footnote 2: Sonnet 5.5 cache hits are 0.05x input ($0.10).
+    'claude-sonnet-5-5': { read: 0.05 },
     'gemini-3.8-flash': { write: 1.0 },
   };
 
@@ -111,17 +117,104 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     expect(getPricing('claude-fable-5-1[1m]').cache_read_per_mtok).toBe(0.25);
   });
 
+  // CC 2.1.321 made Fable 5.2 the default Fable model. Without its own row,
+  // getPricing() cannot relate claude-fable-5-2 to claude-fable-5-1 and the
+  // session falls through to the Sonnet 5.5 fallback.
+  it('prices claude-fable-5-2 at $8/$40 per MTok with $0.20 cache reads (CC 2.1.321)', () => {
+    const fable52 = getCostConfig().models['claude-fable-5-2'];
+    expect(fable52).toEqual({
+      input_per_mtok: 8.0,
+      output_per_mtok: 40.0,
+      cache_read_per_mtok: 0.2,
+      cache_write_per_mtok: 10.0,
+    });
+    expect(getPricing('claude-fable-5-2[1m]').input_per_mtok).toBe(8.0);
+    expect(calculateCost('claude-fable-5-2', MTOK).total).toBeCloseTo(48.0, 5); // $8 + $40
+  });
+
   it('resolves the `fable` alias to claude-fable-5-1 pricing (advanced 2026-09-01, CC 2.1.257 default)', () => {
     expect(resolveModelKey('fable')).toBe('claude-fable-5-1');
     expect(calculateCost('fable', MTOK).total).toBeCloseTo(60.0, 5); // $10 + $50, unchanged from Fable 5
   });
 
-  it('resolves `opus` alias to claude-opus-5 (alias table cannot silently flip)', () => {
-    // Advanced claude-opus-4-8 -> claude-opus-5 on 2026-07-25 (CC 2.1.219 made
-    // Opus 5 the default Opus). The per-MTok total is unchanged because both
-    // price at $5/$25, so this assertion is the only thing that catches the flip.
-    expect(resolveModelKey('opus')).toBe('claude-opus-5');
-    expect(calculateCost('opus', MTOK).total).toBeCloseTo(30.0, 5); // $5 + $25
+  it('resolves `opus` alias to claude-opus-5-5 (alias table cannot silently flip)', () => {
+    // Advanced claude-opus-4-8 -> claude-opus-5 on 2026-07-25 (CC 2.1.219), then
+    // claude-opus-5 -> claude-opus-5-5 on 2026-09-22 (CC 2.1.280 made Opus 5.5
+    // the default Opus at $4/$20).
+    expect(resolveModelKey('opus')).toBe('claude-opus-5-5');
+    expect(calculateCost('opus', MTOK).total).toBeCloseTo(24.0, 5); // $4 + $20
+  });
+
+  it('prices claude-opus-5-5 at $4/$20 per MTok (cache 0.2/5.0)', () => {
+    expect(getCostConfig().models['claude-opus-5-5']).toEqual({
+      input_per_mtok: 4.0,
+      output_per_mtok: 20.0,
+      cache_read_per_mtok: 0.2,
+      cache_write_per_mtok: 5.0,
+    });
+  });
+
+  it('never prices claude-opus-5-5 at a neighbour row (hyphenated remainder is a new product)', () => {
+    // Before the row existed, '-5' after 'claude-opus-5' was (correctly) not a
+    // session label, so Opus 5.5 fell to the claude-sonnet-5 fallback at $2/$10.
+    expect(getPricing('claude-opus-5-5').input_per_mtok).toBe(4.0);
+    expect(getPricing('claude-opus-5-5[1m]').output_per_mtok).toBe(20.0);
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(5.0);
+  });
+
+  it('resolves `sonnet` alias to claude-sonnet-5-5 (alias table cannot silently flip)', () => {
+    // Advanced claude-sonnet-5 -> claude-sonnet-5-5 on 2026-09-28. Same $2/$10
+    // list price as Sonnet 5, so a total alone cannot tell the two apart; the
+    // key assertion is what catches a revert.
+    expect(resolveModelKey('sonnet')).toBe('claude-sonnet-5-5');
+    expect(calculateCost('sonnet', MTOK).total).toBeCloseTo(12.0, 5); // $2 + $10
+  });
+
+  it('prices claude-sonnet-5-5 at $2/$10 per MTok (cache 0.1/2.5)', () => {
+    // platform.claude.com pricing page, read 2026-10-10: $2 in, $10 out,
+    // $0.10 cache read (0.05x input, footnote 2), $2.50 5-minute cache write.
+    // CC 2.1.296 re-priced Sonnet 5.5 cache reads from $0.20 to $0.10.
+    expect(getCostConfig().models['claude-sonnet-5-5']).toEqual({
+      input_per_mtok: 2.0,
+      output_per_mtok: 10.0,
+      cache_read_per_mtok: 0.1,
+      cache_write_per_mtok: 2.5,
+    });
+  });
+
+  it('keeps Opus 5.5 and Sonnet 5 cache reads at $0.20 (pricing page 2026-10-10)', () => {
+    expect(getCostConfig().models['claude-opus-5-5'].cache_read_per_mtok).toBe(0.2);
+    expect(getCostConfig().models['claude-sonnet-5'].cache_read_per_mtok).toBe(0.2);
+  });
+
+  it('prices claude-sonnet-5-5 on its own row, never through the unknown-model fallback', () => {
+    // Without a row, '-5' after 'claude-sonnet-5' is not a session label, so
+    // 5.5 would take the fallback. The fallback happens to carry the same
+    // price today, which is exactly why the row test above is the real pin.
+    expect(Object.keys(getCostConfig().models)).toContain('claude-sonnet-5-5');
+    expect(getPricing('claude-sonnet-5-5[1m]').output_per_mtok).toBe(10.0);
+    expect(getPricing('claude-sonnet-5').input_per_mtok).toBe(2.0);
+  });
+
+  it('prices claude-haiku-5-5 at $0.10/$0.50 per MTok (cache 0.01/0.125)', () => {
+    // platform.claude.com pricing page, read 2026-10-07, prompts up to 100K
+    // tokens; the CC 2.1.293 binary tier `haiku_55` agrees (pricing canary).
+    expect(getCostConfig().models['claude-haiku-5-5']).toEqual({
+      input_per_mtok: 0.1,
+      output_per_mtok: 0.5,
+      cache_read_per_mtok: 0.01,
+      cache_write_per_mtok: 0.125,
+    });
+  });
+
+  it('prices claude-haiku-5-5 on its own row, never through the sonnet fallback', () => {
+    // Without a row the unknown-model fallback bills it at $2/$10, 20x high,
+    // and the family shorthand must stay on the Haiku 4.5 row.
+    expect(getPricing('claude-haiku-5-5').output_per_mtok).toBe(0.5);
+    expect(getPricing('claude-haiku-4-5').input_per_mtok).toBe(1.0);
+    expect(getPricing('claude-haiku').input_per_mtok).toBe(1.0);
+    // `haiku` advanced claude-haiku-4-5-20251001 -> claude-haiku-5-5 on 2026-10-07 (CC 2.1.293 maps it the same way).
+    expect(resolveModelKey('haiku')).toBe('claude-haiku-5-5');
   });
 
   it('prices claude-opus-5 at $5/$25 per MTok (cache 0.5/6.25)', () => {
@@ -172,6 +265,13 @@ describe('cost-estimator vocab canaries (#2338)', () => {
     // caught. Do not relax the family tier to absorb a divergence.
     const OFF_TIER: Record<string, number> = {
       'claude-sonnet-5': 2.0,
+      'claude-sonnet-5-5': 2.0,
+      // Opus 5.5 launched below the $5 Opus line at $4/$20 (CC 2.1.280).
+      'claude-opus-5-5': 4.0,
+      // Haiku 5.5 launched at $0.10/$0.50, a tenth of the Haiku 4.5 line (2026-10-07).
+      'claude-haiku-5-5': 0.1,
+      // Fable 5.2 launched below the $10 Fable line at $8/$40 (CC 2.1.321).
+      'claude-fable-5-2': 8.0,
     };
     for (const id of modelsVocab.fullIds) {
       const family = Object.keys(TIER).find(f => id.includes(f));
@@ -383,12 +483,41 @@ describe('managed modelPricing (#3878)', () => {
     expect(stderr).not.toHaveBeenCalled();
   });
 
+  it('selects the Sonnet 5.5 row by key, not through the fallback (codex22 P3)', () => {
+    // The Sonnet 5.5 row IS the unknown-model fallback, so no price (list or
+    // override) can tell row from fallback. Pin the resolved row key instead.
+    const { matchPricingKey } = __internals;
+    for (const id of ['claude-sonnet-5-5', 'claude-sonnet-5-5[1m]', 'claude-sonnet-5.5', 'sonnet']) {
+      expect(matchPricingKey(id), id).toBe('claude-sonnet-5-5');
+    }
+    expect(matchPricingKey('claude-opus-5.5')).toBe('claude-opus-5-5');
+    expect(matchPricingKey('claude-unknown-9')).toBeNull();
+  });
+
+  it('normalizes dotted Claude ids to the hyphenated row (codex22 P2)', () => {
+    // getPricing('claude-opus-5.5') used to miss claude-opus-5-5 and fall back
+    // to Sonnet 5.5 rates: $2/$10/$0.10 instead of $4/$20/$0.20.
+    expect(getPricing('claude-opus-5.5')).toEqual(getCostConfig().models['claude-opus-5-5']);
+    expect(getPricing('claude-opus-5.5[1m]').input_per_mtok).toBe(4.0);
+    expect(getPricing('claude-sonnet-5.5')).toEqual(getCostConfig().models['claude-sonnet-5-5']);
+    // Non-Claude dotted ids keep their own spelling: Gemini rows are dotted.
+    expect(getPricing('gemini-3.8-flash')).toEqual(getCostConfig().models['gemini-3.8-flash']);
+  });
+
   it('override for an unknown model prices it instead of the sonnet fallback', () => {
     setManaged({ modelPricing: { overrides: { 'my-gateway-model': CONTRACT_ROW } } });
     expect(getPricing('my-gateway-model').input_per_mtok).toBe(8);
     expect(getPricing('my-gateway-model').output_per_mtok).toBe(40);
     // A different unknown model still takes the pinned fallback.
     expect(getPricing('zz-totally-unknown-model-9').input_per_mtok).toBe(2.0);
+  });
+
+  it('the unknown-model fallback reads the claude-sonnet-5-5 row first', () => {
+    // Sonnet 5 and 5.5 share a list price, so only an override on the 5.5 row
+    // can show which row the fallback reads. Repointed 2026-09-28.
+    setManaged({ modelPricing: { overrides: { 'claude-sonnet-5-5': CONTRACT_ROW } } });
+    expect(getPricing('zz-totally-unknown-model-9').input_per_mtok).toBe(8);
+    expect(getPricing('claude-sonnet-5').input_per_mtok).toBe(2.0);
   });
 
   it('override keys match case-insensitively and the earlier row wins a duplicate', () => {
@@ -474,6 +603,40 @@ describe('managed modelPricing (#3878)', () => {
     setManaged({ modelPricing: { overrides: { 'claude-fable-5-1': CONTRACT_ROW } } });
     expect(getPricing('claude-fable-5-1').input_per_mtok).toBe(8);
     expect(getPricing('claude-opus-5').input_per_mtok).toBe(3);
+  });
+
+  it('a dotted user row (claude-opus-5.5) prices the model under either spelling', () => {
+    // #4698 review: resolveModelKey rewrites the dotted name before the exact
+    // lookup, so an un-normalized user row was skipped for the vocab row (4).
+    const OPUS_55_USER = { input_per_mtok: 9, output_per_mtok: 45, cache_read_per_mtok: 0.9, cache_write_per_mtok: 11.25 };
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'claude-opus-5.5': OPUS_55_USER } }));
+    expect(getPricing('claude-opus-5.5')).toEqual(OPUS_55_USER);
+    expect(getPricing('claude-opus-5-5')).toEqual(OPUS_55_USER);
+    // A hyphenated user row for the same model wins over its dotted twin.
+    _virtualFiles.set(
+      USER,
+      JSON.stringify({ models: { 'claude-opus-5.5': OPUS_55_USER, 'claude-opus-5-5': { ...OPUS_55_USER, input_per_mtok: 7 } } }),
+    );
+    expect(getPricing('claude-opus-5.5').input_per_mtok).toBe(7);
+    // Gemini rows are dotted on purpose and stay as written.
+    _virtualFiles.set(USER, JSON.stringify({ models: { 'gemini-3.8-flash': { ...OPUS_55_USER, input_per_mtok: 0.5 } } }));
+    expect(getPricing('gemini-3.8-flash').input_per_mtok).toBe(0.5);
+  });
+
+  it('prototype-named user rows never drop the valid rows beside them', () => {
+    // #4698 codex review: MODEL_ALIASES["toString"] is inherited, so a row
+    // keyed "toString" threw inside the merge and every user row was lost.
+    const ROW = { input_per_mtok: 6, output_per_mtok: 30, cache_read_per_mtok: 0.6, cache_write_per_mtok: 7.5 };
+    _virtualFiles.set(
+      USER,
+      `{"models": {"toString": ${JSON.stringify(ROW)}, "constructor": ${JSON.stringify(ROW)}, "__proto__": ${JSON.stringify(ROW)}, "claude-opus-5": ${JSON.stringify(ROW)}}}`,
+    );
+    expect(getPricing('claude-opus-5').input_per_mtok).toBe(6);
+    expect(resolveModelKey('toString')).toBe('toString');
+    expect(resolveModelKey('hasOwnProperty')).toBe('hasOwnProperty');
+    // An inherited name is not a priced row: it takes the fallback, never a function.
+    _virtualFiles.clear();
+    expect(getPricing('valueOf').input_per_mtok).toBe(getPricing('claude-sonnet-5-5').input_per_mtok);
   });
 
   it('multiplier is applied last, on top of overrides and the user file alike', () => {

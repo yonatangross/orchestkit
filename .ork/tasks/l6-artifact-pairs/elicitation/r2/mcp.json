@@ -1,0 +1,1 @@
+{"mcpServers":{"l6elicit":{"type":"stdio","command":"node","args":["~/coding/yonatangross/orchestkit/.worktrees/l6-artifact-pairs/.ork/tasks/l6-artifact-pairs/elicitation/r2/server.mjs"],"env":{"SERVER_LOG":"~/coding/yonatangross/orchestkit/.worktrees/l6-artifact-pairs/.ork/tasks/l6-artifact-pairs/elicitation/r2/server-r2.log"}}}}

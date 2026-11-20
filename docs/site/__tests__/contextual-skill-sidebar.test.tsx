@@ -84,7 +84,7 @@ describe("ContextualSkillSidebar", () => {
   it("shows 'Depends on' with linked skills", () => {
     render(<ContextualSkillSidebar slug="implement" />);
     expect(screen.getByText("Depends on")).toBeTruthy();
-    expect(screen.getByText("Api Design")).toBeTruthy();
+    expect(screen.getByText("API Design")).toBeTruthy();
     expect(screen.getByText("Verify")).toBeTruthy();
     expect(screen.getByText("Memory")).toBeTruthy();
   });
@@ -142,7 +142,7 @@ describe("ContextualSkillSidebar", () => {
 
   it("dependency links point to correct reference URLs", () => {
     render(<ContextualSkillSidebar slug="implement" />);
-    const link = screen.getByText("Api Design").closest("a");
+    const link = screen.getByText("API Design").closest("a");
     expect(link?.getAttribute("href")).toBe(
       "/docs/reference/skills/api-design"
     );

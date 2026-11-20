@@ -1,0 +1,11 @@
+{
+  "slug": "fork-loaders-at-load-time",
+  "source": "docs/fix--4683-fork-loaders-deterministic/index.html",
+  "title": "Fork skills now load their context before the model reads a word",
+  "description": "Pick a skill and compare how its context loader ran before and after this change.",
+  "tags": [
+    "skills",
+    "hooks"
+  ],
+  "date": "2026-11-08"
+}

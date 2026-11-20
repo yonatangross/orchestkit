@@ -1,0 +1,13 @@
+{
+  "slug": "fix--skill-audit-b5-b8",
+  "source": "docs/fix--skill-audit-b5-b8/index.html",
+  "title": "Skill audit B5 to B8: four claims the plugin cannot keep",
+  "description": "Four skills said things the shipped plugin could not do: a broken link, a zero-config promise, a file the build did not ship, and retired browser guardrails. Each is now true or removed.",
+  "tags": [
+    "claude-code",
+    "skills",
+    "audit",
+    "docs"
+  ],
+  "date": "2026-10-16"
+}

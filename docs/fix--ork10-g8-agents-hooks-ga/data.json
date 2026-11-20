@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-g8",
+  "page": "docs/fix--ork10-g8-agents-hooks-ga/index.html",
+  "lab_slug": "ork10-g8-agents-hooks-ga",
+  "purpose": "PR playground: GA bugs: system-reminder tag and agent isolation"
+}

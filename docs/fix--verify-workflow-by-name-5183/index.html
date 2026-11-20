@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skills launch plugin workflows by name</title>
+<style>
+  :root { --bg: #0f1117; --panel: #181b24; --border: #2a2f3d; --text: #e6e8ee; --dim: #8b91a3; --accent: #7aa2f7; --red: #f7768e; --green: #9ece6a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  main { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin-bottom: .3rem; }
+  .sub { color: var(--dim); margin-bottom: 1.4rem; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1rem; }
+  h2 { font-size: 1rem; margin-bottom: .6rem; color: var(--accent); }
+  code { background: #10131b; border: 1px solid var(--border); border-radius: 4px; padding: .1rem .35rem; font-size: .85em; }
+  label { display: block; color: var(--dim); font-size: .85rem; margin: .5rem 0 .2rem; }
+  select { width: 100%; min-height: 40px; background: #10131b; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .5rem; font: .9rem ui-monospace, monospace; }
+  select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  table { width: 100%; border-collapse: collapse; font: .88rem ui-monospace, monospace; margin-top: .8rem; }
+  th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--dim); font-family: -apple-system, "Segoe UI", sans-serif; }
+  .ok { color: var(--green); } .bad { color: var(--red); }
+  button { background: #10131b; color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; cursor: pointer; font: inherit; min-height: 40px; margin-top: .8rem; }
+</style>
+</head>
+<body>
+<main>
+<h1>Skills launch plugin workflows by name</h1>
+<p class="sub">verify, assess, review-pr, cover and four other skills started their Phase 2 workflow with a <code>scriptPath</code> into the installed plugin cache. Claude Code refuses a script path the session cannot already read, so a headless <code>claude -p</code> run without <code>--add-dir</code> lost the verdict gate, and verify carried on with plain agents without saying so (#5183). The skills now call <code>Workflow(name="ork:&lt;name&gt;")</code>, and a refused call is named in the report and caps the verdict.</p>
+<section>
+<h2>What happens on this run?</h2>
+<label for="launch">how the skill starts the workflow</label>
+<select id="launch"><option value="path">scriptPath into the plugin cache (before)</option><option value="name">name ork:verify-dispatch (after)</option></select>
+<label for="dir">plugin folder passed with --add-dir</label>
+<select id="dir"><option value="no">no</option><option value="yes">yes</option></select>
+<table><thead><tr><th>step</th><th>result</th></tr></thead><tbody id="rows"></tbody></table>
+<button id="copy">Copy as prompt</button>
+</section>
+<section>
+<h2>Tested</h2>
+<p><code>tests/skills/test-workflow-calls-by-name.sh</code> fails on every <code>scriptPath</code> call to a manifest workflow and on the missing disclosure line; it passes after the change. Not yet confirmed live: that a by-name launch skips the read check in <code>claude -p</code>.</p>
+</section>
+</main>
+<script>
+const launch = document.getElementById('launch'), dir = document.getElementById('dir'), rows = document.getElementById('rows');
+function judge() {
+  const refused = launch.value === 'path' && dir.value === 'no';
+  const steps = [
+    ['Workflow call', refused ? 'refused (path outside the readable set)' : 'runs', refused ? 'bad' : 'ok'],
+    ['refuter votes and evidence cap', refused ? 'did not run' : 'ran', refused ? 'bad' : 'ok'],
+    ['report says so', refused ? (launch.value === 'path' ? 'before: no, silent fallback' : 'yes') : 'not needed', refused ? 'bad' : 'ok'],
+    ['verdict cap', refused ? 'IMPROVEMENTS RECOMMENDED at most (after)' : 'set by the gate', refused ? 'bad' : 'ok'],
+  ];
+  rows.replaceChildren(...steps.map(([a, b, cls]) => {
+    const tr = document.createElement('tr');
+    [[a, ''], [b, cls]].forEach(([text, c]) => { const td = document.createElement('td'); td.textContent = text; if (c) td.className = c; tr.appendChild(td); });
+    return tr;
+  }));
+}
+launch.onchange = dir.onchange = judge; judge();
+document.getElementById('copy').onclick = async () => {
+  const text = 'verify headless run: launch=' + launch.value + ', --add-dir=' + dir.value + ' -> ' + rows.querySelector('td:nth-child(2)').textContent + '.';
+  try { await navigator.clipboard.writeText(text); } catch (e) { launch.focus(); } };
+</script>
+</body>
+</html>

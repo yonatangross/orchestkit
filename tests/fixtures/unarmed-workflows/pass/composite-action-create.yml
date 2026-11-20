@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: a composite action that opens a PR and arms nothing.
+name: open-it
+description: fixture composite action
+inputs:
+  branch:
+    description: head branch
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Open
+      shell: bash
+      env:
+        BRANCH: ${{ inputs.branch }}
+      run: gh pr create --base main --head "$BRANCH" --title "pin" --body-file /tmp/body.md

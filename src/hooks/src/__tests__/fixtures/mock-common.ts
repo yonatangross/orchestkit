@@ -37,6 +37,9 @@ const SIDE_EFFECT_STUBS = {
   logPermissionFeedback: vi.fn(),
   // I/O: rules file writes to disk
   writeRulesFile: vi.fn(() => true),
+  // I/O: rules file reads from disk
+  rulesFileMatches: vi.fn(() => false),
+  rulesFileExists: vi.fn(() => false),
   // I/O: reads stdin
   readHookInput: vi.fn((): HookInput => ({ tool_name: '', session_id: 'test-session-123', tool_input: {} })),
   // Environment: reads cwd, env vars, git
@@ -47,8 +50,6 @@ const SIDE_EFFECT_STUBS = {
   getSessionId: vi.fn(() => 'test-session-123'),
   getEnvFile: vi.fn(() => '/test/plugin-root/.claude/.instance_env'),
   getCachedBranch: vi.fn(() => 'main'),
-  // Process: calls process.exit — NEVER run in tests
-  outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
   // Log level: stub to suppress output
   getLogLevel: vi.fn(() => 'warn'),
   shouldLog: vi.fn(() => false),
@@ -110,7 +111,15 @@ export function mockCommonBasic(
     outputSilentAllow: vi.fn((): HookResult => ({
       continue: true,
       suppressOutput: true,
-      hookSpecificOutput: { permissionDecision: 'allow' },
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow' },
+    })),
+    outputPermissionRequestAllow: vi.fn((): HookResult => ({
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: 'PermissionRequest',
+        decision: { behavior: 'allow' },
+      },
     })),
     outputBlock: vi.fn((reason: string): HookResult => ({
       continue: false,
@@ -194,6 +203,13 @@ export function mockCommonBasic(
     outputPreToolAdvisory: vi.fn((message: string): HookResult => ({
       continue: true,
       systemMessage: message,
+      hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: message },
+    })),
+    // Mirrors the real outputPreToolModelHint: Claude only, no systemMessage,
+    // no permissionDecision (#4652).
+    outputPreToolModelHint: vi.fn((message: string): HookResult => ({
+      continue: true,
+      suppressOutput: true,
       hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: message },
     })),
     outputError: vi.fn((message: string): HookResult => ({ continue: true, systemMessage: message })),
@@ -294,8 +310,9 @@ export function mockLog(
   return {
     logHook: vi.fn<(...args: unknown[]) => void>(),
     logPermissionFeedback: vi.fn<(...args: unknown[]) => void>(),
-    outputStderrWarning: vi.fn(() => { throw new Error('outputStderrWarning calls process.exit — do not use in tests'); }) as unknown as (...args: unknown[]) => never,
     writeRulesFile: vi.fn(() => true),
+    rulesFileMatches: vi.fn(() => false),
+    rulesFileExists: vi.fn(() => false),
     readHookInput: vi.fn((): HookInput => ({ tool_name: '', session_id: 'test-session-123', tool_input: {} })),
     ...overrides,
   };

@@ -12,8 +12,11 @@ report a problem.
 Use GitHub's private reporting: [**Report a vulnerability**](https://github.com/yonatangross/orchestkit/security/advisories/new)
 (private vulnerability reporting is enabled on this repository).
 
-If you cannot use GitHub advisories, open a public issue containing **only** a
-request for a private channel — no details, no reproduction — and you will be
+**Security contact:** [hi@yonyon.ai](mailto:hi@yonyon.ai). Use it if you cannot use
+GitHub advisories. Reports from automated security scanners also go to this address.
+
+If you cannot use either, open a public issue containing **only** a
+request for a private channel, with no details and no reproduction, and you will be
 contacted to continue privately.
 
 Please include: the affected skill / agent / hook, the version or commit, what an
@@ -55,9 +58,13 @@ Out of scope:
   [skills.sh](https://skills.sh) are scanned by Snyk on install across its policy
   categories, including malicious code, prompt injection, toxic flows, suspicious
   downloads, and exposed credentials.
-- **CI gates.** CodeQL, dependency review with Dependabot auto-merge for patches,
-  an OpenSSF Scorecard run, secret-audit hooks, and hook-contract tests run on the
-  repository. Third-party GitHub Actions are pinned by commit SHA.
+- **CI gates.** CodeQL, dependency review with a held label on Dependabot major bumps,
+  an OpenSSF Scorecard run, and hook-contract tests run on the repository.
+  Runtime secret controls ship in the plugin: `redact-secrets` warns on leaked
+  tokens in tool output, `secret-handler` defaults to `ORK_SECRET_HOOK=AUDIT`
+  (detect + sidecar log, no blocking), and `security-command-audit` appends
+  Bash lines with known token shapes redacted under `CLAUDE_PLUGIN_DATA` when
+  set. Third-party GitHub Actions are pinned by commit SHA.
 - **Upstream version tracking.** `scripts/check-labs-versions.mjs` re-checks each
   skill's declared `upstream-version-tested` pin and dependency floors against the
   live npm and PyPI registries on a schedule, so documented versions cannot drift
@@ -68,9 +75,10 @@ Out of scope:
 
 Hooks are the highest-privilege surface here: they run shell or Node/Python on
 your machine on agent events. If you are evaluating OrchestKit for a team, read
-`src/hooks/` and `src/hooks/README.md` first. Every hook is designed to
-**fail open** — an error must never block your work — and none should ever
-transmit repository contents off-machine. A hook that violates either property is
+`src/hooks/` and `src/hooks/README.md` first. Most hooks are designed to
+**fail open** so an error does not block your work; security-critical hooks are
+the exception and exit 2 when an existing bundle fails to load (see `run-hook.mjs`; an absent bundle still exits 0). None should
+ever transmit repository contents off-machine. A hook that violates either property is
 a security bug under this policy; please report it.
 
 ## Supported versions

@@ -1,0 +1,11 @@
+{
+  "slug": "fork-skill-body-loaders",
+  "source": "docs/fix--4683-body-loaders/index.html",
+  "title": "Fork skill loaders that printed nothing",
+  "description": "Pick a skill loader and compare what it printed before and after it started sending its event name.",
+  "tags": [
+    "hooks",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

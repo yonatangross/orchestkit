@@ -1,0 +1,10 @@
+{
+  "slug": "cc-version-flag-5038",
+  "source": "docs/fix--cc-version-flag-5038-b/index.html",
+  "title": "cc-version-check keeps its flag until it decides",
+  "description": "The Claude Code version check spent its once-per-session flag on a silent env-only pass, so a later call with a real version below the floor never warned. Each call sequence, before and after.",
+  "tags": [
+    "hooks"
+  ],
+  "date": "2026-11-04"
+}

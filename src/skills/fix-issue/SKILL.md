@@ -1,29 +1,23 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server, context7 MCP server, gh CLI."
-description: "Fixes GitHub issues using parallel analysis agents for root cause investigation, code exploration, and regression detection. Reads issue context from gh CLI, searches codebase and memory for related patterns, generates a fix with tests, and links the resolution back to the issue via PR. Includes prevention analysis to avoid recurrence. Use when debugging errors, resolving regressions, fixing bugs, or triaging issues."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server, context7 MCP server, gh CLI."
+description: "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one."
 argument-hint: "[issue-number]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.6.0
-author: OrchestKit
-tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Agent, TaskCreate, TaskUpdate, TaskStop, Grep, Glob, ToolSearch, ExitWorktree, CronCreate, CronDelete, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
-skills: [explore, verify, memory, remember, chain-patterns]
-complexity: medium
-persuasion-type: guidance
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Agent TaskCreate TaskUpdate TaskStop Grep Glob ToolSearch ExitWorktree CronCreate CronDelete PushNotification mcp__memory__search_nodes mcp__memory__create_entities mcp__context7__resolve-library-id mcp__context7__query-docs"
+skills: [explore, verify, memory, chain-patterns]
 model: sonnet
-hooks:
-  PreToolUse:
-    - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/issue-context-loader"
-      once: true
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
+  version: "2.6.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "issue, bug-fix, github, debugging, rca, prevention"
 triggers:
   keywords: [fix, debug, "bug report", broken, "500 errors", investigate, resolve, regression, "track down", "figure out why", "issue #"]
   examples:
@@ -47,21 +41,31 @@ fix-issue 123
 fix-issue 456
 ```
 
-> **Opus 5**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
+> **Opus 5.5**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
 
 > **CC ≥ 2.1.119 multi-host note (M122):** Issue fetching works against GitHub, GitLab, Bitbucket, and GitHub Enterprise. The argument is either a numeric ID (use the configured default remote's host) or a full URL (parsed via `parsePrUrl`/`parseIssueUrl` from `src/hooks/src/lib/pr-host-parser.ts`). Branch on the detected host family for the right CLI: `gh issue view` (GitHub/GHE), `glab issue view` (GitLab), `bb issue view` (Bitbucket). Reference: `src/skills/chain-patterns/references/pr-from-platform.md`.
 
 ## Argument Resolution
 
+**Check the target first, before any other step.** This skill forks and cannot see the conversation. Load `Read("../../shared/rules/target-resolution.md")`: if the target, flags stripped, is a bare pronoun or deictic (`this`, `them`, `that one`) or empty, return exactly `TARGET_UNRESOLVED: <word>` and stop. The caller resolves it and re-invokes.
+
 ```python
-ISSUE_NUMBER = "$ARGUMENTS[0]"  # e.g., "123" (CC 2.1.59 indexed access)
-# $ARGUMENTS contains the full argument string
-# $ARGUMENTS[0] is the first space-separated token
+ISSUE_NUMBER = "$ARGUMENTS" with the flags stripped  # the target the check above reads, e.g. "123"
+# $ARGUMENTS contains the full argument string and may open with flags
+# like --model=opus; indexing [0] would fetch the flag, not the issue.
+# If the stripped target is not an issue number or URL, return
+# TARGET_UNRESOLVED: <word> and stop.
 ```
 
 ## STEP -1: MCP Probe + Resume Check
 
 **Run BEFORE any other step.** Detect available MCP servers and check for resumable state.
+
+**Load the issue the target names first.** A fork skill never runs frontmatter hooks (#4683), so fetch `ISSUE_NUMBER` (the flags-stripped target, never `$ARGUMENTS[0]`) yourself and keep the result in mind. Do not call `skill/issue-context-loader` for this: it takes its number from the branch name, not from the argument, so on a branch like `fix/ork10-...` it loads a different issue. Use the CLI the M122 host note selects (`gh`, `glab`, or `bb`):
+
+```bash
+gh issue view "$ISSUE_NUMBER" --json title,body,labels,milestone,state
+```
 
 ```python
 # Probe MCPs (parallel — all in ONE message):
@@ -112,6 +116,10 @@ Auto-skip conditions (all exit 0, all WARN-logged):
 Session dir must contain `fix-issue-input.json` (with `error_text: str`). The signature extractor (`signature_lib.extract_signature`) normalizes Python tracebacks, JS stack traces, and generic `<Type>: <msg>` errors to a `<error_type> <primary_path>:<lineno>` shape used as the `search_nodes` query. Handoff JSON at `<session-dir>/prior-fix-matches.json` records `status`, `signature`, and `matches_count`; the top-3 matches land in `<session-dir>/prior-fix-matches.md` as a Markdown table.
 
 Mirrors the memory-consumer pattern from PR #1889 but read-only. Closes orchestkit#1895.
+
+**Finish line.** Done means: the root cause is confirmed by a failing test that now passes, the full suite is green, and the PR links the issue. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
+Budget: at most 5 RCA agents (Phase 4) and 3 fix-test iterations (one iteration = Phase 6 fix, then Phase 7 validation with the full suite); stop and report at the finish line or the first cap, whichever comes first.
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
@@ -236,7 +244,7 @@ Load `Read("rules/evidence-gathering.md")` for detailed workflow adjustments per
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Agent Teams** (mesh) or **Task tool** (star). Load `Read("references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
+Choose **Agent Teams** (mesh) or **Agent** (star, the Agent tool). A Workflow-tool mode is planned (a future `workflows/rca-fanout.js` for Phase 4 RCA) and is not selectable yet. Load `Read("references/agent-selection.md")` for the selection criteria, cost comparison, and task creation patterns.
 
 ## Service Discovery & Visual Inspection
 
@@ -362,9 +370,9 @@ if capabilities.memory:
 - **Prevention required** -- at least one of: automated test, validation rule, or process check
 - Make minimal, focused changes; DO NOT over-engineer
 
-### Clarify the Fix's Blast-Radius (Phase 4 → 5 gate)
+### Prove the Fix's Blast-Radius (Phase 4 → 5 gate)
 
-Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom** — is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **blast-radius** via ordered `AskUserQuestion` (schema/migration → auth → public contract/breaking → backfill/scale; skip cosmetic, cap ~4). Each answer becomes a row in `.claude/chain/decisions.json` and the PR body, feeding Phase 5 and the regression test. Skip for **Hotfix** / `low` effort. Full protocol: `Read("references/fix-blast-radius.md")`.
+Once RCA confirms the cause and BEFORE Phase 5 (Fix Design), run two checks: (1) **root cause vs symptom**: is this the real fix, or a `# type: ignore` / retag / downgrade patch of a symptom? (2) the fix's **safety fact**: the one fact the fix is safe because of, pushed down a 5-step proof ladder (said so, pointed at the line, showed the bad case cannot happen, ran it, reproduced it in the app). A pass needs step 4: a script or test that ran against the real code. No user questions. The fact, its ladder step and the risks go to `.claude/chain/decisions.json` and the **PR body**, feeding Phase 5 and the regression test; a fact below step 4 is written as unproven. Skip for **Hotfix** / `low` effort. Full protocol: `Read("references/fix-blast-radius.md")`.
 
 ## CC 2.1.49 Enhancements
 
@@ -454,7 +462,7 @@ Done means all of these hold:
 - `debug-investigator` - Debug complex issues
 - `browser-tools` - Visual inspection with agent-browser + Portless
 - `ork:issue-progress-tracking` - Auto-updates from commits
-- `ork:remember` - Store lessons learned
+- `ork:memory remember` - Store lessons learned
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
@@ -474,7 +482,7 @@ Load on demand with `Read("references/<file>")`:
 | `agent-teams-rca.md` | Agent Teams RCA workflow |
 | `prevention-patterns.md` | Recurrence prevention patterns |
 | `cc-enhancements.md` | CC 2.1.49 session resume, task metrics, adaptive thinking |
-| `fix-blast-radius.md` | Phase 4→5 gate: root-cause-vs-symptom + ordered blast-radius clarification, decisions table |
+| `fix-blast-radius.md` | Phase 4→5 gate: root-cause-vs-symptom + the fix's safety fact on a 5-step proof ladder (pass needs a run) |
 
 ---
 

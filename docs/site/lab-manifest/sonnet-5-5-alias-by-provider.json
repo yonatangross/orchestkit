@@ -1,0 +1,8 @@
+{
+  "slug": "sonnet-5-5-alias-by-provider",
+  "source": "docs/chore--dsp-23090-ork-s55-adopt/index.html",
+  "title": "Sonnet 5.5: where the sonnet alias lands",
+  "description": "Pick a provider and see which model a model: sonnet agent runs on Claude Code 2.1.284, read from the binary's baked catalog.",
+  "tags": ["models", "sonnet", "explainer"],
+  "date": "2026-09-28"
+}

@@ -1,0 +1,12 @@
+{
+  "slug": "orchestkit-architecture",
+  "source": "docs/docs--architecture-2026-11-06/index.html",
+  "title": "OrchestKit architecture at a glance",
+  "description": "How the plugin is built and shipped: the component graph and the build and release path as diagrams, the five layers, six design decisions and every external service, from docs/ARCHITECTURE.md.",
+  "tags": [
+    "architecture",
+    "docs",
+    "diagrams"
+  ],
+  "date": "2026-11-06"
+}

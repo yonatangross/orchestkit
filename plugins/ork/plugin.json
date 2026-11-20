@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ork",
-  "version": "10.0.0-beta.56",
-  "description": "The Complete AI Development Toolkit — 107 skills, 36 agents, 171 hooks for full-stack development.",
+  "version": "10.15.1",
+  "description": "A Claude Code plugin library: 115 skills, 36 agents and 163 hooks for planning, building, reviewing and shipping software. Open source, MIT.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com",

@@ -1,0 +1,11 @@
+{
+  "slug": "ci-sentinel-freshness",
+  "source": "docs/fix--ci-sentinel-freshness/index.html",
+  "title": "ci-sentinel skill text that had drifted",
+  "description": "Pick a line of the ci-sentinel skill and compare what it said before and after the freshness pass.",
+  "tags": [
+    "ci",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

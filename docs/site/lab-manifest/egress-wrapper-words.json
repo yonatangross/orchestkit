@@ -1,0 +1,8 @@
+{
+  "slug": "egress-wrapper-words",
+  "source": "docs/fix--egress-wrapper-words/playground.html",
+  "title": "Word-based wrapper option parsing in the egress check",
+  "description": "Egress pipe check: walk user-switch wrapper options by word and treat separators inside quoted spans as argument data.",
+  "tags": ["hooks", "security", "egress"],
+  "date": "2026-09-24"
+}

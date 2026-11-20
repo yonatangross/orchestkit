@@ -318,7 +318,7 @@ export function AgentSelector() {
                   } ${meta.dot}`}
                 />
                 {meta.label}
-                <span className="tabular-nums text-fd-muted-foreground/70">
+                <span className="tabular-nums text-fd-muted-foreground">
                   {countOf(cat)}
                 </span>
               </button>
@@ -720,7 +720,7 @@ function QuizModal({
                   onClick={onSkipCategory}
                   className="mt-3 w-full text-center text-xs text-fd-muted-foreground hover:text-fd-foreground"
                 >
-                  Skip &mdash; show all categories
+                  Skip and show all categories
                 </button>
               </div>
             )}

@@ -1,0 +1,8 @@
+{
+  "slug": "hono-node-server-advisory",
+  "source": "docs/fix--hono-node-server-advisory/index.html",
+  "title": "Hono node-server advisory bump",
+  "description": "Lockfile-only bump of @hono/node-server from 2.1.0 to 2.1.5 clears GHSA-rmxm-3fg6-px4f. No behaviour change, the MCP server is stdio only.",
+  "tags": ["security", "dependencies", "mcp-server"],
+  "date": "2026-10-30"
+}

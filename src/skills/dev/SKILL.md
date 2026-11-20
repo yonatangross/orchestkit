@@ -1,20 +1,19 @@
 ---
 name: dev
-compatibility: "Claude Code 2.1.251+"
-description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing."
+compatibility: "Claude Code 2.1.277+"
+description: "One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. Use when starting a branch, switching worktrees or resuming a project."
 argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
-tags: [dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125, m127]
-version: 1.1.0
-author: OrchestKit
 user-invocable: true
 disable-model-invocation: false
-complexity: medium
 context: inherit
-persuasion-type: guidance
 metadata:
   category: devops
   milestone: M127
   upstream-packages: ["portless", "emulate", "agent-browser", "tailscale"]
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "dev-loop, portless, emulate, agent-browser, vercel-labs, lab-stack, m125, m127"
 ---
 
 # dev — Lab-Stack Boot
@@ -27,6 +26,8 @@ One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 4. **agent-browser** → pre-warmed session named after the branch
 
 State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the PIDs and signals SIGTERM in reverse boot order.
+
+> **Load each tool's own guide before driving it by hand, never from memory:** `agent-browser skills get core` for agent-browser, the `portless` skill's `references/upstream.md` for portless, the `emulate-seed` skill's `references/upstream.md` for emulate. Never pipe a command that may start a daemon or server into `tail`, `head` or `grep` (hangs on native Windows under Git Bash): redirect to a file instead, see `browser-tools` `references/ork-delta.md`.
 
 > **Paired with `expect`:** the agent-browser session that `dev` warms is the same one `expect` (and the M125 #2 auto-trigger) attach to — no second startup latency on the first UI test.
 
@@ -166,6 +167,8 @@ Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs desc
 ## Worktree behavior
 
 Each git worktree gets its own subdomain — `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `dev` from one worktree doesn't see the other's processes.
+
+Every worktree also carries its own `node_modules` and build output. When the disk fills after many branches, `/ork:disk-cleanup` lists the merged, clean worktrees and the caches it can reclaim (dry run first).
 
 ## Idempotency
 

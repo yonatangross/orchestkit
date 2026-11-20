@@ -1,0 +1,12 @@
+{
+  "slug": "skill-gate-yaml",
+  "source": "docs/fix--skill-gate-yaml/index.html",
+  "title": "The description gate now parses YAML and proves itself with fixtures",
+  "description": "The 260-byte skill description gate used to match frontmatter as text, so a quoted key, a spaced key or a YAML alias read as empty. It now parses the YAML, ships 13 planted fixtures that must fail or pass, and a ratchet that can only go down versus the base branch.",
+  "tags": [
+    "skills",
+    "ci",
+    "tokens"
+  ],
+  "date": "2026-11-04"
+}

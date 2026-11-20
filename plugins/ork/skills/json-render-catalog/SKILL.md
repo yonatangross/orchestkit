@@ -1,22 +1,22 @@
 ---
 name: json-render-catalog
-compatibility: "Claude Code 2.1.251+"
-description: "json-render component catalog patterns for AI-safe generative UI. Define Zod-typed catalogs that constrain what AI can generate, use @json-render/shadcn for 36 pre-built components, optimize specs with YAML mode, and apply the three edit modes (patch/merge/diff) for progressive updates. Use when building AI-generated UIs, defining component catalogs, or integrating json-render into React/Vue/Svelte/React Native/Ink/Next.js projects."
-tags: [json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel]
-version: 1.3.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "json-render catalogs for AI-safe generative UI: Zod-typed components, @json-render/shadcn, YAML specs, patch/merge/diff edits. Use when defining component catalogs for AI-generated UIs."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
 context: inherit
-agent: genui-architect
-persuasion-type: reference
 metadata:
   category: frontend
   upstream-package: "@json-render/core"
-  upstream-version-tested: "0.20.0"
+  upstream-version-tested: "0.21.3"
   shadcn-component-count: 36
+  version: "1.3.1"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "json-render, genui, zod, catalog, shadcn, ai-ui, component-catalog, vercel"
 ---
+
+Upstream version reference: `@json-render/core` 0.21.3 (2026-10-24).
 
 # json-render Component Catalogs
 
@@ -35,8 +35,10 @@ node "${CLAUDE_SKILL_DIR}/scripts/storybook-to-catalog.mjs" storybook-manifest.j
 
 Storybook becomes the single source of truth — adding a story automatically expands the AI-allowed surface; removing one shrinks it. AI safety is enforced at import: callbacks, raw object props, and `z.any()` are dropped. Full mapping: `references/storybook-import.md`. Companion fixture for testing: `references/storybook-fixture.json`.
 
-## New in 2026-04 → 2026-08 (json-render 0.14 → 0.20)
+## New in 2026-04 → 2026-10 (json-render 0.14 → 0.21)
 
+- **`__proto__` paths (0.21)**: only the `setByPath`, `addByPath` and `removeByPath` helpers ignore a path with a `__proto__` segment, without an error. `createStateStore().set()` / `update()` and `createStoreAdapter` write through `immutableSetByPath`, which has no guard, and no helper rejects `constructor` or `prototype`. So validate keys yourself before any state-store write: reject `__proto__`, `constructor` and `prototype` segments, and never use them as an element key, a state key or a patch path segment. RFC 6901 escaping is unchanged: write `~0` for `~` and `~1` for `/` inside a key.
+- **Experimental composition API (0.21)**: `experimental_composeSpec` and `experimental_createEvaluator` are the only new exports in `@json-render/core` 0.21 (verified against the 0.20.0 and 0.21.3 type definitions, no removals). They are marked experimental, so do not build a catalog workflow on them yet.
 - **Named slots (0.20)** — `UIElement` gains `slots?: Record<string, string[]>`, a catalog declares which it accepts via `slots: ["default", "header", "footer"]`, and a React registry component receives named content as `slots?.header` while `children` stays the default slot. Prefer this over encoding layout regions as separate sibling elements.
 - **Nested repeats and item-scoped visibility (0.20)** — `repeat.statePath` accepts an item-relative `{"$item": "employees"}` form (new `RepeatStatePath` type plus `resolveRepeatStatePath` / `resolveRepeatItemStatePath`), and a `repeat` combined with `visible: {"$item": "status", "eq": "todo"}` on the same element now filters items instead of erroring. `validateSpec` gains `invalid_visible`, `repeat_without_children`, `repeat_item_outside_scope` and `repeat_state_mismatch` issue codes.
 - **Custom directives API (0.19)** — `@json-render/core` now ships `defineDirective`, letting you declare new JSON shapes (e.g. `$format`, `$math`) that resolve to computed values at render time. Directives compose by nesting and resolve inside-out. All four renderers (React, Vue, Svelte, Solid) have built-in directive resolution. This is the safe escape hatch for computed values without widening the catalog to `z.any()`.
@@ -480,7 +482,7 @@ Choosing JSON vs YAML for token efficiency.
 
 ## Related Skills
 
-- `ork:ai-ui-generation` — AI-assisted UI generation patterns for v0, Bolt, Cursor
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:ai-ui-generation` — AI-assisted UI generation patterns for v0, Bolt, Cursor
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
 - `ork:component-search` — Finding and evaluating React/Vue components
 - `ork:design-to-code` — Converting designs to production code

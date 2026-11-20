@@ -31,7 +31,7 @@ export const MyVideo = () => (
 
 **Correct, Renderer from spec:**
 ```tsx
-// Verified 2026-07-31 against @json-render/remotion@0.19.0 dist/index.d.ts.
+// Verified 2026-10-26 against @json-render/remotion@0.21.3 dist/index.d.ts (same exports as 0.19.0).
 // The export is `Renderer`, and its props are { spec, components } only.
 import { Renderer } from '@json-render/remotion'
 import { remotionComponents } from './registries/remotion'

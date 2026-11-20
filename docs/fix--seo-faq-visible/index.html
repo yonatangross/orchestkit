@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home FAQ in the page and facts in the Markdown: before and after</title>
+<meta name="description" content="The orchestkit.dev home FAQ moves from JSON-LD only into the server HTML, and AI crawlers that get Markdown at the root now get the key facts and the FAQ.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:32px 20px 64px}h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}.panel h2{font-size:14px;color:var(--mute);margin:0 0 10px}
+.q{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:14px}.dot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
+.big{font-size:28px;font-weight:700}pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>Home FAQ in the page, facts in the Markdown</h1>
+<p class="lead">Branch fix/seo-faq-visible. Left: what a crawler that does not run JavaScript finds in the home HTML. Right: what an AI crawler that gets Markdown at / finds.</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b0" aria-pressed="false">Before (live, 15.11)</button>
+ <button id="b1" aria-pressed="true">After (this branch)</button>
+</div>
+<div class="grid">
+ <div class="panel"><h2>Home HTML: FAQ questions and answers in the server text</h2><div class="big" id="score"></div><div id="qs"></div></div>
+ <div class="panel"><h2>Markdown at / (OAI-SearchBot, PerplexityBot)</h2><div id="md"></div></div>
+</div>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/seo-faq-visible on orchestkit (SEO gaps rows 3 and 15): components/home-faq.tsx renders HOME_FAQS open in the home page (same strings as the FAQPage JSON-LD, now plain text), lib/home-facts.ts adds Key facts and the FAQ to the root Markdown; test __tests__/seo-pr-d-faq-facts.test.tsx. After deploy, rerun seo-probe.py: faq-visible should read 6/6 and 6/6, and a curl of / with a PerplexityBot user agent should show the Key facts section.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const Q=["What is OrchestKit?","Is OrchestKit free?","How do I install OrchestKit?","What is Claude Code?","Who builds OrchestKit, and what is Yonyon?","How does OrchestKit compare to GitHub Copilot or Cursor?"];
+const BEFORE_Q=[true,false,false,false,false,false];
+const MD={before:["# OrchestKit","> AI development toolkit for Claude Code: counts","## Documentation","## Machine-readable resources"],
+ after:["# OrchestKit","> AI development toolkit for Claude Code: counts","## Key facts (what, hosts, licence and price, install, version, source, publisher)","## Questions (the same 6 as the JSON-LD)","## Documentation","## Machine-readable resources"]};
+let s="after";
+function draw(){
+ const qs=document.getElementById("qs");qs.textContent="";let n=0;
+ Q.forEach((q,i)=>{const v=s==="after"||BEFORE_Q[i];const a=s==="after";if(v)n++;
+  const r=document.createElement("div");r.className="q";const d=document.createElement("span");d.className="dot";d.style.background=v&&a?"var(--ok)":v?"var(--acc)":"var(--bad)";
+  r.appendChild(d);r.appendChild(document.createTextNode(q+(v?(a?"  (question and answer)":"  (heading only, no answer)"):"  (JSON-LD only)")));qs.appendChild(r)});
+ const ans=s==="after"?6:0;const sc=document.getElementById("score");sc.textContent=n+"/6 questions, "+ans+"/6 answers";sc.style.color=n===6&&ans===6?"var(--ok)":"var(--bad)";
+ const md=document.getElementById("md");md.textContent="";
+ for(const l of MD[s]){const r=document.createElement("div");r.className="q";const d=document.createElement("span");d.className="dot";d.style.background=/Key facts|Questions/.test(l)?"var(--ok)":"var(--line)";r.appendChild(d);r.appendChild(document.createTextNode(l));md.appendChild(r)}
+ document.getElementById("b0").setAttribute("aria-pressed",String(s==="before"));document.getElementById("b1").setAttribute("aria-pressed",String(s==="after"));
+}
+document.getElementById("b0").onclick=()=>{s="before";draw()};document.getElementById("b1").onclick=()=>{s="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+</body>
+</html>

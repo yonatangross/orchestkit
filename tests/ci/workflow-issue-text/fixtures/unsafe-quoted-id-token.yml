@@ -1,0 +1,13 @@
+# PLANTED UNSAFE FIXTURE (security review of 5b84e983). A quoted key and a
+# quoted value still grant id-token: write.
+name: Unsafe quoted id-token fixture
+on: workflow_dispatch
+
+permissions:
+  "id-token": 'write'
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh issue view 1

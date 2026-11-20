@@ -1,0 +1,12 @@
+{
+  "slug": "prompt-hook-processes-five-to-three",
+  "source": "docs/fix--4904-prompt-hook-process-count/index.html",
+  "title": "Five processes per prompt, now three",
+  "description": "Every prompt used to start five OrchestKit node processes, two of them sync hooks with a 5 second timeout. Slide the machine load and see which hooks time out before and after #4904 folds goal-tracker and the worktree advisory into the prompt dispatcher.",
+  "tags": [
+    "hooks",
+    "performance",
+    "contributor"
+  ],
+  "date": "2026-10-25"
+}

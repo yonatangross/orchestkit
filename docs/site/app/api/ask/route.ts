@@ -24,7 +24,7 @@ const NLWEB_MODES = new Set(["list", "summarize", "generate"]);
 // (200, results: []) plus a short usage hint rather than a 400 — a 400 reads as
 // "no NLWeb endpoint here" to those scanners.
 const USAGE_HINT =
-	"Provide a `query` to search the docs — GET /ask?query=... or POST { \"query\": \"...\" }. Modes: list | summarize | generate. Stream with ?streaming=true or `Prefer: streaming`.";
+	"Provide a `query` to search the docs: GET /ask?query=... or POST { \"query\": \"...\" }. Modes: list | summarize | generate. Stream with ?streaming=true or `Prefer: streaming`.";
 
 // NLWeb-canonical result shape: `name`, `site`, `score`, `description` are
 // what NLWeb clients consume; `id`, `title`, `url`, `content` are kept for

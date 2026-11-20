@@ -11,7 +11,7 @@ The `/ork:verify` command gives you an honest, structured assessment of your imp
 
 Code review catches issues after you think you are done. Verification catches them before you commit. The difference matters: fixing a security vulnerability before commit is a 5-minute edit; fixing it after review means a new commit, re-review, and potentially a rebase. `/ork:verify` sits between implementation and commit, giving you a quality report while the code is still fresh in your working tree.
 
-It is also useful as a standalone audit. Run it on code you did not write -- a new dependency, a colleague's branch, or legacy code you are about to modify -- and get a structured assessment before you touch anything.
+It is also useful as a standalone audit. Run it on code you did not write (a new dependency, a colleague's branch, or legacy code you are about to modify) and get a structured assessment before you touch anything.
 
 ## Quick Start
 
@@ -98,7 +98,7 @@ Each suggestion includes an effort estimate (1-5) and impact rating (1-5). Prior
 
 ### Pattern 1: Post-Implementation Verification
 
-The most common use -- verify your own work before committing:
+The most common use is to verify your own work before committing:
 
 ```bash
 /ork:implement search feature
@@ -145,7 +145,7 @@ This shows how your codebase quality evolves across implementations.
 </Callout>
 
 <Callout type="warn">
-**A score below 5.0 on security is a hard blocker.** The default policy blocks merges when the security dimension scores below 5.0. This is intentional -- security issues compound, and shipping a known vulnerability creates technical debt that is expensive to remediate.
+**A score below 5.0 on security is a hard blocker.** The default policy blocks merges when the security dimension scores below 5.0. This is intentional: security issues compound, and shipping a known vulnerability creates technical debt that is expensive to remediate.
 </Callout>
 
 <Callout type="info">
@@ -158,7 +158,7 @@ This shows how your codebase quality evolves across implementations.
 
 ## Related Skills
 
-- [/ork:implement](/docs/skills/spotlights/implement) -- Build features with built-in quality gates
-- [/ork:review-pr](/docs/skills/spotlights/review-pr) -- Review pull requests with parallel agents
-- [/ork:commit](/docs/skills/spotlights/commit) -- Commit verified changes
-- [Command Skills Reference](/docs/skills/command-skills) -- All 36 command skills
+- [/ork:implement](/docs/skills/spotlights/implement): Build features with built-in quality gates
+- [/ork:review-pr](/docs/skills/spotlights/review-pr): Review pull requests with parallel agents
+- [/ork:commit](/docs/skills/spotlights/commit): Commit verified changes
+- [Command Skills Reference](/docs/skills/command-skills): Every command skill, grouped by task

@@ -46,7 +46,7 @@ function honesty(host: HostId): string | null {
 		case "opencode":
 			return "No OpenCode marketplace pack. Same skills.sh starter as Muse.";
 		case "devin":
-			return "76 of the skills list today; hooks and rules do not load yet.";
+			return "Hooks and rules do not load yet.";
 		case "agy":
 			return "Skills via workspace .agents/skills. Hooks and MCP config are a different contract.";
 		default:
@@ -330,8 +330,14 @@ export function SetupWizard() {
 						<div className="space-y-2">
 							<InstallSnippet
 								text={commands}
+								copy={
+									spec.copy && commands.join("\n") === spec.commands.join("\n")
+										? spec.copy
+										: undefined
+								}
 								prompt={spec.prompt}
 								host={host}
+								surface="setup-wizard"
 							/>
 							{spec.then ? (
 								<div className="space-y-1.5">
@@ -343,6 +349,7 @@ export function SetupWizard() {
 										prompt={spec.then.prompt}
 										host={host}
 										event="setup_copied"
+										surface="setup-wizard"
 									/>
 								</div>
 							) : null}

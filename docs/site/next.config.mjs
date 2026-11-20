@@ -1,4 +1,7 @@
 import { createMDX } from "fumadocs-mdx/next";
+import { withSourceMapUpload } from "./lib/posthog-sourcemaps.mjs";
+import { siteRedirects } from "./lib/site-redirects.mjs";
+import { singlePageSkillSlugs } from "./lib/skill-page-slugs.mjs";
 
 const withMDX = createMDX();
 
@@ -8,6 +11,16 @@ const config = {
 	// scanning and buys nothing back: no browser, agent or crawler reads it.
 	// Measured on production 2026-09-14, every response carried it.
 	poweredByHeader: false,
+	// Build-time flag passthrough so the client bundle can gate the optional
+	// Jev re-ranks without a server round-trip to discover them. Both values are
+	// boolean flags, never secrets; TYPESAFE_API_KEY stays server-side.
+	// ORK_SITE_JEV_SUGGEST gates the search typeahead, ORK_SITE_JEV_RERANK gates
+	// related-pages; they are separate because the typeahead calls per keystroke
+	// pause and related-pages calls per page render.
+	env: {
+		ORK_SITE_JEV_RERANK: process.env.ORK_SITE_JEV_RERANK ?? "",
+		ORK_SITE_JEV_SUGGEST: process.env.ORK_SITE_JEV_SUGGEST ?? "",
+	},
 	images: {
 		formats: ["image/avif", "image/webp"],
 		remotePatterns: [
@@ -62,7 +75,7 @@ const config = {
 		},
 		{
 			// did:web DID document — resolves the host identity the ARD catalog
-			// and its trustManifest claim (did:web:orchestkit.yonyon.ai).
+			// and its trustManifest claim (did:web:orchestkit.dev).
 			source: "/.well-known/did.json",
 			destination: "/api/well-known/did",
 		},
@@ -162,45 +175,7 @@ const config = {
 			destination: "/api/openapi-yaml",
 		},
 	],
-	redirects: async () => [
-		{
-			source: "/docs",
-			destination: "/docs/foundations/overview",
-			permanent: false,
-		},
-		// The Lab gallery lives at /docs/showcase/lab; /lab/ itself only serves
-		// the raw public/lab/<slug>.html pages, so the bare path was a 404 for
-		// anyone trimming a shared playground URL. Temporary on purpose: a cached
-		// 308 would outlive a real /lab index if one is ever added.
-		{
-			source: "/lab",
-			destination: "/docs/showcase/lab",
-			permanent: false,
-		},
-		{
-			// skipTrailingSlashRedirect is on, so the slash form needs its own rule.
-			source: "/lab/",
-			destination: "/docs/showcase/lab",
-			permanent: false,
-		},
-		{
-			// A bare URL wrapped in Markdown bold (**https://.../lab/x.html**, as in
-			// the #3746 PR body) keeps its asterisks when a non-GitHub autolinker
-			// turns it into a link, and PostHog recorded /lab/<slug>.html** hits.
-			source: "/lab/:slug([a-z0-9][a-z0-9-]*).html:stars(\\*+)",
-			destination: "/lab/:slug.html",
-			permanent: true,
-		},
-		{
-			// 301 the bare Vercel host onto the canonical brand domain (orchestkit.yonyon.ai).
-			// Preview deployments (orchestkit-<hash>.vercel.app) don't match this exact host,
-			// so they stay reachable; only the production alias is redirected.
-			source: "/:path*",
-			has: [{ type: "host", value: "orchestkit.vercel.app" }],
-			destination: "https://orchestkit.yonyon.ai/:path*",
-			statusCode: 301,
-		},
-	],
+	redirects: async () => siteRedirects(singlePageSkillSlugs()),
 	headers: async () => [
 		{
 			source: "/(.*)",
@@ -215,8 +190,24 @@ const config = {
 					value: "GET, POST, OPTIONS",
 				},
 				{
+					// A browser-based MCP host on another origin sends MCP transport
+					// headers on every POST to /api/mcp, so each one must be allowed
+					// here or the preflight fails before the request is made. Names
+					// from the MCP spec, Streamable HTTP transport, read at revision
+					// 2026-07-28: MCP-Protocol-Version, Mcp-Method and Mcp-Name are
+					// required request headers in that revision; Mcp-Session-Id and
+					// Last-Event-ID are the 2025-06-18 to 2025-11-25 headers, which
+					// clients of the version this server speaks (2025-06-18) still send.
 					key: "Access-Control-Allow-Headers",
-					value: "Content-Type, Accept",
+					value: [
+						"Content-Type",
+						"Accept",
+						"MCP-Protocol-Version",
+						"Mcp-Method",
+						"Mcp-Name",
+						"Mcp-Session-Id",
+						"Last-Event-ID",
+					].join(", "),
 				},
 				{
 					// Without this, the CORS allowance above is only half a grant. A
@@ -225,7 +216,8 @@ const config = {
 					// `null` from every RateLimit-* lookup and cannot pace itself, while
 					// curl sees them fine. Same request, different visibility, no error
 					// either way. Everything listed here is a public pacing or policy
-					// signal already sent to every client.
+					// signal already sent to every client, plus Mcp-Session-Id, which an
+					// MCP client on the 2025-06-18 to 2025-11-25 transport must read back.
 					key: "Access-Control-Expose-Headers",
 					value: [
 						"RateLimit-Policy",
@@ -241,6 +233,7 @@ const config = {
 						"Sunset",
 						"X-Total-Count",
 						"X-Next-Cursor",
+						"Mcp-Session-Id",
 					].join(", "),
 				},
 				// RFC 8288 Link headers — advertise agent-discovery resources so agents
@@ -327,4 +320,10 @@ const config = {
 	],
 };
 
-export default withMDX(config);
+const site = withMDX(config);
+
+// Uploads source maps to PostHog at build time, then deletes them so the site
+// keeps serving none. Loaded only when a personal API key is set, so preview,
+// local and CI builds skip the wrapper and its CLI entirely. It stays the
+// outermost wrapper: PostHog's build hooks are dropped otherwise.
+export default await withSourceMapUpload(site, process.env);

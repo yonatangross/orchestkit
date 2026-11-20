@@ -1,0 +1,8 @@
+{
+  "slug": "dist-sync-orchestkit-plugin",
+  "source": "docs/feat--dist-sync-orchestkit-plugin/index.html",
+  "title": "Sync plugins/ork to the orchestkit-plugin dist repo",
+  "description": "On every GA release, the release workflow publishes plugins/ork to yonatangross/orchestkit-plugin as one GitHub-signed commit and tag, so the plugin directory can validate a small repo.",
+  "tags": ["ci", "github-actions", "release", "plugin-directory"],
+  "date": "2026-11-05"
+}

@@ -2,13 +2,10 @@
 name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization.
 model: inherit
-category: devops
 maxTurns: 50
 effort: medium
-context: fork
 color: cyan
 memory: project
-isolation: worktree
 tools:
   - Bash
   - Read
@@ -34,25 +31,14 @@ tools:
 skills:
   - devops-deployment
   - security-patterns
-  - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Verify cost implications of every resource. Never provision without a budget tag."
-taskTypes:
-  - design
-  - build
-keywords:
-  - "terraform"
-  - "kubernetes"
-  - "aws"
-  - "gcp"
-  - "azure"
-  - "vpc"
-  - "eks"
-  - "iac"
-examplePrompts:
-  - "Design a Terraform module for the EKS cluster with auto-scaling"
-  - "Architect the VPC networking for multi-region deployment"
+metadata:
+  category: "devops"
+  critical_system_reminder: "Verify cost implications of every resource. Never provision without a budget tag."
+  taskTypes: "design, build"
+  keywords: "terraform, kubernetes, aws, gcp, azure, vpc, eks, iac"
+  examplePrompts: "Design a Terraform module for the EKS cluster with auto-scaling | Architect the VPC networking for multi-region deployment"
 ---
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.
@@ -87,7 +73,6 @@ Simple, well-secured infrastructure beats complex over-provisioned setups.
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for Terraform, Kubernetes, AWS
-- **Opus 4.8 adaptive thinking** — Complex architecture decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 
 ## Concrete Objectives
@@ -264,6 +249,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Peer Messaging
 
 - Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
@@ -282,6 +269,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |devops-deployment:{SKILL.md,references/{capability-details.md,checklists-and-templates.md,deployment-strategies.md,docker-patterns.md,multi-service-setup.md,nixpacks-customization.md,ork-delta.md,railway-json-config.md}}|devops,ci-cd,docker,kubernetes,terraform
 |security-patterns:{SKILL.md,references/{audit-logging.md,cc-permission-model.md,context-separation.md,langfuse-mask-callback.md,ork-delta.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

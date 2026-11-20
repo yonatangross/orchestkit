@@ -1,27 +1,16 @@
 ---
 name: github-operations
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires gh CLI."
-author: OrchestKit
-description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.
-context: fork
-version: 1.1.0
-tags: [github, gh, cli, issues, pr, milestones, projects, api]
+compatibility: "Claude Code 2.1.277+. Requires gh CLI."
+description: "gh CLI and REST patterns for issues, PRs, milestones and Projects v2. Use when managing GitHub issues, PRs or projects."
 user-invocable: false
-complexity: medium
-persuasion-type: guidance
 metadata:
   category: workflow-automation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Bash
-  - Write
-  - Edit
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "github, gh, cli, issues, pr, milestones, projects, api"
+allowed-tools: "Read Glob Grep Bash Write Edit TaskCreate TaskUpdate TaskList"
 ---
 
 # GitHub Operations
@@ -272,7 +261,7 @@ The old `gh-sub-issue` third-party extension still works but is superseded. Grap
 
 - `ork:create-pr` - Create pull requests with proper formatting and review assignments
 - `ork:review-pr` - Comprehensive PR review with specialized agents
-- `ork:release-management` - GitHub release workflow with semantic versioning and changelogs
+- `ork-extras:release-management` - GitHub release workflow with semantic versioning and changelogs
 - `ork:commit` - Stacked-PR workflow and rebase coordination live in `src/skills/commit/rules/` (`stacked-pr-workflow`, `stacked-pr-rebase`). There is no `stacked-prs` skill.
 - `ork:issue-progress-tracking` - Automatic issue progress updates from commits
 

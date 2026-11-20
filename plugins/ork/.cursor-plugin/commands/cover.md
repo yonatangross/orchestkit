@@ -1,20 +1,61 @@
 ---
-description: "Generate tests that do not exist yet. Analyzes coverage gaps, then writes and runs new test files across three tiers (unit, integration via testcontainers, Playwright E2E), one test-generator agent per tier, healing failures for up to 3 iterations. Use when code has no tests or when raising coverage after implementation. Do NOT use to grade tests that already exist (use /ork:verify) or to run a suite without writing anything new."
+description: "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
 argument-hint: "[scope-or-feature]"
 model: sonnet
 effort: high
-context: fork
 user-invocable: true
 name: cover
-background: false
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, ToolSearch, Workflow, CronCreate, CronDelete, Monitor, PushNotification, mcp__memory__search_nodes, mcp__context7__resolve-library-id, mcp__context7__query-docs]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskList TaskStop ToolSearch Workflow CronCreate CronDelete Monitor PushNotification mcp__memory__search_nodes mcp__context7__resolve-library-id mcp__context7__query-docs"
 ---
+
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/cover" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
 
 # Auto-generated from skills/cover/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
 
 
-# Cover — Test Suite Generator
+# Cover: Test Suite Generator
 
 Host-neutral workflow. Invoke by skill name (`cover`). Claude Code slash routing, YAML hook loaders, and `.claude/chain` live in `skills/cover/references/claude-code.md`.
 
@@ -32,6 +73,8 @@ cover --real-services checkout pipeline
 ```
 
 ## Argument Resolution
+
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
 
 ```python
 SCOPE = "$ARGUMENTS"  # e.g., "authentication flow"
@@ -63,7 +106,7 @@ Read `$CLAUDE_EFFORT` (CC 2.1.120+) first; explicit `--effort=` token wins as ov
 | **low** | Unit only | 1 agent | 2 (1 repair + 1 verify) |
 | **medium** | Unit + Integration | 2 agents | 2 (1 repair + 1 verify) |
 | **high** (default) | Unit + Integration + E2E | 3 agents | 3 (2 repairs + 1 verify) |
-| **xhigh** (Opus 4.8, CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 3 (the ceiling; xhigh adds agents, not heal passes) |
+| **xhigh** (CC 2.1.111+) | Unit + Integration + E2E | 3 agents | 3 (the ceiling; xhigh adds agents, not heal passes) |
 
 Values are what you pass as `maxIterations` in Phase 5. The script clamps to `[2, 3]`
 (`heal-loop.js`), so anything outside that range is coerced, and the final iteration always
@@ -75,7 +118,7 @@ verifies rather than repairing. There is no 4-iteration mode.
 
 ```python
 # Probe MCPs (parallel):
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541). Probe below kept as fallback for older CC:
 ToolSearch(query="select:mcp__memory__search_nodes")
 ToolSearch(query="select:mcp__context7__resolve-library-id")
 
@@ -114,7 +157,7 @@ AskUserQuestion(
       "header": "Failure Handling",
       "options": [
         {"label": "Auto-heal (Recommended)", "description": "Fix failing tests up to 3 iterations"},
-        {"label": "Generate only", "description": "Write tests, report failures, don't fix"},
+        {"label": "Generate only", "description": "Write tests, report failures, don't fix (skips the heal loop)"},
         {"label": "Strict", "description": "All tests must pass or abort"}
       ],
       "multiSelect": false
@@ -125,6 +168,8 @@ AskUserQuestion(
 
 Override TIERS based on selection. Skip this step if `--tier=` flag was provided.
 
+
+**Finish line.** Done means: every generated test runs, the suite is green or each remaining failure is reported with its heal-loop classification, and the coverage report is written. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
 ## Task Management (MANDATORY)
 
@@ -149,7 +194,7 @@ TaskUpdate(taskId="7", addBlockedBy=["6"])  # Report needs healed suite
 
 # 4. Update status as you progress
 TaskUpdate(taskId="2", status="in_progress")  # When starting
-TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
+TaskUpdate(taskId="2", status="completed")    # When done, repeat for each subtask
 ```
 
 
@@ -158,8 +203,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | Phase | Activities | Output |
 |-------|------------|--------|
 | **1. Discovery** | Detect frameworks, scan scope, find untested code | Framework map, file list |
-| **2. Coverage Analysis** | Run existing tests, map gaps per tier | Coverage baseline, gap map |
-| **3. Generation** | Parallel test-generator agents per tier | Test files created |
+| **2. Coverage Analysis** | Run existing tests, rank risk targets per tier | Coverage baseline, risk targets with why |
+| **3. Generation** | Parallel test-generator agents per tier, then behaviour gate | Test files created, gate verdicts |
 | **4. Execution** | Run all generated tests | Pass/fail results |
 | **5. Heal** | Fix failures, re-run (max 3 iterations) | Green test suite |
 | **6. Report** | Coverage delta, test count, summary | Coverage report |
@@ -169,8 +214,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 | After Phase | Handoff File | Key Outputs |
 |-------------|-------------|-------------|
 | 1. Discovery | `01-cover-discovery.json` | Frameworks, scope files, tier plan |
-| 2. Analysis | `02-cover-analysis.json` | Baseline coverage, gap map |
-| 3. Generation | `03-cover-generation.json` | Files created, test count per tier |
+| 2. Analysis | `02-cover-analysis.json` | Baseline coverage, risk targets with why |
+| 3. Generation | `03-cover-generation.json` | Files created, test count per tier, behaviour gate verdicts |
 | 5. Heal | `05-cover-healed.json` | Final pass/fail, iterations used |
 
 
@@ -179,7 +224,7 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 Detect the project's test infrastructure and scope the work.
 
 ```python
-# PARALLEL — all in ONE message:
+# PARALLEL, all in ONE message:
 # 1. Framework detection (hook handles this, but also scan manually)
 Grep(pattern="vitest|jest|mocha|playwright|cypress", glob="package.json", output_mode="content")
 Grep(pattern="pytest|unittest|hypothesis", glob="pyproject.toml", output_mode="content")
@@ -210,24 +255,18 @@ Grep(pattern=SCOPE, output_mode="files_with_matches")
 
 Load real-service detection details: `Read("skills/cover/references/real-service-detection.md")`
 
-### Phase 2: Coverage Analysis
+### Phase 2: Coverage Analysis and Risk Targets
 
-Run existing tests and identify gaps.
+Run existing tests for a baseline, then pick targets by RISK. Coverage is information for the report, never a target.
 
 ```python
-# Detect and run coverage command
-# TypeScript: npx vitest run --coverage --reporter=json
-# Python: pytest --cov=<scope> --cov-report=json
-# Go: go test -coverprofile=coverage.out ./...
-
-# Parse coverage output to identify:
-# 1. Files with 0% coverage (priority targets)
-# 2. Files below threshold (default 70%)
-# 3. Uncovered functions/methods
-# 4. Untested edge cases (error paths, boundary conditions)
+# Baseline: npx vitest run --coverage --reporter=json | pytest --cov=<scope> --cov-report=json | go test -coverprofile=coverage.out ./...
+# Rank uncovered code by risk and record WHY each target was chosen:
+# changed code, complex branches, error paths, security and money paths, past bugs
+# gap_map[tier] = [{"target": "src/billing/refund.ts:roundRefund", "why": "money path, fixed in #812"}]
 ```
 
-Output coverage baseline to user immediately (progressive output).
+Output the baseline and the risk-ranked targets, each with its why, immediately (progressive output). Signals and how to find them: `Read("skills/cover/references/behaviour-gate.md")`.
 
 ### Phase 3: Generation (Parallel Agents)
 
@@ -240,7 +279,7 @@ Spawn test-generator agents per tier. Launch ALL in ONE message with `run_in_bac
 > gets real isolation. Do not create worktrees by hand before spawning.
 >
 > The new branch's base comes from the `worktree.baseRef` setting, never from a
-> hardcoded branch name. **ork does not set it** — a plugin cannot, and no ork
+> hardcoded branch name. **ork does not set it**: a plugin cannot, and no ork
 > settings file carries it. Unless the operator put `"baseRef": "head"` in
 > `.claude/settings.json` or `~/.claude/settings.json`, CC's default `"fresh"`
 > applies: every tier agent branches from `origin/<default>`, unpushed local
@@ -255,7 +294,7 @@ if "unit" in TIERS:
         subagent_type="ork:test-generator",
         isolation="worktree",
         prompt=f"""Generate unit tests for: {SCOPE}
-        Coverage gaps: {gap_map.unit_gaps}
+        Risk targets, each with why: {gap_map["unit"]}
         Framework: {detected_framework}
         Existing tests: {existing_test_files}
 
@@ -265,18 +304,19 @@ if "unit" in TIERS:
         - MSW/VCR for HTTP mocking (never mock fetch directly)
         - Factory-based test data (FactoryBoy/faker-js)
         - Edge cases: empty input, errors, timeouts, boundary values
-        - Target: 90%+ business logic coverage""",
+        - BEHAVIOUR GATE: write a test ONLY if it asserts an observable result. Never write a
+          mock-call-only, assertion-free, tautological, or source-reading test (skills/cover/references/behaviour-gate.md)""",
         run_in_background=True,
         max_turns=50,
         model=MODEL_OVERRIDE
     )
 
 # Integration + E2E agents follow the same pattern:
-# - subagent_type="ork:test-generator", isolation="worktree", run_in_background=True
+# - subagent_type="ork:test-generator", isolation="worktree", run_in_background=True, same targets + BEHAVIOUR GATE lines
 # - Integration focus: API endpoints (Supertest/httpx), real DB, contract tests (Pact), Zod schema validation
 # - E2E focus: Playwright, semantic locators, Page Object Model, axe-core a11y, visual regression
 #
-# Special case — emulate (Vercel Labs stateful API emulation):
+# Special case: emulate (Vercel Labs stateful API emulation):
 # When integration tests need GitHub/Stripe/Resend/Okta/etc. emulated
 # (HMAC webhooks, parallel port isolation, full config from scratch),
 # spawn emulate-engineer instead of test-generator for that tier:
@@ -284,7 +324,11 @@ if "unit" in TIERS:
 # - Pairs with emulate-seed skill for seed YAML patterns
 ```
 
-Output each agent's results **as soon as it returns** — don't wait for all agents.
+Output each agent's results **as soon as it returns**. Don't wait for all agents.
+
+### Phase 3b: Behaviour Gate
+
+Before Phase 4, run `node "<ORK_PLUGIN_DIR>/skills/cover/scripts/check-behaviour-tests.mjs" --json <new test files>` over the NEW test files only. Exit 1 lists each rejected test with its rule: (a) only mock-call assertions, (b) no assertion, only tautologies (`expect(true).toBe(true)`), or only not-to-throw when not throwing is not the stated contract, (c) reads or greps source instead of executing it. Delete each rejected test (the whole file on `drop`, which means every recognised test was rejected) or rewrite it to assert an observable result, and re-run until exit 0. Never delete an `unchecked` file or test (no test recognised, or its body is declared elsewhere): review it by hand. Run it again after Phase 5. Record the verdicts in `03-cover-generation.json`. Rules and limits: `Read("skills/cover/references/behaviour-gate.md")`.
 
 > **Focus mode (CC 2.1.101):** In focus mode, include the full coverage report (before/after delta, test count per tier, files created) in your final message.
 
@@ -307,12 +351,14 @@ Do NOT hand-roll the loop. Run the real executor:
 
 ```python
 Workflow(
-  scriptPath="skills/cover/workflows/heal-loop.js",
+  name="ork:heal-loop",
   args={"testCommand": "<tier test command>", "tier": "unit", "testGlob": "tests/unit/",
         "maxIterations": 3}   # from the effort table above; omitted defaults to 3
 )
 # One invocation per tier that has failures.
 ```
+
+**Fan-out rule:** a single pass is never a fallback when the selected failure handling runs the heal loop. Each tier with failures goes through the heal-loop Workflow call; if it does not run, end the run as BLOCKED and say why. "Generate only" skips the heal loop, so it is not a violation.
 
 **The iteration bound is enforced by the script, not by instruction.** `heal-loop.js`
 runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
@@ -334,7 +380,7 @@ the Phase 6 report.
 
 Strategy detail (taxonomy table, fix rules, flaky prevention): `Read("skills/cover/references/heal-loop-strategy.md")`
 
-**Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it — don't silently fix production code.
+**Boundary: heal fixes TESTS, not source code.** If a test fails because the source code has a bug, report it. Don't silently fix production code.
 
 ### Phase 6: Report
 
@@ -344,20 +390,19 @@ Full report layout (baseline→after table, tests-generated counts, heal iterati
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-Full `cover` runs (unit + integration + E2E with heal loop) take 15–45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete — {SCOPE}: {coverage_pct}% coverage · {tests_generated} tests · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
+Full `cover` runs (unit + integration + E2E with heal loop) take 15-45 min. After the Phase 6 report is assembled, call `PushNotification(message=f"ork:cover complete, {SCOPE}: {tests_kept} tests kept · {tests_dropped} dropped by behaviour gate · {heal_loops} heal iters", status="proactive")`. Full rule: `Read("../chain-patterns/rules/push-notification-on-completion.md")`.
 
 ### Coverage Drift Monitor (CC 2.1.71)
 
-Optionally schedule weekly coverage drift detection:
+Optionally schedule a weekly check that the risk targets keep their behaviour tests:
 
 ```python
 # Guard: Skip cron in headless/CI (CLAUDE_CODE_DISABLE_CRON)
 # if env CLAUDE_CODE_DISABLE_CRON is set, run a single check instead
 CronCreate(
   schedule="0 2 * * 0",
-  prompt="Weekly coverage drift check for {SCOPE}: npm test -- --coverage.
-    If coverage >= baseline → CronDelete.
-    If coverage drops > 5% → alert with regression details and recommendation."
+  prompt="Weekly drift check for {SCOPE}: run the tests covering the risk targets in 02-cover-analysis.json.
+    Alert if one was deleted or fails, or if newly changed code has no behaviour test. Coverage is reported as information only."
 )
 ```
 
@@ -365,21 +410,21 @@ CronCreate(
 ## Key Principles
 
 - **Output limits (CC 2.1.77+):** Opus 4.8 defaults to 64k output tokens (128k upper bound). For large test suites, chunk generation across multiple agent turns if output approaches the limit.
-- **Partial reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` first page (not an error) on oversized files — re-read with explicit `offset`/`limit` so coverage analysis sees the whole file.
-- **Tests only** — never modify production source code, only generate test files
-- **Real services when available** — prefer testcontainers/docker-compose over mocks for integration tests because mock/prod divergence causes silent failures in production
-- **Parallel generation** — spawn one test-generator agent per tier in ONE message
-- **Heal, don't loop forever** — max 3 iterations, then report remaining failures
-- **Progressive output** — show results as each agent completes
-- **Factory over fixtures** — use FactoryBoy/faker-js for test data, not hardcoded values
-- **Mock at network level** — MSW/VCR, never mock fetch/axios directly
+- **Partial reads (CC 2.1.144+):** Read returns a `[PARTIAL view]` first page (not an error) on oversized files. Re-read with explicit `offset`/`limit` so coverage analysis sees the whole file.
+- **Tests only**: never modify production source code, only generate test files
+- **Real services when available**: prefer testcontainers/docker-compose over mocks for integration tests because mock/prod divergence causes silent failures in production
+- **Parallel generation**: spawn one test-generator agent per tier in ONE message
+- **Heal, don't loop forever**: max 3 iterations, then report remaining failures
+- **Progressive output**: show results as each agent completes
+- **Factory over fixtures**: use FactoryBoy/faker-js for test data, not hardcoded values
+- **Mock at network level**: MSW/VCR, never mock fetch/axios directly
 
 
 ## Agent Coordination
 
 ### Context Passing
 
-Each test-generator agent receives: coverage gaps for its tier, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
+Each test-generator agent receives: risk targets (each with why) for its tier, the behaviour gate rules, test framework config, real-service infrastructure (testcontainers, docker-compose), and fixture patterns from the project.
 
 ### Monitor + Partial Results (CC 2.1.98)
 
@@ -397,8 +442,8 @@ Full pattern reference (until-condition gates, partial-result salvage, `TaskOutp
 
 ```python
 for agent_result in test_gen_results:
-    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
-        # Agent crashed — check if it wrote any test files before dying
+    if "[PARTIAL RESULT]" in agent_result.output:
+        # Agent crashed: check if it wrote any test files before dying
         partial_tests = Glob(pattern="**/tests/**/*.test.*", path=agent_result.worktree)
         if partial_tests:
             # 6 passing tests from a crashed agent > 0 tests
@@ -408,6 +453,8 @@ for agent_result in test_gen_results:
             # Flag as partial in report
 ```
 
+A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
+
 ### SendMessage (Test Healing)
 
 > **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
@@ -415,7 +462,7 @@ for agent_result in test_gen_results:
 When a generated test fails, the healer agent can request context from the generator:
 
 ```python
-SendMessage(to="test-generator-unit", message="Test user_service_test.py:42 fails — TypeError on mock return. What's the expected shape?")
+SendMessage(to="test-generator-unit", message="Test user_service_test.py:42 fails: TypeError on mock return. What's the expected shape?")
 ```
 
 ### Skill Chain
@@ -435,16 +482,17 @@ All test-generator agents report using: `Read("../../shared/status-protocol.md")
 Done means all of these hold:
 - coverage report shows the before→after delta from the actual coverage command output, not an estimate
 - every generated test file was executed; final pass/fail counts pasted from the runner
-- no production source modified — only test files created; a source bug is reported, never silently patched
+- the behaviour gate exited 0 on the new test files after Phase 5, and every target states why it was chosen
+- no production source modified (only test files created); a source bug is reported, never silently patched
 - failures healed within the iteration budget (≤3, effort-scaled) or reported explicitly with the remaining-failure count
 - each requested tier (unit/integration/e2e) either produced tests or has a stated reason it was skipped
 
 ## Related Skills
 
-- `ork:implement` — generates tests during implementation (Phase 5); use `cover` after for deeper coverage
-- `ork:verify` — grades existing tests 0-10; chain: `implement → cover → verify`
-- `testing-unit` / `testing-integration` / `testing-e2e` — knowledge skills loaded by test-generator agents
-- `ork:commit` — commit generated test files
+- `ork:implement`: generates tests during implementation (Phase 5); use `cover` after for deeper coverage
+- `ork:verify`: grades existing tests 0-10; chain: `implement → cover → verify`
+- `testing-unit` / `testing-integration` / `testing-e2e`: knowledge skills loaded by test-generator agents
+- `ork:commit`: commit generated test files
 
 > **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
@@ -457,7 +505,9 @@ Load on demand with `Read("references/<file>")`:
 | `real-service-detection.md` | Docker-compose/testcontainers detection, service startup, teardown |
 | `heal-loop-strategy.md` | Failure classification, fix patterns, iteration budget |
 | `coverage-report-template.md` | Report format, delta calculation, gap analysis |
-| `skills/cover/workflows/heal-loop.js` | Phase 5 executor — script-enforced 3-iteration repair loop (run via the Workflow tool) |
+| `behaviour-gate.md` | Risk target signals, the three reject rules, checker usage and limits |
+| `<ORK_PLUGIN_DIR>/skills/cover/scripts/check-behaviour-tests.mjs` | Phase 3b checker: per-test keep or reject verdicts for new test files |
+| `skills/cover/workflows/heal-loop.js` | Phase 5 executor: script-enforced 3-iteration repair loop (run via the Workflow tool) |
 
 
-**Version:** 1.2.0 (April 2026) — `$CLAUDE_EFFORT` env var as primary effort signal (CC 2.1.120, #1540)
+**Version:** 1.3.0 (September 2026): behaviour gate (Phase 3b checker) and risk-based targets replace percentage coverage targets

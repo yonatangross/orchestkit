@@ -20,7 +20,6 @@ async def llm_rerank(query: str, documents: list[dict], llm: AsyncOpenAI, top_k:
             {"role": "system", "content": "Rate each document's relevance to the query (0.0-1.0).\nOutput one score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
         ],
-        temperature=0,
     )
 
     scores = parse_scores(response.choices[0].message.content, len(documents))
@@ -83,8 +82,7 @@ async def llm_rerank(query: str, documents: list[dict], top_k: int = 10) -> list
         messages=[
             {"role": "system", "content": "Rate each document's relevance (0.0-1.0). One score per line."},
             {"role": "user", "content": f"Query: {query}\n\nDocuments:\n{docs_text}"}
-        ],
-        temperature=0
+        ]
     )
 
     scores = parse_scores(response.choices[0].message.content, len(documents))

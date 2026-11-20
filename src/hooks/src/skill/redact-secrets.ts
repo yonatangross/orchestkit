@@ -7,6 +7,7 @@
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
+import { stringifyOutput } from '../lib/stringify-output.js';
 
 // API key patterns
 const API_KEY_PATTERNS = [
@@ -33,10 +34,13 @@ export function redactSecrets(input: HookInput, _ctx: HookContext = NOOP_CTX): H
   // are the legacy aliases (types.ts, same read order as
   // posttool/secret-handler.ts). Reading only the aliases meant toolOutput
   // came back empty on every real payload and this layer scanned nothing
-  // (#3725).
-  const toolOutput =
+  // (#3725). Bash sends tool_response as {stdout, stderr, interrupted};
+  // stringify before RegExp.test so the object is not coerced to
+  // "[object Object]" (#4217).
+  const rawOutput =
     (input as any).tool_response || (input as any).tool_result || (input as any).output || '';
 
+  const toolOutput = stringifyOutput(rawOutput);
   if (!toolOutput) return outputSilentSuccess();
 
   // Check for API key patterns

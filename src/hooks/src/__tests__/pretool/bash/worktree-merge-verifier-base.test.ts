@@ -38,6 +38,7 @@ function initRepo(prefix: string): string {
   run(['init', '-q', '-b', 'main', '.'], dir);
   run(['config', 'user.email', 't@t.t'], dir);
   run(['config', 'user.name', 't'], dir);
+  run(['config', 'commit.gpgsign', 'false'], dir);
   return dir;
 }
 

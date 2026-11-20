@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DONE_WITH_CONCERNS requires a non-empty concerns array</title>
+<meta name="description" content="HOLD b54 follow-up: DONE_WITH_CONCERNS must carry concerns with minItems 1 so a structured caller never sees a landed commit with the reason dropped.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.3rem;margin:0 0 .4rem}
+  .sub{color:var(--dim);font-size:.85rem;margin:0 0 1.5rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem;margin-block:1rem}
+  h2{font-size:.85rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .8rem}
+  select,button,textarea{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font:inherit;font-size:.8rem}
+  textarea{width:100%;min-height:7rem;margin-top:.6rem}
+  .verdict{font-weight:700;margin:.8rem 0 .3rem}
+  .verdict.ok{color:var(--ok)}.verdict.bad{color:var(--bad)}
+  .out{background:#0b0d13;border:1px solid var(--edge);border-radius:6px;padding:.6rem;font-size:.78rem;white-space:pre-wrap}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body><main>
+<h1>DONE_WITH_CONCERNS requires a non-empty concerns array</h1>
+<p class="sub">Follow-up to #5026 HOLD b54. Before, <code>DONE_WITH_CONCERNS</code> with only a sha validated and dropped the reason. Now <code>concerns</code> is required with <code>minItems: 1</code>.</p>
+<section>
+<h2>Try a result</h2>
+<select id="preset" aria-label="preset"></select>
+<textarea id="json" aria-label="builder result JSON" spellcheck="false"></textarea>
+<div class="verdict" id="verdict"></div>
+<div class="out" id="out"></div>
+</section>
+<script>
+const SHA = '54189f18632f7d419e9377cbfc617c99fe9ff72e';
+const PRESETS = {
+  ok: { status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null, concerns: ['lint warning left as-is'] },
+  missing: { status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null },
+  empty: { status: 'DONE_WITH_CONCERNS', committed_sha: SHA, blocked_reason: null, concerns: [] },
+  done: { status: 'DONE', committed_sha: SHA, blocked_reason: null }
+};
+const LABELS = { ok: 'DONE_WITH_CONCERNS + concerns', missing: 'DONE_WITH_CONCERNS, no concerns (reject)', empty: 'DONE_WITH_CONCERNS, concerns: [] (reject)', done: 'DONE (no concerns needed)' };
+function check(r) {
+  const errs = [];
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return ['result must be an object'];
+  for (const k of ['status', 'committed_sha', 'blocked_reason']) if (!(k in r)) errs.push('missing ' + k);
+  if (!['DONE', 'DONE_WITH_CONCERNS', 'BLOCKED'].includes(r.status)) errs.push('bad status');
+  const sha = r.committed_sha;
+  if (sha !== null && (typeof sha !== 'string' || !/^[0-9a-f]{40}$|^[0-9a-f]{64}$/.test(sha))) errs.push('bad committed_sha');
+  if (r.status === 'DONE_WITH_CONCERNS') {
+    if (!('concerns' in r)) errs.push('DONE_WITH_CONCERNS requires concerns');
+    else if (!Array.isArray(r.concerns) || r.concerns.length < 1) errs.push('concerns must have minItems 1');
+    else if (r.concerns.some(function (c) { return typeof c !== 'string' || c.length < 1; })) errs.push('each concern must be a non-empty string');
+    if (r.blocked_reason !== null) errs.push('blocked_reason must be null');
+  }
+  return errs;
+}
+function render() {
+  var v = document.getElementById('verdict');
+  var out = document.getElementById('out');
+  var r;
+  try { r = JSON.parse(document.getElementById('json').value); }
+  catch (e) { v.className = 'verdict bad'; v.textContent = 'not JSON'; out.textContent = String(e.message); return; }
+  var errs = check(r);
+  v.className = 'verdict ' + (errs.length ? 'bad' : 'ok');
+  v.textContent = errs.length ? 'REJECTED' : 'ACCEPTED';
+  out.textContent = errs.length ? errs.map(function (e) { return '- ' + e; }).join('\n') : 'caller may chain on with concerns visible';
+}
+(function () {
+  var sel = document.getElementById('preset');
+  Object.keys(LABELS).forEach(function (k) {
+    var o = document.createElement('option'); o.value = k; o.textContent = LABELS[k]; sel.appendChild(o);
+  });
+  function load(k) { document.getElementById('json').value = JSON.stringify(PRESETS[k], null, 2); render(); }
+  sel.addEventListener('change', function (e) { load(e.target.value); });
+  document.getElementById('json').addEventListener('input', render);
+  load('ok');
+})();
+</script>
+</main></body>
+</html>

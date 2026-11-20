@@ -8,7 +8,7 @@
  * Consolidated hooks (security-first order):
  * - content-secret-scanner (scans for secrets in file content — FIRST)
  * - dependency-confusion-scanner (warns on unclaimed package refs — advisory)
- * - write-headers (adds headers to new files — input modifier)
+ * - write-headers (compatibility no-op; preserves caller content)
  * - unified-quality-dispatcher (quality checks — LAST)
  *
  * SHORT-CIRCUIT: On first block, returns immediately without running remaining hooks.
@@ -62,7 +62,7 @@ const DECISION_RANK: Record<Decision['decision'], number> = { deny: 2, ask: 1 };
  * context, so the merge below dropped it on the floor and both guards had
  * been inert in production since they moved from deny to ask (#2947). The
  * bash and task dispatchers short-circuit on ask; this one keeps collecting
- * so write-headers' updatedInput still lands, and carries the verdict along.
+ * so sibling context and input updates can be merged with the verdict.
  */
 function withDecision(result: HookResult, decision: Decision | undefined): HookResult {
   if (!decision) return result;
@@ -123,7 +123,7 @@ function buildMergedResult(
  * Execution order:
  * 1. content-secret-scanner (can block — security critical)
  * 3. dependency-confusion-scanner (warn-only — supply-chain advisory)
- * 4. write-headers (input modifier — adds headers to new files)
+ * 4. write-headers (compatibility no-op)
  * 5. unified-quality-dispatcher (context producer)
  *
  * On first block: SHORT-CIRCUIT immediately.

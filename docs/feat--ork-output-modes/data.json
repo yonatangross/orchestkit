@@ -1,0 +1,7 @@
+{
+  "serves": "ork-output-modes-2026-10-06",
+  "page": "docs/feat--ork-output-modes/index.html",
+  "lab_slug": "output-modes-grid",
+  "purpose": "PR playground: pick a glyph surface and audience, toggle the done sign-off, copy the flag, prompt or JSON",
+  "full_page": "/docs/guides/output-modes"
+}

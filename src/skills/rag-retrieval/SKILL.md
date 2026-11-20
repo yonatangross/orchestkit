@@ -1,26 +1,19 @@
 ---
 name: rag-retrieval
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.
-tags: [rag, retrieval, llm, context, grounding, embeddings, hyde, reranking, pgvector, multimodal]
-context: fork
-agent: data-pipeline-engineer
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
-complexity: high
-persuasion-type: reference
 effort: high
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "data-pipeline-engineer"
   category: mcp-enhancement
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "rag, retrieval, llm, context, grounding, embeddings, hyde, reranking, pgvector, multimodal"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/rag/**", "**/retrieval/**", "**/embeddings/**", "**/vector/**"]
 ---
 
@@ -223,10 +216,10 @@ The one budget this skill does assert is latency, in [House delta](#house-delta)
 
 ## Related Skills
 
-- `ork:langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
-- `ork:golden-dataset` - Evaluate retrieval quality
-- `ork:llm-integration` - Local embeddings with nomic-embed-text
-- `ork:multimodal-llm` - Image analysis for multimodal RAG
+- `ork-extras:langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
+- `ork-extras:golden-dataset` - Evaluate retrieval quality
+- `ork-extras:llm-integration` - Local embeddings with nomic-embed-text
+- `ork-extras:multimodal-llm` - Image analysis for multimodal RAG
 - `ork:database-patterns` - Schema design for vector search
 - `ork:performance` - Caching repeated RAG responses
 

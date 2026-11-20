@@ -1,13 +1,13 @@
 ---
 title: Plugin Architecture
-description: "OrchestKit ships as one unified plugin — everything loads on-demand with zero overhead."
+description: "OrchestKit ships as core ork plus the opt-in ork-extras reference skills: everything loads on-demand with zero overhead."
 ---
 
 import { Count } from '@/components/count';
 
-## One Plugin, Everything Included
+## Core Plugin, Opt-in Extras
 
-OrchestKit ships as a single plugin: **ork**.
+OrchestKit ships its workflows, agents and hooks as one plugin: **ork**. Library and domain reference skills ship separately, in the opt-in **ork-extras** plugin.
 
 Inside a Claude Code session:
 
@@ -22,7 +22,7 @@ Or from a terminal:
 claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit
 ```
 
-No choices, no configuration required. All <Count k="skills" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks install together.
+No choices, no configuration required. Core `ork` installs <Count k="ork" /> skills, <Count k="agents" /> agents, and <Count k="hooks" /> hooks together. The other <Count k="ork-extras" /> reference skills are in the opt-in [ork-extras](/docs/getting-started/ork-extras) plugin: `/plugin install ork-extras@orchestkit`.
 
 ## What Loads When
 
@@ -30,21 +30,21 @@ Not everything runs at once. OrchestKit uses **on-demand loading** to stay fast:
 
 | Component | When It Loads | Overhead |
 |-----------|--------------|----------|
-| **Hooks** | Session start — only event-matched hooks fire | ~800 tokens/turn max |
+| **Hooks** | Session start; only event-matched hooks fire | ~800 tokens/turn max |
 | **Agents** | When spawned by name or keyword match | Zero until invoked |
 | **Skills** | Injected into agent context when relevant | Zero until matched |
 | **Commands** | Available immediately via `/ork:skillname` | Listing only (~80 tokens/skill) |
 
-## Why One Plugin
+## Why One Core Plugin
 
 Early versions split functionality into multiple plugins (`orkl`, `ork-creative`). This caused:
 - Version conflicts between plugins
 - Duplicate hook registrations
 - Confusing install instructions
 
-Since v7.0, everything is consolidated into `ork`. Skills you don't use have zero token cost.
+Since v7.0, every agent, hook and workflow skill is consolidated into `ork`. `ork-extras` adds skills only (no agents, hooks or settings), so none of those problems come back. Skills you don't use have zero token cost.
 
 ## Next Steps
 
-- **[Installation](/docs/getting-started/installation)** — Full install guide with verification
-- **[First 10 Minutes](/docs/getting-started/first-10-minutes)** — Guided first session
+- **[Installation](/docs/getting-started/installation)**: Full install guide with verification
+- **[First 10 Minutes](/docs/getting-started/first-10-minutes)**: Guided first session

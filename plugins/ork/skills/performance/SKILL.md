@@ -1,26 +1,19 @@
 ---
 name: performance
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, LLM inference, and sustainability UX. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, deploying LLMs efficiently, or reducing digital carbon footprint.
-tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates, sustainability, carbon-footprint, page-weight]
-context: fork
-agent: frontend-performance-engineer
-version: 2.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Performance patterns: Core Web Vitals, React renders, lazy loading, images, backend profiling, LLM inference. Use when improving page speed, slow renders, bundle size or backend latency."
 user-invocable: false
 disable-model-invocation: false
-complexity: high
-persuasion-type: guidance
 effort: high
 metadata:
+  owner-agent: "frontend-performance-engineer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates, sustainability, carbon-footprint, page-weight"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Performance
@@ -214,12 +207,12 @@ export default async function Page() {
 ## Related Skills
 
 - `ork:react-server-components-framework` - Server-first rendering
-- `ork:vite-advanced` - Build optimization
+- `ork-extras:vite-advanced` - Build optimization
 - `browser-tools` - Visual profiling with agent-browser + Portless
 - `caching` - Cache strategies for responses
-- `ork:monitoring-observability` - Production monitoring and alerting
+- `ork-extras:monitoring-observability` - Production monitoring and alerting
 - `ork:database-patterns` - Query and index optimization
-- `ork:llm-integration` - Local inference with Ollama
+- `ork-extras:llm-integration` - Local inference with Ollama
 
 ## Capability Details
 

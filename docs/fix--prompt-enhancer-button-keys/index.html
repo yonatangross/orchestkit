@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>prompt-enhancer: buttons from the keyboard | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+  kbd { border: 1px solid #d9d3c7; border-radius: 4px; padding: 0 5px; background: #fff; }
+</style>
+</head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · MODS · PROMPT-ENHANCER</p>
+<h1>Press Enhance, Undo and Send from the keyboard</h1>
+<p>In the default terminal mode Claude Code does not ask the terminal for mouse clicks, so a click on the band selects text and never reaches a button. The band had no keys and no hint, so its buttons looked dead. Version 0.1.1 gives each action a key and says how to reach it.</p>
+<table>
+  <tr><th>Action</th><th>0.1.0</th><th>0.1.1</th></tr>
+  <tr><td>Enhance</td><td>click (fullscreen only), or ctrl+x tab, Tab, Enter</td><td><kbd>ctrl+x</kbd> <kbd>tab</kbd>, then <kbd>e</kbd></td></tr>
+  <tr><td>Undo</td><td>the same</td><td><kbd>ctrl+x</kbd> <kbd>tab</kbd>, then <kbd>u</kbd></td></tr>
+  <tr><td>Send</td><td>the same</td><td><kbd>ctrl+x</kbd> <kbd>tab</kbd>, then <kbd>s</kbd></td></tr>
+  <tr><td>How to find out</td><td>nothing on screen</td><td>a dim line on the band names the keys</td></tr>
+</table>
+<p>The keys work only while the band holds the focus, never while you type in the prompt, so typing e, u or s in a draft does nothing to the band. Esc gives the focus back to the prompt.</p>
+</body>
+</html>

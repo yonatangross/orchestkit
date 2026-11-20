@@ -1,13 +1,56 @@
 ---
-description: "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+description: "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 disable-model-invocation: false
 context: fork
 user-invocable: true
 name: setup
 background: false
-allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
+allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
 ---
+
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/setup" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
 
 # Auto-generated from skills/setup/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
@@ -78,7 +121,7 @@ TaskUpdate(taskId="2", status="completed")    # When done
 | 2. Stack | Classify detected stack, confidence levels | — | Stack profile |
 | 3. Safety | Check existing config, confirm scope (user/project) | Read, AskUserQuestion | Install confirmation |
 | 3.5. Configure | Interactive project configuration wizard → writes env block to per-project settings | Read, Write, AskUserQuestion | Configured settings file |
-| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
+| 3.6. Protect | Deliver ork's canonical `permissions.deny` payload to an ENFORCING scope (a plugin settings.json is inert: CC reads only `agent`/`subagentStatusLine`, #3835). Run `node <ORK_PLUGIN_DIR>/skills/setup/scripts/write-operator-permissions.mjs --scope user --dry-run`, show the additions and the print-only sandbox suggestion, then ONLY on an explicit yes rerun without `--dry-run`. The script backs up the file and prints the one-command rollback. Never write without the dry-run + consent pair. | Bash, AskUserQuestion | Enforced deny rules + rollback line |
 | 4. Skills | Match stack to skills, suggest custom skills | Grep, Glob | Skill recommendations |
 | 5. MCPs | Recommend MCPs based on stack and gaps | Read, Bash | MCP recommendations |
 | 6. Score | Compute readiness score (0-10, 6 dimensions) | All above data | Readiness score |
@@ -92,6 +135,10 @@ Load details: `Read("skills/setup/references/scan-phase.md")` for full scan comm
 Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, etc.), infrastructure (Docker, GitHub Actions, Terraform, K8s), and existing CC configuration. Pattern detection counts API routes, React components, models, and tests for custom skill suggestions.
 
 ## Phase 2: Stack Detection
+
+**Stack snapshot, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/setup-env-detector`:
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "<ORK_PLUGIN_DIR>/hooks/bin/run-hook.mjs" skill/setup-env-detector 2>/dev/null || true`
 
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
@@ -122,7 +169,7 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
+Load details: `Read("skills/setup/references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, perf telemetry, log verbosity, webhook telemetry; step 3, localhost browser, is retired) and env var reference.
 
 > Also reachable directly via `setup --configure` — skips phases 1-3.
 
@@ -280,6 +327,6 @@ Load on demand with `Read("references/<file>")`:
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
 - `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
-- `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
+- `ork:memory remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)

@@ -39,27 +39,29 @@ Answer only with the context, nothing else.
 
 def contextualize_chunk(document: str, chunk: str) -> str:
     response = client.messages.create(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         max_tokens=150,
+        thinking={"type": "between_tools"},  # Lowest thinking setting; Sonnet 5.5 rejects disabled
         messages=[{"role": "user",
                    "content": CONTEXT_PROMPT.format(document=document, chunk=chunk)}]
     )
-    return f"{response.content[0].text}\n\n{chunk}"
+    return f"{next(b.text for b in response.content if b.type == 'text')}\n\n{chunk}"
 ```
 
 **With Prompt Caching (90% cost reduction):**
 ```python
 def contextualize_cached(document: str, chunk: str) -> str:
     response = client.messages.create(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         max_tokens=150,
+        thinking={"type": "between_tools"},  # Lowest thinking setting; Sonnet 5.5 rejects disabled
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
              "cache_control": {"type": "ephemeral"}},
             {"type": "text", "text": f"Situate this chunk (1-2 sentences):\n<chunk>\n{chunk}\n</chunk>"}
         ]}]
     )
-    return f"{response.content[0].text}\n\n{chunk}"
+    return f"{next(b.text for b in response.content if b.type == 'text')}\n\n{chunk}"
 ```
 
 **Incorrect — chunk without document context:**
@@ -74,15 +76,16 @@ def index_chunk(chunk: str) -> str:
 ```python
 def contextualize_chunk(document: str, chunk: str) -> str:
     context = client.messages.create(
-        model="claude-sonnet-5",
+        model="claude-sonnet-5-5",
         max_tokens=150,
+        thinking={"type": "between_tools"},  # Lowest thinking setting; Sonnet 5.5 rejects disabled
         messages=[{"role": "user", "content": [
             {"type": "text", "text": f"<document>\n{document}\n</document>",
              "cache_control": {"type": "ephemeral"}},  # Cache for 90% cost reduction
             {"type": "text", "text": f"Situate this chunk (1-2 sentences):\n<chunk>\n{chunk}\n</chunk>"}
         ]}]
     )
-    return f"{context.content[0].text}\n\n{chunk}"  # Prepend context
+    return f"{next(b.text for b in context.content if b.type == 'text')}\n\n{chunk}"  # Prepend context
 ```
 
 **Key rules:**

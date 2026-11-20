@@ -1,0 +1,12 @@
+{
+  "slug": "rules-global-identical-skip",
+  "source": "docs/chore--dsp-98750-2026-09-24-rules-min/index.html",
+  "title": "One rules file, written once per project dir",
+  "description": "materializeAntipatternRules wrote byte-identical .claude/rules/antipatterns.md into every project dir at SessionStart, and every copy is injected into every prompt. The fix skips the project write when the user-global copy is already identical.",
+  "tags": [
+    "hooks",
+    "rules",
+    "session-start"
+  ],
+  "date": "2026-09-24"
+}

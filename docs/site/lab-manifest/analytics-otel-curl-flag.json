@@ -1,0 +1,12 @@
+{
+  "slug": "analytics-otel-curl-flag",
+  "title": "Loki discovery command, before and after",
+  "description": "Compare the old variable-built curl flag with the plain spelling and see the exact argv each one passes.",
+  "source": "docs/fix\u002d\u002danalytics-otel-curl-flag/index.html",
+  "tags": [
+    "analytics",
+    "otel",
+    "review"
+  ],
+  "date": "2026-09-27"
+}

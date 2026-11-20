@@ -1,0 +1,11 @@
+{
+  "slug": "headless-responder-answers-key",
+  "source": "docs/fix--headless-responder-answers-key/index.html",
+  "title": "A Headless Answer Nobody Read",
+  "description": "In headless runs ork's hook answered AskUserQuestion through updatedInput, but under _headless_answers, a key Claude Code never reads. It answered nothing, and since CC 2.1.300 the key is dropped. It now writes answers, with multi-select joined by a comma.",
+  "tags": [
+    "hooks",
+    "false-signals"
+  ],
+  "date": "2026-10-27"
+}

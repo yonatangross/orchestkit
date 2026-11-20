@@ -9,6 +9,10 @@
  *                                 prompt text, only input_sha256 of the redacted
  *                                 prompt, so each case is redacted the same way
  *                                 and joined on that hash.
+ *   --clients a,b | --clients-dir <dir>
+ *                                 client names the records were redacted with;
+ *                                 a replay whose records carry another
+ *                                 redaction profile, or mix profiles, is refused.
  *   (no --records)                call the seam live. Needs ORK_TYPESAFE_API_KEY;
  *                                 forces ORK_ROUTE_JEV=shadow and writes no
  *                                 session record. Spend: about USD 0.06 per
@@ -44,7 +48,7 @@ async function loadSeam() {
     process.exit(2);
   }
   const mod = await import(pathToFileURL(BUNDLE).href);
-  for (const name of ['routeJudgment', 'redactPrompt', 'sha256', 'resolveRouteConfig']) {
+  for (const name of ['routeJudgment', 'redactPrompt', 'sha256', 'resolveRouteConfig', 'joinReplayRecords', 'readClientNamesIn', 'readClientNamesInStrict']) {
     if (typeof mod[name] !== 'function') {
       log(`ERROR: bundle does not export ${name}; rebuild src/hooks`);
       process.exit(2);
@@ -53,29 +57,97 @@ async function loadSeam() {
   return mod;
 }
 
+/**
+ * Value after a flag. Missing flag -> null. Flag present with no value (last
+ * argv, or next token is another --flag) -> undefined so callers can exit 2.
+ */
 function argValue(flag) {
   const i = process.argv.indexOf(flag);
-  return i >= 0 ? process.argv[i + 1] : null;
+  if (i < 0) return null;
+  const v = process.argv[i + 1];
+  if (v === undefined || v.startsWith('--')) return undefined;
+  return v;
+}
+
+/**
+ * Parse `--clients` / `--clients-dir` before loadSeam so a flag with no value
+ * fails even when the hooks bundle is stale (CodeRabbit 4240757703).
+ * @returns {{ list: string|null, dir: string|null }}
+ */
+function readClientFlagArgs() {
+  const list = argValue('--clients');
+  const dir = argValue('--clients-dir');
+  if (list === undefined) {
+    log('ERROR: --clients needs a value');
+    process.exit(2);
+  }
+  if (dir === undefined) {
+    log('ERROR: --clients-dir needs a value');
+    process.exit(2);
+  }
+  if (list !== null && dir !== null) {
+    log('ERROR: pass --clients or --clients-dir, not both');
+    process.exit(2);
+  }
+  return { list, dir };
+}
+
+/**
+ * Client names the replay redacts with (#4239), so a record whose prompt
+ * carried a client token joins: `--clients a,b` or `--clients-dir <dir>`
+ * (the directory names inside it, as production reads <projectDir>/clients/).
+ */
+function replayClientNames(seam, flags) {
+  const { list, dir } = flags;
+  if (dir !== null) {
+    if (typeof seam.readClientNamesInStrict !== 'function') {
+      log('ERROR: bundle does not export readClientNamesInStrict; rebuild src/hooks');
+      process.exit(2);
+    }
+    try {
+      return seam.readClientNamesInStrict(dir);
+    } catch (e) {
+      log(`ERROR: --clients-dir ${dir}: ${e instanceof Error ? e.message : String(e)}`);
+      process.exit(2);
+    }
+  }
+  if (list !== null) return list.split(',').map((s) => s.trim()).filter(Boolean);
+  return [];
 }
 
 async function main() {
+  const clientFlags = readClientFlagArgs();
   const seam = await loadSeam();
+  const clientNames = replayClientNames(seam, clientFlags);
   const cases = readJsonl(CASES_PATH);
   const recordsPath = argValue('--records');
-  const limit = Number(argValue('--limit') || cases.length);
+  if (recordsPath === undefined) {
+    log('ERROR: --records needs a value');
+    process.exit(2);
+  }
+  const limitRaw = argValue('--limit');
+  if (limitRaw === undefined) {
+    log('ERROR: --limit needs a value');
+    process.exit(2);
+  }
+  const limit = Number(limitRaw || cases.length);
   const config = seam.resolveRouteConfig({});
 
   /** @type {Map<string, {intent: string|null, conf: number|null, decided_by: string, latency_ms: number, input_tokens: number|null}>} */
   const verdicts = new Map();
   if (recordsPath) {
-    const bySha = new Map();
-    for (const r of readJsonl(recordsPath)) if (r.input_sha256) bySha.set(r.input_sha256, r);
-    for (const c of cases) {
-      const sha = seam.sha256(seam.redactPrompt(c.prompt, config.maxPromptChars, null).text);
-      const r = bySha.get(sha);
-      if (r) verdicts.set(c.id, r);
+    const records = readJsonl(recordsPath);
+    const joined = seam.joinReplayRecords(
+      records,
+      cases.map((c) => ({ id: c.id, text: c.prompt })),
+      { clientNames, maxPromptChars: config.maxPromptChars },
+    );
+    if (joined.error) {
+      log(`ERROR: ${joined.error}`);
+      process.exit(2);
     }
-    log(`records: ${bySha.size} loaded from ${recordsPath}, ${verdicts.size} of ${cases.length} cases matched by sha`);
+    for (const [id, r] of joined.verdicts) verdicts.set(id, r);
+    log(`records: ${records.length} loaded from ${recordsPath}, ${verdicts.size} of ${cases.length} cases matched by sha (redaction profile ${joined.profile})`);
   } else {
     if (!process.env.ORK_TYPESAFE_API_KEY) {
       log('ERROR: no --records and ORK_TYPESAFE_API_KEY is unset; nothing to score');

@@ -1,0 +1,12 @@
+{
+  "slug": "disabled-hook-tdz",
+  "source": "docs/fix--4885-disabled-hook-tdz/index.html",
+  "title": "The off switch that crashed: a disabled hook and a TDZ in run-hook.mjs",
+  "description": "Listing a hook as disabled in hook-overrides.json made run-hook.mjs exit 1 with a ReferenceError when the payload came from a file. Step through module evaluation with a pipe or a file on stdin and see where the hook ran before and where it runs now.",
+  "tags": [
+    "hooks",
+    "runner",
+    "esm"
+  ],
+  "date": "2026-10-30"
+}

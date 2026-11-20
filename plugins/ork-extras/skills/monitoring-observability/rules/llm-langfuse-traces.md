@@ -1,0 +1,221 @@
+---
+title: Trace LLM call chains with Langfuse for debugging slow or incorrect responses
+impact: HIGH
+impactDescription: "Langfuse tracing provides visibility into LLM call chains — without it, debugging slow or incorrect LLM responses is nearly impossible."
+tags: [langfuse, tracing, observe, opentelemetry, otel, agent-graphs, spans]
+---
+
+# Langfuse Traces
+
+## Basic Tracing with @observe (v4)
+
+```python
+from langfuse import observe, get_client
+
+@observe(as_type="chain")  # Auto-creates trace on first root span
+async def analyze_content(content: str):
+    get_client().update_current_observation(
+        metadata={"content_length": len(content)}
+    )
+    return await llm.generate(content)
+```
+
+## Nested Spans
+
+```python
+from langfuse import observe, get_client
+
+@observe(name="content_analysis")
+async def analyze(content: str):
+    # Nested span for retrieval
+    @observe(as_type="retriever", name="retrieval")
+    async def retrieve_context():
+        chunks = await vector_db.search(content)
+        get_client().update_current_observation(
+            metadata={"chunks_retrieved": len(chunks)}
+        )
+        return chunks
+
+    # Nested span for generation
+    @observe(as_type="generation", name="generation")
+    async def generate_analysis(context):
+        response = await llm.generate(content)
+        get_client().update_current_observation(
+            model="claude-sonnet-5-5",
+            usage={"input_tokens": 1500, "output_tokens": 1000},
+        )
+        return response
+
+    context = await retrieve_context()
+    return await generate_analysis(context)
+```
+
+Result in Langfuse UI:
+```
+content_analysis (2.3s, $0.045)
++-- retrieval (0.1s)
+|   +-- metadata: {chunks_retrieved: 5}
++-- generation (2.2s, $0.045)
+    +── model: claude-sonnet-5-5
+    +-- tokens: 1500 input, 1000 output
+```
+
+## Session & User Tracking
+
+```python
+from langfuse import observe, get_client
+
+@observe()
+async def analysis(content: str):
+    get_client().update_current_trace(
+        user_id="user_123",
+        session_id="session_abc",
+        metadata={"content_type": "article", "agent_count": 8},
+        tags=["production", "orchestkit"],
+    )
+    return await run_pipeline(content)
+```
+
+## Observation Types for Agent Graphs
+
+Use `as_type=` (v4) to assign semantic span types for Agent Graph rendering:
+
+```python
+@observe(as_type="agent", name="supervisor")
+async def supervisor(query: str): ...     # Agent node in graph
+
+@observe(as_type="generation", name="llm_call")
+async def generate(query: str): ...       # LLM generation step
+
+@observe(as_type="retriever", name="vector_search")
+async def retrieve(query: str): ...       # Retrieval step
+
+@observe(as_type="chain", name="prompt_chain")
+async def chain(inputs: dict): ...        # Sequential processing
+
+@observe(as_type="guardrail", name="pii_check")
+async def check_pii(text: str): ...       # Safety check
+
+@observe(as_type="embedding", name="embed")
+async def embed(text: str): ...           # Vector generation
+
+@observe(as_type="evaluator", name="quality_judge")
+async def evaluate(output: str): ...      # Inspectable evaluator trace
+```
+
+## Inline Span Scoring (v4)
+
+Use `score_current_span()` to attach scores directly to the active span:
+
+```python
+from langfuse import observe, get_client
+
+@observe(as_type="chain", name="rag_pipeline")
+async def rag_pipeline(query: str):
+    context = await retrieve(query)
+    response = await generate(query, context)
+
+    get_client().score_current_span(
+        name="relevance", value=0.85,
+        comment="Good retrieval alignment",
+    )
+    return response
+```
+
+## Filtering Noisy OTel Spans
+
+When using OpenTelemetry auto-instrumentation, many infra spans (HTTP clients,
+DB drivers, DNS) are exported to Langfuse. Use `should_export_span` to keep
+only the spans you care about:
+
+```python
+from langfuse import Langfuse
+
+def span_filter(span) -> bool:
+    """Only export LLM and application spans, skip infra noise."""
+    dominated_libs = {"urllib3", "httpcore", "dns", "ssl"}
+    lib = span.attributes.get("otel.library.name", "")
+    return lib not in dominated_libs
+
+# v4: should_export_span is a Langfuse client kwarg
+langfuse = Langfuse(
+    public_key="pk-...",
+    secret_key="sk-...",
+    should_export_span=span_filter,
+)
+```
+
+## OpenTelemetry Integration
+
+```python
+# v4: the Langfuse client installs its own OTEL span processor internally,
+# so there is no LangfuseSpanProcessor to add to a TracerProvider.
+from langfuse import Langfuse
+from langfuse.span_filter import is_default_export_span
+
+langfuse = Langfuse(
+    public_key="pk-...",
+    secret_key="sk-...",
+    host="https://cloud.langfuse.com",
+    should_export_span=is_default_export_span,
+)
+```
+
+## JavaScript/TypeScript Setup
+
+```typescript
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
+
+// v5 ships a SpanProcessor, NOT an exporter: it goes in `spanProcessors`,
+// never `traceExporter`. Keys fall back to LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY.
+const sdk = new NodeSDK({
+  spanProcessors: [
+    new LangfuseSpanProcessor({
+      publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+      secretKey: process.env.LANGFUSE_SECRET_KEY,
+    }),
+  ],
+});
+sdk.start();
+
+// Short-lived processes MUST flush before exit or trailing spans are lost.
+process.on("beforeExit", async () => {
+  await sdk.shutdown();
+});
+```
+
+## Best Practices
+
+1. **Use `from langfuse import observe, get_client`** — NOT `from langfuse.decorators`
+2. Migration note: v4 removed `langfuse.trace()`. Let `@observe()` auto-create traces.
+3. **Name spans descriptively** (e.g., "retrieval", "generation")
+4. **Use `as_type=` parameter** (v4) for Agent Graph rendering
+5. **Add metadata** for debugging (chunk counts, model params)
+6. **Truncate large inputs/outputs** to 500-1000 chars
+7. **Tag production vs staging** traces for environment filtering
+
+**Incorrect — flat trace without nested spans:**
+```python
+@observe()
+async def analyze(content: str):
+    chunks = await retrieve(content)  # Not traced
+    result = await generate(chunks)   # Not traced
+    return result  # No visibility into sub-operations
+```
+
+**Correct — nested spans for full visibility:**
+```python
+@observe(name="content_analysis")
+async def analyze(content: str):
+    @observe(name="retrieval")
+    async def retrieve_context():
+        return await vector_db.search(content)
+
+    @observe(name="generation")
+    async def generate_analysis(chunks):
+        return await llm.generate(chunks)
+
+    chunks = await retrieve_context()
+    return await generate_analysis(chunks)
+```

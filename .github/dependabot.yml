@@ -11,8 +11,9 @@
 # behind in-range patches and the gate fails reactively, one advisory at a time,
 # wedging the whole PR queue. A weekly npm version-update stream keeps every
 # lockfile fresh proactively; `groups` bundles updates (and security updates) so
-# advisories land as ONE PR per tree instead of N. Paired with auto-merge
-# (.github/workflows/dependabot-automerge.yml) the bumps land hands-off.
+# advisories land as ONE PR per tree instead of N. Each PR merges through the
+# merge desk after a skeptic check; .github/workflows/dependabot-automerge.yml
+# only labels major bumps as held and arms no auto-merge.
 #
 # hono is an `overrides` entry in root + docs/site (pulled transitively by
 # @modelcontextprotocol/sdk); it is intentionally NOT removed -- dropping it
@@ -23,6 +24,12 @@ updates:
   # ── GitHub Actions ──────────────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
       day: "monday"
@@ -43,6 +50,12 @@ updates:
   # green when a bump edits the override ranges or devDependencies.
   - package-ecosystem: "npm"
     directory: "/"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
       day: "monday"
@@ -77,6 +90,12 @@ updates:
   # ── npm: src/hooks (TypeScript hooks bundle) ────────────────────────
   - package-ecosystem: "npm"
     directory: "/src/hooks"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
       day: "monday"
@@ -110,6 +129,12 @@ updates:
   # ── npm: docs/site (Next.js docs site) ──────────────────────────────
   - package-ecosystem: "npm"
     directory: "/docs/site"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
       day: "monday"
@@ -143,6 +168,12 @@ updates:
   # ── npm: src/mcp-server (@orchestkit/mcp-server) ────────────────────
   - package-ecosystem: "npm"
     directory: "/src/mcp-server"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
       day: "monday"
@@ -166,6 +197,12 @@ updates:
   # the fix needs an `overrides` entry).
   - package-ecosystem: "npm"
     directory: "/orchestkit-demos"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
       day: "monday"
@@ -230,6 +267,12 @@ updates:
   # the pin was frozen at node:22 while .nvmrc moved to 24 (#3477).
   - package-ecosystem: "docker"
     directory: "/"
+    # 14-day package-age floor (org ruling 2026-11-02): Dependabot waits
+    # 14 days after a release before it proposes the bump. Security
+    # updates are not delayed. The semver-specific keys are left unset on
+    # purpose, so major, minor and patch all use default-days.
+    cooldown:
+      default-days: 14
     schedule:
       interval: "weekly"
     commit-message:
@@ -245,4 +288,10 @@ updates:
     ignore:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
+    # One grouped PR for patch and minor image updates, like every npm tree above.
+    groups:
+      docker-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
     open-pull-requests-limit: 3

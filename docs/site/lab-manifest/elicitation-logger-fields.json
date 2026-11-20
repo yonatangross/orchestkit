@@ -1,0 +1,12 @@
+{
+  "slug": "elicitation-logger-fields",
+  "source": "docs/fix--4884-elicitation-logger-fields/index.html",
+  "title": "Every elicitation logged as unknown: reading the fields Claude Code sends",
+  "description": "elicitation-result-logger read server_name and user_response.action, which Claude Code never sends, so every ElicitationResult line said unknown. Edit the payload and compare the line the old and new logger write.",
+  "tags": [
+    "hooks",
+    "elicitation",
+    "mcp"
+  ],
+  "date": "2026-10-30"
+}

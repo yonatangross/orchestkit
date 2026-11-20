@@ -1,0 +1,8 @@
+{
+  "slug": "cc-adoption-285-288",
+  "source": "docs/chore--dsp-10714-ork-cc-adopt/cc-285-288-adoption.html",
+  "title": "CC 2.1.285 to 2.1.288 adoption",
+  "description": "Pick a CC version and your environment, and see which of the changes reach you: headless auto mode, MCP detail redaction, managed allowedProviders, public Mods, and the structured-outputs opt-out.",
+  "tags": ["cc-adoption", "triage", "permissions", "mods"],
+  "date": "2026-10-03"
+}

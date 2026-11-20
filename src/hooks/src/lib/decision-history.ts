@@ -796,33 +796,6 @@ export function formatMermaid(
 }
 
 /**
- * Validate Mermaid diagram using mermaid.ink API
- * Returns true if diagram is valid, false otherwise
- * Note: Requires network access to mermaid.ink
- */
-export async function validateMermaidViaAPI(mermaidCode: string): Promise<boolean> {
-  try {
-    // Remove markdown code fences if present
-    const code = mermaidCode
-      .replace(/^```mermaid\n?/, '')
-      .replace(/\n?```$/, '');
-
-    // Encode as base64 for mermaid.ink API
-    const base64 = Buffer.from(code).toString('base64');
-
-    // Fetch SVG from mermaid.ink
-    const response = await fetch(`https://mermaid.ink/svg/${base64}`);
-    const text = await response.text();
-
-    // Valid diagrams return SVG, invalid return error HTML
-    return text.includes('<svg');
-  } catch {
-    // Network error or other issue - assume valid to not block
-    return true;
-  }
-}
-
-/**
  * Generate full Mermaid document with multiple diagrams
  */
 export function generateMermaidDocument(decisions: Decision[]): string {

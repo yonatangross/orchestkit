@@ -46,6 +46,7 @@ import {
   mergeSessionState,
   repoSlugFromCwd,
 } from '../../lib/session-state.js';
+import { stringifyOutput } from '../../lib/stringify-output.js';
 
 const HOOK_NAME = 'session-heartbeat-publisher';
 
@@ -143,20 +144,11 @@ export function sessionHeartbeatPublisher(
   const sessionId = input.session_id;
   if (!sessionId) return outputSilentSuccess();
 
-  // tool_output may be a string or a structured object. We coerce both
-  // to string for regex scanning.
-  const output = (() => {
-    const out = input.tool_output;
-    if (typeof out === 'string') return out;
-    if (out && typeof out === 'object') {
-      try {
-        return JSON.stringify(out);
-      } catch {
-        return '';
-      }
-    }
-    return '';
-  })();
+  // `tool_response` is what CC sends; `tool_output` is a legacy alias
+  // (types.ts). For Bash the real shape is {stdout, stderr, interrupted}, so
+  // the object branch scans stdout + stderr rather than JSON.stringify, which
+  // would quote-escape the regex targets. Same defect class as #3321.
+  const output = stringifyOutput(input.tool_response ?? input.tool_output) ?? '';
 
   const path = getStateFilePath(repo, sessionId);
   const existing = readSessionState(path);

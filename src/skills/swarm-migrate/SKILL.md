@@ -1,24 +1,23 @@
 ---
 name: swarm-migrate
 license: MIT
-compatibility: "Claude Code 2.1.251+. Uses isolated git worktrees (one per repo) and the Agent tool for parallel dispatch."
-description: "Cross-repo migration swarm — one coordinator + N parallel subagents (one per target repo) that apply the same transformation, open PRs, wait for CI, and report back to a shared JSON ledger. Coordinator handles topology, conflict auto-rebase, and stop-on-novel-failure. Use when bumping a shared dependency, rolling out a workflow change, or applying a codemod across the org. Do NOT use for single-repo work — that's /ork:implement."
+compatibility: "Claude Code 2.1.277+. Uses isolated git worktrees (one per repo) and the Agent tool for parallel dispatch."
+description: "Cross-repo migration swarm: one coordinator and a subagent per repo apply the same change, open PRs, wait for CI, and log to a shared ledger. Use for org-wide dependency bumps or codemods. Not for one repo (use implement)."
 argument-hint: "<spec-file.yaml> [--dry-run] [--max-parallel=N]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 0.1.0
-disable-model-invocation: false
-author: OrchestKit
-tags: [migration, cross-repo, swarm, parallel-agents, worktree, ledger]
+disable-model-invocation: true
 user-invocable: true
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, Monitor]
+allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch Monitor"
 skills: [github-operations, verify, memory, explore]
-complexity: high
-persuasion-type: guidance
 model: sonnet
 metadata:
   category: workflow-automation
+  version: "0.1.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "migration, cross-repo, swarm, parallel-agents, worktree, ledger"
 triggers:
   keywords: [swarm, "across repos", "all repos", "every repo", "fan out", "cross-repo", migration, rollout, codemod, "bump everywhere", cascade]
   examples:
@@ -225,6 +224,8 @@ Completed: 12/14 repos · paused: 2 · duration: 47 min
 ## Novel failures (escalated)
 - trading-ai #99: pyproject lockfile mismatch — see .swarm-logs/trading-ai-ci.log
 ```
+
+**Finish line.** Done means: every repo in the spec has a PR open and green (never merged by the swarm), or is skipped with a reason, or paused with its novel failure logged, and the final report is written. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
 ## Hard rules
 

@@ -16,6 +16,8 @@ Your final output MUST include a `status` field with one of these values:
 - Never silently produce work you're unsure about
 - "Close enough" is not DONE
 - Include `evidence` object with command, exit_code, and output_summary when applicable
+- **A blocked commit or push is BLOCKED, never an empty sha (#4703, #4628).** When a hook, guard, permission rule or failing check refuses `git commit` or `git push`, stop. Do not redo the edits without the commit and report success. Report `status: BLOCKED`, `committed_sha: null` and a `blocked_reason` that names the refusing hook or check and quotes its message; list the files left uncommitted. The caller schema for build results is `shared/build-result.schema.json`.
+- **Never fill a required output field with an empty or placeholder value.** If you cannot produce a real value for a required field (a sha, a PR URL, a path), the honest status is BLOCKED or NEEDS_CONTEXT with the reason. `""`, `"n/a"`, `"unknown"` or `"TODO"` in a required field reads as success to the caller and is a protocol violation.
 - **Self-monitor your tool-use budget (#1874).** Reserve the final 2–3 tool uses for a structured summary. As you approach the limit, stop opening new threads of investigation and emit `BUDGET_EXHAUSTED` with what is verified vs deferred plus a narrow re-spawn prompt. Never end a turn mid-sentence with no status.
 
 ### Output Schema

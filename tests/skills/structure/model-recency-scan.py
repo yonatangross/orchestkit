@@ -29,6 +29,7 @@ full_ids = set(vocab["fullIds"])
 
 TOKEN = r"claude-(?:fable|opus|sonnet|haiku)-[0-9][0-9a-z-]*"
 CHANNEL_RE = re.compile(r"^claude-(fable|opus|sonnet|haiku)-")
+DATE_SNAPSHOT_RE = re.compile(r"-\d{8}")
 
 # --- R1: the token is the VALUE of a model-ish key/argument -----------------
 # An optional provider prefix (anthropic/, openrouter/anthropic/) is tolerated.
@@ -116,14 +117,17 @@ def superseded(token):
 
     A bare ID that the dated alias target extends (claude-haiku-4-5 vs
     claude-haiku-4-5-20251001) is the SAME model written without its snapshot
-    date, so it is current, not superseded.
+    date, so it is current, not superseded. Only an 8-digit date remainder
+    counts: claude-opus-5-5 also extends claude-opus-5 with a hyphen, but "-5"
+    is a new model version, and the old startswith() check read Opus 5 as
+    current after the 2026-09-22 alias advance, blinding the whole gate.
     """
     if token not in full_ids:
         return False
     cur = current_for(token)
     if cur is None or token == cur:
         return False
-    return not cur.startswith(token + "-")
+    return not DATE_SNAPSHOT_RE.fullmatch(cur[len(token):])
 
 
 def prose_token(match):

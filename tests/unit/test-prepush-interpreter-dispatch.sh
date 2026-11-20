@@ -54,8 +54,10 @@ trap 'rm -rf "$TMP"' EXIT
 # Planted OUTSIDE tests/unit on purpose: a fixture named test-*.mjs inside
 # tests/unit would be picked up by the hook's own glob and run for real.
 printf '#!/usr/bin/env bash\nexit 0\n' > "$TMP/test-planted.sh"
-printf '// planted ESM fixture\nimport { strict as assert } from "node:assert";\nassert.ok(true);\nprocess.exit(0);\n' \
+printf '(() => {})();\nimport { strict as assert } from "node:assert";\nassert.ok(true);\nprocess.exit(0);\n' \
   > "$TMP/test-planted.mjs"
+printf '#!/bin/sh\n: > "$0.called"\nexit 99\n' > "$TMP/import"
+chmod +x "$TMP/import"
 
 bash "$TMP/test-planted.sh" >/dev/null 2>&1
 if [[ $? -eq 0 ]]; then
@@ -73,11 +75,16 @@ fi
 
 # The whole reason the dispatch matters. If this ever stops being true, the
 # fix is unnecessary and this test should be deleted rather than weakened.
-bash "$TMP/test-planted.mjs" >/dev/null 2>&1
-if [[ $? -ne 0 ]]; then
-  pass "the same .mjs fixture FAILS under bash (the premise for dispatching)"
+LC_ALL=C PATH="$TMP:$PATH" bash "$TMP/test-planted.mjs" >"$TMP/bash.log" 2>&1
+if [[ $? -eq 2 ]] && grep -q 'syntax error near unexpected token' "$TMP/bash.log"; then
+  pass "the same .mjs fixture fails with a bash syntax error"
 else
-  fail "a .mjs fixture unexpectedly succeeded under bash — premise no longer holds"
+  fail "a .mjs fixture should fail with a bash syntax error"
+fi
+if [[ ! -e "$TMP/import.called" ]]; then
+  pass "bash rejects the fixture before invoking import"
+else
+  fail "bash invoked import instead of rejecting the fixture"
 fi
 
 # ─── B. the hook actually dispatches ────────────────────────────────

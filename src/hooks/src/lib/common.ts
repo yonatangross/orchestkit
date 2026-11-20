@@ -14,6 +14,7 @@
 export {
   outputSilentSuccess,
   outputSilentAllow,
+  outputPermissionRequestAllow,
   outputTerminalSequence,
   outputBlock,
   outputWithContext,
@@ -23,6 +24,7 @@ export {
   outputWithNotification,
   outputAllowWithContext,
   outputPreToolAdvisory,
+  outputPreToolModelHint,
   outputError,
   outputWarning,
   outputDeny,
@@ -61,7 +63,8 @@ export {
 export {
   logHook,
   logPermissionFeedback,
-  outputStderrWarning,
   writeRulesFile,
+  rulesFileMatches,
+  rulesFileExists,
   readHookInput,
 } from './log.js';

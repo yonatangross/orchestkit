@@ -8,7 +8,7 @@
  * tree-shakeable.
  */
 
-import type { HookResult, HookInput } from '../types.js';
+import type { HookResult, HookInput, HookEvent } from '../types.js';
 
 // -----------------------------------------------------------------------------
 // Output Builders (CC 2.1.7+ compliant)
@@ -34,10 +34,15 @@ export function outputTerminalSequence(sequence: string): HookResult {
 }
 
 /**
- * Output silent allow - permission hook approves silently.
- * #1910: all callers are PreToolUse permission hooks, so hookEventName is
- * 'PreToolUse'. Without it CC's envelope validator rejects the hookSpecificOutput
- * ("missing required field hookEventName") and drops the decision silently.
+ * Output silent allow - PreToolUse permission hook approves silently.
+ * #1910: hookEventName is required. Without it CC's envelope validator rejects
+ * the hookSpecificOutput ("missing required field hookEventName") and drops the
+ * decision silently.
+ *
+ * PreToolUse ONLY. A PermissionRequest hook must use
+ * outputPermissionRequestAllow() instead: the two events answer with different
+ * keys and a PreToolUse labelled permissionDecision is inert on
+ * PermissionRequest (F11 / SC47).
  */
 export function outputSilentAllow(): HookResult {
   return {
@@ -46,6 +51,36 @@ export function outputSilentAllow(): HookResult {
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'allow',
+    },
+  };
+}
+
+/**
+ * Output silent allow for a PermissionRequest hook (F11 / SC47).
+ *
+ * PermissionRequest answers with a nested `decision` object, NOT with the
+ * PreToolUse `permissionDecision` string. Per CC's hook reference
+ * (PermissionRequest decision control):
+ *
+ *   {"hookSpecificOutput": {"hookEventName": "PermissionRequest",
+ *                           "decision": {"behavior": "allow"}}}
+ *
+ * and the same reference states "Only the `decision` object can grant or deny
+ * the request". The three auto-approve hooks on this event previously returned
+ * outputSilentAllow(), whose PreToolUse label plus permissionDecision matches
+ * neither half of that contract, so every auto-approval they computed was
+ * dropped and the user was prompted anyway.
+ *
+ * CC still evaluates deny and ask rules after an allow, so this grants the
+ * request without overriding a matching deny rule.
+ */
+export function outputPermissionRequestAllow(): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PermissionRequest',
+      decision: { behavior: 'allow' },
     },
   };
 }
@@ -71,23 +106,41 @@ export function outputBlock(reason: string): HookResult {
 }
 
 /**
- * Output with additionalContext - injects context before tool execution (CC 2.1.9)
- * For PostToolUse hooks (hookEventName optional)
+ * Where outputWithContext reads the event label from: the hook's own input
+ * (preferred, it carries the event CC actually fired) or a literal event for a
+ * hook that only ever runs on one event.
+ */
+export type ContextEventSource = HookEvent | Pick<HookInput, 'hook_event'>;
+
+/**
+ * Output with additionalContext (CC 2.1.9).
+ *
+ * The event label is REQUIRED and comes from the caller (#4683). It used to
+ * default to 'PostToolUse', so every PreToolUse, Setup, SubagentStart, Stop and
+ * skill-frontmatter loader that forgot the argument shipped a PostToolUse label
+ * on a different event and CC dropped its context. When the source is an input
+ * whose event is missing or 'unknown', the label is omitted: run-hook's output
+ * guard then stamps the firing event (Rule 0) instead of guessing here.
+ *
  * #865: Empty/whitespace-only content is silently dropped to save tokens.
  */
-export function outputWithContext(
-  ctx: string,
-  hookEventName: 'PostToolUse' | 'PostToolUseFailure' = 'PostToolUse',
-): HookResult {
+export function outputWithContext(ctx: string, source: ContextEventSource): HookResult {
   if (!ctx?.trim()) return outputSilentSuccess();
+  const hookEventName = resolveContextEvent(source);
   return {
     continue: true,
     suppressOutput: true,
     hookSpecificOutput: {
-      hookEventName,
+      ...(hookEventName ? { hookEventName } : {}),
       additionalContext: ctx,
     },
   };
+}
+
+function resolveContextEvent(source: ContextEventSource): HookEvent | undefined {
+  if (typeof source === 'string') return source;
+  const ev: unknown = source?.hook_event;
+  return typeof ev === 'string' && ev !== '' && ev !== 'unknown' ? (ev as HookEvent) : undefined;
 }
 
 // -----------------------------------------------------------------------------
@@ -357,6 +410,28 @@ export function outputPreToolAdvisory(message: string): HookResult {
 }
 
 /**
+ * Non-blocking PreToolUse hint for CLAUDE only, without any permission
+ * decision (#4652).
+ *
+ * Use this when the text is advice for the model (how to shape the next tool
+ * call) and the user has nothing to act on. outputPreToolAdvisory also sets
+ * `systemMessage`, which repeats the same paragraph in the user's transcript
+ * on every hit. Like outputPreToolAdvisory it omits `permissionDecision`, so
+ * the normal permission flow still applies.
+ */
+export function outputPreToolModelHint(message: string): HookResult {
+  if (!message?.trim()) return outputSilentSuccess();
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      additionalContext: message,
+    },
+  };
+}
+
+/**
  * Output error message - only use when there's an actual problem
  */
 export function outputError(message: string): HookResult {
@@ -366,7 +441,6 @@ export function outputError(message: string): HookResult {
 /**
  * Output warning message via JSON stdout -- visible to both user and Claude (CC 2.1.7+).
  * Use this when Claude needs to see and act on the warning (e.g., cost advice, quality gates).
- * For user-only warnings where Claude should NOT see the message, use outputStderrWarning.
  */
 export function outputWarning(message: string): HookResult {
   return { continue: true, systemMessage: `\u26a0 ${message}` };

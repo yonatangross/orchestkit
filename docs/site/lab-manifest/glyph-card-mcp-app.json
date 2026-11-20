@@ -1,0 +1,12 @@
+{
+  "slug": "glyph-card-mcp-app",
+  "source": "docs/feat--genui-mcp-spike/index.html",
+  "title": "Glyph card as an MCP App, no SDK",
+  "description": "One MCP tool returns an interactive ui:// card and a plain text fallback in the same result. Edit the tool input and see what a host without UI support shows next to what an MCP Apps host draws.",
+  "tags": [
+    "mcp",
+    "visual-output",
+    "playground"
+  ],
+  "date": "2026-10-22"
+}

@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>traffic snapshot: local referrers dropped, count only</title>
+<meta name="description" content="The weekly traffic snapshot row and its PR body carried a private host name (a *.localhost name, in #4621). Referrers whose host is localhost, ends in .localhost, or is a loopback literal are now dropped before the row is written; only the dropped count is kept.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.mut{color:#6b6a64}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,.mut,th,.kpi span{color:#9a998f}.verdict,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style></head><body>
+
+<h1>traffic snapshot: local referrers dropped, count only</h1>
+<p class="lede">Branch <code>fix/traffic-snapshot-drop-local-referrers</code>. PR #4621 appended a JSONL row to the public ledger whose referrer list named the local host name of a private board (a <code>*.localhost</code> name), and printed it again in the PR body.</p>
+
+<p class="verdict"><b>Verdict.</b> <code>scripts/traffic-snapshot.mjs</code> now drops every referrer whose host is <code>localhost</code>, ends in <code>.localhost</code>, or is a loopback literal (<code>127.0.0.1</code>, <code>::1</code>) before the row is written. The row and the PR body built from it keep only the dropped count under <code>referrers.local_dropped</code>; no host name survives.</p>
+
+<div class="kpis">
+<div class="kpi"><b>34</b><span>assertions passing in test-traffic-snapshot.sh</span></div>
+<div class="kpi"><b>+5</b><span>new assertions over main</span></div>
+<div class="kpi"><b>5</b><span>local hosts dropped in the regression fixture</span></div>
+<div class="kpi"><b>0</b><span>local host strings left in the row</span></div>
+</div>
+
+<h2>1. What is dropped</h2>
+<table>
+<tr><th>Referrer from the API</th><th>Verdict</th><th>Why</th></tr>
+<tr><td><code>board.localhost</code></td><td>dropped</td><td>ends in .localhost (the #4621 leak)</td></tr>
+<tr><td><code>localhost</code></td><td>dropped</td><td>the bare local host</td></tr>
+<tr><td><code>127.0.0.1</code>, <code>::1</code></td><td>dropped</td><td>loopback literals</td></tr>
+<tr><td><code>localhost:3000</code>, <code>[::1]:8080</code></td><td>dropped</td><td>port and bracket shapes tolerated</td></tr>
+<tr><td><code>google.com</code>, <code>notlocalhost</code></td><td>kept</td><td>public hosts; .localhost needs the dot boundary</td></tr>
+</table>
+
+<h2>2. Before / after in the row</h2>
+<div class="cols">
+<div class="card before"><h3>Before (#4621)</h3>
+<pre>"referrers": {"window_days": 14,
+  "items": [
+    {"referrer": "board.localhost",
+     "count": 9, "uniques": 1},
+    {"referrer": "google.com", ...}
+  ]}</pre></div>
+<div class="card after"><h3>After</h3>
+<pre>"referrers": {"window_days": 14,
+  "local_dropped": 1,
+  "items": [
+    {"referrer": "google.com", ...}
+  ]}</pre></div>
+</div>
+<p class="mut">The PR body is generated from the row by jq, so the same filter covers both surfaces; the body gains one line, "Local referrers dropped: N", a number with no host name.</p>
+
+<h2>3. What did not change</h2>
+<table>
+<tr><th>Surface</th><th>State</th></tr>
+<tr><td>PR #4621</td><td>untouched; its row still names the host</td></tr>
+<tr><td>Older ledger rows on main</td><td>untouched; 0 rows on main name a local host</td></tr>
+<tr><td>Fail-closed contract</td><td>unchanged; all fault arms still pass</td></tr>
+</table>
+
+<h2>4. Test count</h2>
+<table>
+<tr><th>Step</th><th>Result</th></tr>
+<tr><td><code>bash tests/ci/test-traffic-snapshot.sh</code></td><td>all 34 assertions passed (was 29 on main)</td></tr>
+<tr><td>New local arm</td><td>exit 0, row written, only public referrers survive, local_dropped = 5, no local host string in the row</td></tr>
+</table>
+
+</body></html>

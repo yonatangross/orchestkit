@@ -12,7 +12,10 @@ export const metadata: Metadata = {
 	// Shared with /pricing.md's frontmatter so the HTML head and the Markdown
 	// twin cannot describe this page differently.
 	description: PAGE_SUMMARY.pricing,
-	alternates: { canonical: `${SITE.domain}/pricing` },
+	alternates: {
+		canonical: `${SITE.domain}/pricing`,
+		types: { "text/markdown": `${SITE.domain}/pricing.md` },
+	},
 };
 
 export default function PricingPage() {
@@ -59,7 +62,7 @@ export default function PricingPage() {
 			<p>
 				OrchestKit itself is free. You still need{" "}
 				<a href="https://www.anthropic.com/claude-code">Claude Code</a> and an
-				Anthropic account to run the underlying agent — that billing is between
+				Anthropic account to run the underlying agent; that billing is between
 				you and Anthropic and is independent of OrchestKit.
 			</p>
 

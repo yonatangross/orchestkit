@@ -46,7 +46,7 @@ describe("homepage JSON-LD graph", () => {
 
 // #4144: the studio entity is canonically declared by the apex brand site
 // (yonyon.ai). The docs subdomain must restate that entity, not mint a second
-// Organization whose official website lives only on orchestkit.yonyon.ai.
+// Organization whose official website lives only on orchestkit.dev.
 describe("Yonyon studio Organization node", () => {
 	const yonyonOrg = (): Record<string, unknown> | undefined =>
 		homepageGraph().find(
@@ -69,8 +69,8 @@ describe("Yonyon studio Organization node", () => {
 
 	it("keeps the docs-subdomain /yonyon page as the page url only", () => {
 		const org = yonyonOrg();
-		expect(org?.mainEntityOfPage).toBe("https://orchestkit.yonyon.ai/yonyon");
+		expect(org?.mainEntityOfPage).toBe("https://orchestkit.dev/yonyon");
 		const sameAs = org?.sameAs as string[];
-		expect(sameAs).not.toContain("https://orchestkit.yonyon.ai/yonyon");
+		expect(sameAs).not.toContain("https://orchestkit.dev/yonyon");
 	});
 });

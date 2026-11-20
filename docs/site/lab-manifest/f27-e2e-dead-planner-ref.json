@@ -1,0 +1,8 @@
+{
+  "slug": "f27-e2e-dead-planner-ref",
+  "source": "docs/fix--sc47-f27-testing-e2e-dead-ref/index.html",
+  "title": "F27: dead Playwright planner pointer",
+  "description": "playwright-setup.md pointed at a missing references file. Readers now land on rules/e2e-ai-agents.md, and a structure test fails if the dead path returns.",
+  "tags": ["skills", "testing-e2e", "docs", "sc47"],
+  "date": "2026-09-22"
+}

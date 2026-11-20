@@ -62,7 +62,10 @@ export interface PreCompactDecisionSignals {
 export interface PreCompactDecisionEntry {
   /** ISO-8601 timestamp of the PreCompact event */
   timestamp: string;
-  /** Whether the hook blocked compaction (fired=true) or allowed it through */
+  /**
+   * Whether the task-done heuristic fired. Since #4633 a fire never blocks
+   * compaction; it only records the would-be nudge (see nudgeShown).
+   */
   fired: boolean;
   /** The three heuristic signal states at fire-check time */
   signals: PreCompactDecisionSignals;
@@ -89,6 +92,11 @@ export interface PreCompactDecisionEntry {
    * distinct from 0, which would be a measurement of an empty context.
    */
   measuredContextTokens?: number | null;
+  /**
+   * False on a fire: the nudge was eligible but never shown, because a
+   * manual /compact is not blocked (#4633). Absent when fired=false.
+   */
+  nudgeShown?: boolean;
 }
 
 export const PRE_COMPACT_DECISION_REQUIRED_KEYS: ReadonlyArray<keyof PreCompactDecisionEntry> = [

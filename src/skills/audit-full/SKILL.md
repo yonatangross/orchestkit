@@ -1,28 +1,27 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce."
 argument-hint: "[scope]"
-context: fork
-version: 1.2.0
-author: OrchestKit
-tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
-user-invocable: false
-allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Agent, TaskCreate, TaskUpdate, TaskList, Workflow, PushNotification, mcp__memory__search_nodes]
+user-invocable: true
+disable-model-invocation: true
+allowed-tools: "AskUserQuestion Read Grep Glob Bash Agent TaskCreate TaskUpdate TaskList Workflow PushNotification mcp__memory__search_nodes"
 skills: [security-patterns, architecture-patterns, quality-gates]
-complexity: max
-persuasion-type: discipline
 effort: high
 model: opus
 metadata:
   category: document-asset-creation
   mcp-server: memory
+  version: "1.2.0"
+  author: "OrchestKit"
+  complexity: "max"
+  tags: "security, architecture, audit, dependencies, 1m-context, cross-file"
 ---
 
 # Full-Codebase Audit
 
-Single-pass whole-project analysis leveraging Opus 5's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
+Single-pass whole-project analysis leveraging Opus 5.5's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
 
 ## Quick Start
 
@@ -33,11 +32,11 @@ audit-full architecture             # Architecture review
 audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5) enables cross-file reasoning that chunked approaches miss. Effort defaults to `high`; bump to `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
+> **Opus 5.5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5.5) enables cross-file reasoning that chunked approaches miss. Set effort explicitly: Opus 5.5's own default is `medium` (one level below Opus 5's `high`), and CC 2.1.280+ starts a newly released model at its default rather than an older saved `/effort` level. Run audits at `high`; use `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
 
 > **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. The Opus tier has defaulted to `high` since CC 2.1.154 and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Reserve `xhigh` for the hardest codebases (see the Opus 5.5 note above for the default). Silently falls back to `high` on other models; `doctor` warns on mismatch.
 
 > **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 
@@ -101,12 +100,14 @@ audit-full has **two execution tiers**. The estimate decides which:
 ```python
 # Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
 Workflow({
-  "scriptPath": "${CLAUDE_SKILL_DIR}/workflows/audit-full-mapreduce.js",
+  "name": "ork:audit-full-mapreduce",
   "args": { "shards": ["<repo-relative dirs>"], "mode": "<full|security|architecture|dependencies>", "effort": "<high|xhigh>" }
 })
 ```
 
 It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits — only reach for map-reduce when it genuinely doesn't.
+
+**Fan-out rule:** a single pass is never a fallback for an over-budget repo when the selected mode is full coverage. If the map-reduce Workflow call does not run, end the run as BLOCKED and say why; never audit a truncated load. A mode the user picks that narrows the load on purpose (directory scoping, priority loading) is a declared scope cut, not a truncated load.
 
 ---
 
@@ -173,7 +174,7 @@ anchors on its own reasoning). `low`/`medium` skip this step; `high` runs single
 refuters; `xhigh` runs the engine's quorum (3 for CRITICAL, 2 for HIGH).
 
 Load the protocol + audit-full bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `${CLAUDE_PLUGIN_ROOT}/shared/rules/adversarial-refutation.md`).
+(which loads the engine copy in `references/adversarial-refutation-engine.md`).
 
 These refuters are audit-full's **only** sub-agent spawns (the producer is single-context),
 always isolated `Agent(...)` with no `team_name`, fed only a neutral claim (category +
@@ -203,12 +204,12 @@ A full-codebase 1M-context audit typically runs 15–60 minutes on medium projec
 
 ```python
 PushNotification(
-  message=f"ork:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
+  message=f"ork-extras:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
   status="proactive"
 )
 ```
 
-Full rule: `Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule: `Read("references/push-notification-on-completion.md")`.
 
 ---
 
@@ -262,7 +263,9 @@ Load on demand with `Read("references/<file>")`:
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |
 | `references/architecture-review-guide.md` | Pattern and coupling analysis |
 | `references/dependency-audit-guide.md` | CVE, license, currency checks |
-| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5) — loads the shared engine |
+| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5), loads the engine copy below |
+| `references/adversarial-refutation-engine.md` | Byte copy of core's shared refutation engine, so the skill runs from ork-extras (a test keeps it equal) |
+| `references/push-notification-on-completion.md` | Byte copy of core's push-notification rule, same reason |
 | `references/token-estimation.md` | File type ratios and budget planning |
 | `assets/audit-report-template.md` | Structured output format |
 | `assets/severity-matrix.md` | Finding classification criteria |

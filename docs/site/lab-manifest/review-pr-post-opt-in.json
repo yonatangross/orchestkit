@@ -1,0 +1,12 @@
+{
+  "slug": "review-pr-post-opt-in",
+  "source": "docs/fix--review-pr-post-opt-in/index.html",
+  "title": "review-pr posts only when you type --post",
+  "description": "How the review-pr post gate decides: the opt-in comes from your own turn on the call's chain, gh runs read-only, and one script is the only way to post.",
+  "tags": [
+    "review",
+    "skills",
+    "security"
+  ],
+  "date": "2026-10-08"
+}

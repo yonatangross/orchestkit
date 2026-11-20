@@ -1,0 +1,14 @@
+{
+  "slug": "53382-cc-watch-tool-nouns",
+  "source": "docs/chore--dsp-53382-ork-fix-2997/index.html",
+  "title": "Permission tool nouns reach the cc-watch evidence gate",
+  "description": "Issue 2997: the cc-release-watch evidence gate dropped plain tool nouns like Bash, so permission features without backticks were stamped triaged-noop-no-evidence while src/settings/ held 34 Bash( rules. A class-T token now greps only src/settings/ and src/hooks/hooks.json for the Noun( rule form.",
+  "tags": [
+    "cc-watch",
+    "evidence-gate",
+    "permissions",
+    "triage",
+    "2997"
+  ],
+  "date": "2026-10-15"
+}

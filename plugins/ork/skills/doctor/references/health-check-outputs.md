@@ -31,7 +31,7 @@ Channel: alpha (v7.0.0-alpha.1)
 
 ```
 Installed Plugins: 1
-- ork: 107 skills, 36 agents, 218 hook entries
+- ork: 115 skills, 36 agents, 218 hook entries
 ```
 
 ## Skills Validation
@@ -124,6 +124,12 @@ Claude Code: 2.1.44 (DEGRADED)
 ```
 External Dependencies:
 agent-browser: OK (chrome=128.0.6613.137, net=✓)
+```
+
+**Older than the minimum (#5289), WARN, doctor keeps going:**
+```
+External Dependencies:
+agent-browser: WARN 0.27.1 is older than the minimum 0.31.1. Upgrade: npm install -g agent-browser@latest (or: agent-browser upgrade)
 ```
 
 **Installed but degraded:**

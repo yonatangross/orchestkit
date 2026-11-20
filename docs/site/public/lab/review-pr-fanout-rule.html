@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review fan-out rule explorer</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #f4f6f8; color: #162536; font: 18px/1.6 system-ui, sans-serif; }
+main { max-width: 780px; margin: 48px auto; padding: 32px; background: white; border: 1px solid #cbd5df; border-radius: 16px; }
+h1 { line-height: 1.15; font-size: clamp(30px, 6vw, 44px); margin: 8px 0 20px; }
+h2 { font-size: 22px; }
+.tag { color: #395b79; font-weight: 650; }
+label { display: block; margin: 20px 0 8px; font-weight: 650; }
+select { width: 100%; padding: 12px; font: inherit; background: white; color: inherit; border: 1px solid #64748b; border-radius: 6px; }
+select:focus-visible, a:focus-visible { outline: 3px solid #1261a0; outline-offset: 3px; }
+.result { margin: 24px 0; padding: 20px; border: 2px solid #1261a0; border-radius: 8px; }
+.result[data-blocked="true"] { border-color: #a42b27; background: #fff4f2; }
+#verdict { font-size: 24px; font-weight: 700; }
+small { color: #42566b; }
+a { color: #12558c; }
+@media (max-width: 600px) { main { margin: 16px; padding: 20px; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Review fan-out rule explorer"><meta property="og:description" content="Compare the old default with the explicit Fan-out rule. No reviewer means BLOCKED."><meta property="og:url" content="https://orchestkit.dev/lab/review-pr-fanout-rule.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Review fan-out rule explorer"><meta name="twitter:description" content="Compare the old default with the explicit Fan-out rule. No reviewer means BLOCKED."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<p class="tag">Issue #4672 / PR #4743</p>
+<h1>A review must start a reviewer.</h1>
+<p>Explore the new rule next to the review-pr Workflow default. A single pass is never a fallback.</p>
+<label for="policy">Skill rule</label>
+<select id="policy">
+<option value="after">After this PR: explicit Fan-out rule</option>
+<option value="before">Before this PR: no explicit Fan-out rule</option>
+</select>
+<label for="dispatch">Reviewer dispatch result</label>
+<select id="dispatch">
+<option value="none">No reviewer starts</option>
+<option value="Workflow">Workflow starts a reviewer</option>
+<option value="Agent Teams">Agent Teams starts a reviewer</option>
+<option value="Agent tool">Agent tool starts a reviewer</option>
+</select>
+<div class="result" id="result" aria-live="polite" aria-atomic="true">
+<div id="verdict">BLOCKED</div>
+<p id="reason">No reviewer started. End the run and say why.</p>
+</div>
+<h2>What changed</h2>
+<p>The skill now states the stop condition. The structural test now includes review-pr in its FIXED list.</p>
+<p><strong>Test evidence:</strong> Before the rule, the test failed because the Fan-out rule line was missing. After the rule, it passed for 7 Workflow skills and 6 fan-out rules.</p>
+<p><small>This explorer models the rule. It does not run a review. A live acceptance run is still required for issue #4672.</small></p>
+<p><a href="https://github.com/yonatangross/orchestkit/pull/4743">Open draft PR #4743</a></p>
+</main>
+<script>
+const policy = document.getElementById('policy');
+const dispatch = document.getElementById('dispatch');
+const result = document.getElementById('result');
+function render() {
+  const blocked = policy.value === 'after' && dispatch.value === 'none';
+  result.dataset.blocked = String(blocked);
+  document.getElementById('verdict').textContent = blocked ? 'BLOCKED' : dispatch.value === 'none' ? 'No explicit stop rule' : 'Reviewer started';
+  document.getElementById('reason').textContent = blocked ? 'No reviewer started. End the run and say why.' : dispatch.value === 'none' ? 'The old default names fallback tools but does not state this stop condition. A single pass is still outside the intended review flow.' : dispatch.value + ' started a reviewer. Continue the review and check the findings. This is not an approval verdict.';
+}
+policy.addEventListener('change', render);
+dispatch.addEventListener('change', render);
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -88,7 +88,7 @@ extract_skill_metadata() {
     # Extract frontmatter fields
     DEMO_NAME=$(grep "^name:" "$skill_path" | head -1 | cut -d: -f2- | xargs)
     DEMO_DESCRIPTION=$(grep "^description:" "$skill_path" | head -1 | cut -d: -f2- | xargs)
-    DEMO_TAGS=$(grep "^tags:" "$skill_path" | head -1 | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"' | xargs)
+    DEMO_TAGS=$(grep -E "^[[:space:]]*tags:" "$skill_path" | head -1 | sed -E 's/^[[:space:]]*tags: *\[?//' | sed 's/\]//' | tr -d '"' | xargs)
 
     # Extract related skills if any
     RELATED_SKILLS=""
@@ -156,7 +156,7 @@ generate_parallel_agent_section() {
 
     cat >> "$output_script" << 'PARALLEL_HEADER'
     echo
-    echo -e "${YELLOW}⚡${RESET} Spawning parallel agents via Task tool..."
+    echo -e "${YELLOW}⚡${RESET} Spawning parallel agents via Agent tool..."
     sleep 0.3
 PARALLEL_HEADER
 
@@ -555,7 +555,7 @@ SCRIPT_HEADER
 
     cat >> "$output_script" << AGENT_SPAWN
     # Agent spawn
-    echo -e "\${YELLOW}⚡\${RESET} Spawning \${MAGENTA}${DEMO_NAME}\${RESET} agent via Task tool..."
+    echo -e "\${YELLOW}⚡\${RESET} Spawning \${MAGENTA}${DEMO_NAME}\${RESET} agent via Agent tool..."
     sleep 0.5
     echo
 

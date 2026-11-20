@@ -110,7 +110,8 @@ describe('task-existence-gate', () => {
       const result = taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('No task registered')
+        expect.stringContaining('No task registered'),
+        expect.anything(),
       );
       expect(result.continue).not.toBe(false);
     });
@@ -122,7 +123,8 @@ describe('task-existence-gate', () => {
       taskExistenceGate(input, testCtx);
 
       expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('security-auditor')
+        expect.stringContaining('security-auditor'),
+        expect.anything(),
       );
     });
 

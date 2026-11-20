@@ -15,7 +15,7 @@ quality_evals:
       - name: "strict mode schemas"
         check: "recommends strict: true mode for tool definitions as a 2026 best practice"
       - name: "tool count limit"
-        check: "advises keeping tools to 5-15 maximum per request"
+        check: "advises loading roughly 5-15 tools up front and deferring the rest behind a non-deferred tool search tool"
       - name: "input validation"
         check: "recommends validating all tool inputs with Pydantic or Zod before execution"
 

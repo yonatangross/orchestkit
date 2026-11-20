@@ -1,0 +1,8 @@
+{
+  "slug": "dist-restore-tip-equality",
+  "source": "docs/fix--4300-dist-restore-exemption/index.html",
+  "title": "Dist restore: tip equality without MERGE_HEAD",
+  "description": "Decide when pre-commit should allow a release-owned dist restore that equals origin/main, and when an authored edit must still fail.",
+  "tags": ["git", "hooks", "testing", "release"],
+  "date": "2026-09-20"
+}

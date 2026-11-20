@@ -1,0 +1,29 @@
+# Created: 2026-10-24 (L6 artifact pairs, #4897)
+id: iterate-research
+name: "Iterate-research skill evaluation"
+skill_path: src/skills/iterate-research/SKILL.md
+plugin_dir: plugins/ork
+
+trigger_evals:
+  - prompt: "A reviewer challenged a claim in .ork/tasks/hook-retry/01-research-timeouts.md, re-check the code and revise it"
+    should_trigger: true
+  - prompt: "Widen the hook-retry research to also cover the retry queue"
+    should_trigger: true
+  - prompt: "the reviewer says the hook-retry research got the retry path wrong, recheck the code and fix the file"
+    should_trigger: true
+  - prompt: "Revise the add-pairs plan from its comments"
+    should_trigger: false
+  - prompt: "Start a new research file on the memory index"
+    should_trigger: false
+
+quality_evals:
+  - prompt: "Revise .ork/tasks/hook-retry/01-research-timeouts.md: comment c1 says the 5 s timeout is wrong"
+    assertions:
+      - name: "re-checks the code"
+        check: "the revision re-reads the cited code before changing the claim and cites file:line for the corrected claim"
+      - name: "iterates through the script"
+        check: "the body is rewritten with artifact.mjs iterate and every earlier comment is kept"
+      - name: "stays descriptive"
+        check: "the revised research still makes no recommendation or fix"
+
+tags: [iterate-research, artifacts, research, review]

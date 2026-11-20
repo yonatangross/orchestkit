@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesson cards: card-only lanes</title>
+<style>
+body{margin:0;background:#f7f5ef;color:#17242b;font:18px/1.5 system-ui,sans-serif}
+main{max-width:780px;margin:60px auto;padding:24px}h1{font-size:40px;line-height:1.15}
+label{display:block;margin:20px 0}select{font:inherit;padding:8px;margin-left:12px}
+table{width:100%;border-collapse:collapse;margin:28px 0;background:white}
+th,td{text-align:left;padding:16px;border-bottom:1px solid #ccd4d6}
+caption{text-align:left;font-weight:700;padding:12px 0}output{font-weight:700}
+small{display:block;color:#435964}code{background:#e9e6dc;padding:3px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Lesson Cards: Card-Only Lanes"><meta property="og:description" content="See when a block lesson shows a card and runs the call instead of asking. Only folders listed in the user settings turn it on; a project cannot, and headless still denies."><meta property="og:url" content="https://orchestkit.dev/lab/lesson-cards-card-only.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Lesson Cards: Card-Only Lanes"><meta name="twitter:description" content="See when a block lesson shows a card and runs the call instead of asking. Only folders listed in the user settings turn it on; a project cannot, and headless still denies."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<p>OrchestKit · lesson-cards 1.1.0</p>
+<h1>A card, not a dialog, in an unattended lane</h1>
+<p>The user settings list the lane folders in <code>ORK_LESSON_CARDS_CARD_ONLY_DIRS</code>. Choose where the session runs, who named its folder and the lesson. See what happens to the tool call.</p>
+<label>Folder named by
+<select id="source"><option value="none">nobody</option><option value="user">user settings (~/.claude/settings.json)</option><option value="project">project or local settings, or the environment</option></select>
+</label>
+<label>Session folder
+<select id="cwd"><option value="under">/Users/you/.floor/desks/mods-1 (under the listed folder)</option><option value="sibling">/Users/you/.floor/desks-other/lane (same prefix, not under)</option></select>
+</label>
+<label>Session
+<select id="session"><option value="interactive">Interactive (a lane pane)</option><option value="headless">Headless (claude -p)</option></select>
+</label>
+<label>Lesson severity
+<select id="severity"><option value="block">block</option><option value="warn">warn</option></select>
+</label>
+<table>
+<caption>What the tool call meets</caption>
+<thead><tr><th scope="col">Version</th><th scope="col">Result</th></tr></thead>
+<tbody><tr><th scope="row">Before (1.0.8)</th><td id="before"></td></tr><tr><th scope="row">After (1.1.0)</th><td id="after"></td></tr></tbody>
+</table>
+<p>Status line after: <output id="status" aria-live="polite"></output></p>
+<p><output id="reason" aria-live="polite"></output></p>
+<small>The listed folder is /Users/you/.floor/desks. This demo isolates the dialog decision. Pattern matching, the card's drawing and the classic pretool-lesson-guard (which still denies its block patterns) are outside this demo.</small>
+</main>
+<script>
+const source = document.getElementById('source');
+const cwd = document.getElementById('cwd');
+const session = document.getElementById('session');
+const severity = document.getElementById('severity');
+function cardOnly() {
+  return source.value === 'user' && cwd.value === 'under' && session.value === 'interactive';
+}
+function result(after) {
+  if (severity.value === 'warn') return 'Card and context. The call runs.';
+  if (session.value === 'headless') return 'Denied: "Not run: no dialog to confirm."';
+  if (after && cardOnly()) return 'Card and context. The call runs. No dialog.';
+  return 'Card, then the "Proceed anyway?" dialog. Only Proceed anyway runs it.';
+}
+function reason() {
+  if (source.value === 'project') return 'A project can name any folder, so only the user settings file is trusted.';
+  if (source.value === 'none') return 'No folder is listed, so nothing changes.';
+  if (cwd.value === 'sibling') return 'A folder only counts when the session is in it or inside it, not beside it.';
+  if (session.value === 'headless') return 'Headless keeps the fail-closed deny: the mode removes the dialog only.';
+  return 'Nobody watches an unattended pane, so a dialog would stall the lane.';
+}
+function update() {
+  document.getElementById('before').textContent = result(false);
+  document.getElementById('after').textContent = result(true);
+  document.getElementById('status').textContent = cardOnly() ? 'lesson-cards: card only, no dialogs' : 'none';
+  document.getElementById('reason').textContent = reason();
+}
+for (const el of [source, cwd, session, severity]) el.addEventListener('change', update);
+update();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

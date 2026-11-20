@@ -484,7 +484,30 @@ describe('Cross-Bundle Consistency', () => {
     //             from SessionStart is the live path and is unchanged).
     // 183 -> 182: #3353 — pretool/settings-override-resolver deleted with its
     //              settings_overrides table (0 rows ever, snapshot had no reader).
-    expect(totalHooks).toBe(182); // 183 - 1 (#3353 settings-override-resolver)
+    // 182 -> 180: #4682 HOLD 6064156428: skill/pr-context-loader and
+    //              skill/review-dimensions-loader deleted. review-pr was their
+    //              only user; once it ran inline, the first loaded the checked-out
+    //              branch's PR into a review of another PR, the second a second
+    //              output contract.
+    // 180 -> 181: #4675: skill/review-post-gate added (review-pr frontmatter
+    //              PreToolUse(Bash) and Write|Edit|NotebookEdit: posting needs the user's --post).
+    // 181 -> 180: #4683 skill/plan-context-loader deleted. visualize-plan was
+    //              its only user, it never ran in that fork, and STEP 0's
+    //              scripts/detect-plan-context.sh already reports the same.
+    // 180 -> 179: #4693 skill/issue-context-loader deleted. fix-issue was its
+    //              only user, and it read the issue number from the branch
+    //              name, not the argument; the body fetches ISSUE_NUMBER.
+    // 179 -> 180: #4297 pretool/task/route-observer, async Agent route
+    //              observation moved out of the sync task dispatcher (#4692).
+    // 180 -> 182: pretool/tool-dispatcher and posttool/tool-dispatcher, one
+    //              process per event for the flagged hooks.json variant
+    //              (scripts/unified-pretool-hooks.mjs); the shipped hooks.json
+    //              names neither, so validate-counts.sh is unchanged.
+    // 182 -> 183: pretool/bash/npm-ci-symlink-guard, a member of
+    //              sync-bash-dispatcher (no hooks.json entry of its own, so
+    //              validate-counts.sh is unchanged): denies npm ci through a
+    //              symlinked node_modules, unguarded since #3841.
+    expect(totalHooks).toBe(183);
   });
 });
 

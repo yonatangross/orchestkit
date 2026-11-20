@@ -6,18 +6,30 @@ name: Docs Site
 on:
   push:
     branches: [main, dev]
+    # Keep in sync with the paths-filter `docs` list below: every input the
+    # validate/build jobs consume must appear in BOTH places, or a PR that
+    # breaks one of them gets a green required check with no build.
+    # tests/ci/test-docs-yml-filter-parity.sh enforces this in CI.
     paths:
       - "src/skills/**"
       - "src/agents/**"
       - "src/hooks/hooks.json"
       - "docs/site/**"
+      - "docs/stubs/**"
+      - "scripts/_build-docs-generate.py"
+      - "scripts/build-docs.sh"
+      - "scripts/build-plugins.sh"
+      - "scripts/check-docs-facts.mjs"
+      - "scripts/lib/parse-frontmatter.js"
+      - "scripts/seo/link-graph.mjs"
+      - "shared/cc-support.json"
+      - "manifests/ork.json"
+      - "package.json"
+      - "package-lock.json"
+      - ".nvmrc"
+      - ".github/workflows/docs.yml"
   pull_request:
     branches: [main, dev]
-    paths:
-      - "src/skills/**"
-      - "src/agents/**"
-      - "src/hooks/hooks.json"
-      - "docs/site/**"
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -26,7 +38,46 @@ concurrency:
 permissions: {}
 
 jobs:
+  changes:
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: github.event_name == 'push'
+        with:
+          persist-credentials: false
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
+        id: filter
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            docs:
+              - 'src/skills/**'
+              - 'src/agents/**'
+              - 'src/hooks/hooks.json'
+              - 'docs/site/**'
+              - 'docs/stubs/**'
+              - 'scripts/_build-docs-generate.py'
+              - 'scripts/build-docs.sh'
+              - 'scripts/build-plugins.sh'
+              - 'scripts/check-docs-facts.mjs'
+              - 'scripts/lib/parse-frontmatter.js'
+              - 'scripts/seo/link-graph.mjs'
+              - 'shared/cc-support.json'
+              - 'manifests/ork.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.nvmrc'
+              - '.github/workflows/docs.yml'
+
   validate:
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -35,7 +86,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -78,14 +129,45 @@ jobs:
     name: Docs Site Build
     permissions:
       contents: read
-    needs: validate
+    needs: [changes, validate]
+    # Runs on every non-cancelled run, so the required context always reports:
+    # red when detection or validation failed, green with a notice when no
+    # docs-site input changed (a skipped required check never reads as SUCCESS
+    # at the merge door, which blocked every weekly traffic-snapshot bot PR),
+    # full build otherwise. `!cancelled()` keeps that contract while letting
+    # concurrency cancel-in-progress stop the superseded build; `always()`
+    # ignored the cancellation and ran two builds at once (#4496).
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
+      - name: Require successful docs detection and validation
+        id: gate
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          DOCS_CHANGED: ${{ needs.changes.outputs.docs }}
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+        run: |
+          if [[ "$CHANGES_RESULT" != success ]]; then
+            echo "::error::Docs change detection did not succeed."
+            exit 1
+          fi
+          if [[ "$DOCS_CHANGED" != true ]]; then
+            echo "::notice::No docs-site input changed; the site build is not needed."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$VALIDATE_RESULT" != success ]]; then
+            echo "::error::Docs validation did not succeed."
+            exit 1
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        if: steps.gate.outputs.run == 'true'
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -93,8 +175,11 @@ jobs:
             package-lock.json
             docs/site/package-lock.json
       - run: npm ci
+        if: steps.gate.outputs.run == 'true'
       - run: npm run build
+        if: steps.gate.outputs.run == 'true'
       - name: Install docs dependencies
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         shell: bash
         # NPM_TOKEN grants access to private @yonatan-hq GitHub Packages, so it is
@@ -102,52 +187,35 @@ jobs:
         # pull_request run, fork OR same-repo. Previously same-repo PRs ran
         # PR-author code (npm ci + a postinstall) with the token live in env; that
         # exposure is now removed. On push to main/dev the token has full scope and
-        # npm ci installs the real package; on every PR the token is '' → npm ci
-        # hits 401 Unauthorized, which we detect and fall back to the local stub
-        # under docs/stubs/analytics-stub/.
-        #
-        # Use PIPESTATUS to capture npm's real exit code — `npm ci | tee`
-        # would otherwise return tee's exit (always 0), masking npm failures
-        # and leaving an incomplete node_modules that breaks the build step.
+        # npm ci installs the real package; on every PR the shared installer
+        # falls back to docs/stubs/analytics-stub/ on an auth failure.
         run: |
-          set +e
-          npm ci 2>&1 | tee /tmp/npm-ci.log
-          npm_exit=${PIPESTATUS[0]}
-          set -e
-
-          if [[ $npm_exit -eq 0 ]]; then
-            echo "::notice::@yonatan-hq/analytics installed from private registry"
-            exit 0
-          fi
-
-          if grep -qE "401 Unauthorized|E401|unauthenticated" /tmp/npm-ci.log; then
-            echo "::notice::npm ci hit 401 on @yonatan-hq/analytics (exit $npm_exit) — swapping to local stub and regenerating lockfile"
-            # Deterministic fallback: swap the dep to the local file: stub, drop
-            # the bumped lockfile, then regenerate with --package-lock-only.
-            # Once analytics points at a file: path, no @yonatan-hq registry
-            # lookups happen — so the .npmrc auth requirement no longer applies
-            # and `npm install` succeeds without NPM_TOKEN. `--ignore-scripts`
-            # skips the fumadocs-mdx postinstall (it would fail at the
-            # lockfile-only stage with no node_modules yet).
-            #
-            # Replaces the legacy "cp package-lock.stub.json package-lock.json"
-            # pattern, which trapped every dependabot bump because the
-            # committed stub diverged whenever a dep version moved (#1630).
-            npm pkg set 'dependencies.@yonatan-hq/analytics=file:../stubs/analytics-stub'
-            rm -f package-lock.json
-            npm install --no-audit --no-fund --package-lock-only --ignore-scripts
-            npm ci --no-audit --no-fund
-          else
-            echo "::error::npm ci failed with exit $npm_exit for a reason other than auth. See log above."
-            exit $npm_exit
-          fi
+          npm run setup
+          npm ls mdast-util-to-markdown
         env:
           # Gated to `push` (#2536): NEVER present on a pull_request run, fork OR
           # same-repo. On PRs this resolves to '' → npm ci hits 401 → stub fallback.
           NPM_TOKEN: ${{ github.event_name == 'push' && secrets.NPM_TOKEN || '' }}
       - name: Build docs site
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: npm run build
+
+      # orank's WebMCP check scans the built bundles for document.modelContext
+      # registrations; only the minified chunk proves the literal survived
+      # (the #4107 helper minified to `e.modelContext`, invisible to the scan).
+      - name: Check WebMCP registration in built chunks
+        if: steps.gate.outputs.run == 'true'
+        working-directory: docs/site
+        run: node scripts/check-webmcp-bundle.mjs
+
+      # The same registration, inline in the served HTML for "/". ora.ai
+      # registers its own tools in an inline script and credited none of ours
+      # from the chunk, so the inline copy is pinned here too.
+      - name: Check WebMCP inline registration in built HTML
+        if: steps.gate.outputs.run == 'true'
+        working-directory: docs/site
+        run: node scripts/check-webmcp-inline-html.mjs
 
       # #2969: the docs-site vitest suite (vitest.site.config.ts — search golden
       # queries, nav-structure guards) was wired into NO workflow, so it gated
@@ -157,5 +225,120 @@ jobs:
       # Runs in this job rather than a new one so it reuses the node_modules
       # installed above, and runs AFTER the build so generated data exists.
       - name: Run docs-site tests
+        if: steps.gate.outputs.run == 'true'
         working-directory: docs/site
         run: npm test
+
+      # Playwright e2e on chromium-desktop only (iPhone project defaults to
+      # WebKit; this job installs Chromium). Full landing.spec plus the
+      # view-transition abort guard (PostHog 01a0a900 / #4353). Grep matches
+      # Landing titles and the VT describe so both files stay in CI (#4384).
+      # site-qa.spec covers the 2026-09-25 QA regressions (nav, commands).
+      #
+      # The install is cached and bounded (#4665). On 2026-10-07 the combined
+      # `install --with-deps` hung three times for about 20 minutes, always in
+      # the apt update before any browser download: the Azure Ubuntu mirror
+      # stopped answering and apt waited with no timeout. So: apt gets network
+      # timeouts, system deps and the browser are separate steps, each step is
+      # capped at 5 minutes, and each attempt runs under `timeout` with one
+      # retry. The browser cache is keyed by the installed Playwright version.
+      - name: Read Playwright version
+        id: pwv
+        if: steps.gate.outputs.run == 'true'
+        working-directory: docs/site
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pw-cache
+        if: steps.gate.outputs.run == 'true'
+        # A stalled cache transfer must not hold the required job (#4670).
+        # The action's default segment timeout is 10 minutes. A timed-out
+        # restore is a cache miss: the install steps below still run.
+        timeout-minutes: 3
+        continue-on-error: true
+        env:
+          SEGMENT_DOWNLOAD_TIMEOUT_MINS: '2'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pwv.outputs.version }}
+      - name: Install Playwright Chromium
+        if: steps.gate.outputs.run == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        working-directory: docs/site
+        run: |
+          for attempt in 1 2; do
+            timeout 120 npx playwright install chromium && exit 0
+            echo "::warning::playwright install attempt $attempt failed or timed out"
+          done
+          exit 1
+      # The apt mirror is needed only when Chromium cannot start. On the
+      # ubuntu-26.04 image install-deps adds just 9 font packages (run
+      # 43063535095); every library Chromium links is already installed, and
+      # no e2e spec here compares screenshots. On 2026-11-11 the runner could
+      # not resolve archive.ubuntu.com and apt-get update failed the job twice.
+      # So try one launch first; the two apt steps below run only if it fails.
+      - name: Check Chromium launches without apt
+        id: pw-launch
+        if: steps.gate.outputs.run == 'true'
+        timeout-minutes: 2
+        working-directory: docs/site
+        run: |
+          if timeout 60 node -e "require('playwright').chromium.launch().then((b) => b.close())"; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Chromium did not launch on this runner image; installing its system deps from apt"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Bound apt network waits
+        if: steps.gate.outputs.run == 'true' && steps.pw-launch.outputs.ok != 'true'
+        # DPkg::Lock::Timeout: `timeout 120` below stops npx but not the root
+        # apt-get it started under sudo, so a timed-out attempt 1 keeps the
+        # dpkg lock and attempt 2 failed at once with "Could not get lock
+        # /var/lib/dpkg/lock-frontend". apt now waits for that lock; the
+        # orphan installs the same packages, so attempt 2 then finds them.
+        run: |
+          printf '%s\n' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'Acquire::Retries "2";' \
+            'DPkg::Lock::Timeout "120";' \
+            | sudo tee /etc/apt/apt.conf.d/99-ci-network-timeouts >/dev/null
+      - name: Install Playwright system deps
+        if: steps.gate.outputs.run == 'true' && steps.pw-launch.outputs.ok != 'true'
+        timeout-minutes: 10
+        working-directory: docs/site
+        # `timeout` stops npx but not the root apt-get it starts under sudo,
+        # so a timed-out attempt 1 left an apt-get holding the dpkg lock past
+        # attempt 2's DPkg::Lock::Timeout (#4923). Before the retry, wait for
+        # apt-get and dpkg to exit, up to 510 s: on a crawling mirror that
+        # apt-get is still working, and runs 42214992662 and 42215416026 gave
+        # up on it at 240 s while it fetched at about 40 to 60 KB/s. Each
+        # attempt gets at most 120 s and never more than the 600 s step budget
+        # leaves (585 keeps a margin). On give-up, name the dpkg lock holder.
+        run: |
+          apt_busy() { ps -o pid=,etime=,args= -C apt-get,dpkg,unattended-upgr; }
+          lock_holder() {
+            echo "dpkg lock holders:"
+            sudo fuser -v /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock 2>&1 || echo "  none"
+          }
+          for attempt in 1 2; do
+            if [ "$attempt" = 2 ]; then
+              apt_busy || true
+              while apt_busy >/dev/null && [ "$SECONDS" -lt 510 ]; do sleep 2; done
+              if apt_busy >/dev/null; then
+                echo "::error::apt-get or dpkg still running after ${SECONDS}s, no time left for attempt 2"
+                apt_busy || true
+                lock_holder
+                exit 1
+              fi
+            fi
+            left=$((585 - SECONDS))
+            if [ "$left" -gt 120 ]; then left=120; fi
+            timeout "$left" npx playwright install-deps chromium && exit 0
+            echo "::warning::playwright install-deps attempt $attempt failed or timed out"
+          done
+          lock_holder
+          exit 1
+      - name: Run docs-site Playwright e2e
+        if: steps.gate.outputs.run == 'true'
+        working-directory: docs/site
+        run: npx playwright test e2e/view-transitions-abort.spec.ts e2e/landing.spec.ts e2e/site-qa.spec.ts e2e/library-no-js.spec.ts e2e/library-drawer.spec.ts e2e/library-terminal.spec.ts e2e/consent-banner.spec.ts --project=chromium-desktop --grep "Landing|View transition abort guard|Site QA|library"
+        env:
+          CI: true

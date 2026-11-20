@@ -1,0 +1,11 @@
+{
+  "slug": "isolation-guard-multiline-prompt",
+  "source": "docs/fix--isolation-guard-multiline-prompt/index.html",
+  "title": "Isolation guard: prompts that span lines cannot hide a spawn",
+  "description": "A multi-line plain prompt or spaced keys can no longer hide a spawn from the isolation guard",
+  "tags": [
+    "bug",
+    "tests"
+  ],
+  "date": "2026-10-11"
+}

@@ -6,8 +6,8 @@ import {
 	type ReactNode,
 } from "react";
 import Link from "next/link";
-import defaultMdxComponents from "fumadocs-ui/mdx";
 import { LibraryMark } from "@/components/category-mark";
+import { ScrollTable } from "@/components/scroll-table";
 import {
 	Item,
 	ItemContent,
@@ -23,6 +23,8 @@ export type HookEventRow = {
 	matcher: string;
 	behavior: string;
 	description: string;
+	/** Anchor id the generator writes into the row (the library links to it). */
+	anchor?: string;
 };
 
 export type HookIndexRow = {
@@ -55,6 +57,21 @@ function hrefOf(node: ReactNode): string | null {
 	const href = (node.props as { href?: unknown }).href;
 	if (typeof href === "string" && href.length > 0) return href;
 	return hrefOf((node.props as { children?: ReactNode }).children);
+}
+
+function idOf(node: ReactNode): string | undefined {
+	if (node == null || typeof node === "boolean") return undefined;
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			const found = idOf(child);
+			if (found) return found;
+		}
+		return undefined;
+	}
+	if (!isValidElement(node)) return undefined;
+	const props = node.props as { id?: unknown; children?: ReactNode };
+	if (typeof props.id === "string" && props.id.startsWith("hook-")) return props.id;
+	return idOf(props.children);
 }
 
 function collectRows(node: ReactNode): ReactElement[] {
@@ -99,7 +116,8 @@ export function parseHookEventTable(children: ReactNode): HookEventRow[] | null 
 			name: textOf(cells[0]).trim(),
 			matcher: textOf(cells[1]).trim(),
 			behavior: textOf(cells[2]).trim(),
-			description: textOf(cells[3]).trim() || "—",
+			description: textOf(cells[3]).trim() || "-",
+			anchor: idOf(cells[0]),
 		};
 	});
 }
@@ -138,7 +156,13 @@ export function HookEventTable({ rows }: { rows: HookEventRow[] }) {
 	return (
 		<ItemGroup>
 			{rows.map((row, i) => (
-				<Item key={`${row.name}:${row.matcher}:${i}`} variant="outline" size="sm">
+				<Item
+					key={`${row.name}:${row.matcher}:${i}`}
+					id={row.anchor}
+					className="scroll-mt-24"
+					variant="outline"
+					size="sm"
+				>
 					<ItemMedia
 						variant="icon"
 						className="border-fd-primary/25 bg-[var(--color-fd-primary-10)] text-fd-primary"
@@ -193,12 +217,12 @@ export function HookIndexList({ rows }: { rows: HookIndexRow[] }) {
 	);
 }
 
-const FumadocsTable = defaultMdxComponents.table;
 
 export function DocsTable(props: ComponentProps<"table">) {
 	const hookRows = parseHookEventTable(props.children);
 	if (hookRows) return <HookEventTable rows={hookRows} />;
 	const indexRows = parseHookIndexTable(props.children);
 	if (indexRows && indexRows.length > 0) return <HookIndexList rows={indexRows} />;
-	return <FumadocsTable {...props} />;
+	return <ScrollTable {...props} />;
 }
+

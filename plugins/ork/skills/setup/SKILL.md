@@ -1,36 +1,23 @@
 ---
 name: setup
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Personalized 7-phase onboarding wizard that scans the codebase, detects tech stack, recommends skills and MCP servers, and generates an improvement plan with readiness score. Includes safety checks and project-scoped configuration. Use when setting up OrchestKit for a new project or rescanning after major changes."
+compatibility: "Claude Code 2.1.277+."
+description: "Onboarding wizard: scans the codebase and stack, recommends skills and MCP servers, scores readiness. Use when setting up OrchestKit in a project or rescanning after big changes."
 argument-hint: "[--rescan] [--score-only] [--plan-only] [--channel] [--configure]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.1.0
-author: OrchestKit
-tags: [onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets]
 user-invocable: true
 disable-model-invocation: false
-allowed-tools: [Read, Write, Grep, Glob, Bash, AskUserQuestion, TaskCreate, TaskUpdate, mcp__memory__search_nodes, mcp__memory__create_entities, mcp__memory__create_relations]
-skills: [configure, remember, explore, help]
-complexity: medium
-persuasion-type: collaborative
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/setup-env-detector"
-      once: true
+allowed-tools: "Read Write Grep Glob Bash AskUserQuestion TaskCreate TaskUpdate mcp__memory__search_nodes mcp__memory__create_entities mcp__memory__create_relations"
+skills: [configure, memory, explore, help]
 metadata:
   category: configuration
   mcp-server: memory
-triggers:
-  keywords: [setup, onboarding, configure, "just installed", "get orchestkit working", "set up orchestkit", "set up ork", "readiness score", wizard]
-  examples:
-    - "set up orchestkit for this project"
-    - "run the onboarding wizard"
-    - "i just installed orchestkit, what do i do first"
-  anti-triggers: [doctor, help, explore, implement, fix]
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "onboarding, setup, wizard, configuration, stack-detection, mcp, personalization, telemetry, presets"
 ---
 
 # OrchestKit Setup Wizard
@@ -114,6 +101,10 @@ Scans for package manifests (package.json, pyproject.toml, go.mod, Cargo.toml, e
 
 ## Phase 2: Stack Detection
 
+**Stack snapshot, already loaded.** Claude Code ran this loader when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep its `additionalContext` below in mind. A blank line means it had nothing to add. If you see `[shell command execution disabled by policy]` instead, run it yourself: `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/setup-env-detector`:
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/setup-env-detector 2>/dev/null || true`
+
 Classify scan results into a stack profile and present to user (languages, frameworks, database, infra, testing, existing CC config).
 
 Load `Read("references/stack-skill-mapping.md")` for the full stack-to-skill mapping table, MCP recommendation matrix, and custom skill suggestion patterns.
@@ -143,7 +134,7 @@ Offers three install scopes: User-only (recommended, invisible to teammates), Pr
 
 ## Phase 3.5: Project Configuration Wizard
 
-Load details: `Read("references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, localhost browser, perf telemetry, log verbosity, webhook telemetry) and env var reference.
+Load details: `Read("references/configure-wizard.md")` for the full 6-step interactive configuration flow (branch strategy, commit scope, perf telemetry, log verbosity, webhook telemetry; step 3, localhost browser, is retired) and env var reference.
 
 > Also reachable directly via `setup --configure` — skips phases 1-3.
 
@@ -302,6 +293,6 @@ Load on demand with `Read("references/<file>")`:
 
 - `ork:doctor` — Health diagnostics (wizard uses its checks)
 - `ork:configure` — Internal configuration (called by wizard phases 3.5, 9, 10)
-- `ork:remember` — Knowledge persistence (wizard seeds initial patterns)
+- `ork:memory remember` — Knowledge persistence (wizard seeds initial patterns)
 - `ork:explore` — Deep codebase analysis (wizard links for follow-up)
 - `ork:help` — Skill directory (wizard surfaces relevant subset)

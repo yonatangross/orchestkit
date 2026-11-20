@@ -50,7 +50,7 @@
    <tr><th>Claim</th><th>Verified by</th><th>Result</th></tr>
    <tr><td class="m">bin survives publish</td><td>registry manifest, not local pack</td><td class="ok">both present</td></tr>
    <tr><td class="m">npx orchestkit runs</td><td>clean install from registry</td><td class="ok">0.1.0</td></tr>
-   <tr><td class="m">npx ork runs</td><td>same install, alias bin</td><td class="ok">emits config</td></tr>
+   <tr><td class="m">npx -p orchestkit ork runs</td><td>same install, alias bin</td><td class="ok">emits config</td></tr>
    <tr><td class="m">zero dependencies</td><td>registry manifest</td><td class="ok">{}</td></tr>
  </table>
 

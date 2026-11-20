@@ -11,8 +11,9 @@ export * from '../lib/common.js';
 export * from '../lib/git.js';
 export * from '../lib/guards.js';
 
-// PreTool/Bash hooks (21)
+// PreTool/Bash hooks (22)
 import { networkEgressGuard } from '../pretool/bash/network-egress-guard.js';
+import { npmCiSymlinkGuard } from '../pretool/bash/npm-ci-symlink-guard.js';
 import { defaultTimeoutSetter } from '../pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from '../pretool/bash/error-pattern-warner.js';
 import { affectedTestsFinder } from '../pretool/bash/affected-tests-finder.js';
@@ -56,6 +57,9 @@ import { toolInvocationLinter } from '../pretool/tool-invocation-linter.js';
 // PreTool/Workflow hooks (1) — M170 agent activation (#3126)
 import { workflowAgentTypeAdvisor } from '../pretool/task/workflow-agenttype-advisor.js';
 
+// PreTool/Agent route observer (1), async telemetry (#4297)
+import { routeObserver } from '../pretool/task/route-observer.js';
+
 // PreTool/Cron hooks (1) — CI/headless guard
 
 // Unified dispatchers (3) — consolidate sequential hooks into single process
@@ -68,14 +72,18 @@ import { syncBashDispatcher } from '../pretool/bash/sync-bash-dispatcher.js';
 import { syncWriteEditDispatcher } from '../pretool/write-edit/sync-write-edit-dispatcher.js';
 import { syncTaskDispatcher } from '../pretool/task/sync-task-dispatcher.js';
 
+// Tool dispatcher (1): every PreToolUse handler in one process, flagged variant only (M1)
+import { toolDispatcher } from '../pretool/tool-dispatcher.js';
+
 import type { HookFn } from '../types.js';
 
 /**
  * PreTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PreTool/Bash hooks (21)
+  // PreTool/Bash hooks (22)
   'pretool/bash/network-egress-guard': networkEgressGuard,
+  'pretool/bash/npm-ci-symlink-guard': npmCiSymlinkGuard,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,
   'pretool/bash/error-pattern-warner': errorPatternWarner,
   'pretool/bash/affected-tests-finder': affectedTestsFinder,
@@ -118,6 +126,9 @@ export const hooks: Record<string, HookFn> = {
   // PreTool/Workflow hooks (1) — M170 agent activation (#3126)
   'pretool/task/workflow-agenttype-advisor': workflowAgentTypeAdvisor,
 
+  // PreTool/Agent route observer (1), async telemetry (#4297)
+  'pretool/task/route-observer': routeObserver,
+
   // PreTool/Cron hooks (1) — CI/headless guard
 
   // Unified dispatchers (3) — consolidate sequential hooks into single process
@@ -129,6 +140,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/sync-bash-dispatcher': syncBashDispatcher,
   'pretool/write-edit/sync-write-edit-dispatcher': syncWriteEditDispatcher,
   'pretool/task/sync-task-dispatcher': syncTaskDispatcher,
+  // Wired into the shipped hooks.json by scripts/unified-pretool-hooks.mjs --shipped (default on, #5003)
+  'pretool/tool-dispatcher': toolDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

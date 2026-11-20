@@ -1,0 +1,12 @@
+{
+  "slug": "claude-5-5-models",
+  "source": "docs/chore--claude-5-5-models-2026-11-03/index.html",
+  "title": "Claude defaults move to the 5.5 family",
+  "description": "Every Claude model id that orchestkit ships as a default now names the 5.5 family: Opus 5.5, Sonnet 5.5 and Haiku 5.5. Filter the ten changed defaults by file or family, and see why Haiku 5.5 joins the no-sampling prefix list.",
+  "tags": [
+    "models",
+    "skills",
+    "workflows"
+  ],
+  "date": "2026-11-03"
+}

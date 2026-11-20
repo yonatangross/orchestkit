@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The off switch that crashed: a disabled hook and a TDZ in run-hook.mjs</title>
+<meta name="description" content="Listing a hook as disabled in hook-overrides.json made run-hook.mjs exit 1 with a ReferenceError when the payload came from a file. Step through module evaluation with a pipe or a file on stdin and see where the hook ran before and where it runs now.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  label{cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:9rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The off switch that crashed: a disabled hook and a TDZ in run-hook.mjs"><meta property="og:description" content="Listing a hook as disabled in hook-overrides.json made run-hook.mjs exit 1 with a ReferenceError when the payload came from a file. Step through module evaluation with a pipe or a file on stdin and see where the hook ran before and where it runs now."><meta property="og:url" content="https://orchestkit.dev/lab/disabled-hook-tdz.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The off switch that crashed: a disabled hook and a TDZ in run-hook.mjs"><meta name="twitter:description" content="Listing a hook as disabled in hook-overrides.json made run-hook.mjs exit 1 with a ReferenceError when the payload came from a file. Step through module evaluation with a pipe or a file on stdin and see where the hook ran before and where it runs now."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>The off switch that crashed</h1>
+<p class="sub">Branch fix/4885-disabled-hook-tdz, 2026-10-30, issue #4885. Putting a hook in <code>~/.claude/hook-overrides.json</code> "disabled" is the documented way to turn it off. With the payload on stdin as a regular file, run-hook.mjs instead exited 1: <code>ReferenceError: Cannot access 'WORKTREE_PATH_EVENTS' before initialization</code>.</p>
+
+<section><h2>1. Step through module evaluation</h2>
+<div class="controls">
+  <label><input type="radio" name="stdin" value="file" checked> stdin is a regular file</label>
+  <label><input type="radio" name="stdin" value="pipe"> stdin is a pipe</label>
+  <label><input type="checkbox" id="disabled" checked> hook is disabled</label>
+</div>
+<div class="grid">
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">BEFORE: the file path dispatched in place</div><div class="out" id="old"></div></div>
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">NOW: read in place, dispatch in a microtask</div><div class="out" id="new"></div></div>
+</div>
+<p class="note"><strong>Why only the file path.</strong> A pipe delivers its payload through a stream event, which can only fire after the module body has finished, so every const exists by then. The file path (added for #4769 so a payload on a file never loses the 100 ms timer race) reads the file synchronously at line 662, while the module is still evaluating, and ran the hook right there. A disabled hook goes straight to <code>emitHookResult</code>, which reads <code>WORKTREE_PATH_EVENTS</code> from line 870. An enabled hook awaits its handler before it emits, so the module finished first and it did not hit this. Line numbers are from main before the fix.</p>
+</section>
+
+<section><h2>2. The fix and its proof</h2>
+<p class="dim" style="font-size:.82rem;margin:0">The read stays synchronous; the dispatch is queued with <code>queueMicrotask</code>. A microtask runs once the module body has finished and still before any timer or stream event, so the #4769 race fix and the <code>stdinClosed</code> guards are unchanged, and every const below the block is covered, not only this one. The new test runs a disabled hook through run-hook.mjs both ways: the file arm failed before the fix with the exact stack from the issue (lines 887, 915, 631) and passes after it; the pipe arm is the control and passes both ways.</p>
+</section>
+
+<script>
+(function(){
+  function steps(fromFile,disabled,isNew){
+    var s=[['1  imports, overrides probe, bundle load','dim']];
+    if(fromFile){
+      s.push(['2  line 662: read the file synchronously','dim']);
+      if(isNew)s.push(['   queue dispatch as a microtask','ok']);
+      else if(disabled){s.push(['   finishInput -> runHook -> emitHookResult','warn']);s.push(['   reads WORKTREE_PATH_EVENTS: not declared yet','bad']);s.push(['ReferenceError, exit 1','bad']);return s;}
+      else s.push(['   finishInput -> runHook, pauses at its first await','warn']);
+    }else{
+      s.push(['2  register stdin data and end handlers','dim']);
+    }
+    s.push(['3  line 870: const WORKTREE_PATH_EVENTS declared','dim']);
+    s.push(['4  module body done',"dim"]);
+    if(fromFile&&isNew)s.push(['5  microtask: dispatch the hook','ok']);
+    if(!fromFile)s.push(['5  stream end event: dispatch the hook','ok']);
+    s.push([disabled?'disabled: silent envelope, exit 0':'hook runs, exit 0','ok']);
+    return s;
+  }
+  function render(id,rows){var el=document.getElementById(id);el.innerHTML='';rows.forEach(function(r){var d=document.createElement('div');d.className=r[1];d.textContent=r[0];el.appendChild(d);});}
+  function show(){
+    var fromFile=document.querySelector('input[name=stdin]:checked').value==='file', disabled=document.getElementById('disabled').checked;
+    render('old',steps(fromFile,disabled,false));render('new',steps(fromFile,disabled,true));
+  }
+  document.querySelectorAll('input').forEach(function(el){el.onchange=show;});
+  show();
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

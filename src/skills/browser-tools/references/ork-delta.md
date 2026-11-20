@@ -1,6 +1,6 @@
 ---
 title: "Browser Tools: the OrchestKit delta over agent-browser"
-tags: [browser, security, hook, delta]
+tags: [browser, security, sandbox, delta]
 ---
 
 # OrchestKit delta: agent-browser
@@ -11,55 +11,72 @@ the "Upstream coverage (do not restate)" table in `SKILL.md` for where each of
 those lives. This file carries only what OrchestKit adds, contradicts, or has
 to warn about.
 
-## Assume ZERO safety-hook coverage for any agent-browser run that is not a local Bash command
+## Nothing checks agent-browser any more: the rules are yours to follow
 
-Why: `src/hooks/src/pretool/bash/agent-browser-safety.ts:471` returns silently
-unless the Bash command string matches `agent-browser`. A Vercel Sandbox run
-executes the CLI inside the microVM via `sandbox.runCommand(...)`, and `--mcp`
-speaks stdio to an MCP client, so neither ever reaches the PreToolUse Bash hook.
-URL blocklist, rate limiting and robots.txt enforcement are all absent on those
-paths and have to be re-imposed at the sandbox or MCP-client layer. Distilled
-from the retired upstream-sandbox reference; no traced incident.
+Why: the `agent-browser-safety` PreToolUse hook was retired on 2026-08-31
+(#3835 purge wave 1). It never saw the MCP path (`--mcp`) or a Vercel Sandbox
+run anyway. Nothing in OrchestKit now blocks a URL, counts requests or reads
+robots.txt. The only enforced URL policy is the Claude Code sandbox network
+allow list, and only when the operator turns it on (`sandbox.enabled` plus
+`network.allowedDomains` in `.claude/settings.json`). It does not see the pages
+a remote provider or a Vercel Sandbox microVM loads.
 Upstream: `vercel:vercel-sandbox` skill, and
 https://github.com/vercel-labs/agent-browser/blob/main/skill-data/vercel-sandbox/SKILL.md
 
-## Reach a new origin with open, goto or navigate if you want it policed
+## Windows (Git Bash) and piping: never pipe a command that may start the daemon
 
-Why: `extractUrl` (same hook file, lines 417-420) matches only
-`(navigate|goto|open) <url>`, and the blocklist, rate-limit and robots checks
-(lines 489-544) each early-exit when it returns null. So `read <url>`,
-`a11y <url>`, `vitals <url>`, `diff url <a> <b>`, `connect <port>` and
-`--cdp <port>` skip all three checks: they are policy holes, not approvals.
-Distilled from the retired browser-snapshot-workflow rule; no traced
-incident.
-Upstream: `agent-browser` skill, and
-https://github.com/vercel-labs/agent-browser/blob/main/skills/agent-browser/SKILL.md
+Why: reported in https://github.com/yonatangross/orchestkit/issues/5289 from a
+native Windows desk running the Bash tool under Git Bash. An `agent-browser`
+command that has to start the daemon (the first `open`, `snapshot` or
+`screenshot` of a session, or any command after the daemon died) can hang
+forever when its output is piped, for example `agent-browser open "$URL" 2>&1 |
+tail -3`. The reported cause: the daemon is spawned from that command, inherits
+the pipe's write end and keeps it open, so `tail` never sees end of file.
+`timeout` does not help, because the pipe is still held after the command
+itself ended.
 
-## Budget navigations per host: the rate limiter is machine-wide, not per session
+Do this instead, whichever shell you are in:
 
-Why: house limits are 10 per minute, 100 per hour and 3 per 3 seconds per
-hostname (issue #318, "Add rate limiting to agent-browser-safety hook"), and
-`checkRateLimit` persists timestamps to one `rate-limits.json` under the log
-dir keyed only by domain (hook lines 122-215). Parallel sessions, worktrees and
-sub-agents therefore draw from the same budget, and a page-by-page sweep of a
-single host (the upstream dogfood workflow) hits the per-minute wall long
-before it finishes. Raise `AGENT_BROWSER_RATE_LIMIT_PER_MIN` and
-`AGENT_BROWSER_RATE_LIMIT_PER_HOUR` deliberately instead of retrying into a
-block.
+```bash
+agent-browser open "$URL" > ab.out 2>&1 < /dev/null; tail -c 300 ab.out
+```
+
+or start the daemon in a call of its own first (a bare `agent-browser open
+about:blank`, no pipe), then pipe later commands freely. Redirect to a file and
+read the file; do not use `| tail`, `| head`, `| grep` or `| jq` on the first
+command of a session.
+
+Scope, so nobody over-reads this note:
+- It is written for native Windows with Git Bash. Claude Code uses Git Bash as
+  the Bash tool only when Git for Windows is installed; otherwise PowerShell is
+  the shell tool, and WSL is Linux. Source: https://code.claude.com/docs/en/setup
+  (native Windows, Git for Windows and WSL sections).
+- Not tested: PowerShell, WSL, and Windows itself. The hang is taken from the
+  issue report; OrchestKit has not reproduced it, and the redirect form has not
+  been run on Windows. A macOS or Linux run is not a Windows run.
+- On macOS and Linux the redirect form is never worse than a pipe, so the same
+  rule applies there.
+Upstream: https://github.com/vercel-labs/agent-browser (the daemon spawn is its
+code; this note is a workaround, not a fix).
+
+## Pace requests per host across every session, by hand
+
+Why: parallel sessions, worktrees and sub-agents can hit the same host at
+once, and no limiter adds them up. A page-by-page sweep of one host (the
+upstream dogfood workflow) should wait between navigations and stop on a 429
+or a block page instead of retrying into it. See
+`rules/browser-scraping-ethics.md` for the pacing rule.
 Upstream: `dogfood` skill, and
 https://github.com/vercel-labs/agent-browser/blob/main/skill-data/dogfood/SKILL.md
 
-## Local targets are allowed by default; name them with portless, not a port
+## Local targets: name them with portless, not a port
 
-Why: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` defaults to on and clears
-`localhost`, `127.0.0.1` and `*.localhost` before the blocklist runs (hook
-lines 431-437, introduced by commit 48ab54b64, PR #950, the v7.1.0 agent-browser
-CLI adoption). Local dev URLs therefore work out of the box, and setting the
-variable to `0` re-blocks every one of them at once. (Electron and desktop CDP
-attach are unaffected either way: `connect <port>` carries no URL to check.) A named
-`https://<app>.localhost` from portless survives a port change and tells the
-next reader which app was under test.
-Upstream: `ork:portless` skill, and https://github.com/vercel-labs/portless
+Why: a named `https://<app>.localhost` from portless survives a port change
+and tells the next reader which app was under test. Nothing in OrchestKit blocks
+local URLs. With the sandbox network allow list on, add the local host names
+you use to `allowedDomains`. (Electron and desktop CDP attach carry no URL, so
+a URL allow list does not apply to them.)
+Upstream: `ork-extras:portless` skill, and https://github.com/vercel-labs/portless
 
 ## Keep page-derived output targeted, verified, and out of the repo
 

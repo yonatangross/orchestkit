@@ -5,7 +5,7 @@ description: "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, Tas
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="task-dependency-patterns" />
 
@@ -17,7 +17,7 @@ description: "Task Management patterns with TaskCreate, TaskUpdate, TaskGet, Tas
 ## Overview
 
 Claude Code 2.1.16 introduces a native Task Management System with four tools:
-> **CC 2.1.233 caveat:** the Task tools are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` is set in user or managed settings (or the shell). ork cannot ship that flag (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
+> **CC 2.1.268 caveat:** TaskCreate, TaskGet, TaskUpdate, TaskList, and TodoWrite are offered only on Claude 3.x, Opus 4.0 to 4.7, Sonnet 4.0 to 4.6, and Haiku 4.5. On models outside this allowlist, these tools are absent unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. CC honours the flag only from user or managed settings (or the shell). ork cannot ship it (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
 
 - **TaskCreate**: Create new tasks with subject, description, and activeForm
 - **TaskUpdate**: Update status (pending → in_progress → completed), set dependencies
@@ -73,7 +73,7 @@ pending/in_progress → deleted
 - **pending**: Task created but not started
 - **in_progress**: Actively being worked on
 - **completed**: Work finished and verified
-- **deleted**: Task removed — permanently removes the task
+- **deleted**: Task removed, permanently removes the task
 
 ### Task Deletion
 
@@ -109,7 +109,7 @@ Provide present-continuous form for spinner display:
 
 Agent Teams provides multi-agent coordination with shared task lists and peer-to-peer messaging.
 
-> **CC 2.1.161 — independent parallel-tool failure:** A failed tool call in a parallel batch no longer cancels siblings; each returns its own result. Teammates must check task status independently and handle failures explicitly rather than assuming a batch-wide abort.
+> **CC 2.1.161, independent parallel-tool failure:** A failed tool call in a parallel batch no longer cancels siblings; each returns its own result. Teammates must check task status independently and handle failures explicitly rather than assuming a batch-wide abort.
 
 ### Team Workflow
 
@@ -124,9 +124,9 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 
 > **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
 
-### When to Use Teams vs Task Tool
+### When to Use Teams vs Agent Tool
 
-| Criteria | Task Tool (subagents) | Agent Teams |
+| Criteria | Agent Tool (subagents) | Agent Teams |
 |----------|----------------------|-------------|
 | Independent tasks | Yes | Overkill |
 | Cross-cutting changes | Limited | Yes |
@@ -138,9 +138,15 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 ### Team Task Patterns
 
 ```
-# Spawn teammate into shared task list
+# Spawn teammate into shared task list. A teammate that writes files works in
+# a manual worktree the lead creates first (#4557); the lead merges its branch
+# before dependent tasks start. No isolation on the call: a call with name and
+# isolation launches a plain subagent, not a teammate (Claude Code docs).
+Bash("git worktree add .worktrees/backend -b feat/my-feature-backend feat/my-feature")
 Agent(
-  prompt="You are the backend architect...",
+  prompt="You are the backend architect... Work only in .worktrees/backend/ "
+         "(cd there, check pwd and branch first). Commit your work there and "
+         "message the lead your branch name and commit sha.",
   team_name="my-feature",
   name="backend-architect",
   subagent_type="ork:backend-system-architect"
@@ -173,8 +179,8 @@ SendMessage(to: "backend-dev",
 
 When using Agent Teams, if context limit is reached mid-workflow:
 - Collect partial results from completed teammates via `TaskList`
-- Synthesize available outputs — prefer partial results over silent failure
-- Log skipped tasks with `TaskUpdate(taskId: task_id, status: "completed", metadata: \{"skipped": "context limit"\})`
+- Synthesize available outputs, prefer partial results over silent failure
+- Log skipped tasks with `TaskUpdate(taskId: task_id, status: "completed", metadata: {"skipped": "context limit"})`
 
 ## Anti-Patterns
 
@@ -183,7 +189,7 @@ When using Agent Teams, if context limit is reached mid-workflow:
 - Leaving tasks in_progress when blocked
 - Not marking tasks completed after finishing
 - Using broadcast for messages that only concern one teammate
-- Spawning teams for simple sequential work (use Task tool instead)
+- Spawning teams for simple sequential work (use Agent tool instead)
 
 ## Related Skills
 
@@ -194,7 +200,7 @@ When using Agent Teams, if context limit is reached mid-workflow:
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -257,14 +263,14 @@ SendMessage(
 ```
 
 **Key rules:**
-- Always set `owner` when transitioning a task to `in_progress` — this prevents duplicate work
+- Always set `owner` when transitioning a task to `in_progress`, this prevents duplicate work
 - Use `TaskList` to find unblocked, unowned tasks before claiming one
-- Design tasks to be completable by a single agent — avoid tasks that require two agents to collaborate mid-execution
+- Design tasks to be completable by a single agent, avoid tasks that require two agents to collaborate mid-execution
 - Use `SendMessage` to share completion context (output formats, file locations, decisions made) with agents who own dependent tasks
-- Mark tasks `completed` promptly after finishing — delayed completion blocks dependent agents unnecessarily
+- Mark tasks `completed` promptly after finishing, delayed completion blocks dependent agents unnecessarily
 - Release ownership (`owner: ""`) if you cannot finish a task, reverting it to `pending` so another agent can pick it up
 
-Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md) — Best Practices (lines 110-116), Agent Workflow (lines 47-70)
+Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md), Best Practices (lines 110-116), Agent Workflow (lines 47-70)
 
 
 ### Verify task completion criteria before marking done to prevent cascading dependency failures: HIGH
@@ -331,12 +337,12 @@ TaskUpdate(taskId: "1", status: "completed")
 
 **Key rules:**
 - Verify all four completion criteria before marking done: implementation complete, tests passing, no blockers for dependents, documentation updated if applicable
-- Never skip `in_progress` — always transition `pending` to `in_progress` to `completed` for proper visibility
+- Never skip `in_progress`, always transition `pending` to `in_progress` to `completed` for proper visibility
 - If blocked mid-work, revert to `pending` and create a new blocker task with `addBlockedBy` linking
 - When partial work is done but scope remains, create follow-up tasks for the remaining items rather than leaving one large task incomplete
 - After completing a task, run `TaskList` to identify newly unblocked dependents
 
-Reference: [Status Workflow](../references/status-workflow.md) — Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
+Reference: [Status Workflow](../references/status-workflow.md), Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
 
 
 ### Validate task dependencies before starting to avoid wasted work on blocked tasks: HIGH
@@ -394,7 +400,7 @@ TaskUpdate(taskId: "3", addBlockedBy: ["6"])
 - When completing a task, call `TaskList` to check if dependent tasks are now unblocked
 - Document why each dependency exists in the task description so future agents understand the ordering
 
-Reference: [Dependency Tracking](../references/dependency-tracking.md) — Validation Rules (lines 72-77), Best Practices (lines 89-94)
+Reference: [Dependency Tracking](../references/dependency-tracking.md), Validation Rules (lines 72-77), Best Practices (lines 89-94)
 
 
 

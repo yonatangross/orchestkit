@@ -1,15 +1,21 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
 import { motion } from "motion/react";
 import type { SkillMeta } from "@/lib/generated/types";
 import { SKILLS } from "@/lib/generated/skills-data";
-import { CATEGORY_COLORS } from "@/lib/category-colors";
+import {
+  CATEGORY_BADGE_CLASS,
+  CATEGORY_BORDER_CLASS,
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+} from "@/lib/category-colors";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { createCollection, useOramaCollection } from "@/lib/orama-browser";
 import { Highlight } from "@/components/search-highlight";
 import { CategoryMark } from "@/components/category-mark";
+import { categorizeSkill } from "@/lib/skill-category";
 import { cn } from "@/lib/cn";
 
 // ── Category visual metadata ────────────────────────────────
@@ -18,161 +24,102 @@ const SKILL_CATEGORY_META: Record<
   { label: string; color: string; bg: string; border: string; dot: string }
 > = {
   development: {
-    label: "Development",
+    label: CATEGORY_LABELS.development,
     ...CATEGORY_COLORS.development,
-    border: "border-l-violet-400 dark:border-l-violet-500",
+    border: CATEGORY_BORDER_CLASS.development,
     dot: "bg-violet-500",
   },
   ai: {
-    label: "AI",
+    label: CATEGORY_LABELS.ai,
     ...CATEGORY_COLORS.ai,
-    border: "border-l-cyan-400 dark:border-l-cyan-500",
+    border: CATEGORY_BORDER_CLASS.ai,
     dot: "bg-cyan-500",
   },
   backend: {
-    label: "Backend",
+    label: CATEGORY_LABELS.backend,
     ...CATEGORY_COLORS.backend,
-    border: "border-l-amber-400 dark:border-l-amber-500",
+    border: CATEGORY_BORDER_CLASS.backend,
     dot: "bg-amber-500",
   },
   frontend: {
-    label: "Frontend",
+    label: CATEGORY_LABELS.frontend,
     ...CATEGORY_COLORS.frontend,
-    border: "border-l-blue-400 dark:border-l-blue-500",
+    border: CATEGORY_BORDER_CLASS.frontend,
     dot: "bg-blue-500",
   },
   testing: {
-    label: "Testing",
+    label: CATEGORY_LABELS.testing,
     ...CATEGORY_COLORS.testing,
-    border: "border-l-sky-400 dark:border-l-sky-500",
+    border: CATEGORY_BORDER_CLASS.testing,
     dot: "bg-sky-500",
   },
   security: {
-    label: "Security",
+    label: CATEGORY_LABELS.security,
     ...CATEGORY_COLORS.security,
-    border: "border-l-red-400 dark:border-l-red-500",
+    border: CATEGORY_BORDER_CLASS.security,
     dot: "bg-red-500",
   },
   devops: {
-    label: "DevOps",
+    label: CATEGORY_LABELS.devops,
     ...CATEGORY_COLORS.devops,
-    border: "border-l-orange-400 dark:border-l-orange-500",
+    border: CATEGORY_BORDER_CLASS.devops,
     dot: "bg-orange-500",
   },
   product: {
-    label: "Product",
+    label: CATEGORY_LABELS.product,
     ...CATEGORY_COLORS.product,
-    border: "border-l-pink-400 dark:border-l-pink-500",
+    border: CATEGORY_BORDER_CLASS.product,
     dot: "bg-pink-500",
   },
   data: {
-    label: "Data",
+    label: CATEGORY_LABELS.data,
     ...CATEGORY_COLORS.data,
-    border: "border-l-indigo-400 dark:border-l-indigo-500",
+    border: CATEGORY_BORDER_CLASS.data,
     dot: "bg-indigo-500",
   },
   research: {
-    label: "Research",
+    label: CATEGORY_LABELS.research,
     ...CATEGORY_COLORS.research,
-    border: "border-l-teal-400 dark:border-l-teal-500",
+    border: CATEGORY_BORDER_CLASS.research,
     dot: "bg-teal-500",
   },
 };
 
-// ── Tag-to-category mapping ─────────────────────────────────
-const TAG_CATEGORY_MAP: Record<string, string[]> = {
-  backend: [
-    "api",
-    "backend",
-    "database",
-    "fastapi",
-    "sqlalchemy",
-    "grpc",
-    "rest",
-    "graphql",
-    "sql",
-    "postgres",
-    "redis",
-  ],
-  frontend: [
-    "react",
-    "frontend",
-    "css",
-    "tailwind",
-    "component",
-    "ui",
-    "next.js",
-    "nextjs",
-    "vite",
-  ],
-  ai: [
-    "llm",
-    "ai",
-    "openai",
-    "anthropic",
-    "rag",
-    "embeddings",
-    "langgraph",
-    "langchain",
-    "prompt",
-    "ml",
-  ],
-  security: [
-    "security",
-    "owasp",
-    "auth",
-    "vulnerability",
-    "authentication",
-    "authorization",
-    "encryption",
-  ],
-  testing: [
-    "test",
-    "e2e",
-    "unit-test",
-    "coverage",
-    "playwright",
-    "jest",
-    "vitest",
-    "testing",
-  ],
-  devops: [
-    "ci-cd",
-    "deployment",
-    "kubernetes",
-    "terraform",
-    "monitoring",
-    "docker",
-    "ci",
-    "cd",
-    "infrastructure",
-  ],
-  product: [
-    "product",
-    "strategy",
-    "requirements",
-    "okr",
-    "prioritization",
-    "business",
-    "market",
-  ],
-  research: ["research", "web-research", "browser", "scraping"],
-  data: ["data", "pipeline", "vector", "embeddings", "analytics", "etl"],
+// ── Type filter (user-invocable commands vs references) ─────
+const TYPE_OPTIONS = [
+  {
+    value: "command",
+    label: "Command",
+    activeClass:
+      "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300",
+  },
+  {
+    value: "reference",
+    label: "Reference",
+    activeClass:
+      "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300",
+  },
+] as const;
+
+// ── Complexity filter (same order + palette as the atlas) ───
+const COMPLEXITY_ORDER = ["simple", "low", "medium", "high", "complex", "max"];
+
+const COMPLEXITY_STYLE: Record<string, string> = {
+  simple:
+    "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300",
+  low: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300",
+  medium:
+    "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+  high: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300",
+  complex:
+    "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300",
+  max: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
 };
 
-function categorizeSkill(skill: SkillMeta): string {
-  const tagSet = skill.tags.map((t) => t.toLowerCase());
+const FALLBACK_COMPLEXITY = "low";
 
-  // Check each category's keywords against the skill's tags
-  for (const [category, keywords] of Object.entries(TAG_CATEGORY_MAP)) {
-    for (const keyword of keywords) {
-      if (tagSet.some((tag) => tag.includes(keyword))) {
-        return category;
-      }
-    }
-  }
-
-  return "development"; // Default fallback
+function complexityOf(skill: SkillMeta): string {
+  return skill.complexity || FALLBACK_COMPLEXITY;
 }
 
 // ── Skill entry with computed category ──────────────────────
@@ -191,6 +138,15 @@ const ALL_SKILLS: SkillEntry[] = Object.entries(SKILLS).map(([key, skill]) => ({
 
 const ALL_CATEGORY_KEYS = Object.keys(SKILL_CATEGORY_META);
 
+// Complexity pills in canonical order, then any value the data carries that
+// the order does not know about (frontmatter is free-form).
+const COMPLEXITY_KEYS = (() => {
+  const present = new Set(ALL_SKILLS.map((e) => complexityOf(e.skill)));
+  const ordered = COMPLEXITY_ORDER.filter((c) => present.has(c));
+  const extras = [...present].filter((c) => !COMPLEXITY_ORDER.includes(c)).sort();
+  return [...ordered, ...extras];
+})();
+
 // ── Orama collection (built once, client-side) ──────────────
 const SKILL_COLLECTION = createCollection<SkillEntry>(ALL_SKILLS, {
   id: (e) => e.key,
@@ -204,6 +160,8 @@ const SKILL_COLLECTION = createCollection<SkillEntry>(ALL_SKILLS, {
     // an `enum[]` field would need `containsAny`, which the API can't produce.
     // Skills carry a single plugin (v7 unified "ork"), so scalar is lossless.
     plugins: "enum",
+    complexity: "enum",
+    invocable: "enum",
   },
   toDoc: (e) => ({
     name: e.skill.name,
@@ -211,16 +169,32 @@ const SKILL_COLLECTION = createCollection<SkillEntry>(ALL_SKILLS, {
     tags: e.skill.tags,
     category: e.category,
     plugins: e.skill.plugins[0] ?? "ork",
+    complexity: complexityOf(e.skill),
+    invocable: e.skill.userInvocable ? "command" : "reference",
   }),
   boost: { name: 3, tags: 1.5, description: 1.5 },
   facetField: "category",
 });
 
+/**
+ * Cards shown below the lg breakpoint (one or two columns) before "Show all".
+ * The full list put What's new and the Cookbook ~15 screens down on a phone
+ * (home page 19,244px at 390, QA 2026-09-25). CSS hides the rest, so the
+ * server HTML is the same at every width and desktop keeps every card.
+ */
+export const NARROW_PAGE_SIZE = 8;
+
 // ── Main component ──────────────────────────────────────────
 export function SkillBrowser() {
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedComplexities, setSelectedComplexities] = useState<string[]>(
+    [],
+  );
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   // Orama-backed search + faceted filtering (BM25 ranking, 1-char typo
   // tolerance, native facet counts — all in one query).
@@ -229,10 +203,41 @@ export function SkillBrowser() {
     term: debouncedSearch,
     where: {
       category: selectedCategories,
+      invocable: selectedTypes,
+      complexity: selectedComplexities,
     },
   });
   const filtered = result.items;
   const suggestions = result.suggestions;
+
+  // Type and complexity pill counts mirror the category facets: stable under
+  // their own selection, responsive to search + category. One extra in-memory
+  // query scoped to term + category supplies the set to count over.
+  const { result: dimensionResult } = useOramaCollection<SkillEntry>(
+    SKILL_COLLECTION,
+    {
+      term: debouncedSearch,
+      where: {
+        category: selectedCategories,
+      },
+    },
+  );
+  const dimensionCounts = useMemo(() => {
+    const byComplexity = new Map<string, number>();
+    let commands = 0;
+    for (const entry of dimensionResult.items) {
+      const key = complexityOf(entry.skill);
+      byComplexity.set(key, (byComplexity.get(key) ?? 0) + 1);
+      if (entry.skill.userInvocable) commands += 1;
+    }
+    return {
+      byComplexity,
+      byType: {
+        command: commands,
+        reference: dimensionResult.items.length - commands,
+      } as Record<string, number>,
+    };
+  }, [dimensionResult.items]);
 
   // Per-category facet counts. Stable under an active category filter: the
   // orama-browser sources these from a query that excludes the category field
@@ -261,12 +266,60 @@ export function SkillBrowser() {
     );
   }, []);
 
+  const toggleType = useCallback((type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    );
+  }, []);
+
+  const toggleComplexity = useCallback((cplx: string) => {
+    setSelectedComplexities((prev) =>
+      prev.includes(cplx) ? prev.filter((c) => c !== cplx) : [...prev, cplx],
+    );
+  }, []);
+
   const clearFilters = useCallback(() => {
     setSearch("");
     setSelectedCategories([]);
+    setSelectedTypes([]);
+    setSelectedComplexities([]);
   }, []);
 
-  const hasFilters = search !== "" || selectedCategories.length > 0;
+  const hasFilters =
+    search !== "" ||
+    selectedCategories.length > 0 ||
+    selectedTypes.length > 0 ||
+    selectedComplexities.length > 0;
+  // A search or a category filter always shows every match.
+  const capped =
+    ready && !hasFilters && !showAll && filtered.length > NARROW_PAGE_SIZE;
+
+  // "Show fewer" unmounts itself too: return focus to "Show all" and bring it
+  // into view, so the reader is not left 100 cards below the list.
+  const showAllRef = useRef<HTMLButtonElement>(null);
+  const collapsingRef = useRef(false);
+  useEffect(() => {
+    if (showAll || !collapsingRef.current) return;
+    collapsingRef.current = false;
+    showAllRef.current?.focus({ preventScroll: true });
+    showAllRef.current?.scrollIntoView({ block: "center" });
+  }, [showAll]);
+
+  // "Show all" unmounts itself, so hand focus to the first card it revealed.
+  useEffect(() => {
+    if (!showAll) return;
+    gridRef.current
+      ?.querySelectorAll<HTMLButtonElement>("button[aria-expanded]")
+      [NARROW_PAGE_SIZE]?.focus();
+  }, [showAll]);
+
+  const shownCount = (n: number) => (
+    <>
+      Showing{" "}
+      <span className="font-semibold tabular-nums text-fd-foreground">{n}</span>{" "}
+      of {ALL_SKILLS.length} skills
+    </>
+  );
 
   return (
     <div className="not-prose">
@@ -276,16 +329,15 @@ export function SkillBrowser() {
           role="status"
           aria-live="polite"
         >
-          {ready ? (
+          {!ready ? (
+            "Loading skills…"
+          ) : capped ? (
             <>
-              Showing{" "}
-              <span className="font-semibold tabular-nums text-fd-foreground">
-                {filtered.length}
-              </span>{" "}
-              of {ALL_SKILLS.length} skills
+              <span className="lg:hidden">{shownCount(NARROW_PAGE_SIZE)}</span>
+              <span className="max-lg:hidden">{shownCount(filtered.length)}</span>
             </>
           ) : (
-            "Loading skills…"
+            shownCount(filtered.length)
           )}
         </p>
       </div>
@@ -334,12 +386,12 @@ export function SkillBrowser() {
                   "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium [&_svg]:block",
                   active
                     ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                    : "border-fd-border text-fd-muted-foreground hover:bg-fd-muted",
+                    : "border-fd-border bg-fd-background text-fd-muted-foreground hover:bg-fd-muted",
                 )}
               >
                 <CategoryMark category={cat} className="h-3.5 w-3.5" />
                 {meta.label}
-                <span className="tabular-nums text-fd-muted-foreground/70">
+                <span className="tabular-nums text-fd-muted-foreground">
                   {countOf(cat)}
                 </span>
               </motion.button>
@@ -357,6 +409,73 @@ export function SkillBrowser() {
           )}
         </div>
       </fieldset>
+
+      {/* Type + complexity filters, same pill language as Category */}
+      <div className="mb-5 flex flex-wrap gap-x-8 gap-y-4">
+        <fieldset>
+          <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
+            Type
+          </legend>
+          <div className="flex flex-wrap gap-1.5">
+            {TYPE_OPTIONS.map((opt) => {
+              const active = selectedTypes.includes(opt.value);
+              return (
+                <motion.button
+                  key={opt.value}
+                  type="button"
+                  layout
+                  transition={{ duration: 0.18 }}
+                  onClick={() => toggleType(opt.value)}
+                  aria-pressed={active}
+                  className={cn(
+                    "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                    active
+                      ? `${opt.activeClass} border-current shadow-sm`
+                      : "border-fd-border bg-fd-background text-fd-muted-foreground hover:bg-fd-muted",
+                  )}
+                >
+                  {opt.label}
+                  <span className="tabular-nums text-fd-muted-foreground">
+                    {dimensionCounts.byType[opt.value] ?? 0}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
+            Complexity
+          </legend>
+          <div className="flex flex-wrap gap-1.5">
+            {COMPLEXITY_KEYS.map((cplx) => {
+              const active = selectedComplexities.includes(cplx);
+              return (
+                <motion.button
+                  key={cplx}
+                  type="button"
+                  layout
+                  transition={{ duration: 0.18 }}
+                  onClick={() => toggleComplexity(cplx)}
+                  aria-pressed={active}
+                  className={cn(
+                    "relative inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                    active
+                      ? `${COMPLEXITY_STYLE[cplx] ?? COMPLEXITY_STYLE.medium} border-current shadow-sm`
+                      : "border-fd-border bg-fd-background text-fd-muted-foreground hover:bg-fd-muted",
+                  )}
+                >
+                  {cplx}
+                  <span className="tabular-nums text-fd-muted-foreground">
+                    {dimensionCounts.byComplexity.get(cplx) ?? 0}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </fieldset>
+      </div>
 
       {/* Skill grid or empty state */}
       {!ready ? (
@@ -399,27 +518,60 @@ export function SkillBrowser() {
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 rounded-md border border-fd-border px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
+            className="mt-3 rounded-md border border-fd-border bg-fd-background px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
           >
             Clear all filters
           </button>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((entry) => (
-            <SkillCard
-              key={entry.key}
-              entry={entry}
-              query={debouncedSearch}
-              expanded={expandedSkill === entry.key}
-              onToggle={() =>
-                setExpandedSkill(
-                  expandedSkill === entry.key ? null : entry.key,
-                )
-              }
-            />
-          ))}
-        </div>
+        <>
+          {/* grid-cols-1 caps the phone column at the page. With no template the
+              one auto column grew to the widest card's min-content, the full
+              width of a truncated name, so "Show all" (which renders
+              react-server-components-framework) pushed every card 25px past
+              the gutter (dogfood ISSUE-001). */}
+          <div ref={gridRef} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((entry, index) => (
+              <SkillCard
+                key={entry.key}
+                entry={entry}
+                query={debouncedSearch}
+                className={
+                  capped && index >= NARROW_PAGE_SIZE ? "max-lg:hidden" : undefined
+                }
+                expanded={expandedSkill === entry.key}
+                onToggle={() =>
+                  setExpandedSkill(
+                    expandedSkill === entry.key ? null : entry.key,
+                  )
+                }
+              />
+            ))}
+          </div>
+          {capped ? (
+            <button
+              ref={showAllRef}
+              type="button"
+              onClick={() => setShowAll(true)}
+              className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
+            >
+              Show all {filtered.length} skills
+            </button>
+          ) : null}
+          {/* The way back: expanded, the phone page ran 18,593px (gate NEW-5). */}
+          {ready && showAll && !hasFilters && filtered.length > NARROW_PAGE_SIZE ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowAll(false);
+                collapsingRef.current = true;
+              }}
+              className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-4 py-2.5 text-sm font-semibold text-fd-primary transition-colors hover:border-fd-primary/40 hover:bg-fd-muted lg:hidden"
+            >
+              Show fewer skills
+            </button>
+          ) : null}
+        </>
       )}
     </div>
   );
@@ -429,25 +581,32 @@ export function SkillBrowser() {
 function SkillCard({
   entry,
   query,
+  className,
   expanded,
   onToggle,
 }: {
   entry: SkillEntry;
   query: string;
+  className?: string;
   expanded: boolean;
   onToggle: () => void;
 }) {
   const { skill, category } = entry;
   const catMeta = SKILL_CATEGORY_META[category] ?? SKILL_CATEGORY_META.development;
+  const descId = useId();
 
   return (
     <div
-      className={`rounded-lg border border-fd-border border-l-[3px] ${catMeta.border} transition-all duration-200 ${
-        expanded
-          ? `${catMeta.bg} shadow-sm`
-          : "hover:bg-fd-muted"
-      }`}
+      className={cn(
+        "rounded-lg border border-fd-border border-l-[3px] transition-all duration-200",
+        catMeta.border,
+        expanded ? `${catMeta.bg} shadow-sm` : "bg-fd-background hover:bg-fd-muted",
+        className,
+      )}
     >
+      {/* Named by the skill alone; badges and description are the description.
+          Unnamed, the button read its whole text run together
+          ("architecture-patternsTestingArchitecture validation...", QA #20). */}
       <button
         type="button"
         onClick={onToggle}
@@ -459,6 +618,8 @@ function SkillCard({
         }}
         className="flex w-full items-start gap-3 p-4 text-left"
         aria-expanded={expanded}
+        aria-label={skill.name}
+        aria-describedby={descId}
       >
         <span
           className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${catMeta.bg} ${catMeta.color}`}
@@ -466,28 +627,38 @@ function SkillCard({
           <CategoryMark category={category} className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <Highlight
-              text={skill.name}
-              query={query}
-              className="text-sm font-semibold text-fd-foreground"
-            />
+          <Highlight
+            text={skill.name}
+            query={query}
+            className="block truncate text-sm font-semibold text-fd-foreground"
+          />
+          {/* Badges lead the two clamped description lines instead of sharing
+              the name's line, where they wrapped for long names (35 of 108
+              cards at 1024) and gave rows uneven heights. Every card is now
+              one name line plus two lines, the old height. */}
+          <div
+            id={descId}
+            className="mt-1 line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground"
+          >
             <span
-              className={`inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
+              className={`${CATEGORY_BADGE_CLASS} ${catMeta.bg} ${catMeta.color}`}
             >
               {catMeta.label}
-            </span>
-            {skill.userInvocable && (
-              <span className="inline-flex shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
-                Command
-              </span>
-            )}
+            </span>{" "}
+            {skill.userInvocable ? (
+              <>
+                <span className="mr-1.5 inline-block rounded bg-teal-100 px-1.5 py-px align-[1px] text-[11px] font-medium leading-tight text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
+                  Command
+                </span>{" "}
+              </>
+            ) : null}
+            <span
+              className={`mr-1.5 inline-block rounded px-1.5 py-px align-[1px] text-[11px] font-medium leading-tight ${COMPLEXITY_STYLE[complexityOf(skill)] ?? COMPLEXITY_STYLE.medium}`}
+            >
+              {complexityOf(skill)}
+            </span>{" "}
+            <Highlight text={skill.description} query={query} />
           </div>
-          <Highlight
-            text={skill.description}
-            query={query}
-            className="line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground"
-          />
         </div>
         <ChevronRight
           className={`mt-1 h-4 w-4 shrink-0 text-fd-muted-foreground transition-transform duration-200 ${

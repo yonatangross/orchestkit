@@ -1,25 +1,18 @@
 ---
 name: async-jobs
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.
-tags: [async, jobs, celery, background-tasks, scheduling, queues]
-context: fork
-agent: python-performance-engineer
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "python-performance-engineer"
   category: workflow-automation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "async, jobs, celery, background-tasks, scheduling, queues"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Async Jobs
@@ -206,9 +199,9 @@ Load: `Read("rules/temporal-activities.md")`.
 ## Related Skills
 
 - `ork:python-backend` - FastAPI, asyncio, SQLAlchemy patterns
-- `ork:langgraph` - LangGraph workflow patterns (use for LLM workflows, not Celery)
-- `ork:distributed-systems` - Resilience patterns, circuit breakers
-- `ork:monitoring-observability` - Metrics and alerting
+- `ork-extras:langgraph` - LangGraph workflow patterns (use for LLM workflows, not Celery)
+- `ork-extras:distributed-systems` - Resilience patterns, circuit breakers
+- `ork-extras:monitoring-observability` - Metrics and alerting
 
 ## Capability Details
 

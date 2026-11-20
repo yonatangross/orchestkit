@@ -19,6 +19,12 @@
 # `ref`. `ork` pins the last stable tag; `ork-alpha` tracks main. Opting in is
 # an install, not a config edit.
 #
+# Since the ork-extras split (#4936) the stable channel is TWO pinned entries,
+# `ork` and `ork-extras`, moved together by scripts/bump-stable-pin.sh after
+# each GA tag. ork-extras tracked main for a while (#5220) only because no tag
+# contained plugins/ork-extras yet; v10.13.0 is the first that does, so it is
+# pinned again and `ork-alpha` is the only plugins/ entry that tracks main.
+#
 # WHAT MAKES THIS FRAGILE, AND WHY THE TEST IS INDEX-AWARE
 # --------------------------------------------------------
 # release-please addresses the entry to stamp by ARRAY INDEX
@@ -33,6 +39,15 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 MARKETPLACE="$ROOT_DIR/.claude-plugin/marketplace.json"
+# A component count in a description. Shared by the pin parity check and the no-count checks.
+# Matched on lowercased text: 115 skills, 115 Skills, 115+ skills, 115 skill, 1,000 hooks,
+# 36 sub-agents, 36 specialized agents, 218 quality-gate lifecycle hooks, 115-skill.
+COMPONENT_COUNT_RE='[0-9][0-9,]*[[:space:]]*[+]?[[:space:]-]*([a-z-]+[[:space:]]+){0,2}(sub-?)?(skills?|agents?|commands?|hooks?)'
+has_component_count() {
+    local lowered
+    lowered=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+    [[ "$lowered" =~ $COMPONENT_COUNT_RE ]]
+}
 RP_CONFIG="$ROOT_DIR/.release-please-config.json"
 BUMP_SCRIPT="$ROOT_DIR/scripts/bump-stable-pin.sh"
 RELEASE_WF="$ROOT_DIR/.github/workflows/release.yml"
@@ -99,6 +114,110 @@ if [[ "$stable_idx" != "none" ]]; then
     else
         bad "'ork' version '$stable_ver' does not match its pin '$stable_ref' (expected ref v$stable_ver)"
     fi
+
+    # Description must advertise what the pinned tag ships, not live beta counts.
+    # stamp-counts.sh used to whole-file-sed the plugin descriptions and rewrote
+    # this entry with main's skill/hook totals (F25). Read the tag itself. Do
+    # not hardcode the numbers.
+    #
+    # CI checkouts commonly omit tags (shallow / fetch-tags:false). A bare
+    # `git show vX.Y.Z:...` then exits 128 under set -e before we can call bad().
+    # Fetch the pin ref explicitly; only then compare descriptions.
+    if [[ -n "$stable_ref" && "$stable_ref" != "main" && "$stable_ref" != "HEAD" ]]; then
+        if [[ ! "$stable_ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.+-][A-Za-z0-9.+-]+)*$ ]]; then
+            bad "pin ref '$stable_ref' is not a safe tag name (refusing to fetch)"
+        else
+            pin_ready=0
+            if git -C "$ROOT_DIR" rev-parse --verify --quiet "refs/tags/${stable_ref}" >/dev/null 2>&1; then
+                pin_ready=1
+            elif git -C "$ROOT_DIR" fetch --depth=1 origin tag "$stable_ref" >/dev/null 2>&1; then
+                pin_ready=1
+            else
+                bad "could not fetch pin ref $stable_ref (git fetch --depth=1 origin tag $stable_ref failed)"
+            fi
+
+            if [[ "$pin_ready" -eq 1 ]]; then
+                tag_json=""
+                if ! tag_json=$(git -C "$ROOT_DIR" show "${stable_ref}:.claude-plugin/marketplace.json" 2>/dev/null); then
+                    bad "could not read .claude-plugin/marketplace.json at pin ref $stable_ref after fetch"
+                else
+                    tag_desc=$(printf '%s' "$tag_json" | jq -r '[.plugins[] | select(.name == "ork")][0].description // .plugins[0].description // empty')
+                    stable_desc=$(jq -r --argjson i "$stable_idx" '.plugins[$i].description // ""' "$MARKETPLACE")
+                    if [[ -z "$tag_desc" ]]; then
+                        bad "marketplace description empty at $stable_ref"
+                    elif [[ "$stable_desc" == "$tag_desc" ]]; then
+                        ok "'ork' description matches $stable_ref (not live beta counts)"
+                    elif ! has_component_count "$stable_desc"; then
+                        # This check keeps live beta counts off the stable channel. A
+                        # description with no counts cannot carry them, and requiring
+                        # equality here would freeze the text at every tag for good.
+                        ok "'ork' description carries no counts, so it cannot show live beta counts"
+                    else
+                        bad "'ork' description disagrees with $stable_ref"
+                        echo "      pinned:  $stable_desc"
+                        echo "      at tag:  $tag_desc"
+                    fi
+                fi
+            fi
+        fi
+    fi
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# 2b. ork-extras is part of the pinned stable set (#4936).
+# ---------------------------------------------------------------------------
+# bump-stable-pin.sh moves ork and ork-extras to the same tag in one write, and
+# release-please must not stamp either. A floating ork-extras would read the
+# plugin.json release-please bumps on main while no stamp moves its entry, so
+# CC would reject the install after the next release. A pin to a tag that does
+# not contain plugins/ork-extras (anything before v10.13.0) is a broken install
+# too, so the tag must carry the plugin.
+echo "▶ ork-extras is pinned next to ork"
+echo "──────────────────────────────────────"
+
+# Prints the problem with the ork-extras entry of marketplace file $1, or
+# nothing when it is pinned to the same tag as ork with an agreeing version.
+extras_pin_problem() {
+    local mk="$1" eref ever oref
+    if [[ "$(jq '[.plugins[] | select(.name == "ork-extras")] | length' "$mk")" != "1" ]]; then
+        echo "expected exactly one 'ork-extras' entry"
+        return
+    fi
+    eref=$(jq -r '[.plugins[] | select(.name == "ork-extras")][0].source.ref // ""' "$mk")
+    ever=$(jq -r '[.plugins[] | select(.name == "ork-extras")][0].version // ""' "$mk")
+    oref=$(jq -r '[.plugins[] | select(.name == "ork")][0].source.ref // ""' "$mk")
+    if [[ -z "$eref" || "$eref" == "main" || "$eref" == "HEAD" ]]; then
+        echo "'ork-extras' ref is '$eref', not a pin; it belongs to the stable set"
+    elif [[ "$eref" != "$oref" ]]; then
+        echo "'ork-extras' is pinned to '$eref' but 'ork' to '$oref'; the stable set moves together"
+    elif [[ "$eref" != "v$ever" ]]; then
+        echo "'ork-extras' version '$ever' does not match its pin '$eref'"
+    fi
+}
+
+extras_problem=$(extras_pin_problem "$MARKETPLACE")
+if [[ -n "$extras_problem" ]]; then
+    bad "$extras_problem"
+else
+    extras_ref=$(jq -r '[.plugins[] | select(.name == "ork-extras")][0].source.ref' "$MARKETPLACE")
+    ok "'ork-extras' pinned to '$extras_ref', the same tag as 'ork'"
+    # Same tag as ork, so section 2 already fetched it when it could.
+    if git -C "$ROOT_DIR" rev-parse --verify --quiet "${extras_ref}:plugins/ork-extras/.claude-plugin/plugin.json" >/dev/null; then
+        ok "tag $extras_ref contains plugins/ork-extras"
+    else
+        bad "tag $extras_ref has no plugins/ork-extras/.claude-plugin/plugin.json; the pin installs nothing"
+    fi
+fi
+
+# Control: the same check must refuse a floating ork-extras (the #5220 state).
+ctl_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork-ctl.XXXXXX")
+jq '(.plugins[] | select(.name == "ork-extras") | .source.ref) = "main"' "$MARKETPLACE" > "$ctl_dir/marketplace.json"
+if [[ -n "$(extras_pin_problem "$ctl_dir/marketplace.json")" ]]; then
+    ok "control: a main-tracking ork-extras is refused"
+else
+    bad "control failed: a main-tracking ork-extras passed the stable-set check"
 fi
 
 echo ""
@@ -106,26 +225,100 @@ echo ""
 # ---------------------------------------------------------------------------
 # 3. release-please stamps the ALPHA entry, never the pinned one.
 # ---------------------------------------------------------------------------
-echo "▶ release-please stamps the prerelease entry"
+echo "▶ release-please stamps every main-tracking entry"
 echo "──────────────────────────────────────"
 
-stamped=$(jq -r '
-  .packages["."]["extra-files"][]
-  | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("plugins")))
-  | .jsonpath' "$RP_CONFIG")
+# The class, not one instance: an entry whose source tracks main reads the
+# plugin.json that release-please bumps on main, so its marketplace version
+# must be bumped in the same release or CC refuses the install at load
+# (plugin.json and the entry must agree). Every such entry needs a stamp at
+# its OWN index, found by name. Today that is ork-alpha alone: ork-extras
+# tracked main from #5220 until v10.13.0 existed, and is pinned again (2b).
+# The reverse check below refuses any stamp on a pinned entry, so a stamp
+# left behind on ork-extras (#5240 went red on exactly that) cannot ship.
+#
+# Scope: entries under plugins/ only. The mods/* entries (promote-lights,
+# secrets-veil, memory-lens, prompt-enhancer) also track main but version
+# themselves (0.x), independent of the repo release, so the repo-wide stamp
+# must NOT touch them.
+tracking_count=$(jq '[.plugins[] | select(.source.ref == "main" and (.source.path | startswith("plugins/")))] | length' "$MARKETPLACE")
+stamp_count=$(jq '[.packages["."]["extra-files"][]
+  | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("plugins")))] | length' "$RP_CONFIG")
 
-if [[ -z "$stamped" ]]; then
-    bad "release-please stamps no plugin entry at all"
+if [[ "$tracking_count" -eq 0 ]]; then
+    bad "no marketplace entry tracks main, so there is nothing to check (expected ork-alpha)"
+elif [[ "$stamp_count" -eq 0 ]]; then
+    bad "release-please stamps no plugin entry at all ($tracking_count entries track main)"
 else
-    want="\$.plugins[${alpha_idx}].version"
-    if [[ "$stamped" == "$want" ]]; then
-        ok "stamps $stamped, which is ork-alpha"
+    while IFS= read -r name; do
+        idx=$(jq -r --arg n "$name" '[.plugins[].name] | index($n) // "none"' "$MARKETPLACE")
+        want="\$.plugins[${idx}].version"
+        if jq -e --arg w "$want" '[.packages["."]["extra-files"][]
+              | select(type == "object" and (.path | test("marketplace")))
+              | .jsonpath] | index($w) != null' "$RP_CONFIG" >/dev/null; then
+            ok "stamps $want, which is $name"
+        else
+            bad "'$name' tracks main at index $idx but nothing stamps $want"
+            echo "      Its plugin.json on main moves at release; the marketplace entry would"
+            echo "      stay behind and CC rejects the mismatch. Add the jsonpath to"
+            echo "      .release-please-config.json extra-files."
+        fi
+    done < <(jq -r '.plugins[] | select(.source.ref == "main" and (.source.path | startswith("plugins/"))) | .name' "$MARKETPLACE")
+
+    # The reverse direction: a stamp that lands on a pinned entry (a reorder
+    # bug, or a stamp left on an entry that went back to a pin). One line per
+    # stamp of release-please config $2 on marketplace $1: "ok <msg>" or
+    # "bad <msg>".
+    stamp_verdicts() {
+        local mk="$1" rp="$2" sidx sname sref spath
+        while IFS= read -r sidx; do
+            sname=$(jq -r --argjson i "$sidx" '.plugins[$i].name // "none"' "$mk")
+            sref=$(jq -r --argjson i "$sidx" '.plugins[$i].source.ref // ""' "$mk")
+            spath=$(jq -r --argjson i "$sidx" '.plugins[$i].source.path // ""' "$mk")
+            if [[ "$sref" == "main" && "$spath" == plugins/* ]]; then
+                echo "ok stamp \$.plugins[$sidx].version targets '$sname', which tracks main"
+            else
+                echo "bad stamp \$.plugins[$sidx].version targets '$sname' (ref '$sref'), which is not main-tracking"
+            fi
+        done < <(jq -r '.packages["."]["extra-files"][]
+            | select(type == "object" and (.path | test("marketplace")) and (.jsonpath | test("^\\$\\.plugins\\[[0-9]+\\]\\.version$")))
+            | .jsonpath | capture("\\[(?<i>[0-9]+)\\]").i' "$rp")
+    }
+
+    while IFS= read -r verdict; do
+        if [[ "$verdict" == ok\ * ]]; then
+            ok "${verdict#ok }"
+        else
+            bad "${verdict#bad }"
+            echo "      release-please may stamp only an entry that tracks main; a pinned"
+            echo "      entry is owned by scripts/bump-stable-pin.sh. Fix the jsonpath."
+        fi
+    done < <(stamp_verdicts "$MARKETPLACE" "$RP_CONFIG")
+
+    # Control: replay the #5240 shape, a stamp on the pinned ork-extras entry.
+    # The check above must refuse it, or it could pass on anything.
+    ctl_extras_idx=$(jq -r '[.plugins[].name] | index("ork-extras") // "none"' "$MARKETPLACE")
+    if [[ "$ctl_extras_idx" == "none" ]]; then
+        bad "control: no ork-extras entry to replay a stamp onto"
     else
-        bad "stamps $stamped but ork-alpha is at index $alpha_idx (want $want)"
-        echo "      Reordering the plugins array silently redirects the version"
-        echo "      stamp onto the pinned stable channel. Fix the jsonpath."
+        jq --arg jp "\$.plugins[${ctl_extras_idx}].version" \
+            '.packages["."]["extra-files"] += [{"type": "json", "path": ".claude-plugin/marketplace.json", "jsonpath": $jp}]' \
+            "$RP_CONFIG" > "$ctl_dir/rp.json"
+        jq '(.plugins[] | select(.name == "ork-extras") | .source.ref) = "v1.0.0"' "$MARKETPLACE" > "$ctl_dir/pinned.json"
+        ctl_refused=0
+        while IFS= read -r verdict; do
+            if [[ "$verdict" == "bad "*"'ork-extras'"* ]]; then
+                ctl_refused=1
+            fi
+        done < <(stamp_verdicts "$ctl_dir/pinned.json" "$ctl_dir/rp.json")
+        if [[ "$ctl_refused" -eq 1 ]]; then
+            ok "control: a stamp on the pinned 'ork-extras' entry is refused"
+        else
+            bad "control failed: a stamp on the pinned 'ork-extras' entry was not refused"
+        fi
     fi
 fi
+rm -rf "$ctl_dir"
 
 echo ""
 
@@ -212,6 +405,17 @@ else
         else
             bad "GA bump touched the tracking channel: version='$alpha_ver' ref='$alpha_ref'"
         fi
+
+        # #4936: ork-extras is part of the stable set. A GA bump that pins ork
+        # alone leaves stable users with core and extras from different
+        # releases, so it must move to the same tag in the same write.
+        extras_ref=$(jq -r '[.plugins[] | select(.name == "ork-extras")] | .[0].source.ref // ""' "$fixture")
+        extras_ver=$(jq -r '[.plugins[] | select(.name == "ork-extras")] | .[0].version // ""' "$fixture")
+        if [[ "$extras_ref" == "v99.0.0" && "$extras_ver" == "99.0.0" ]]; then
+            ok "GA bump pins 'ork-extras' to the same tag (99.0.0 @ v99.0.0)"
+        else
+            bad "GA bump left 'ork-extras' at version='$extras_ver' ref='$extras_ref' (expected 99.0.0 @ v99.0.0)"
+        fi
     fi
 
     # --- Prerelease: refuses, and changes nothing ---
@@ -255,6 +459,62 @@ if [[ -f "$RELEASE_WF" ]] && grep -q 'scripts/bump-stable-pin\.sh' "$RELEASE_WF"
     ok "release.yml invokes scripts/bump-stable-pin.sh"
 else
     bad "no tag-triggered workflow calls scripts/bump-stable-pin.sh — the writer is never reached"
+fi
+
+# Every shape the count check must catch, and text it must leave alone.
+while IFS= read -r shape; do
+    if has_component_count "$shape"; then
+        ok "count check catches: $shape"
+    else
+        bad "count check misses: $shape"
+    fi
+done <<'SHAPES'
+with 115 skills covering
+115 Skills
+115 SKILLS
+115+ skills
+115 + skills
+115 skill
+1 hook
+1,000 hooks
+36 agents
+36 sub-agents
+36 subagents
+36 specialized agents
+35 commands
+218 lifecycle hooks
+218 quality-gate lifecycle hooks
+115-skill toolkit
+SHAPES
+
+while IFS= read -r shape; do
+    if has_component_count "$shape"; then
+        bad "count check flags count-free text: $shape"
+    else
+        ok "count check leaves alone: $shape"
+    fi
+done <<'SHAPES'
+Complete AI development toolkit covering patterns, with specialized agents, commands, and lifecycle hooks.
+The Complete AI Development Toolkit: skills, agents and hooks for full-stack development.
+Requires Claude Code 2.1.277 or later
+SHAPES
+
+# The stable entry is excluded from stamp-counts.sh on purpose, so a count in its
+# description can only go stale (#5045: it said 105 skills and 218 hooks at 10.7.4).
+stable_desc=$(jq -r '.plugins[] | select(.name == "ork") | .description' "$MARKETPLACE")
+if has_component_count "$stable_desc"; then
+    bad "stable ork description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
+else
+    ok "stable ork description carries no component counts"
+fi
+
+# stamp-counts.sh never names the Devin manifest either: it said 110 skills and
+# 171 hooks at 10.9.0. Only its version is written by release-please.
+devin_desc=$(jq -r '.description' "$ROOT_DIR/.devin-plugin/plugin.json")
+if has_component_count "$devin_desc"; then
+    bad "Devin description carries a component count nothing stamps: ${BASH_REMATCH[0]}"
+else
+    ok "Devin description carries no component counts"
 fi
 
 echo ""

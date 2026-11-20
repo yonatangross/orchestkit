@@ -1,0 +1,12 @@
+{
+  "slug": "npm-audit-seven-advisories",
+  "source": "docs/fix--npm-audit-2026-10-24/index.html",
+  "title": "Seven advisories, four lockfiles, one override",
+  "description": "The npm audit gate on OrchestKit main went red on seven advisories across four lockfiles. Pick a workspace, flip between main and the fix, and see which parent pulls each vulnerable package and why the remotion tree needed a zod override.",
+  "tags": [
+    "security",
+    "npm-audit",
+    "dependencies"
+  ],
+  "date": "2026-10-24"
+}

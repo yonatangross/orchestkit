@@ -1,0 +1,13 @@
+{
+  "slug": "codex-glyph-parity",
+  "source": "docs/feat--codex-glyph-parity/index.html",
+  "title": "Glyph for Codex: from status to an inline diagram",
+  "description": "Step through a supplied example of the ork-glyph adapter: request, verdict, and compact status diagram. Copy the prompt to try it in Codex.",
+  "tags": [
+    "codex",
+    "glyph",
+    "skills",
+    "explainer"
+  ],
+  "date": "2026-09-19"
+}

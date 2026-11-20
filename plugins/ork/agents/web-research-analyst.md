@@ -1,11 +1,9 @@
 ---
 name: web-research-analyst
 description: "Web research: browser automation, Tavily API, competitive intelligence, documentation capture, technical recon."
-category: research
 model: sonnet
 maxTurns: 30
 effort: medium
-context: fork
 color: cyan
 memory: local
 background: true
@@ -37,20 +35,13 @@ tools:
   - mcp__context7__query-docs
 skills:
   - browser-tools
-  - remember
   - memory
 mcpServers: [tavily, context7]
-taskTypes:
-  - research
-keywords:
-  - "web research"
-  - "scraping"
-  - "browser automation"
-  - "content extraction"
-  - "tavily"
-examplePrompts:
-  - "Research the latest React 19 patterns and document findings"
-  - "Capture competitor pricing pages and feature matrices"
+metadata:
+  category: "research"
+  taskTypes: "research"
+  keywords: "web research, scraping, browser automation, content extraction, tavily"
+  examplePrompts: "Research the latest React 19 patterns and document findings | Capture competitor pricing pages and feature matrices"
 ---
 
 ## Directive
@@ -489,6 +480,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.
@@ -499,7 +492,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|browser-tools:{SKILL.md,references/{ork-delta.md,upstream-dogfood.md,upstream-electron.md,upstream-sandbox.md,upstream-slack.md,upstream.md}}|browser,automation,security,rate-limiting,scraping-ethics
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|browser-tools:{SKILL.md,references/{ork-delta.md,upstream-dogfood.md,upstream-electron.md,upstream-sandbox.md,upstream-slack.md,upstream.md}}|browser,automation,security,scraping-ethics
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

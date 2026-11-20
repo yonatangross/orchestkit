@@ -1,12 +1,12 @@
 ---
-description: "OrchestKit help directory with categorized skill listings. Use when discovering skills for a task, finding the right workflow, or browsing capabilities."
+description: "OrchestKit skill directory by category. Use when looking for the right skill or workflow."
 argument-hint: "[category]"
 model: haiku
 effort: low
 context: inherit
 user-invocable: true
 name: help
-allowed-tools: [AskUserQuestion, Read, Grep, Glob]
+allowed-tools: "AskUserQuestion Read Grep Glob"
 ---
 
 # Auto-generated from skills/help/SKILL.md

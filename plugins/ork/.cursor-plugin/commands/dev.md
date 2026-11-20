@@ -1,5 +1,5 @@
 ---
-description: "One-command dev loop boot. Spins up portless (named HTTPS subdomain), emulate (stateful API mocks), the project's dev server, and an agent-browser session, all keyed to the current git branch. Use when starting a feature branch, switching worktrees, or returning to a project after a break. Skips silently with install hints when prerequisite binaries are missing."
+description: "One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. Use when starting a branch, switching worktrees or resuming a project."
 argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
 disable-model-invocation: false
 context: inherit
@@ -7,6 +7,49 @@ user-invocable: true
 name: dev
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
+
+## Before running a script from this command (Cursor)
+
+Cursor does not tell a command where this plugin is installed. Run plugin scripts only from the installed plugin directory, never by a relative `skills/...` or `hooks/...` path.
+
+Find the installed plugin directory first:
+
+```bash
+(
+  ork_ws="$(pwd -P)"
+  ork_home="$(cd "$HOME" 2>/dev/null && pwd -P)"
+  ork_base="$(cd "$HOME/.cursor/plugins" 2>/dev/null && pwd -P)"
+  ork_above=""
+  case "$ork_home/" in ("$ork_ws"/*) ork_above=1 ;; esac
+  ork_pick() {
+    ork_best=""
+    ork_best_pj=""
+    while IFS= read -r ork_pj; do
+      ork_r="$(cd "${ork_pj%/.cursor-plugin/plugin.json}" && pwd -P)" || continue
+      case "$ork_r/" in ("$ork_base"/*) ;; (*) continue ;; esac
+      if [ -z "$ork_above" ]; then
+        case "$ork_r/" in ("$ork_ws"/*) continue ;; esac
+      fi
+      case "$ork_ws/" in ("$ork_r"/*) continue ;; esac
+      grep -Eq '^  "name"[[:space:]]*:[[:space:]]*"ork"' "$ork_pj" || continue
+      [ -d "$ork_r/skills/dev" ] || continue
+      if [ -z "$ork_best" ] || [ "$ork_pj" -nt "$ork_best_pj" ]; then
+        ork_best="$ork_r"
+        ork_best_pj="$ork_pj"
+      fi
+    done
+    [ -n "$ork_best" ] && printf '%s\n' "$ork_best"
+  }
+  ork_real=""
+  if [ -n "$ork_base" ]; then
+    ork_real="$(find "$ork_base" -maxdepth 6 -type f -path '*/.cursor-plugin/plugin.json' 2>/dev/null | ork_pick)"
+  fi
+  [ -n "$ork_real" ] || { echo "REFUSED: no installed OrchestKit plugin with this skill under ~/.cursor/plugins"; exit 3; }
+  echo "ORK_PLUGIN_DIR=$ork_real"
+)
+```
+
+Run a script only when this prints `ORK_PLUGIN_DIR=<dir>`, and use that `<dir>` in place of `<ORK_PLUGIN_DIR>` below. If it prints `REFUSED: ...`, stop and tell the user the reason.
 
 # Auto-generated from skills/dev/SKILL.md
 # Source: https://github.com/yonatangross/orchestkit
@@ -22,6 +65,8 @@ One command boots the four moving parts of a Vercel-Labs-flavored dev loop:
 4. **agent-browser** → pre-warmed session named after the branch
 
 State lives in `.claude/state/dev-stack.json`. Teardown via `dev stop` reads the PIDs and signals SIGTERM in reverse boot order.
+
+> **Load each tool's own guide before driving it by hand, never from memory:** `agent-browser skills get core` for agent-browser, the `portless` skill's `references/upstream.md` for portless, the `emulate-seed` skill's `references/upstream.md` for emulate. Never pipe a command that may start a daemon or server into `tail`, `head` or `grep` (hangs on native Windows under Git Bash): redirect to a file instead, see `browser-tools` `references/ork-delta.md`.
 
 > **Paired with `expect`:** the agent-browser session that `dev` warms is the same one `expect` (and the M125 #2 auto-trigger) attach to — no second startup latency on the first UI test.
 
@@ -162,6 +207,8 @@ Stop walks the wrapper's process tree (`pgrep -P` recursively) and SIGTERMs desc
 
 Each git worktree gets its own subdomain — `feat-foo.localhost` and `feat-bar.localhost` coexist on the same machine. The state file lives under each worktree's `.claude/state/`, so `dev` from one worktree doesn't see the other's processes.
 
+Every worktree also carries its own `node_modules` and build output. When the disk fills after many branches, `/ork:disk-cleanup` lists the merged, clean worktrees and the caches it can reclaim (dry run first).
+
 ## Idempotency
 
 Re-running `dev` while the stack is already live is a no-op:
@@ -208,11 +255,11 @@ If the dev stack isn't live, auto-expect skips silently — `dev` is the prerequ
 
 | Script | What it does |
 |---|---|
-| `skills/dev/scripts/boot.sh` | All-or-nothing prereq check, then 9-step boot. Idempotent (no-ops if already live). Honors `CI=1` to skip in CI. |
-| `skills/dev/scripts/stop.sh` | SIGTERM in reverse boot order with 5-second SIGKILL fallback. Removes state file last. |
-| `skills/dev/scripts/status.sh` | Pretty status. `--quiet` for liveness-only (exit 0 live, 1 down). Used by boot for idempotency. |
+| `<ORK_PLUGIN_DIR>/skills/dev/scripts/boot.sh` | All-or-nothing prereq check, then 9-step boot. Idempotent (no-ops if already live). Honors `CI=1` to skip in CI. |
+| `<ORK_PLUGIN_DIR>/skills/dev/scripts/stop.sh` | SIGTERM in reverse boot order with 5-second SIGKILL fallback. Removes state file last. |
+| `<ORK_PLUGIN_DIR>/skills/dev/scripts/status.sh` | Pretty status. `--quiet` for liveness-only (exit 0 live, 1 down). Used by boot for idempotency. |
 
-`dev` invokes `skills/dev/scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
+`dev` invokes `<ORK_PLUGIN_DIR>/skills/dev/scripts/boot.sh`; `stop` → `stop.sh`; `status` → `status.sh`. The shell scripts are the source of truth.
 
 ## References
 

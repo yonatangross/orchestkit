@@ -1,7 +1,7 @@
 {
   "name": "ork-codex",
   "host": "codex",
-  "version": "10.0.0-beta.56",
+  "version": "10.15.1",
   "description": "Native OrchestKit skills and reusable agent roles for Codex.",
   "source": "src/codex/ork-codex",
   "skills": [
@@ -10,7 +10,10 @@
     "ork-assess",
     "ork-verify",
     "ork-review-pr",
-    "ork-implement"
+    "ork-implement",
+    "ork-glyph",
+    "ork-commit",
+    "ork-create-pr"
   ],
   "roles": [
     "ork_explorer",
@@ -35,5 +38,13 @@
         ]
       }
     ]
+  },
+  "jevShadow": {
+    "mode": "disabled-by-default",
+    "contract": "packages/jev-shadow/fixtures/jev-allharness-contract.schema.json",
+    "runtime": "plugins/ork-codex/runtime/jev-shadow-runtime.mjs",
+    "runtime_sha256": "11fa78c62a73f3b13ee2d82e256abf9ba5c0c5c04b086aab0f7ea94c46b08521",
+    "hookFragment": "src/codex/ork-codex/hooks/hooks.json",
+    "activation": "manual-explicit-JEV_SHADOW_ROOT-only"
   }
 }

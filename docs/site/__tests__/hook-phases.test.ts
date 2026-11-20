@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { HOOK_EVENT_PAGES, isHookEventPage } from "@/lib/hook-events";
-import { groupedHookEvents, HOOK_PHASES } from "@/lib/hook-phases";
+import {
+  groupedHookEvents,
+  hookLifecycleFlow,
+  HOOK_PHASES,
+} from "@/lib/hook-phases";
 
 describe("hook phases", () => {
   it("covers every hook event page exactly once", () => {
@@ -13,10 +17,24 @@ describe("hook phases", () => {
     );
   });
 
-  it("keeps the mermaid at six nodes, not one per hook", () => {
+  it("keeps the chart at six nodes, not one per hook", () => {
     const declared = HOOK_PHASES.reduce((n, phase) => n + phase.slugs.length, 0);
     expect(declared).toBe(HOOK_EVENT_PAGES.length);
     expect(HOOK_PHASES).toHaveLength(7);
+  });
+});
+
+describe("hookLifecycleFlow", () => {
+  it("reads the phone flow from the same chart as the chart", () => {
+    expect(hookLifecycleFlow()).toEqual({
+      spine: ["Session", "Prompt", "Tools"],
+      branches: ["Files", "Agents", "Tasks", "Model"],
+    });
+  });
+
+  it("names every phase once across spine and branches", () => {
+    const { spine, branches } = hookLifecycleFlow();
+    expect([...spine, ...branches]).toEqual(HOOK_PHASES.map((p) => p.label));
   });
 });
 

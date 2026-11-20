@@ -7,7 +7,7 @@ description: "Text-prompt fallback for when the Claude Code AskUserQuestion pick
 
 ## When to use this
 
-Claude Code's `AskUserQuestion` picker can occasionally render fully but refuse to accept keystrokes — Enter / arrow keys do nothing, only `Esc` dismisses the picker. The skill that called the picker then sees `User declined to answer questions` and aborts.
+Claude Code's `AskUserQuestion` picker can occasionally render fully but refuse to accept keystrokes: Enter / arrow keys do nothing, only `Esc` dismisses the picker. The skill that called the picker then sees `User declined to answer questions` and aborts.
 
 This was observed in CC 2.1.139 (see [orchestkit#1795](https://github.com/yonatangross/orchestkit/issues/1795)). Suspected upstream input-handling regression; reproduction is intermittent and not yet fully characterised.
 
@@ -70,10 +70,10 @@ Restart restores picker mode. Recommended once an upstream CC fix ships.
 - **Event:** `UserPromptSubmit`
 - **Cost:** one env-var read per prompt, ~80-byte reminder when active, no I/O
 - **Tests:** `src/hooks/src/__tests__/ask-fallback-injector.test.ts`
-- **Scope:** global — applies to all 33 skills using `AskUserQuestion` without per-skill edits
+- **Scope:** global, applies to all 33 skills using `AskUserQuestion` without per-skill edits
 
 ## Related
 
-- [orchestkit#1795](https://github.com/yonatangross/orchestkit/issues/1795) — original bug report
-- M119 (Usage hygiene) milestone — UX behavioural mitigations
-- `ORK_GOAL_MAX_TURNS_PER_SESSION` / `ORK_GOAL_MAX_TOKENS_PER_SESSION` — sibling env-var-based behavioural controls (M140)
+- [orchestkit#1795](https://github.com/yonatangross/orchestkit/issues/1795): original bug report
+- M119 (Usage hygiene) milestone: UX behavioural mitigations
+- `ORK_GOAL_MAX_TURNS_PER_SESSION` / `ORK_GOAL_MAX_TOKENS_PER_SESSION`: sibling env-var-based behavioural controls (M140)

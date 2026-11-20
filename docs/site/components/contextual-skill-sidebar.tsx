@@ -4,12 +4,9 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { SKILLS } from "@/lib/generated/skills-data";
 
-function titleCase(slug: string): string {
-  return slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
+import { slugLabel } from "@/lib/slug-label";
+
+const titleCase = slugLabel;
 
 interface Props {
   slug: string;

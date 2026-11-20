@@ -1,25 +1,18 @@
 ---
 name: ui-components
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.
-tags: [ui-components, shadcn, radix, component-library, design-system, accessible-components, react-hook-form, zod, forms, validation, server-actions, field-arrays]
-context: fork
-agent: frontend-ui-developer
-version: 2.1.0
-author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ui-components, shadcn, radix, component-library, design-system, accessible-components, react-hook-form, zod, forms, validation, server-actions, field-arrays"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # UI Components
@@ -170,7 +163,7 @@ house decisions here (they live in [references/ork-delta.md](references/ork-delt
 | Radix asChild / Slot composition | https://www.radix-ui.com/primitives/docs/guides/composition |
 | Radix data-attribute styling and focus management | https://www.radix-ui.com/primitives/docs/guides/styling |
 | Dropdown menu, popover, tooltip, hover card | https://www.radix-ui.com/primitives/docs/components/dropdown-menu (and sibling component pages) |
-| Radix accessibility audit checklist | https://www.radix-ui.com/primitives/docs/overview/accessibility plus `ork:accessibility` |
+| Radix accessibility audit checklist | https://www.radix-ui.com/primitives/docs/overview/accessibility plus `ork-extras:accessibility` |
 
 ## Detailed Documentation
 
@@ -230,5 +223,5 @@ Cognitive-science-grounded UI/UX principles with specific numeric thresholds for
 
 ## Related Skills
 
-- `ork:accessibility` - WCAG compliance and React Aria patterns
+- `ork-extras:accessibility` - WCAG compliance and React Aria patterns
 - `ork:testing-unit` - Component testing patterns

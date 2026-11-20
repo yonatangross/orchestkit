@@ -1,19 +1,17 @@
 ---
 name: competitive-analysis
-compatibility: "Claude Code 2.1.251+"
-description: "Strategic analysis frameworks including Porter's Five Forces (industry attractiveness), SWOT (internal positioning), and competitive landscape mapping with battlecard generation. Produces competitor profiles, feature gap analysis, and positioning recommendations. Use when analyzing market position, evaluating threats, or building sales battlecards."
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "Porter's Five Forces, SWOT, competitor profiles, feature gaps and battlecards. Use when analyzing market position or building sales battlecards."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
-tags: [porter, swot, competitive, battlecard, moat, five-forces, landscape]
-context: fork
-agent: product-strategist
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
-allowed-tools: [Read, Glob, Grep, WebFetch, WebSearch]
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "porter, swot, competitive, battlecard, moat, five-forces, landscape"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Competitive Analysis

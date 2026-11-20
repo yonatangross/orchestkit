@@ -53,7 +53,7 @@ function getChangedFiles(projectDir: string): string[] {
     const result = execFileSync('git', ['--no-optional-locks', 'status', '--short'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 5000,
+      killSignal: 'SIGKILL', timeout: 5000,
       stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
 

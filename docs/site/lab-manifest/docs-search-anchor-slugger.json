@@ -1,0 +1,8 @@
+{
+  "slug": "docs-search-anchor-slugger",
+  "source": "docs/fix--docs-search-anchor-slugger/index.html",
+  "title": "Search Anchors That Reach the Heading",
+  "description": "Autocomplete now shares github-slugger with Fumadocs heading ids, preserving punctuation spacing and deduplicating heading collisions per page.",
+  "tags": ["docs-site", "search", "bugfix"],
+  "date": "2026-11-06"
+}

@@ -2,6 +2,8 @@
 
 Per-category parameter extraction + edge cases. Read during the Classify step to configure the target skill correctly.
 
+A follow-up that depends on the caller's conversation ("now fix that", "verify it") routes inline. Never hand it to a forked context, and never set `context: fork` on this skill: a fork starts without the conversation the follow-up refers to (#4539, guarded by `tests/skills/test-router-skill-context.sh`).
+
 ## fix → /ork:fix-issue
 
 - **Extract:** bug description (full goal), target files if named, ticket/issue `#N`, quoted error message.
@@ -11,6 +13,8 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 ## diagnose → /ork:fix-issue (investigation-first)
 
 - A "why…" question is a gentler entry than a fix command. Frame the plan as **observe → hypothesize → propose**, then offer to apply the fix.
+- **"Triage this bug report", "what is the root cause", "find the culprit commit" are `diagnose`**: the goal is a diagnosis, so frame it observe → hypothesize → propose, and take `fix-issue`'s "Investigate first" option when the user asked for no patch. They stay `diagnose` when worded as "how should I find …": rule 4 below sends "how should we …" to `design` only when the thing to decide is what to build.
+- **`fix-issue` resolves its target from an issue number or URL** and stops with `TARGET_UNRESOLVED` otherwise. When the user pastes the report and names no issue, ask for the issue number, or say plainly that the skill cannot take the pasted text. It has no bisect step; "which commit broke it" is answered from `git blame` in its root-cause phase.
 - **A "why…" question is ALWAYS `diagnose`, even when it names a failure** ("why isn't the build green", "why does the API return 500", "why can't users log in"). The **question form** is what makes it `diagnose` — without one, a statement of breakage or a repair imperative is `fix` ("there's a regression in checkout", "resolve the 500 errors on /api/users").
 - **Invoke:** `/ork:fix-issue {question}` with an investigation framing. ("I'll investigate first, then propose a fix — ok?")
 
@@ -25,6 +29,13 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 - **Extract:** target % ("90%" → 90, "above 85" → 85), scope ("the auth module" → `src/auth/`).
 - **Invoke:** `/ork:cover --target {N}`
 - **Edges:** "write more tests" with no target → ask the target %. "test the new feature" is `build`/`verify` (functional tests), not `cover` (coverage %). A surface called out as **"untested"** is `cover` even with no % target ("the payments service is untested, fix that") — the "fix" there repairs a coverage gap, not a bug; ask the target % at invoke time.
+
+## e2e → /ork:expect (run) or /ork:cover (write)
+
+- **Signals:** e2e, end-to-end tests, in the browser, browser test, playwright.
+- **Run:** "check the change in the browser", "run the playwright tests on this branch", "why don't you do proper e2e" → `/ork:expect`. It reads the diff, builds a browser test plan and runs it.
+- **Write:** "no e2e tests yet", "write e2e tests for the signup page" → `/ork:cover`, whose E2E tier writes and runs new Playwright tests.
+- **Edges:** a failing or flaky e2e run ("why is the e2e suite failing on CI") is `diagnose`/`fix`, not a new run. Never hand off to `Skill(ork:testing-e2e)`: it is reference guidance that loads inline, not an executor.
 
 ## design → /ork:brainstorm
 
@@ -42,7 +53,15 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 
 - **Extract:** PR/MR number (`#123` → 123), scope filter if named.
 - **Invoke:** `/ork:review-pr {number or branch}`
-- **Edges:** "review my code" with no PR → ask which PR/branch. "review the design" is `design`, not `review`.
+- **Edges:** "review my code" with no PR → ask which PR/branch. "review the design" is `design`, not `review`. A diff pasted into the message with a verdict asked for ("review this diff before I merge it") is `review`, but `review-pr` takes a PR, a branch or a `base...head` range, not pasted text: ask which PR or range the paste came from, and say that the resolver cannot take the text itself.
+- **Opening a PR is not reviewing one:** "open a PR", "write the PR title and body" is `open-pr`, below.
+
+## open-pr → /ork:create-pr
+
+- **Signals:** open a PR, make a PR, PR title and body, ready for review, go up for review.
+- **Extract:** the branch, the issue it closes (`#N`), an explicit title if given. `create-pr` asks for the PR type (feature, bug fix, refactor, quick) itself and derives the base branch from the remote, so do not pass either.
+- **Invoke:** `/ork:create-pr {title if given}`
+- **Edges:** `create-pr` opens the PR with `gh`; it has no text-only mode. When the user cannot run `gh`, say that the skill ends at that step and give the title and body its own rules produce (`rules/pr-title-format.md`, `rules/pr-body-structure.md`). A bare "push my branch" or "gh pr create" with the title already decided is plain tooling, not `open-pr`. A question about which branch flow a repo uses (feature PRs into `dev`, `dev` promoted to `main`) is not `open-pr`: answer it from the repo's own rules first.
 
 ## verify → /ork:verify
 
@@ -53,8 +72,20 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 ## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
-- **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
+- **Invoke:** the champion/challenger **holdout-promotion gate**. The runner ships only in an OrchestKit source checkout: when `tests/evals/scripts/run-skill-eval.sh` exists in the working repo, run `npm run eval:skill -- --holdout-promote <skill>` (sealed holdout bake-off, add `--challenger <path/to/SKILL.md>` for a candidate). In an installed plugin there is no runner: say so, score the incumbent and the candidate with `/ork:assess` on the same held-out cases, and leave the promotion call to the user. `/ork:assess` only scores; it never decides promotion. Requires a benchmark + holdout set to exist first, if missing, help the user define 5-10 cases before looping.
 - **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent** — a SKILL.md, a named skill, an agent prompt — it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
+
+## setup → /ork:setup
+- **Signals:** set up OrchestKit (or ork) for this project, onboard this repo, which skills or MCP servers fit this stack, rescan after a big change.
+- **Extract:** `--rescan` when the goal says the project already ran setup. Setup takes flags only and scans the current directory, so when the goal names a different repo ("set up OrchestKit for ../project-b"), ask the user to start the session in that repo instead of routing.
+- **Invoke:** `/ork:setup [--rescan]`
+- **Edges:** the object must be OrchestKit or the project's ork configuration. "Set up CI for this repo" or "set up a postgres container" is `build`. Tuning one ork setting ("turn on the hook X") is `/ork:configure`, not setup, and stays a direct skill call.
+
+## migrate → /ork-extras:swarm-migrate
+- **Signals:** the same change in many repos: across all repos, every consumer, org-wide, roll out to N repos, bump X in each repo that uses it.
+- **Extract:** the transformation (bump, codemod, workflow change) and the target repo list or the selector that yields it, then the spec file that holds them. Swarm-migrate takes a YAML spec (`swarm-specs/<name>.yaml`), not free text: use an existing spec that matches, or write one from the extracted transformation and repo list and show it to the user before invoking.
+- **Invoke:** `/ork-extras:swarm-migrate swarm-specs/{name}.yaml` (formerly a core ork skill; it now lives in the opt-in ork-extras plugin and is slash-only, so print the command for the user to run. If ork-extras is not installed, say so and give `/plugin install ork-extras@orchestkit` first.)
+- **Edges:** one repo is `build` (`/ork:implement`), even when the change is a migration ("migrate this repo to vitest"). A database or schema migration is `build`, never `migrate`. "Which repos still pin X" with no change asked is a question: answer it, do not start a swarm.
 
 ## Model weight (second, orthogonal dimension)
 
@@ -64,10 +95,10 @@ The tiers are the ones already declared in `src/agents/*.md` frontmatter. There 
 
 | tier | count | representative agents |
 |---|---|---|
-| `haiku` | 7 | git-operations-engineer, release-engineer, deployment-manager, monitoring-engineer, eval-runner, data-pipeline-engineer, market-intelligence |
-| `sonnet` | 10 | debug-investigator, database-engineer, frontend-performance-engineer, accessibility-specialist, web-research-analyst, llm-integrator |
-| `opus` | 6 | security-auditor, security-layer-auditor, ai-safety-auditor, system-design-reviewer, event-driven-architect, workflow-architect |
-| `inherit` | 13 | test-generator, code-quality-reviewer, backend-system-architect, ci-cd-engineer, infrastructure-architect (these adopt the caller's model) |
+| `haiku` | 3 | eval-runner, emulate-engineer, release-engineer |
+| `sonnet` | 23 | debug-investigator, database-engineer, test-generator, ci-cd-engineer, git-operations-engineer, llm-integrator |
+| `opus` | 6 | security-auditor, security-layer-auditor, ai-safety-auditor, system-design-reviewer, code-quality-reviewer, workflow-architect |
+| `inherit` | 4 | backend-system-architect, frontend-ui-developer, infrastructure-architect, product-strategist (these adopt the caller's model) |
 
 ### The rubric (one pass, decidable)
 
@@ -104,11 +135,15 @@ Defaults, not verdicts. The rubric overrides any row here when the goal carries 
 | diagnose | Standard | root cause spans services or is adversarial | reading a log or reproducing a named error |
 | optimize | Standard | the optimization changes architecture | tuning one measured constant |
 | cover | Standard | tests must model an attacker or a race | mechanical test scaffolding for existing pure functions |
+| e2e | Standard | the flow covers auth, payment, or data loss | one page, one assertion, already-running app |
 | design | Standard | architecture, protocol, or cross-cutting design | never (design is judgment by definition) |
 | build | Standard | new public API, schema, or auth surface | single-file change fully specified in the goal |
 | review | Standard | security, auth, crypto, or safety in scope | style or formatting only |
+| open-pr | Standard | the PR touches auth, schema or a public API | a PR for a docs-only or one-file change |
 | verify | Standard | verifying a security-critical claim | running the existing checks and reporting the result |
 | improve-skill | Standard | rewriting the evaluation contract itself | executing an existing benchmark (`eval-runner`, haiku) |
+| setup | Standard | never (setup reads and recommends; writes stay behind its own gates) | a rescan of a project that already ran setup |
+| migrate | Standard | the change touches auth, CI gates, deploy, or a public API in each repo | a patch-level bump in a repo list the goal names |
 
 ### Premium spend needs explicit consent
 
@@ -116,27 +151,23 @@ Routing **down** is silent. Spending less is never a decision the user has to ap
 
 Routing **up to Heavy** is premium spend (`opus` / `fable`) and MUST be surfaced in the confirm line, naming the heavy signal that triggered it. Never upgrade silently, never mid-handoff, never inside a spawned agent that the user did not see. If the user declines the upgrade, run Standard and state plainly which check is being weakened.
 
-### Composition with the spend cap (they are different mechanisms)
+### No spend cap ships
 
-```
-routing        (ex ante,  per leg)     -> SELECTS the tier
-team-size-gate (ex post,  per session) -> COUNTS what was selected, caps it
-```
+OrchestKit used to back routing with `team-size-gate`, a per-session counter that warned or
+denied premium spawns past a limit. It was removed in #3839, so routing is now the only cost
+control: the tier chosen here is the tier that runs.
 
-`src/hooks/src/pretool/task/team-size-gate.ts` is a **backstop, not a selector**. It reads `toolInput.model` exactly once, read-only, to classify premium vs non-premium, then increments a session ledger and warns or denies past `ORK_TEAM_OPUS_MAX` (default 8). It has no model-override surface and is ADVISORY by default, so its "Use sonnet/haiku" message is advice to a human that it cannot itself enact. Routing is what enacts it.
-
-Rules that keep the two composed rather than duplicated:
-
-- The router never reads, sets, or suggests raising `ORK_TEAM_OPUS_MAX`. The cap is the user's budget, not a router variable.
-- A gate denial is **not** a re-route trigger. Do not relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user choose.
-- The router does not re-implement counting. It has no session ledger and makes no claim about remaining budget.
+- The router has no session ledger and makes no claim about remaining budget.
+- Another gate's denial (a Fable spend prompt, a permission refusal) is **not** a re-route
+  trigger. Do not relabel a Heavy leg as Standard to get past it. Report the denial and let the
+  user choose.
 
 ### Honest limits of this dimension
 
 Tier is bound **statically to agent identity** in each agent's frontmatter, and the spawn happens downstream in whichever skill the router handed off to. The router therefore has exactly two levers, and neither is a model override:
 
 1. **Selection**: which skill and which agent gets the work (choosing `eval-runner` over a sonnet agent is a real tier decision).
-2. **The caller's model**: the 13 `inherit` agents (36% of the catalog) adopt it, so the weight the router hands off at propagates to that bloc.
+2. **The caller's model**: the 4 `inherit` agents (11% of the catalog) adopt it, so the weight the router hands off at propagates to that bloc.
 
 Everything else is a documented hint carried into the handoff. Per the no-bypass guardrail, the router does not override a target skill's own agent selection.
 
@@ -145,7 +176,9 @@ Everything else is a documented hint carried into the handoff. Per the no-bypass
 1. Explicit verb wins. "Fix the slow query" → `fix`.
 2. Metric + direction → `optimize`.
 3. Percentage in a test context → `cover`.
+3b. An e2e or browser signal → `e2e` (or `cover` when the tests do not exist yet). It beats the plain verify verb and the request form "why don't you ..."; a failing or flaky e2e run stays `diagnose`/`fix`.
 4. Question form → `design` ("how should") or `diagnose` ("why") — and this beats symptom words: "why isn't the build green" is `diagnose`, not `fix`.
-5. PR/MR/`#N` → `review`.
+5. PR/MR/`#N` to be read and judged → `review`. A PR to be opened or written up → `open-pr`.
 6. Ticket reference → `build`.
+6b. Many repos named or implied ("every repo", "all consumers", "org-wide") with a change to make → `migrate`; one repo → `build`. OrchestKit itself as the object of "set up" or "onboard" → `setup`; any other object of "set up" → `build`.
 7. Truly ambiguous → ask ONE question naming the two candidate routes. **Do not guess when two DIFFERENT skills are plausible and the goal names no artifact, metric, or number.** Canonical fallbacks: "fix performance on the dashboard" (fix vs optimize), "review my code" with no PR/branch named (review vs verify), "test the new feature" (cover vs verify vs build), "the queries are slow and maybe vulnerable to injection" (optimize vs review).

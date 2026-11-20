@@ -1,15 +1,17 @@
 ---
 name: bare-eval
-compatibility: "Claude Code 2.1.251+"
-description: "Run isolated eval and grading calls using CC 2.1.81 --bare mode. Constructs claude -p --bare invocations for skill evaluation, trigger testing, and LLM grading without plugin/hook interference. Use when running eval pipelines, grading skill outputs, benchmarking prompt quality, or testing trigger accuracy in isolation."
-tags: [eval, bare, grading, pipeline, testing, ci]
-version: 1.1.0
-author: OrchestKit
-user-invocable: false
-complexity: medium
+compatibility: "Claude Code 2.1.277+"
+description: "Isolated eval and grading calls with claude -p in bare mode, free of plugin and hook interference. Use when grading skill outputs, benchmarking prompts or testing trigger accuracy."
+user-invocable: true
+argument-hint: "[grade|trigger|optimize]"
+disable-model-invocation: true
 context: inherit
-persuasion-type: discipline
 effort: low
+metadata:
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "eval, bare, grading, pipeline, testing, ci"
 ---
 
 # Bare Eval — Isolated Evaluation Calls
@@ -52,7 +54,7 @@ claude --version  # Must be >= 2.1.81
 | Force-skill | `claude -p "$prompt" --bare --print --append-system-prompt "$content"` |
 | @-file in prompt | `claude -p "grade @fixtures/case-1.md against rubric" --bare` (CC 2.1.113 Remote Control autocomplete) |
 
-> **Long harness runs (CC 2.1.199+):** set `CLAUDE_CODE_RETRY_WATCHDOG=1` for unattended eval batches — it raises the default retry count for non-capacity transient errors to 300 and lifts the cap of 15 on `CLAUDE_CODE_MAX_RETRIES`, so an overnight grading run survives transient API blips instead of dying mid-batch.
+> **Long harness runs (CC 2.1.199+):** set `CLAUDE_CODE_RETRY_WATCHDOG=1` for unattended eval batches: it raises the default retry count for non-capacity transient errors to 300 and lifts the cap of 15 on `CLAUDE_CODE_MAX_RETRIES`, so an overnight grading run survives transient API blips instead of dying mid-batch. Pair it with the three caps so a batch neither waits out a 429 storm nor sits hours on a usage limit: `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` (2.1.295), `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` (2.1.301) and `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` (2.1.305); `doctor`'s operator-permissions check offers any that are missing.
 
 ### `--output-format stream-json`
 
@@ -168,7 +170,7 @@ Read("references/troubleshooting.md")
 `workflows/skill-fitness.js` is a runnable dynamic-workflow template — the workflow-backed complement to the static conformance grader (`scripts/eval/conformance-check.mjs`). It fans out one **isolated-context** agent per skill to score fitness (freshness / router-clarity / structure) and synthesizes a ranked scorecard, catching qualitative drift a static grep can't (description/body count mismatches, duplicate headings, install-specific absolute paths, version drift). Run it with the Workflow tool:
 
 ```
-Workflow({ scriptPath: "${CLAUDE_SKILL_DIR}/workflows/skill-fitness.js",
+Workflow({ name: "ork:skill-fitness",
            args: ["assess", "commit", "doctor"] })
 ```
 

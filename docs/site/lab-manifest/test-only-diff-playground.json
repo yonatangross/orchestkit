@@ -1,0 +1,8 @@
+{
+  "slug": "test-only-diff-playground",
+  "source": "docs/chore--dsp-15157-4301-ci-yml-renovate/index.html",
+  "title": "Test only diffs skip the playground",
+  "description": "The PR playground gate reports success when every changed file is a test file, and still requires a playground when source rides along. The automated branch prefix list is unchanged.",
+  "tags": ["ci", "playground", "tests"],
+  "date": "2026-09-20"
+}

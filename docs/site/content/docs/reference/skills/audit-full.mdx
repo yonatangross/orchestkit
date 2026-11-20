@@ -1,20 +1,22 @@
 ---
 title: "Audit Full"
-description: "Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews."
+description: "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce."
 ---
 
-<span className="badge badge-gray">Reference</span> <span className="badge badge-red">max</span>
+<span className="badge badge-blue">Command</span> <span className="badge badge-red">max</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+```bash title="Invoke"
+/ork-extras:audit-full
+```
 
 <ContextualSkillSidebar slug="audit-full" />
 
-> **Audit Full** Single-pass codebase analysis leveraging a 1M-token context window for comprehensive security scanning, architecture review, and dependency auditing. Loads entire codebases for cross-file pattern detection and generates structured audit reports with severity-ranked findings. Use when you need whole-project analysis before releases or security reviews.
+> **Audit Full** Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce.
 
 
 # Full-Codebase Audit
 
-Single-pass whole-project analysis leveraging Opus 5's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
+Single-pass whole-project analysis leveraging Opus 5.5's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.
 
 ## Quick Start
 
@@ -25,13 +27,13 @@ audit-full architecture             # Architecture review
 audit-full dependencies             # Dependency audit
 ```
 
-> **Opus 5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5) enables cross-file reasoning that chunked approaches miss. Effort defaults to `high`; bump to `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
+> **Opus 5.5**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (default and maximum on Opus 5.5) enables cross-file reasoning that chunked approaches miss. Set effort explicitly: Opus 5.5's own default is `medium` (one level below Opus 5's `high`), and CC 2.1.280+ starts a newly released model at its default rather than an older saved `/effort` level. Run audits at `high`; use `xhigh` for one additional cross-file pattern sweep on the hardest codebases.
 
-> **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT` — if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `verify` for chunked analysis instead.
+> **1M Context Required:** If `CLAUDE_CODE_DISABLE_1M_CONTEXT` is set, audit-full cannot perform full-codebase analysis. Check: `echo $CLAUDE_CODE_DISABLE_1M_CONTEXT`, if non-empty, either unset it (`unset CLAUDE_CODE_DISABLE_1M_CONTEXT`) or use `verify` for chunked analysis instead.
 
-> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. The Opus tier has defaulted to `high` since CC 2.1.154 and reserves `xhigh` for the hardest codebases. Silently falls back to `high` on other models; `doctor` warns on mismatch.
+> **Effort (CC 2.1.111+):** `xhigh` adds a second pass that re-reads cross-module boundaries specifically looking for patterns the first pass normalized over. Reserve `xhigh` for the hardest codebases (see the Opus 5.5 note above for the default). Silently falls back to `high` on other models; `doctor` warns on mismatch.
 
-> **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only — pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
+> **Switching to Opus (CC 2.1.144+):** `/model` now affects the current session only, pick Opus for this audit without it persisting. Press `d` in the picker only if you want it as the default for new sessions too.
 
 ---
 
@@ -77,28 +79,30 @@ Before loading files, estimate whether the codebase fits in context.
 
 Load: `Read("references/token-budget-planning.md")` for estimation rules (tokens/line by file type), budget allocation tables, auto-exclusion list, and fallback dialog when codebase exceeds budget.
 
-Run estimation: `bash $\{CLAUDE_SKILL_DIR\}/scripts/estimate-tokens.sh /path/to/project`
+Run estimation: `bash ${CLAUDE_SKILL_DIR}/scripts/estimate-tokens.sh /path/to/project`
 
-### Two tiers — pick by the estimate
+### Two tiers: pick by the estimate
 
 audit-full has **two execution tiers**. The estimate decides which:
 
 | Estimate vs budget | Tier | Path |
 |--------------------|------|------|
-| **Fits** (~≤125K LOC / ≤1M tokens) | **Single-context** (default — the skill's edge: whole-codebase cross-file reasoning in one window) | continue to STEP 2 |
-| **Exceeds** budget | **Map-reduce** (scale tier — shard → per-shard audit → cross-shard boundary synthesis → refute) | invoke the workflow below; STEP 2–3.5 run *inside* it |
+| **Fits** (~≤125K LOC / ≤1M tokens) | **Single-context** (default, the skill's edge: whole-codebase cross-file reasoning in one window) | continue to STEP 2 |
+| **Exceeds** budget | **Map-reduce** (scale tier, shard → per-shard audit → cross-shard boundary synthesis → refute) | invoke the workflow below; STEP 2-3.5 run *inside* it |
 
 **Over-budget → run the map-reduce workflow** (don't punt, don't silently truncate the load):
 
 ```python
 # Derive shards from STEP 1 (top-level modules/dirs by size: src, apps/api, apps/web, packages/*).
 Workflow({
-  "scriptPath": "${CLAUDE_SKILL_DIR}/workflows/audit-full-mapreduce.js",
+  "name": "ork:audit-full-mapreduce",
   "args": { "shards": ["<repo-relative dirs>"], "mode": "<full|security|architecture|dependencies>", "effort": "<high|xhigh>" }
 })
 ```
 
-It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits — only reach for map-reduce when it genuinely doesn't.
+It preserves cross-file reasoning *within* each shard and recovers cross-*shard* edges (taint/auth/dep-direction that span modules) in a dedicated synthesis pass, then runs the same STEP 3.5 adversarial refutation. Its return (merged findings + refutation ledger) feeds STEP 4. The single-context tier remains the default because it's cheaper and loses no boundaries when the repo fits, only reach for map-reduce when it genuinely doesn't.
+
+**Fan-out rule:** a single pass is never a fallback for an over-budget repo when the selected mode is full coverage. If the map-reduce Workflow call does not run, end the run as BLOCKED and say why; never audit a truncated load. A mode the user picks that narrows the load on purpose (directory scoping, priority loading) is a declared scope cut, not a truncated load.
 
 ---
 
@@ -147,11 +151,11 @@ Key analysis patterns:
 
 ### Progressive Output (CC 2.1.76)
 
-Output findings **incrementally** as each audit mode completes — don't batch until the report:
+Output findings **incrementally** as each audit mode completes, don't batch until the report:
 
-1. **Security findings first** — show critical/high vulnerabilities immediately, don't wait for architecture review
-2. **Architecture findings** — show dependency direction violations, circular deps as they surface
-3. **Dependency findings** — show CVE matches, license compliance issues
+1. **Security findings first**: show critical/high vulnerabilities immediately, don't wait for architecture review
+2. **Architecture findings**: show dependency direction violations, circular deps as they surface
+3. **Dependency findings**: show CVE matches, license compliance issues
 
 For multi-mode audits (Full), each mode's findings appear as they complete. This lets users act on critical security findings while architecture analysis is still running.
 
@@ -159,20 +163,20 @@ For multi-mode audits (Full), each mode's findings appear as they complete. This
 
 ## STEP 3.5: Adversarial Refutation (effort-gated)
 
-Before the report, a separate **blind refuter** verifies CRITICAL/HIGH findings — the
+Before the report, a separate **blind refuter** verifies CRITICAL/HIGH findings, the
 structural fix for self-preferential bias (a single-context pass grading its own findings
 anchors on its own reasoning). `low`/`medium` skip this step; `high` runs single advisory
 refuters; `xhigh` runs the engine's quorum (3 for CRITICAL, 2 for HIGH).
 
 Load the protocol + audit-full bindings: `Read("references/adversarial-refutation.md")`
-(which loads the shared engine `$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/adversarial-refutation.md`).
+(which loads the engine copy in `references/adversarial-refutation-engine.md`).
 
 These refuters are audit-full's **only** sub-agent spawns (the producer is single-context),
 always isolated `Agent(...)` with no `team_name`, fed only a neutral claim (category +
-`file:line`). **Deterministic ground truth is exempt** — CVE/CVSS matches, failing build/test,
+`file:line`). **Deterministic ground truth is exempt**, CVE/CVSS matches, failing build/test,
 type errors are never refuted; only a *reachability claim* on top of a CVE is. Cross-file
 findings the refuter can't reproduce from its narrow slice stay **UPHELD** (engine §5).
-Refutation never silently drops a CRITICAL — the ledger (`refutation-ledger.json`) records
+Refutation never silently drops a CRITICAL, the ledger (`refutation-ledger.json`) records
 survived/killed/downgraded, and removing a CRITICAL/HIGH from the report needs user confirmation.
 
 ---
@@ -191,16 +195,16 @@ Before finalizing the report, verify with `Read("checklists/audit-completion.md"
 
 ### PushNotification on Completion (CC 2.1.110+)
 
-A full-codebase 1M-context audit typically runs 15–60 minutes on medium projects and can exceed that on large ones. **After the report file is written and the completion checklist passes, call `PushNotification`** so the finding counts are visible even if the user walked away.
+A full-codebase 1M-context audit typically runs 15-60 minutes on medium projects and can exceed that on large ones. **After the report file is written and the completion checklist passes, call `PushNotification`** so the finding counts are visible even if the user walked away.
 
 ```python
 PushNotification(
-  message=f"ork:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
+  message=f"ork-extras:audit-full complete — {SCOPE}: {critical}C/{high}H/{medium}M/{low}L · {report_path}",
   status="proactive"
 )
 ```
 
-Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notification-on-completion.md")`.
+Full rule: `Read("references/push-notification-on-completion.md")`.
 
 ---
 
@@ -212,13 +216,13 @@ Full rule: `Read("$\{CLAUDE_PLUGIN_ROOT\}/skills/chain-patterns/rules/push-notif
 | CI/CD automated scanning | `security-scanning` skill |
 | Multi-agent graded verification | `verify` |
 | Exploring unfamiliar codebase | `explore` |
-| Codebase > 125K LOC (exceeds 1M) | **stay here** — STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.js`); `verify` only if you want multi-agent *graded* verification instead of an audit |
+| Codebase > 125K LOC (exceeds 1M) | **stay here**, STEP 1 routes to the map-reduce tier (`workflows/audit-full-mapreduce.js`); `verify` only if you want multi-agent *graded* verification instead of an audit |
 
 ---
 
 ## Notes for whole-codebase passes
 
-> **Oversized reads (CC 2.1.144+):** When loading large files, Read returns a `[PARTIAL view]` truncated first page instead of a hard error if the whole-file read exceeds the token limit. Detect that notice and re-read with explicit `offset`/`limit` to page through the rest — a partial read silently omits code an audit must not miss.
+> **Oversized reads (CC 2.1.144+):** When loading large files, Read returns a `[PARTIAL view]` truncated first page instead of a hard error if the whole-file read exceeds the token limit. Detect that notice and re-read with explicit `offset`/`limit` to page through the rest, a partial read silently omits code an audit must not miss.
 
 > **When context fills (CC 2.1.141+):** Use the rewind menu's "Summarize up to here" to compress earlier turns while keeping recent findings, instead of restarting the audit. Reactive compaction (CC 2.1.142+) sizes the first summarize to the actual overflow, so a wasted second pass mid-turn is now rare.
 
@@ -240,27 +244,29 @@ Stops when: zero critical issues remain across 3 consecutive passes, or a struct
 
 ## Related Skills
 
-- `security-scanning` — Automated scanner integration (npm audit, Semgrep, etc.)
-- `ork:security-patterns` — Security architecture patterns and OWASP vulnerability classification
-- `ork:architecture-patterns` — Architectural pattern reference
-- `ork:quality-gates` — Quality assessment criteria
-- `ork:verify` — Multi-agent verification (fallback for codebases exceeding 1M context)
+- `security-scanning`: Automated scanner integration (npm audit, Semgrep, etc.)
+- `ork:security-patterns`: Security architecture patterns and OWASP vulnerability classification
+- `ork:architecture-patterns`: Architectural pattern reference
+- `ork:quality-gates`: Quality assessment criteria
+- `ork:verify`: Multi-agent verification (fallback for codebases exceeding 1M context)
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 | File | Content |
 |------|---------|
 | `references/security-audit-guide.md` | Cross-file vulnerability patterns |
 | `references/architecture-review-guide.md` | Pattern and coupling analysis |
 | `references/dependency-audit-guide.md` | CVE, license, currency checks |
-| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5) — loads the shared engine |
+| `references/adversarial-refutation.md` | Blind-refuter bindings (STEP 3.5), loads the engine copy below |
+| `references/adversarial-refutation-engine.md` | Byte copy of core's shared refutation engine, so the skill runs from ork-extras (a test keeps it equal) |
+| `references/push-notification-on-completion.md` | Byte copy of core's push-notification rule, same reason |
 | `references/token-estimation.md` | File type ratios and budget planning |
 | `assets/audit-report-template.md` | Structured output format |
 | `assets/severity-matrix.md` | Finding classification criteria |
 | `checklists/audit-completion.md` | Pre-report verification |
 | `scripts/estimate-tokens.sh` | Automated LOC to token estimation |
-| `workflows/audit-full-mapreduce.js` | Scale tier — shard→audit→synthesize→refute for repos that exceed 1M context (run via the Workflow tool) |
+| `workflows/audit-full-mapreduce.js` | Scale tier, shard→audit→synthesize→refute for repos that exceed 1M context (run via the Workflow tool) |
 
 
 ---
@@ -285,7 +291,7 @@ Every finding must include:
 4. Exploitation scenario or impact statement
 5. OWASP/CWE classification where applicable
 
-## Incorrect — vague findings without evidence
+## Incorrect: vague findings without evidence
 
 ```markdown
 ## Findings
@@ -298,12 +304,12 @@ Every finding must include:
 ```
 
 **Problems:**
-- No file paths — developer cannot locate the issue
-- No code evidence — finding cannot be verified
-- No exploitation scenario — severity is arbitrary
+- No file paths, developer cannot locate the issue
+- No code evidence, finding cannot be verified
+- No exploitation scenario, severity is arbitrary
 - "might be missing" is not a finding, it is speculation
 
-## Correct — evidence-backed severity classification
+## Correct: evidence-backed severity classification
 
 ```markdown
 ## Findings
@@ -319,7 +325,7 @@ Every finding must include:
 
 **Vulnerable code:**
   ```typescript
-  const query = `SELECT * FROM users WHERE id = $\{req.params.id\}`;
+  const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
   await db.execute(query);
   ```
 
@@ -361,7 +367,7 @@ Before loading any files, produce a scope declaration that includes:
 3. File exclusion patterns
 4. Estimated token budget vs available budget
 
-## Incorrect — audit everything without scoping
+## Incorrect: audit everything without scoping
 
 ```markdown
 ## Audit Plan
@@ -380,7 +386,7 @@ find . -name "*.ts" -o -name "*.js" | xargs cat
 - Test fixtures and snapshots add noise
 - No priority ordering means entry points may be truncated
 
-## Correct — declare scope with budget allocation
+## Correct: declare scope with budget allocation
 
 ```markdown
 ## Audit Scope Declaration
@@ -419,16 +425,127 @@ find src/api src/auth src/middleware \
 
 ---
 
-## References (8)
+## References (10)
+
+### Adversarial Refutation Engine: HIGH
+
+
+# Adversarial Refutation Engine
+
+Shared protocol for evaluative skills (`assess`, `review-pr`, `audit-full`) to verify
+their own decision-bearing findings with a **separate, blind refuter**, the structural
+fix for self-preferential bias. A verifier with skin in the game can't be a fair verifier;
+the producer's number, evidence list, and prose ARE its reasoning, so forwarding them
+re-introduces the anchoring the pass is meant to remove.
+
+> Evidence this matters: the #2217 drift-register audit was ~60% wrong because findings
+> judged themselves. An adversarial pass (this protocol) caught a wrong "KEEP" verdict.
+
+Each skill loads this engine via a thin `references/adversarial-refutation.md` adapter that
+supplies its bindings (which field = "finding", which rubric, where survivors/kills land).
+
+## 1. Blindness contract
+
+The refuter prompt MAY contain: `\{file, line, category, raw code slice (PRIMARY artifact),
+rubric excerpt, sanitized accepted conventions\}` and a **neutral claim** naming ONLY the
+category + location.
+
+It MUST NOT contain: the producer's identity/`subagent_type`, the producer's **number or
+severity label**, the producer's description/impact/suggestion prose, the producer's curated
+evidence list, sibling findings, the original producer prompt, or "known-weakness" priors.
+
+## 2. Independent-score-first
+
+The refuter never sees the producer's value. It (a) reads the cited code itself, (b) forms
+its OWN severity/score band from the rubric, (c) returns an existence verdict. The
+**orchestrator**: not the refuter, computes SURVIVES/OVERTURNED by comparing the
+producer's value against the refuter's independent band. Revise only when the producer
+value sits OUTSIDE the band, and revise to the **near band edge** (never the midpoint).
+
+## 3. Citation-verification gate
+
+Before any KILL/OVERTURN/DOWNGRADE is honored, the orchestrator re-opens the refuter's
+cited `file:line` and confirms it exists and supports the verdict. Unverifiable/hallucinated
+citation → downgrade to UPHELD. "No refutation found" or assertion-only (no citation) → UPHELD.
+
+## 4. Quorum (no lone judge on either side)
+
+| Finding tier | Refuters | Rule |
+|--------------|----------|------|
+| Top (CRITICAL audit / request-changes blocker / high-weight score near a grade boundary) | 3 | majority, ≥2 of 3 with VERIFIED counter-evidence |
+| Mid (HIGH severity / decision-bearing dimension) | 2 | majority, never a single unilateral kill that changes a verdict |
+| Advisory (cannot change a merge verdict or headline score) | 1 | single refuter allowed |
+
+A 1-of-N dissent never revises, record it as a caveat and drop that finding's confidence
+to "low".
+
+## 5. Cross-file UPHELD-by-default
+
+If the finding asserts a multi-file flow (taint / data-flow / cross-module), the card MUST
+carry the producer's full traced file set. Refuter instruction: "could not reproduce the
+traced flow" → **UPHELD** (never REFUTED). A narrow-context refuter must not kill a true
+cross-file finding it simply couldn't see.
+
+## 6. Deterministic exemption
+
+NEVER refute ground truth: failing build/test/lint output, npm-audit/CVSS tool matches,
+type-check errors. Only a reachability **claim** layered on top of a CVE is refutable, and
+only that claim.
+
+## 7. No-auto-flip (human-facing gates)
+
+Refutation alone MAY demote a finding's display bucket but may NOT, by itself, flip a
+human-facing merge/ship verdict from block→approve, nor silently raise a headline score.
+Keep the producer-basis headline score AND publish a separately-labeled "post-refutation"
+score. Surface every killed CRITICAL/HIGH prominently (not buried); require explicit user
+confirmation before a kill removes a blocker.
+
+## 8. Global spawn ceiling
+
+Dedup to root-cause BEFORE counting. Hard cap total refuter spawns per run (default **24**).
+If `material findings × refuters-per-finding` exceeds the cap, rank by
+`severity-weight × distance-from-decision-boundary`, refute the top-K, and ship the rest
+flagged "not independently refuted, manual review required". Never silently truncate.
+
+## 9. Always-isolated spawn
+
+Refuters are ALWAYS plain Task-tool `Agent(...)` spawns with **no `team_name`**, even when
+the producer phase ran in Agent-Teams mode, joining the mesh leaks producer reasoning via
+`SendMessage` history and destroys blindness. Delivery is prompt/`additionalContext`-only
+(cache-safe; no mid-session system-prompt mutation).
+
+## 10. Refutation ledger (shared output schema)
+
+Persist per finding so wrong KEEPs AND wrong KILLs are auditable cross-session:
+
+```json
+{ "finding_id": "...", "refuters": 3, "votes": {"refuted": 2, "upheld": 1, "downgrade": 0},
+  "verified_citations": ["file:line"], "outcome": "survived|killed|downgraded|unrefuted",
+  "confidence": "high|low", "original_value": "...", "revised_value": "..." }
+```
+
+## 11. Cross-model diversity (optional provenance lane)
+
+An optional lane may route ONE quorum slot per decision-bearing finding to a **different model family** (Codex/GPT) for a genuinely different failure surface. It SUBSTITUTES a same-model slot at the request-changes-blocker tier (3 judges, no §8 inflation), but at **CRITICAL/HIGH it is ADDED** (2 same-model kept + 1 cross = 3 judges) so the top tier is never judged by only two voters, one extra spawn there by design (#2556). It inherits §1 blindness + §3 citation-verify + §4 quorum + §7 no-auto-flip unchanged, and stamps `refuter_model`/`refuter_lane` for provenance (best-effort attribution from an untrusted command, **not** a trust boundary). The skill MUST NOT own credentials or open egress, it shells out to a user-configured command; an absent command degrades to the same-model lane, never to "no refutation". Operational detail: `references/cross-model-refuter.md` of the `ork:review-pr` skill, which ships in the core `ork` plugin only (it is not beside this file in an ork-extras install).
+
+## Known residual bias (state it, don't hide it)
+
+A one-sided "your job is to REFUTE" pass raises **false negatives**, for a merge gate or
+security audit, dropping a real bug is costlier than a noisy false positive. The gates above
+(citation-verify, raised quorum, cross-file UPHELD-default, no-auto-flip) bound it, but N
+same-model refuters share blind spots: majority buys variance reduction, not independent
+bias correction. Recomputing the headline over survivors is itself a new self-preference,
+that's why both scores are published and a human signs off.
+
 
 ### Adversarial Refutation
 
-# Adversarial Refutation — audit-full bindings
+# Adversarial Refutation: audit-full bindings
 
 Thin adapter. Loads the shared engine, then binds it to audit-full's severity-ranked findings.
 
-**Load the engine first:** `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/rules/adversarial-refutation.md")`
-— the blindness contract, independent-score-first, citation-verify, quorum, cross-file
+**Load the engine first:** `Read("references/adversarial-refutation-engine.md")`
+the blindness contract, independent-score-first, citation-verify, quorum, cross-file
 UPHELD-default, deterministic-exemption, no-auto-flip, spawn-ceiling, ledger schema, and
 isolated-spawn rules. This file only supplies what's audit-full-specific.
 
@@ -438,29 +555,29 @@ isolated-spawn rules. This file only supplies what's audit-full-specific.
 |----------------|--------------------|
 | "finding" | a severity-ranked finding from STEP 3 (Security / Architecture / Dependency), tagged CRITICAL/HIGH/MEDIUM/LOW |
 | rubric | the relevant STEP-3 guide (`security-audit-guide.md` / `architecture-review-guide.md` / `dependency-audit-guide.md`) + `assets/severity-matrix.md` |
-| refuter agent | a blind `Agent(...)` chosen by finding domain — `security-auditor` (security), `backend-system-architect` (architecture), `code-quality-reviewer` (dependency/other). **audit-full's producer is single-context Opus, so these refuters are its ONLY sub-agent spawns** |
-| code artifact | the cited `file:line` slice — the refuter re-reads it from the codebase itself (it does NOT get the whole-codebase context the producer had, so cross-file findings follow engine §5 UPHELD-default) |
+| refuter agent | a blind `Agent(...)` chosen by finding domain, `security-auditor` (security), `backend-system-architect` (architecture), `code-quality-reviewer` (dependency/other). **audit-full's producer is single-context Opus, so these refuters are its ONLY sub-agent spawns** |
+| code artifact | the cited `file:line` slice, the refuter re-reads it from the codebase itself (it does NOT get the whole-codebase context the producer had, so cross-file findings follow engine §5 UPHELD-default) |
 | ledger | `refutation-ledger.json` in the audit job dir (`$CLAUDE_JOB_DIR`) |
 | revised output | a "Refuted?" column on the STEP 4 finding table + `refuted` / `original_severity` fields; severity changes honor **no-auto-flip** (§7) |
 
 ## Scope filter (which findings get a refuter)
 
-A finding qualifies only if decision-bearing — ANY of:
+A finding qualifies only if decision-bearing, ANY of:
 - **CRITICAL** or **HIGH** severity (these drive the report's headline + remediation timeline)
 - a finding that asserts **exploitability/reachability** (a claim, not a tool match)
 
-Skip: MEDIUM/LOW informational findings, and **deterministic ground truth** — a CVE/CVSS match
+Skip: MEDIUM/LOW informational findings, and **deterministic ground truth**, a CVE/CVSS match
 from a dependency scan, a failing build/test, a type error (engine §6). Only a *reachability
 claim* layered on top of a CVE ("this CVE is exploitable because input reaches it") is
 refutable, and only that claim. Dedup to root-cause BEFORE counting; respect the global spawn
-ceiling (default 24, engine §8) — rank by `severity × distance-from-decision-boundary` and
+ceiling (default 24, engine §8), rank by `severity × distance-from-decision-boundary` and
 flag any un-refuted overflow "manual review required".
 
 ## Cross-file caution (audit-full-specific)
 
 audit-full's edge is whole-codebase cross-file reasoning (taint flows, auth-boundary gaps
 spanning modules). A refuter only gets the cited slice, so per engine §5 a "could not
-reproduce the traced flow" result is **UPHELD, never REFUTED** — the card MUST carry the
+reproduce the traced flow" result is **UPHELD, never REFUTED**, the card MUST carry the
 producer's full traced file set so the refuter knows what it's missing. A narrow-context
 refuter must never kill a true cross-file finding it simply couldn't see.
 
@@ -469,7 +586,7 @@ refuter must never kill a true cross-file finding it simply couldn't see.
 audit-full is already a heavy single-context pass; keep refutation bounded:
 - `low` / `medium` → **skip STEP 3.5 entirely**
 - `high` → up-to-ceiling **single** refuters on CRITICAL/HIGH, **advisory only** (surfaced, not
-  auto-applied; a single refuter never demotes a CRITICAL on its own — §7)
+  auto-applied; a single refuter never demotes a CRITICAL on its own, §7)
 - `xhigh` → **quorum** (§4): 3-refuter majority for CRITICAL, 2 for HIGH; a kill that would drop
   a CRITICAL from the report requires explicit user confirmation (§7)
 
@@ -596,7 +713,7 @@ src/utils/ → src/auth/     : 0 imports (good, utils is generic)
 
 | Violation | Example | Fix |
 |-----------|---------|-----|
-| DB in route handler | `router.get('/', async (req, res) => \{ db.query(...) \})` | Extract to service layer |
+| DB in route handler | `router.get('/', async (req, res) => { db.query(...) })` | Extract to service layer |
 | Business logic in middleware | Auth middleware doing role-based access with complex rules | Move to use-case layer |
 | HTTP in domain | Domain entity calling external API | Inject via port/adapter |
 | UI logic in API | API returning HTML-formatted strings | Return data, format in frontend |
@@ -805,6 +922,75 @@ pip-extra-reqs --ignore-module=tests .
 - Installed but never imported → MEDIUM (bloat, attack surface)
 - Dev dependency in production deps → LOW (no runtime risk)
 - Multiple packages for same purpose → LOW (e.g., both lodash and underscore)
+
+
+### PushNotification on Long-Skill Completion: MEDIUM
+
+
+# PushNotification on Long-Skill Completion
+
+When a skill's typical runtime exceeds 5 minutes, fire a `PushNotification` at completion. Long runs mean the user has almost certainly context-switched; without the notification, a green run can sit unreviewed for hours.
+
+## When to apply
+
+| Skill runtime | Notify? |
+|---|---|
+| &lt; 2 min | No, user is still at the terminal. |
+| 2-5 min | Optional, only if the skill has parallel agents or external I/O that makes timing unpredictable. |
+| > 5 min | **Yes.** Fire a notification at the final synthesis / report step. |
+
+Apply to: `ork:implement`, `ork-extras:audit-full`, `ork:cover`, `ork:demo-producer`, `ork:verify` (runs on large changes), `ork:brainstorm` (deep 7-phase mode).
+
+## Incorrect
+
+```python
+# BAD: skill ends silently after a 30-minute run
+return final_report  # user is still reading Slack; never sees it
+```
+
+## Correct
+
+```python
+# GOOD: fire at the final step, with an outcome-summarizing body
+PushNotification(
+  message=f"ork:implement complete — {FEATURE}: {tests_passing}/{tests_total} tests · ready for /ork:verify",
+  status="proactive"
+)
+return final_report
+```
+
+The title names the skill; the body summarizes the outcome in one line. Users filter their notification center by title, so keep it stable: `"ork:<skill> complete"` or `"ork:<skill> needs input"`.
+
+## Graceful fallback
+
+`PushNotification` requires Remote Control with "Push when Claude decides" enabled. Users without it see **no error**, the call is a silent no-op. No try/except needed. Do not branch on capability detection; the tool handles the absence itself.
+
+```python
+# GOOD: unconditional call; tool is a no-op when RC is disabled
+PushNotification(message="... — ...", status="proactive")
+
+# WRONG: defensive capability check adds complexity for no gain
+if has_remote_control():  # this API does not exist
+    PushNotification(...)
+```
+
+## Body content rules
+
+- **Include an actionable outcome**, not just "done". Bad: `"finished"`. Good: `"47 files changed · all tests green · PR #1492 opened"`.
+- **≤ 100 characters**: notification UIs truncate aggressively.
+- **No emojis**: they render inconsistently across devices.
+- **State the next step** when the skill expects one. Example: `"ready for /ork:verify"` or `"3 conflicts need review"`.
+
+## Why
+
+Users running `/ork:implement` on a medium-sized feature commonly walk away for 20-30 min. A silent completion means either (a) they check back prematurely and see nothing interesting, or (b) they forget entirely. Neither is the point of running the skill.
+
+Remote Control is opt-in, users who have enabled it have explicitly signaled they want these notifications. Skipping the call for "safety" wastes that signal.
+
+## Related
+
+- `chain-patterns/references/monitor-patterns.md`: streaming progress *during* a long run (complements completion notification).
+- `ork:implement`, `ork-extras:audit-full`, `ork:cover`, `ork:demo-producer`, skills that apply this rule.
 
 
 ### Report Structure
@@ -1056,14 +1242,14 @@ Always exclude from loading:
 
 ## If Codebase Exceeds Budget
 
-audit-full owns this case now — it does **not** punt. The map-reduce tier
+audit-full owns this case now, it does **not** punt. The map-reduce tier
 (`workflows/audit-full-mapreduce.js`, run via the Workflow tool) shards the repo,
 audits each shard in its own context, then recovers cross-shard edges in a synthesis
 pass. Prefer it over narrowing scope (which silently drops coverage).
 
-1. **Map-reduce tier (recommended)**: run the workflow with shards derived from the estimate — full coverage, cross-shard boundary pass, same STEP 3.5 refutation.
-2. **Directory scoping**: narrow to specific directories — fast but **drops coverage** outside the scope; say so.
-3. **Priority loading**: entry points + critical paths only — triage, not a full audit.
+1. **Map-reduce tier (recommended)**: run the workflow with shards derived from the estimate, full coverage, cross-shard boundary pass, same STEP 3.5 refutation.
+2. **Directory scoping**: narrow to specific directories; fast but **drops coverage** outside the scope, say so. A declared scope cut the user picks, not a truncated load.
+3. **Priority loading**: entry points + critical paths only; triage, not a full audit. A declared scope cut the user picks, not a truncated load.
 4. **`/ork:verify`**: only if you actually want multi-agent *graded* verification rather than an audit.
 
 ```python

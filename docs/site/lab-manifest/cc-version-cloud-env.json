@@ -1,0 +1,13 @@
+{
+  "slug": "cc-version-cloud-env",
+  "source": "docs/fix--cc-version-cloud-env/index.html",
+  "title": "Stale CLAUDE_CODE_VERSION vs the running CLI",
+  "description": "Cloud images set CLAUDE_CODE_VERSION=2.1.42 while the transcript reports 2.1.317. Toggle source order and see whether the false below-floor warning fires.",
+  "tags": [
+    "hooks",
+    "cc-version",
+    "cloud",
+    "false-signal"
+  ],
+  "date": "2026-11-03"
+}

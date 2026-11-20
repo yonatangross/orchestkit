@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference skills load inline; e2e asks route to expect or cover</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; --acc:#7a4d12; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; --acc:#e0b26b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  .wrap { display:grid; grid-template-columns:200px 1fr; gap:28px; max-width:1120px; margin:0 auto; padding:32px 20px 64px; }
+  nav.rail { position:sticky; top:20px; align-self:start; font-size:14px; }
+  nav.rail a { display:block; color:var(--mute); text-decoration:none; padding:4px 8px; border-left:2px solid var(--line); }
+  nav.rail a.on { color:var(--ink); border-left-color:var(--acc); font-weight:600; }
+  @media (max-width:1000px) { .wrap { grid-template-columns:1fr; } nav.rail { position:static; display:flex; flex-wrap:wrap; gap:6px; } nav.rail a { border:1px solid var(--line); border-radius:6px; } }
+  h1 { font-size:26px; margin:0 0 6px; } h2 { font-size:19px; margin:28px 0 10px; }
+  .lede { color:var(--mute); margin:0 0 16px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  pre { margin:6px 0; white-space:pre-wrap; font:13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; } @media (max-width:640px) { .row { grid-template-columns:1fr; } }
+  .bad { color:var(--bad); font-weight:600; } .ok { color:var(--ok); font-weight:600; }
+  table { border-collapse:collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  tr.task td { color:var(--acc); font-weight:600; }
+  .meter { font:14px ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <a href="#verdict">Verdict</a><a href="#why">Why it failed</a><a href="#fix">The fix</a><a href="#route">e2e routing</a><a href="#table">All 51 skills</a>
+</nav>
+<main>
+  <div class="top">
+    <div>
+      <h1>Reference skills load inline; e2e asks route to expect or cover</h1>
+      <p class="lede">Card ork-ref-skill-fork. A session asked "why don't you do proper e2e like ork suggests?", called Skill(ork:testing-e2e), saw "Running in the background", and went on without the guidance.</p>
+    </div>
+    <button id="theme" type="button">Dark</button>
+  </div>
+
+  <section id="verdict" class="card">
+    <h2 style="margin-top:0">Verdict</h2>
+    <p>49 of 51 non-invocable forked skills were guidance only. Since Claude Code 2.1.218 a forked skill runs in the background, so the guidance never reached the turn that asked for it. They now load inline. The 2 skills with real task steps keep the fork and wait for it.</p>
+    <p class="meter">guideline ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 49<br>task      ▓▓ 2</p>
+  </section>
+
+  <section id="why" class="card">
+    <h2 style="margin-top:0">Why it failed</h2>
+    <p>Claude Code skills docs: "The forked subagent runs in the background: you keep working while it runs, and its result arrives in your conversation when it completes." And: a fork of a skill with guidelines but no task "receives the guidelines but no actionable prompt, and returns without meaningful output."</p>
+    <div class="row">
+      <div><span class="bad">Before</span><pre>Skill(ork:testing-e2e)
+  context: fork, agent: test-generator
+  ▶ Running in the background
+parent: carries on, no guidance
+fork:   guidance, no task, no output</pre></div>
+      <div><span class="ok">After</span><pre>Skill(ork:testing-e2e)
+  no fork, no agent
+parent: gets the Playwright guidance
+        in the same turn
+test-generator still preloads it
+  through its skills: array</pre></div>
+    </div>
+  </section>
+
+  <section id="fix" class="card">
+    <h2 style="margin-top:0">The fix</h2>
+    <ul>
+      <li>New gate <code>tests/skills/structure/test-reference-skill-fork.sh</code>: a guideline skill with <code>user-invocable: false</code> may not set <code>context: fork</code> or <code>agent:</code>; a task skill must fork with <code>background: false</code>. Red first: 50 failures.</li>
+      <li>audit-full gains <code>background: false</code>; error-analysis had it already.</li>
+      <li>CONTRIBUTING-SKILLS.md no longer says "use context: fork for complex skills".</li>
+      <li>The Reference Skills docs page groups skills by the agents that preload them.</li>
+    </ul>
+  </section>
+
+  <section id="route" class="card">
+    <h2 style="margin-top:0">e2e routing in ork:auto</h2>
+    <table>
+      <tr><th>Ask</th><th>Before</th><th>After</th></tr>
+      <tr><td>check the change in the browser</td><td class="bad">fallback</td><td class="ok">/ork:expect</td></tr>
+      <tr><td>verify the checkout flow in the browser before merge</td><td class="bad">verify</td><td class="ok">/ork:expect</td></tr>
+      <tr><td>why don't you do proper e2e like ork suggests</td><td class="bad">diagnose</td><td class="ok">/ork:expect</td></tr>
+      <tr><td>run the playwright tests against this branch</td><td class="bad">fallback</td><td class="ok">/ork:expect</td></tr>
+      <tr><td>we have no e2e tests yet</td><td class="bad">fallback</td><td class="ok">/ork:cover</td></tr>
+      <tr><td>write e2e tests for the signup page</td><td class="bad">fallback</td><td class="ok">/ork:cover</td></tr>
+      <tr><td>why is the e2e suite failing on CI</td><td class="ok">diagnose</td><td class="ok">diagnose (unchanged)</td></tr>
+    </table>
+    <p>route-check: 51 of 57 (89.5 percent, fails the ratchet) before, 57 of 57 after.</p>
+  </section>
+
+  <section id="table" class="card">
+    <h2 style="margin-top:0">All 51 skills</h2>
+    <table><tr><th>Skill</th><th>Forked into</th><th>Class and change</th></tr>
+<tr class="guideline"><td><code>accessibility</code></td><td>accessibility-specialist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>agent-orchestration</code></td><td>workflow-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>ai-ui-generation</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>animation-motion-design</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>api-design</code></td><td>backend-system-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>architecture-decision-record</code></td><td>backend-system-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>architecture-patterns</code></td><td>backend-system-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>async-jobs</code></td><td>python-performance-engineer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="task"><td><code>audit-full</code></td><td>none</td><td>task: keeps fork, adds background: false</td></tr>
+<tr class="guideline"><td><code>browser-tools</code></td><td>web-research-analyst</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>business-case</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>competitive-analysis</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>database-patterns</code></td><td>database-engineer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>design-system-tokens</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>devops-deployment</code></td><td>ci-cd-engineer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>distributed-systems</code></td><td>backend-system-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>domain-driven-design</code></td><td>backend-system-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="task"><td><code>error-analysis</code></td><td>none</td><td>task: keeps fork, adds background: false</td></tr>
+<tr class="guideline"><td><code>figma-design-handoff</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>github-operations</code></td><td>none</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>golden-dataset</code></td><td>data-pipeline-engineer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>interaction-patterns</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>langgraph</code></td><td>workflow-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>llm-integration</code></td><td>llm-integrator</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>market-sizing</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>mcp-patterns</code></td><td>none</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>memory-fabric</code></td><td>none</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>monitoring-observability</code></td><td>none</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>multimodal-llm</code></td><td>multimodal-specialist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>okr-design</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>performance</code></td><td>frontend-performance-engineer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>prioritization</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>product-analytics</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>product-frameworks</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>python-backend</code></td><td>backend-system-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>quality-gates</code></td><td>code-quality-reviewer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>rag-retrieval</code></td><td>data-pipeline-engineer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>react-server-components-framework</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>responsive-patterns</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>security-patterns</code></td><td>security-auditor</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>storybook-mcp-integration</code></td><td>none</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>storybook-testing</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>task-dependency-patterns</code></td><td>workflow-architect</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>testing-e2e</code></td><td>test-generator</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>testing-integration</code></td><td>test-generator</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>testing-llm</code></td><td>test-generator</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>testing-perf</code></td><td>test-generator</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>testing-unit</code></td><td>test-generator</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>ui-components</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>user-research</code></td><td>product-strategist</td><td>guideline: fork and agent removed, loads inline</td></tr>
+<tr class="guideline"><td><code>vite-advanced</code></td><td>frontend-ui-developer</td><td>guideline: fork and agent removed, loads inline</td></tr>
+</table>
+  </section>
+</main>
+</div>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+  const links = [...document.querySelectorAll("nav.rail a")];
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((en) => { if (en.isIntersecting) links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + en.target.id)); });
+  }, { rootMargin: "0px 0px -70% 0px" });
+  document.querySelectorAll("main section[id]").forEach((s) => obs.observe(s));
+</script>
+</body>
+</html>

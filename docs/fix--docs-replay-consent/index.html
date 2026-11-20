@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs site: session replay never starts without consent</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#111;line-height:1.55}
+main{max-width:820px;margin:0 auto;padding:28px 20px}
+h1{font-size:26px;margin:0 0 6px}
+.verdict{border:2px solid #111;border-radius:10px;padding:12px 16px;background:#f3f6ff;margin:14px 0}
+.card{border:2px solid #111;border-radius:10px;padding:12px 14px;margin:14px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+.ok{color:#05631f;font-weight:700}
+.bad{color:#b00020;font-weight:700}
+label{display:block;margin:6px 0}
+button{background:#111;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:15px;cursor:pointer}
+textarea{width:100%;min-height:70px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+code{background:#f4f4f4;padding:1px 4px;border-radius:4px}
+.small{font-size:14px;color:#333}
+</style>
+</head>
+<body>
+<main>
+<h1>Session replay never starts without consent</h1>
+<p class="small">Branch: fix/docs-replay-consent, a follow-up on #5098. Files: <code>docs/site/instrumentation-client.ts</code>, <code>docs/site/lib/posthog-loader.ts</code>, one test.</p>
+<div class="verdict"><b>Before:</b> after a visitor pressed Decline, the replay gate still existed, so entering a <code>/docs/reference</code> page could call <code>startSessionRecording()</code> on an opted-out client. <b>After:</b> the gate starts a recording only while PostHog is loaded and consent stands (<code>isPostHogLoaded()</code>), and withdrawing consent stops any recording in progress before capture is opted out.</div>
+
+<div class="card">
+<b>Walk the path.</b> Pick the visitor's choice and where they go next.
+<label><input type="radio" name="c" value="accept" checked> Accepted analytics</label>
+<label><input type="radio" name="c" value="decline"> Declined analytics</label>
+<label><input type="checkbox" id="ref" checked> Then opens a /docs/reference page</label>
+<div class="grid">
+<div><b>Before this fix</b><p id="before"></p></div>
+<div><b>After this fix</b><p id="after"></p></div>
+</div>
+</div>
+
+<div class="card">
+<button id="copy">Copy as prompt</button>
+<textarea id="prompt" readonly></textarea>
+</div>
+</main>
+<script>
+function render(){
+  const accepted=document.querySelector('input[name=c]:checked').value==="accept";
+  const ref=document.getElementById("ref").checked;
+  const b=document.getElementById("before"), a=document.getElementById("after");
+  let before, after, bOk, aOk;
+  if(!ref){before="No reference page, so the replay gate never fires.";after=before;bOk=aOk=true;}
+  else if(accepted){before="Recording starts (consent given).";after="Recording starts (consent given).";bOk=aOk=true;}
+  else{before="Recording starts on an opted-out client.";after="No recording: isPostHogLoaded() is false after Decline.";bOk=false;aOk=true;}
+  b.textContent=before;b.className=bOk?"ok":"bad";
+  a.textContent=after;a.className=aOk?"ok":"bad";
+  document.getElementById("prompt").value=`Check docs site replay consent: visitor ${accepted?"accepted":"declined"} analytics${ref?" and opened a /docs/reference page":""}. Expected after the fix: ${after}`;
+}
+document.querySelectorAll("input").forEach(i=>i.addEventListener("change",render));
+document.getElementById("copy").addEventListener("click",()=>navigator.clipboard.writeText(document.getElementById("prompt").value));
+render();
+</script>
+</body>
+</html>

@@ -297,7 +297,8 @@ describe('retry-handler', () => {
 
       // Assert — partial now early-returns before retry logic
       expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('[PARTIAL RESULT]')
+        expect.stringContaining('[PARTIAL RESULT]'),
+        expect.anything(),
       );
       expect(completeAttempt).not.toHaveBeenCalled();
       expect(makeRetryDecision).not.toHaveBeenCalled();
@@ -392,7 +393,8 @@ describe('retry-handler', () => {
 
       // Assert — partial skips retry logic entirely
       expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('[PARTIAL RESULT]')
+        expect.stringContaining('[PARTIAL RESULT]'),
+        expect.anything(),
       );
       expect(completeAttempt).not.toHaveBeenCalled();
       expect(makeRetryDecision).not.toHaveBeenCalled();
@@ -665,7 +667,8 @@ describe('retry-handler', () => {
 
       // Assert
       expect(outputWithContext).toHaveBeenCalledWith(
-        expect.stringContaining('Retry')
+        expect.stringContaining('Retry'),
+        expect.anything(),
       );
     });
   });

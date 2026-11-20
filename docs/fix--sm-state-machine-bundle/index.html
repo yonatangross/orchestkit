@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four state machine bugs in the OrchestKit hooks</title>
+<meta name="description" content="Pick a bug the hook state machine audit confirmed and compare what the state did before the fix with what it does now.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--dim);font-size:.8rem;margin-top:.6rem}
+  select{width:100%;background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.8rem;min-height:5rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--dim);font-weight:400}
+  p.file{font-size:.75rem;color:var(--dim);margin:.9rem 0 0;overflow-wrap:anywhere}
+</style>
+</head>
+<body><main>
+<h1>Four state machine bugs in the OrchestKit hooks</h1>
+<p class="sub">Branch fix/sm-state-machine-bundle, 2026-11-08. Hooks run as short-lived processes, so their state lives in files and a database. An audit of that state found transitions the code never meant to allow. Full write-up: docs/state-machines.md.</p>
+
+<section><h2>Pick a bug</h2>
+<label for="group">Group</label>
+<select id="group"></select>
+<label for="bug">Bug</label>
+<select id="bug"></select>
+<div class="grid">
+  <div><h3>Before</h3><div class="out bad" id="before"></div></div>
+  <div><h3>Now</h3><div class="out ok" id="after"></div></div>
+</div>
+<p class="file" id="file"></p>
+</section>
+
+<script>
+const GROUPS = [
+  { name: 'Session id split brain', bugs: [
+    { name: 'Token accumulator and goal tracker', before: 'The accumulator wrote under a generated id while the goal tracker read under the real session id, so goal budgets never saw tool output tokens.', after: 'Both resolve the id from the hook input first, then the context, then the environment, so they share one file.', file: 'posttool/context-crossing-warn.ts' },
+    { name: 'PreCompact nudge across /clear', before: 'The generated id lasts 24 hours, so a new session after /clear looked like the old one and a later compact was credited to the wrong session.', after: 'The real session id differs after /clear, so the earlier marker resolves as clear.', file: 'lifecycle/pre-compact-task-done-prompt.ts, nudge-outcome-resolver.ts, post-compact-recovery.ts, pre-compact-saver.ts' },
+    { name: 'Short prompts skip the turn count', before: 'Prompts under 50 characters returned before the counter moved, so a goal could sit at turn 0 and max_turns never fired.', after: 'Every prompt with a session id advances the counter. A short prompt keeps the previous shape baseline.', file: 'prompt/cache-break-detector.ts' },
+  ]},
+  { name: 'Session registry', bugs: [
+    { name: 'Resumed session keeps ended_at', before: 'A resumed session became running with its old ended_at still set.', after: 'Resume clears ended_at.', file: 'lifecycle/session-registrar.ts' },
+    { name: 'Heartbeat ignores status', before: 'A heartbeat left a crashed session crashed, and a late one moved last_heartbeat past ended_at on a completed row.', after: 'A heartbeat recovers a crashed session with no ended_at to running and never touches a completed row.', file: 'posttool/heartbeat.ts' },
+  ]},
+  { name: 'Subagent retries and tasks', bugs: [
+    { name: 'ork: prefix mismatch', before: 'Tasks registered as ork:name never matched the bare name at SubagentStop and stayed pending.', after: 'Names compare with the ork: prefix stripped, and the type is read from tool_input first.', file: 'lib/task-integration.ts, posttool/task/agent-task-auto-register.ts, subagent-start/context-gate.ts, lib/retry-manager.ts' },
+    { name: 'Retry count never moves', before: 'No hook added the agent to the tracked list, so the status update did nothing and every failure read as the first.', after: 'An untracked agent gets an entry on its first status update, so the count persists and reaches the limit.', file: 'lib/orchestration-state.ts, subagent-stop/retry-handler.ts' },
+    { name: 'Second numbered batch', before: 'A second [1/N] batch in one session kept the old progress, so completed could pass total.', after: 'A new batch starting after a finished one resets the progress.', file: 'task-created/task-progress-initializer.ts' },
+  ]},
+  { name: 'Lock and ledger', bugs: [
+    { name: 'Lock stolen while being created', before: 'A contender reading an empty, brand new lockfile treated it as abandoned and deleted it.', after: 'A lockfile too new to hold a PID yet is left alone.', file: 'lib/pidlock.ts' },
+    { name: 'Ledger from another HEAD', before: 'An incremental update spliced entries into a ledger stamped with a different HEAD.', after: 'The update only touches a ledger whose head matches the current one.', file: 'lib/debt-ledger.ts' },
+  ]},
+];
+const group = document.getElementById('group');
+const bug = document.getElementById('bug');
+function fill(select, items) {
+  select.replaceChildren(...items.map((item, i) => new Option(item.name, String(i))));
+}
+function show() {
+  const b = GROUPS[Number(group.value)].bugs[Number(bug.value)];
+  document.getElementById('before').textContent = b.before;
+  document.getElementById('after').textContent = b.after;
+  document.getElementById('file').textContent = 'src/hooks/src: ' + b.file;
+}
+group.addEventListener('change', () => { fill(bug, GROUPS[Number(group.value)].bugs); show(); });
+bug.addEventListener('change', show);
+fill(group, GROUPS);
+fill(bug, GROUPS[0].bugs);
+show();
+</script>
+</main></body>
+</html>

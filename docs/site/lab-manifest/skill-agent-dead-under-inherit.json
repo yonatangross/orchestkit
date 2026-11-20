@@ -1,0 +1,8 @@
+{
+  "slug": "skill-agent-dead-under-inherit",
+  "source": "docs/fix--sc47-f26-skill-agent-context/index.html",
+  "title": "Dead agent: under context inherit",
+  "description": "F26: nine skills set agent: with context: inherit, so the agent binding never ran. Fix deletes agent:, keeps inherit, and lints agent: requires fork.",
+  "tags": ["skills", "frontmatter", "agent", "context", "f26"],
+  "date": "2026-09-22"
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ci-debug stops claiming the sentinel runs it</title>
+<meta name="description" content="Pick a line of the ci-debug skill and compare what it said about ci-sentinel before and after it was matched to the workflow.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.8rem;min-height:5rem}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+</head>
+<body><main>
+<h1>ci-debug stops claiming the sentinel runs it</h1>
+<p class="sub">Branch docs/5139-ci-debug-sentinel-claims, 2026-11-08. Skill text only. The workflow runs with no tools and keeps its own pattern list.</p>
+<section><h2>Pick a case</h2>
+<label for="pick">Case</label>
+<select id="pick"></select>
+<div class="grid">
+  <div><h3>Before</h3><div class="out bad" id="before"></div></div>
+  <div><h3>Now</h3><div class="out ok" id="after"></div></div>
+</div>
+<button id="copy" type="button">Copy prompt</button>
+</section>
+<script>
+const CASES = [["Adding a pattern", "The workflow picks it up on its next sweep, no plumbing needed.", "Add it to the workflow prompt in the same change."], ["Sweeping all red PRs", "ci-sentinel runs this skill across them.", "ci-sentinel classifies them with a copy of this playbook."], ["Headless runs", "Named ci-sentinel, cron and --bare.", "Describes any headless run that loads this skill."]];
+const pick = document.getElementById('pick');
+pick.replaceChildren(...CASES.map((c, i) => new Option(c[0], String(i))));
+function show() {
+  const c = CASES[Number(pick.value)];
+  document.getElementById('before').textContent = c[1];
+  document.getElementById('after').textContent = c[2];
+}
+pick.addEventListener('change', show);
+document.getElementById('copy').addEventListener('click', () => {
+  const c = CASES[Number(pick.value)];
+  navigator.clipboard.writeText('Check this case in OrchestKit: ' + c[0] + '. Before: ' + c[1] + ' Now: ' + c[2]);
+});
+show();
+</script>
+</main></body>
+</html>

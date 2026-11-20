@@ -53,6 +53,43 @@ Both attributes are attached only to telemetry from **workflow-spawned** agents 
 
 New in CC 2.1.214; older data lacks them, so queries must null-check before grouping. The truncation limit for captured content on these events is configurable via `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH` (default 60 KB) — see configure's `cc-version-settings.md`.
 
+### From 2.1.300 (cache write split, GenAI span attributes)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `cache_creation_5m_tokens` | `api_request` | non-negative integer | Cache-write tokens with the 5-minute lifetime. |
+| `cache_creation_1h_tokens` | `api_request` | non-negative integer | Cache-write tokens with the 1-hour lifetime. The two price differently (a 1h write costs more than a 5m write), so a cost panel that multiplies the old single `cache_creation_tokens` by one rate is wrong for sessions that mix both; subagents write 5m and the main conversation mostly 1h. |
+| `gen_ai.provider.name`, `gen_ai.conversation.id`, `gen_ai.tool.name`, `error.type` | trace spans | strings | OpenTelemetry GenAI semantic-convention attributes, so a generic GenAI backend can read Claude Code spans without a custom mapping. |
+
+### From 2.1.301 and 2.1.302 (auto mode decisions)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `classifier_verdict` | `tool_decision` | string | The auto mode classifier's verdict. Tells a classifier decision apart from a permission-rule decision. |
+| `permission_mode` | `tool_decision` | `default`, `auto`, `acceptEdits`, `plan`, `bypassPermissions`, ... | The mode the decision was made in. |
+| `classifier_category` | `tool_decision` | string | The built-in rule a classifier block matched. Sent only with `OTEL_LOG_TOOL_DETAILS=1`; 2.1.302 fixed it missing from most blocks, so data from 2.1.301 undercounts it. |
+
+2.1.302 also fixed the new attributes pushing `tool_use_id`, `tool_source` and `tool_parameters` out when `OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT` is low. A pre/post join on `tool_use_id` over 2.1.301 data can miss rows for that reason.
+
+### 2.1.307 to 2.1.311 only (`claude_code.safety_event`, withdrawn in 2.1.312)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| (event) | `claude_code.safety_event` | one per tool call | Emitted on 2.1.307 through 2.1.311 for each tool call that a permission rule, auto mode, a safety check, a hook or the sandbox stopped, prompted or sent back. CC 2.1.312 stopped sending it, so a panel built on it reads zero from 2.1.312 on; count ork guard denials from hook logs instead. |
+
+### From 2.1.317 (`anthropic.*` attributes)
+
+| Field | Event | Values | Purpose |
+|---|---|---|---|
+| `anthropic.plan` | metrics, events, spans | string | The account's plan. Lets cost panels split by plan. |
+| `anthropic.seat_type` | metrics, events, spans | string | The seat type of the signed-in user. |
+| `anthropic.provider` | metrics, events, spans | string | Which API provider served the session (first party, Bedrock, Vertex, Foundry). |
+| `anthropic.custom_base_url` | metrics, events, spans | string | Set when the session uses a custom base URL (an LLM gateway). |
+
+Values beyond the attribute names are not in the CHANGELOG; read them from one exported record before building a panel.
+
+From 2.1.312 the `effort` attribute names the level in force, not a level picked mid-task before the model applied it, so per-effort panels over earlier data can misattribute a few requests.
+
 Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json`) and in the same JSONL streams this skill already reads if OTEL-to-JSONL bridging is on.
 
 ## Data location
@@ -66,6 +103,8 @@ Exports land in `~/.claude/otel/` (when OTEL export is enabled in `settings.json
 ~/.claude/otel/at-mentions.jsonl        # target                                (2.1.122)
 ~/.claude/otel/skill-activated.jsonl    # invocation_trigger                    (2.1.126)
 ```
+
+For sessions on other machines or in the cloud, a collector (Loki + Prometheus) holds the same events and metrics with per-lane and per-harness splits: see `otel-gateway-source.md`. Select the remote source only after the user names its endpoints and discovery confirms the available names.
 
 When OTEL export is disabled the files simply do not exist — queries below handle this with `2>/dev/null` and empty-result fallbacks.
 
@@ -195,7 +234,7 @@ Output shape: `[{skill: "frontend-design", total: 23, user_slash: 4, claude_proa
 **Reading the data:**
 - High `proactive_ratio` (>50%) → description is doing its job; model is finding the skill from intent.
 - Low `proactive_ratio` (<10%) and low `total` → description may be too narrow, or skill not user-invocable. Candidate for sharpening or for `user-invocable: true`.
-- High `nested_skill` → skill is composed by other skills (e.g., `/ork:design-import` → `component-search`). Verify the chain is intentional.
+- High `nested_skill` → skill is composed by other skills (e.g., `/ork:design-to-code import` → `component-search`). Verify the chain is intentional.
 
 Falls back to `[]` when the file is absent — render as "no OTEL data available (upgrade to CC ≥ 2.1.126)".
 
@@ -226,5 +265,6 @@ Include these panels in `summary` when **any** of the three OTEL files are prese
 ## Related
 
 - `src/skills/analytics/references/jq-queries.md` — base queries for non-OTEL JSONL sources.
+- `src/skills/analytics/references/otel-gateway-source.md`: the remote source (Loki + Prometheus) for the same panels, plus per-lane and per-harness splits.
 - `src/skills/analytics/references/cost-estimation.md` — per-model pricing; combines with Panel 2 for dollar-denominated breakdowns.
 - `src/hooks/src/lib/cc-version-matrix.ts` — `otel_command_attrs` entry gates these fields behind `MIN_CC_VERSION = 2.1.117`.

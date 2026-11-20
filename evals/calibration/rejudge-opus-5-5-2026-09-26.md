@@ -1,0 +1,102 @@
+# Re-judge Opus 5.5, run 20260926T061513Z
+
+Source: live `claude plugin eval` judge (`claude-opus-5-5`) on run 20260926T061513Z.
+Offline `scripts/rejudge-eval-outputs.mjs` against the 2026-09-12 stored run is blocked: that `run.json` is gitignored and not on disk.
+A fresh offline rejudge of today's outputs also failed (CLI non-zero + connector warning on stderr); the live judge table below is the Opus 5.5 baseline.
+
+| Case | Arm | Claim | Judge |
+|---|---|---|---|
+| `10-commit-message-from-diff` | with | conventional-prefix | PASS |
+| `10-commit-message-from-diff` | with | q-body-explains-why | PASS |
+| `10-commit-message-from-diff` | with | q-no-fabricated-repo-state | PASS |
+| `10-commit-message-from-diff` | with | q-no-invented-changes | PASS |
+| `10-commit-message-from-diff` | with | q-subject-imperative-short | PASS |
+| `10-commit-message-from-diff` | with | q-typed-as-fix | PASS |
+| `10-commit-message-from-diff` | with | skill-fired | PASS |
+| `10-commit-message-from-diff` | without | conventional-prefix | PASS |
+| `10-commit-message-from-diff` | without | q-body-explains-why | PASS |
+| `10-commit-message-from-diff` | without | q-no-fabricated-repo-state | PASS |
+| `10-commit-message-from-diff` | without | q-no-invented-changes | PASS |
+| `10-commit-message-from-diff` | without | q-subject-imperative-short | PASS |
+| `10-commit-message-from-diff` | without | q-typed-as-fix | PASS |
+| `11-commit-scope-detection` | with | has-scope | PASS |
+| `11-commit-scope-detection` | with | q-is-a-commit-message | PASS |
+| `11-commit-scope-detection` | with | q-states-no-behaviour-change | PASS |
+| `11-commit-scope-detection` | with | q-typed-as-refactor | PASS |
+| `11-commit-scope-detection` | with | skill-fired | FAIL |
+| `11-commit-scope-detection` | without | has-scope | PASS |
+| `11-commit-scope-detection` | without | q-is-a-commit-message | PASS |
+| `11-commit-scope-detection` | without | q-states-no-behaviour-change | PASS |
+| `11-commit-scope-detection` | without | q-typed-as-refactor | PASS |
+| `12-commit-should-not-fire` | with | commit-skill-not-used | PASS |
+| `12-commit-should-not-fire` | with | q-explains-rebase-vs-merge | PASS |
+| `12-commit-should-not-fire` | with | q-no-commit-produced | PASS |
+| `12-commit-should-not-fire` | with | q-proportionate-to-ask | PASS |
+| `12-commit-should-not-fire` | with | q-recommends-for-review | PASS |
+| `12-commit-should-not-fire` | without | commit-skill-not-used | PASS |
+| `12-commit-should-not-fire` | without | q-explains-rebase-vs-merge | PASS |
+| `12-commit-should-not-fire` | without | q-no-commit-produced | PASS |
+| `12-commit-should-not-fire` | without | q-proportionate-to-ask | PASS |
+| `12-commit-should-not-fire` | without | q-recommends-for-review | PASS |
+| `20-prd-to-goal-basic` | with | exactly-one-goal-line | PASS |
+| `20-prd-to-goal-basic` | with | goal-line-shape | PASS |
+| `20-prd-to-goal-basic` | with | q-assertions-and-joined | PASS |
+| `20-prd-to-goal-basic` | with | q-assertions-shell-checkable | PASS |
+| `20-prd-to-goal-basic` | with | q-covers-all-four-criteria | PASS |
+| `20-prd-to-goal-basic` | with | skill-fired | PASS |
+| `20-prd-to-goal-basic` | without | exactly-one-goal-line | FAIL |
+| `20-prd-to-goal-basic` | without | goal-line-shape | FAIL |
+| `20-prd-to-goal-basic` | without | q-assertions-and-joined | FAIL |
+| `20-prd-to-goal-basic` | without | q-assertions-shell-checkable | FAIL |
+| `20-prd-to-goal-basic` | without | q-covers-all-four-criteria | FAIL |
+| `21-prd-to-goal-unfalsifiable` | with | q-concrete-way-forward | PASS |
+| `21-prd-to-goal-unfalsifiable` | with | q-names-spec-unfalsifiable | PASS |
+| `21-prd-to-goal-unfalsifiable` | with | q-no-silent-fabrication | PASS |
+| `21-prd-to-goal-unfalsifiable` | with | skill-fired | PASS |
+| `21-prd-to-goal-unfalsifiable` | without | q-concrete-way-forward | PASS |
+| `21-prd-to-goal-unfalsifiable` | without | q-names-spec-unfalsifiable | PASS |
+| `21-prd-to-goal-unfalsifiable` | without | q-no-silent-fabrication | FAIL |
+| `22-prd-to-goal-should-not-fire` | with | no-goal-line | PASS |
+| `22-prd-to-goal-should-not-fire` | with | no-skill | PASS |
+| `22-prd-to-goal-should-not-fire` | with | q-proportionate-to-ask | PASS |
+| `22-prd-to-goal-should-not-fire` | with | q-runtime-toggle-vs-redeploy | PASS |
+| `22-prd-to-goal-should-not-fire` | with | q-when-kill-switch-wins | PASS |
+| `22-prd-to-goal-should-not-fire` | without | no-goal-line | PASS |
+| `22-prd-to-goal-should-not-fire` | without | no-skill | PASS |
+| `22-prd-to-goal-should-not-fire` | without | q-proportionate-to-ask | PASS |
+| `22-prd-to-goal-should-not-fire` | without | q-runtime-toggle-vs-redeploy | PASS |
+| `22-prd-to-goal-should-not-fire` | without | q-when-kill-switch-wins | PASS |
+| `30-glyph-status-render` | with | box-drawing-used | PASS |
+| `30-glyph-status-render` | with | q-compact-with-prose-lead | PASS |
+| `30-glyph-status-render` | with | q-drawn-structure | PASS |
+| `30-glyph-status-render` | with | q-four-workers-three-states | PASS |
+| `30-glyph-status-render` | with | q-semantic-emoji-only | PASS |
+| `30-glyph-status-render` | with | skill-fired | PASS |
+| `30-glyph-status-render` | without | box-drawing-used | PASS |
+| `30-glyph-status-render` | without | q-compact-with-prose-lead | FAIL |
+| `30-glyph-status-render` | without | q-drawn-structure | FAIL |
+| `30-glyph-status-render` | without | q-four-workers-three-states | PASS |
+| `30-glyph-status-render` | without | q-semantic-emoji-only | PASS |
+| `31-glyph-comparison` | with | has-structure | PASS |
+| `31-glyph-comparison` | with | q-aligned-dimensions | PASS |
+| `31-glyph-comparison` | with | q-compact | FAIL |
+| `31-glyph-comparison` | with | q-drawn-comparison | PASS |
+| `31-glyph-comparison` | with | q-tradeoff-visible | PASS |
+| `31-glyph-comparison` | with | skill-fired | PASS |
+| `31-glyph-comparison` | without | has-structure | PASS |
+| `31-glyph-comparison` | without | q-aligned-dimensions | PASS |
+| `31-glyph-comparison` | without | q-compact | PASS |
+| `31-glyph-comparison` | without | q-drawn-comparison | PASS |
+| `31-glyph-comparison` | without | q-tradeoff-visible | PASS |
+| `32-glyph-should-not-fire` | with | no-ascii-art | PASS |
+| `32-glyph-should-not-fire` | with | no-skill | PASS |
+| `32-glyph-should-not-fire` | with | q-no-default-value-stated | PASS |
+| `32-glyph-should-not-fire` | with | q-one-sentence | PASS |
+| `32-glyph-should-not-fire` | with | q-proportionate-to-ask | PASS |
+| `32-glyph-should-not-fire` | without | no-ascii-art | PASS |
+| `32-glyph-should-not-fire` | without | no-skill | PASS |
+| `32-glyph-should-not-fire` | without | q-no-default-value-stated | PASS |
+| `32-glyph-should-not-fire` | without | q-one-sentence | PASS |
+| `32-glyph-should-not-fire` | without | q-proportionate-to-ask | PASS |
+
+Counts from live run.json: PASS=82 FAIL=10 other=0

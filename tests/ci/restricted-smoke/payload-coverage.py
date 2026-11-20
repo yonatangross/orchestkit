@@ -7,8 +7,15 @@ is a fixture kept alive after its rule was dropped, which reads as coverage and
 is not. Exit 1 on either, so the probe stops before it reports a partial sweep
 as a full one.
 """
+
 import json
+import re
 import sys
+
+# A Bash() rule with text after ':*' (Bash(find:*-delete*)). CC before 2.1.282
+# skipped these in settings files; the floor is 2.1.277, so they are still
+# dead for part of the supported range. Use the space form: Bash(find *-delete*).
+MID_COLON_STAR = re.compile(r"^Bash\(.*:\*.+\)$")
 
 payload_path, cases_path = sys.argv[1], sys.argv[2]
 rules = json.load(open(payload_path))["deny"]
@@ -24,6 +31,10 @@ for r in sorted(rule_set - case_set):
     problems.append(f"  rule with no trip case (would ship untested): {r}")
 for r in sorted(case_set - rule_set):
     problems.append(f"  trip case for a rule no longer in the payload: {r}")
+for r in sorted(r for r in rule_set if MID_COLON_STAR.match(r)):
+    problems.append(
+        f"  mid-pattern ':*' rule, skipped by CC before 2.1.282 (use the space form): {r}"
+    )
 dupes = sorted({r for r in case_rules if case_rules.count(r) > 1})
 for r in dupes:
     problems.append(f"  duplicate trip case: {r}")
@@ -36,7 +47,8 @@ for c in twin:
         problems.append(f"  twin case with no twin rule named: {c['rule']}")
     elif c["twin"] not in rule_set:
         problems.append(
-            f"  twin case points at a rule the payload does not ship: {c['rule']} -> {c['twin']}")
+            f"  twin case points at a rule the payload does not ship: {c['rule']} -> {c['twin']}"
+        )
     if not c.get("reason"):
         problems.append(f"  twin case with no stated reason: {c['rule']}")
 for c in notlive:
@@ -53,4 +65,6 @@ if problems:
     print("\n".join(problems))
     sys.exit(1)
 
-print(f"coverage: {len(rules)} rules, {len(live)} live, {len(twin)} twin, {len(notlive)} not-live, 0 drift")
+print(
+    f"coverage: {len(rules)} rules, {len(live)} live, {len(twin)} twin, {len(notlive)} not-live, 0 drift"
+)

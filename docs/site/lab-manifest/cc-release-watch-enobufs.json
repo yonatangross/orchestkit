@@ -1,0 +1,8 @@
+{
+  "slug": "cc-release-watch-enobufs",
+  "source": "docs/chore--cc-release-watch-enobufs/changelog-fetch-limits.html",
+  "title": "cc-release-watch: changelog fetch limits",
+  "description": "Enter a CHANGELOG size and see which fetch path survives: base64 through a 1 MiB execSync buffer versus the raw media type the watch now uses.",
+  "tags": ["cc-adoption", "ci"],
+  "date": "2026-09-29"
+}

@@ -33,6 +33,19 @@ for f in "$AGENTS_DIR"/*.md; do
   VALID_AGENTS["$(basename "$f" .md)"]=1
 done
 
+# Plugin workflows are a third component type: manifests/ork.json workflows[] are
+# registered as ork:<meta.name> and launched by that name (#5183). Read each
+# script's own meta.name (the first name: line), as test-docs-site-drift.mjs does.
+declare -A VALID_WORKFLOWS
+wf_list="$(node -e '
+  const m = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+  for (const w of m.workflows || []) console.log(w);
+' "$PROJECT_ROOT/manifests/ork.json")"
+for wf_rel in $wf_list; do
+  wf_name="$(sed -nE 's/^[[:space:]]*name:[[:space:]]*.([a-z0-9-]+).,?.*/\1/p' "$PROJECT_ROOT/src/$wf_rel" | sed -n 1p)"
+  [[ -n "$wf_name" ]] && VALID_WORKFLOWS["$wf_name"]=1
+done
+
 log() { [[ "$VERBOSE" == "--verbose" ]] && echo "  INFO $1" || true; }
 
 # Parse skills: array (inline [a,b] or multi-line - a) from YAML frontmatter
@@ -61,7 +74,7 @@ check_ref() { # $1=source $2=ref $3=label
 # Body `ork:<name>` refs may name a skill OR an agent — accept either.
 check_body_ref() { # $1=source $2=ref $3=label
   TOTAL_REFS=$((TOTAL_REFS + 1)); REFERENCED_BY["$2"]=1
-  if [[ -z "${VALID_SKILLS[$2]:-}" && -z "${VALID_AGENTS[$2]:-}" ]]; then
+  if [[ -z "${VALID_SKILLS[$2]:-}" && -z "${VALID_AGENTS[$2]:-}" && -z "${VALID_WORKFLOWS[$2]:-}" ]]; then
     echo "  FAIL $1 references non-existent skill/agent '$3'" ; BROKEN=$((BROKEN + 1))
   else log "$1 -> $2 (ok)"; fi
 }

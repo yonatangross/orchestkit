@@ -1,6 +1,6 @@
 ---
 title: "Create Your Own Hook"
-description: "Step-by-step guide to writing, registering, building, and testing a custom OrchestKit hook -- from TypeScript types to esbuild bundles."
+description: "Step-by-step guide to writing, registering, building, and testing a custom OrchestKit hook, from TypeScript types to esbuild bundles."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -133,14 +133,14 @@ touch src/hooks/src/pretool/Write/large-file-warner.ts
 ```
 
 Directory conventions:
-- `pretool/bash/` -- PreToolUse hooks for Bash commands
-- `pretool/write-edit/` -- PreToolUse hooks for Write and Edit
-- `pretool/Write/` -- PreToolUse hooks for Write only
-- `posttool/` -- PostToolUse hooks
-- `prompt/` -- UserPromptSubmit hooks
-- `permission/` -- PermissionRequest hooks
-- `lifecycle/` -- SessionStart / SessionEnd hooks
-- `stop/` -- Stop event hooks
+- `pretool/bash/`: PreToolUse hooks for Bash commands
+- `pretool/write-edit/`: PreToolUse hooks for Write and Edit
+- `pretool/Write/`: PreToolUse hooks for Write only
+- `posttool/`: PostToolUse hooks
+- `prompt/`: UserPromptSubmit hooks
+- `permission/`: PermissionRequest hooks
+- `lifecycle/`: SessionStart / SessionEnd hooks
+- `stop/`: Stop event hooks
 </Step>
 
 <Step>
@@ -233,10 +233,10 @@ Add the hook to `src/hooks/hooks.json` under the appropriate event and matcher:
 ```
 
 The `matcher` field is a regex-like pattern that Claude Code matches against the tool name. Common matchers:
-- `"Bash"` -- Bash tool only
-- `"Write|Edit"` -- Write or Edit tools
-- `"Bash|Write|Edit|Task|Skill|NotebookEdit"` -- Multiple tools
-- `"mcp__memory__*"` -- MCP memory tools (glob pattern)
+- `"Bash"`: Bash tool only
+- `"Write|Edit"`: Write or Edit tools
+- `"Bash|Write|Edit|Task|Skill|NotebookEdit"`: Multiple tools
+- `"mcp__memory__*"`: MCP memory tools (glob pattern)
 </Step>
 
 <Step>

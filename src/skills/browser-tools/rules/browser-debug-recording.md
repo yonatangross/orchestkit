@@ -56,6 +56,21 @@ agent-browser record start /tmp/bug-repro.webm
 agent-browser click @e5
 agent-browser wait --text "Error"
 agent-browser record stop
+
+# 30 fps by default (v0.37); raise it for a short, motion-heavy repro
+# (drags, CSS transitions) and add --cursor so the pointer is visible in
+# the clip. --cursor is a video-only overlay: it is hidden from
+# accessibility snapshots and removed automatically on stop.
+agent-browser record start /tmp/drag-bug.webm --fps 60 --cursor
+agent-browser drag @e2 @e7
+agent-browser record stop
+
+# --contact-sheet (v0.38) saves a timestamped PNG of the distinct visual
+# changes during the take, alongside the video, useful as a quick-glance
+# summary in a bug report without asking someone to scrub the recording.
+agent-browser record start /tmp/repro.webm --contact-sheet
+agent-browser click @e5
+agent-browser record stop
 ```
 
 ## HAR Network Capture (v0.21+)
@@ -113,5 +128,9 @@ agent-browser clipboard paste  # Paste clipboard contents
 - **HAR files contain auth tokens** — add `*.har` to `.gitignore`, treat as sensitive
 - **`inspect` opens DevTools** to local network — only use on trusted machines, not CI/shared envs
 - **`clipboard read`** accesses host clipboard without prompt — be aware in sandboxed contexts
+
+Additional key rules (v0.37 to v0.38):
+- Recording defaults to 30 fps (v0.37). Use `--fps 60` for short, motion-heavy takes, and `--fps 10` or lower when file size matters more than smoothness on a long soak.
+- `--cursor` and `--contact-sheet` (v0.38) are presentation aids for bug-report clips, not credential bearing on their own, but they still capture whatever is on screen, so the auth-timing rule above still applies.
 
 Reference: trace, record and profiler commands are upstream, see the `agent-browser` skill. Our delta: `references/ork-delta.md` (capture output is credential bearing).

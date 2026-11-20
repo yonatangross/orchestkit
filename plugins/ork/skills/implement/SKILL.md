@@ -1,43 +1,24 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server, context7 MCP server, network access."
-description: "Full-power feature implementation using parallel subagents for backend, frontend, testing, and security, with worktree isolation and quality verification in one workflow. Chains with /ork:cover for tests and /ork:verify for validation. Use when asked to build, add, create, scaffold, or set up a new feature, endpoint, component, or UI capability. Not for fixing a bug, reviewing, explaining, testing, or comparing existing code."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server, context7 MCP server, network access."
+description: "Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when asked to build, add or scaffold a feature, endpoint or component. Not for fixing, reviewing or testing existing code."
 argument-hint: "[feature-description]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 2.8.0
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations
-author: OrchestKit
-tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskStop, ToolSearch, WebFetch, EnterWorktree, ExitWorktree, CronCreate, CronDelete, Monitor, PushNotification, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__memory__search_nodes]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate TaskStop ToolSearch WebFetch EnterWorktree ExitWorktree CronCreate CronDelete Monitor PushNotification mcp__context7__resolve-library-id mcp__context7__query-docs mcp__memory__search_nodes"
 skills: [api-design, react-server-components-framework, testing-unit, testing-e2e, testing-integration, explore, verify, memory, scope-appropriate-architecture, chain-patterns]
-complexity: medium
-persuasion-type: guidance
 model: sonnet
-hooks:
-  PreToolUse:
-    - matcher: "Write"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/project-convention-loader"
-      once: true
-    - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/implement-standards-loader"
-      once: true
-  PostToolUse:
-    - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 metadata:
   category: workflow-automation
   mcp-server: memory, context7
-triggers:
-  keywords: [implement, implment, build, create, add, make, scaffold, "set up", "file upload", "dark mode", "rate limiting"]
-  examples:
-    - "build a user authentication system with JWT"
-    - "add dark mode support to the dashboard"
-    - "implement the payment webhook handler"
-  anti-triggers: [fix, debug, review, explore, test, assess, brainstorm]
+  version: "2.8.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "implementation, feature, full-stack, parallel-agents, reflection, worktree"
 paths:
   - "src/**/*.{ts,tsx,js,jsx}"
   - "package.json"
@@ -63,6 +44,8 @@ implement dashboard analytics
 
 ## Argument Resolution
 
+**Check the target first, before any other step.** This skill forks and cannot see the conversation. Load `Read("../../shared/rules/target-resolution.md")`: if the target, flags stripped, is a bare pronoun or deictic (`this`, `them`, `that one`) or empty, return exactly `TARGET_UNRESOLVED: <word>` and stop. The caller resolves it and re-invokes.
+
 ```python
 FEATURE_DESC = "$ARGUMENTS"  # Full argument string, e.g., "user authentication"
 # $ARGUMENTS[0] is the first token, $ARGUMENTS[1] second, etc. (CC 2.1.59)
@@ -75,7 +58,7 @@ for token in "$ARGUMENTS".split():
         FEATURE_DESC = FEATURE_DESC.replace(token, "").strip()
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-4-8`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5-5`) per CC 2.1.74.
 
 ---
 
@@ -114,9 +97,9 @@ Write(".claude/chain/state.json", JSON.stringify({
 
 For implementations touching **>10 files**, enforce max 5 files per agent batch, run tests between batches, commit green batches immediately, stop on red. Override via `--batch-size N`. Full rule: `Read("rules/batch-governance.md")`.
 
-### Budget Awareness (Opus 5 task budgets, public beta)
+### Budget Awareness (Opus 5.5 task budgets, public beta)
 
-Opus 5 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
+Opus 5.5 exposes per-task token budgets. Until the CC side is GA, OrchestKit tracks an advisory `budget_remaining_pct` in `state.json` so long runs self-throttle. Update after each phase:
 
 ```python
 # At end of every phase, estimate remaining budget:
@@ -159,10 +142,10 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 |-------------|------------|--------|--------------|
 | **low** | 1 (Discovery) → 5 (Implement) → 10 (Reflect) | 2 max | ~50K |
 | **medium** | 1 → 2 → 5 → 7 (Scope Creep) → 10 | 3 max | ~150K |
-| **high** (default) | All 10 phases | 4-7 | ~400K |
+| **high** | All 10 phases | 4-7 | ~400K |
 | **xhigh** (Opus 5, CC 2.1.111+) | All 10 phases + one additional healing iteration on test failures before escalating | 4-7 | ~550K |
 
-> **Override:** Explicit user selection in Step 0 (e.g., "Plan first" or "Worktree") overrides `/effort` downscaling. If user requests full exploration, respect that regardless of effort level.
+> **Override:** Explicit user selection in Step 0 (e.g., "Plan first" or "Worktree") overrides `/effort` downscaling. If user requests full exploration, respect that regardless of effort level. `low` is right only for spec-complete, mechanical work, and a low run always hands off to `/ork:verify` at high: `Read("references/effort-ladder.md")`.
 
 ## Step 0a: Project Context Discovery
 
@@ -171,6 +154,14 @@ Read the `/effort` setting to scale implementation depth. The effort-aware conte
 Scan codebase signals and classify into tiers 1-6 (Interview through Open Source). Each tier sets an architecture ceiling and determines which phases/agents to use.
 
 Load tier details, workflow mapping, and orchestration mode: `Read("references/tier-classification.md")`
+
+**Project context, already loaded.** Claude Code ran these loaders when it opened this skill (a fork never runs frontmatter hooks, and a body step can be skipped, #4683). Keep each `additionalContext` below in mind. A blank line means that loader had nothing to add. If you see `[shell command execution disabled by policy]` instead, run `skill/project-convention-loader` and `skill/implement-standards-loader` yourself, each as `echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" <loader>`, and take the start sha from `git rev-parse HEAD`:
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/project-convention-loader 2>/dev/null || true`
+
+!`echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}' | node "${CLAUDE_SKILL_DIR}/../../hooks/bin/run-hook.mjs" skill/implement-standards-loader 2>/dev/null || true`
+
+Start sha for the Phase 6 pattern check (`none` outside a repository or before the first commit): !`git rev-parse HEAD 2>/dev/null || echo none`
 
 ### Worktree Isolation (CC 2.1.49)
 
@@ -230,6 +221,8 @@ Before Phase 1, resolve the unknowns whose answers would **change the architectu
 
 ---
 
+**Finish line.** Done means: every planned file is written, the new and existing tests pass, the scope-creep check found nothing unplanned, and E2E verification ran. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
+
 ## Task Management (MANDATORY)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
@@ -285,6 +278,8 @@ TaskUpdate(taskId="2", status="completed")    # When done — repeat for each su
 
 Load agent prompts: `Read("references/agent-phases.md")`
 
+**Phase 6 pattern check.** The fork cannot run the enforcer per Write/Edit (#4683); pipe each changed file into `node "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs" skill/pattern-consistency-enforcer` once, as `Read("references/phase-6-pattern-check.md")` shows.
+
 For Agent Teams mode: `Read("references/agent-teams-phases.md")`
 > **Nested delegation (CC 2.1.172+):** Phase 4-6 specialist agents MAY be instructed to delegate a bounded sub-problem to their own declared sub-agents (e.g. backend-system-architect → database-engineer for schema design) instead of doing everything inline. Keep chains ≤ 3 levels deep; when sub-tasks are independent, flatten to parallel dispatch from this orchestrator. See chain-patterns Pattern 9 (CC 2.1.172+).
 
@@ -328,7 +323,7 @@ Bash(command="npm run build 2>&1", run_in_background=true)
 Monitor(pid=build_task_id)
 
 # For background agents with test suites:
-Agent(subagent_type="ork:test-generator", run_in_background=true, ...)
+Agent(subagent_type="ork:test-generator", run_in_background=true, isolation="worktree", ...)
 # Monitor agent progress via task notifications (CC 2.1.98 partial progress)
 ```
 
@@ -504,7 +499,7 @@ Load on demand with `Read("references/<file>")`:
 | `agent-teams-phases.md` | Agent Teams mode phases |
 | `interview-mode.md` | Interview/take-home constraints |
 | `blast-radius-clarification.md` | Step 0b: ask-what-before-how blast-radius interview + decisions table |
-| `orchestration-modes.md` | Task tool vs Agent Teams selection |
+| `orchestration-modes.md` | Agent tool vs Agent Teams selection |
 | `feedback-loop.md` | Checkpoint triggers and actions |
 | `cc-enhancements.md` | CC version-specific features |
 | `agent-teams-full-stack.md` | Full-stack pipeline for teams |

@@ -1,0 +1,6 @@
+{
+  "serves": "opus55-tuning-finish-2026-10-11",
+  "page": "docs/chore--opus55-prune-facts/index.html",
+  "lab_slug": "opus55-prune-facts",
+  "purpose": "PR playground: agents drop skill references that name no existing skill"
+}

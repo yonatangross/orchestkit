@@ -1,9 +1,17 @@
 "use client";
 
-import type { ComponentProps, MouseEvent, ReactNode } from "react";
+import { type ComponentProps, type MouseEvent, type ReactNode, useEffect, useRef } from "react";
 import { CodeBlock, Pre } from "fumadocs-ui/components/codeblock";
 import { cn } from "@/lib/cn";
+import { uniqueRegionName } from "@/lib/region-name";
 import { track } from "@/lib/search-beacon";
+
+/** "Code: <title>" or "Code: <first line>", so each code region has its own name. */
+function describeCode(el: Element): string {
+	const title = el.closest("figure")?.querySelector("figcaption")?.textContent?.trim();
+	const first = (el.textContent ?? "").split("\n").find((l) => l.trim())?.trim();
+	return `Code: ${title || first || "block"}`;
+}
 
 const LANGUAGE_RE = /(?:^|\s)language-([\w#+.-]+)/;
 const MAX_TOKEN = 64;
@@ -40,6 +48,14 @@ export function TrackedCodeBlock({
 	children,
 	...props
 }: ComponentProps<"pre"> & { children?: ReactNode }) {
+	// fumadocs renders the scrolling viewport as an unnamed role=region; name
+	// it after mount so a page of code blocks is not a row of identical
+	// landmarks (axe landmark-unique).
+	const figure = useRef<HTMLElement>(null);
+	useEffect(() => {
+		const viewport = figure.current?.querySelector("[role=region]");
+		if (viewport) viewport.setAttribute("aria-label", uniqueRegionName(viewport, describeCode(viewport).slice(0, 80)));
+	}, []);
 	const onActionsClick = (e: MouseEvent<HTMLDivElement>) => {
 		if (!(e.target as Element | null)?.closest?.("button")) return;
 		try {
@@ -53,6 +69,7 @@ export function TrackedCodeBlock({
 	return (
 		<CodeBlock
 			{...(props as ComponentProps<typeof CodeBlock>)}
+			ref={figure}
 			Actions={({ className, children: actions }) => (
 				<div
 					className={cn("empty:hidden", className)}

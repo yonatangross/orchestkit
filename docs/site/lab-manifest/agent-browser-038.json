@@ -1,0 +1,8 @@
+{
+  "slug": "agent-browser-038",
+  "source": "docs/feat--ork-ab038/index.html",
+  "title": "Agent-browser 0.38.1 workflow playground",
+  "description": "Choose between delta snapshots, fresh baselines, and the full Jev candidate set, with capture and recording examples.",
+  "tags": ["browser", "testing", "skills"],
+  "date": "2026-09-19"
+}

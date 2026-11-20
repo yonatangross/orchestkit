@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>lesson-cards: no failed stat for a floor dir without lessons.md</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;max-height:260px;overflow:auto}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+input[type=range]{width:100%}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="lesson-cards 1.1.1: no failed stat for a floor dir without lessons.md"><meta property="og:description" content="lesson-cards asks fs.exists before fs.stat, so a floor with many dirs and few lessons.md files no longer logs one ENOENT per dir at session start. Move the sliders to compare 1.1.0 and 1.1.1."><meta property="og:url" content="https://orchestkit.dev/lab/mods-lesson-cards-skip-missing-lessons.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="lesson-cards 1.1.1: no failed stat for a floor dir without lessons.md"><meta name="twitter:description" content="lesson-cards asks fs.exists before fs.stat, so a floor with many dirs and few lessons.md files no longer logs one ENOENT per dir at session start. Move the sliders to compare 1.1.0 and 1.1.1."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>lesson-cards 1.1.1: no failed stat for a floor dir without lessons.md</h1>
+<p>At session start lesson-cards looks for <code>~/.claude/hq/floor-*/lessons.md</code>. Most floor dirs have none, and each one logged <code>$.fs.stat (lesson-cards): .../lessons.md failed: ENOENT</code> (88 lines per session start on a floor with 93 dirs, measured 2026-10-20). 1.1.1 asks <code>$.fs.exists</code> first and stats only the files that exist. An engine without <code>fs.exists</code> keeps the old path.</p>
+<div class="card">
+<label>floor dirs <b id="dv">93</b><input id="dirs" type="range" min="1" max="200" value="93"></label>
+<label>dirs with lessons.md <b id="lv">5</b><input id="les" type="range" min="0" max="20" value="5"></label>
+<p><label><input type="radio" name="v" value="110"> 1.1.0</label> <label><input type="radio" name="v" value="111" checked> 1.1.1</label></p>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function run(){
+  const d=+$('dirs').value, l=Math.min(+$('les').value,d), v=document.querySelector('input[name=v]:checked').value;
+  $('dv').textContent=d; $('lv').textContent=l;
+  const enoent = v==='110' ? d-l : 0;
+  const lines=[];
+  for(let i=0;i<Math.min(enoent,8);i++) lines.push(`[DEBUG] $.fs.stat (lesson-cards): ~/.claude/hq/floor-${i+1}/lessons.md failed: ENOENT`);
+  if(enoent>8) lines.push(`... ${enoent-8} more`);
+  lines.push(`fs.exists calls: ${v==='111'?d:0} · fs.stat calls: ${v==='111'?l:d} · ENOENT debug lines: ${enoent}`);
+  $('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.oninput=run); run();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

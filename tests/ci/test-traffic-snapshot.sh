@@ -128,6 +128,37 @@ cat > "$FX/referrers.json" <<'EOF'
   {"referrer": "duckduckgo.com", "count": 6, "uniques": 5}
 ]
 EOF
+# local referrers: the API reports whatever host names the 14-day window saw,
+# and a private board served on a *.localhost name leaks it into a public
+# repo's ledger and PR body (one such name shipped in #4621). The script
+# drops them before the row is written and keeps only the dropped count.
+cat > "$FX/referrers-local.json" <<'EOF'
+[
+  {"referrer": "google.com", "count": 30, "uniques": 22},
+  {"referrer": "board.localhost", "count": 9, "uniques": 1},
+  {"referrer": "localhost", "count": 4, "uniques": 2},
+  {"referrer": "127.0.0.1", "count": 3, "uniques": 3},
+  {"referrer": "::1", "count": 2, "uniques": 1},
+  {"referrer": "api.localhost", "count": 1, "uniques": 1},
+  {"referrer": "duckduckgo.com", "count": 6, "uniques": 5}
+]
+EOF
+# Edge shapes of a local host (CodeRabbit review on #4626): a trailing dot,
+# all of 127.0.0.0/8, 0.0.0.0, IPv4-mapped and expanded ::1. The two public
+# near-misses must survive: a parser that over-matches fails them.
+cat > "$FX/referrers-local-edge.json" <<'EOF'
+[
+  {"referrer": "example.com", "count": 8, "uniques": 6},
+  {"referrer": "x.localhost.", "count": 1, "uniques": 1},
+  {"referrer": "localhost.", "count": 1, "uniques": 1},
+  {"referrer": "https://x.localhost.:3000/", "count": 1, "uniques": 1},
+  {"referrer": "127.0.0.2", "count": 1, "uniques": 1},
+  {"referrer": "0.0.0.0", "count": 1, "uniques": 1},
+  {"referrer": "[::ffff:127.0.0.1]", "count": 1, "uniques": 1},
+  {"referrer": "0:0:0:0:0:0:0:1", "count": 1, "uniques": 1},
+  {"referrer": "localhost.example.com", "count": 2, "uniques": 2}
+]
+EOF
 # fault fixtures
 printf 'not json at all\n' > "$FX/clones-garbage.json"
 # bad types: .count is a string; buckets valid and in-window
@@ -168,6 +199,7 @@ if jq -e '.clones.total == 77 and .clones.uniques == 70' "$OUT" > /dev/null; the
 if jq -e '.popular_paths.items | length == 2' "$OUT" > /dev/null; then ok "control: 2 popular paths"; else bad "control: popular paths wrong"; fi
 if jq -e '.popular_paths.items[1].title == ""' "$OUT" > /dev/null; then ok "control: null title normalized to empty string"; else bad "control: null title not normalized"; fi
 if jq -e '.referrers.items | length == 2' "$OUT" > /dev/null; then ok "control: 2 referrers"; else bad "control: referrers wrong"; fi
+if jq -e '.referrers.local_dropped == 0' "$OUT" > /dev/null; then ok "control: local_dropped is 0"; else bad "control: local_dropped wrong: $(jq '.referrers' "$OUT")"; fi
 if jq -e '.generated_at == "2026-09-14T06:00:00.000Z"' "$OUT" > /dev/null; then ok "control: generated_at pinned to the clock"; else bad "control: generated_at wrong: $(jq -r '.generated_at' "$OUT")"; fi
 if grep -q '^row=written$' "$GHOUT" && grep -q '^week=2026-09-07$' "$GHOUT"; then ok "control: GITHUB_OUTPUT row=written + week"; else bad "control: GITHUB_OUTPUT wrong: $(cat "$GHOUT" 2>/dev/null)"; fi
 
@@ -177,6 +209,104 @@ if [ "$RC" -eq 0 ]; then ok "idempotency: second run exits 0"; else bad "idempot
 if grep -q '^row=skipped$' "$WORK/control/ghout2"; then ok "idempotency: GITHUB_OUTPUT row=skipped"; else bad "idempotency: ghout2 wrong: $(cat "$WORK/control/ghout2" 2>/dev/null)"; fi
 if cmp -s "$WORK/control/first-row.jsonl" "$OUT"; then ok "idempotency: file byte-identical after skip"; else bad "idempotency: file changed on skip"; fi
 if [ "$(wc -l < "$OUT")" -eq 1 ]; then ok "idempotency: still exactly one row"; else bad "idempotency: duplicate row appended"; fi
+
+# --- #4528: an incomplete week is refreshed, never left short ------------------
+# The traffic API lags about 5 days, so the Monday run sees ~3 of 7 days of the
+# previous week. A week already in the ledger with fewer than 7 days, and still
+# inside the API's 14-day span, is re-read and replaced when the new read has
+# more days; a complete ledger still makes no API call.
+short_row() { # <week> <days> : a recorded row with only <days> days observed
+  jq -cn --arg w "$1" --argjson n "$2" '{week: $w, generated_at: "2026-09-01T06:00:00.000Z", source: "github-traffic-api",
+    views: {total: 1, uniques: 1, days_observed: $n, days: []}, clones: {total: 1, uniques: 1, days_observed: $n, days: []},
+    popular_paths: {window_days: 14, items: []}, referrers: {window_days: 14, local_dropped: 0, items: []}}'
+}
+mkdir -p "$WORK/backfill"
+B="$WORK/backfill"
+
+# A: the measured week itself was recorded short (3 days) -> replaced with 7.
+short_row 2026-09-07 3 > "$B/a.jsonl"
+run_traffic "$B/a.out" "$B/a.err" "$B/a.gh" "$B/a.jsonl"
+if [ "$RC" -eq 0 ] && grep -q '^row=written$' "$B/a.gh"; then ok "backfill: a short measured week is re-read (row=written)"; else bad "backfill A: rc=$RC gh=$(cat "$B/a.gh" 2>/dev/null) err=$(cat "$B/a.err")"; fi
+if [ "$(wc -l < "$B/a.jsonl")" -eq 1 ] && jq -e '.week == "2026-09-07" and .views.days_observed == 7 and .views.total == 105' "$B/a.jsonl" > /dev/null; then ok "backfill: the short row is replaced in place, 7 days"; else bad "backfill A: ledger wrong: $(cat "$B/a.jsonl")"; fi
+
+# B: an older week inside the API span was short -> upgraded, and the measured
+# week is appended after it (ledger order kept).
+short_row 2026-08-31 2 > "$B/b.jsonl"
+run_traffic "$B/b.out" "$B/b.err" "$B/b.gh" "$B/b.jsonl"
+if [ "$RC" -eq 0 ] && [ "$(wc -l < "$B/b.jsonl")" -eq 2 ]; then ok "backfill: older short week kept plus measured week appended (2 rows)"; else bad "backfill B: rc=$RC lines=$(wc -l < "$B/b.jsonl") err=$(cat "$B/b.err")"; fi
+if [ "$(jq -sc '[.[].week]' "$B/b.jsonl")" = '["2026-08-31","2026-09-07"]' ] && jq -se '.[0].views.days_observed == 7 and .[1].views.days_observed == 7' "$B/b.jsonl" > /dev/null; then ok "backfill: the older week is upgraded to 7 days, order kept"; else bad "backfill B: rows wrong: $(jq -sc '[.[] | {week, d: .views.days_observed}]' "$B/b.jsonl")"; fi
+if grep -q '^updated=2026-08-31,2026-09-07$' "$B/b.gh"; then ok "backfill: GITHUB_OUTPUT names every week it changed"; else bad "backfill B: updated output wrong: $(cat "$B/b.gh")"; fi
+
+# C: a short week OUTSIDE the API span is left as it is (the days are gone).
+{ short_row 2026-08-10 2; } > "$B/c.jsonl"
+cp "$B/c.jsonl" "$B/c.before"
+run_traffic "$B/c.out" "$B/c.err" "$B/c.gh" "$B/c.jsonl"
+if [ "$RC" -eq 0 ] && [ "$(head -n 1 "$B/c.jsonl")" = "$(cat "$B/c.before")" ]; then ok "backfill: a short week outside the API span is untouched"; else bad "backfill C: rc=$RC first line changed: $(head -n 1 "$B/c.jsonl")"; fi
+
+# D: a complete ledger makes no API call at all (the views endpoint would fail).
+cp "$WORK/control/first-row.jsonl" "$B/d.jsonl"
+run_traffic "$B/d.out" "$B/d.err" "$B/d.gh" "$B/d.jsonl" TRAFFIC_STUB_FAIL_VIEWS=1
+if [ "$RC" -eq 0 ] && grep -q '^row=skipped$' "$B/d.gh" && cmp -s "$WORK/control/first-row.jsonl" "$B/d.jsonl"; then ok "backfill: a complete week is skipped with no API call"; else bad "backfill D: rc=$RC gh=$(cat "$B/d.gh" 2>/dev/null) err=$(cat "$B/d.err")"; fi
+
+# --- #4752: a rebuild refreshes the open PR's body from the ledger row ---------
+# The PR step built the body from the new row, then `gh pr create` failed for an
+# already-open PR and only warned, so the PR kept the first build's numbers. And
+# since #4528 the measured week's row is not always the file's last line.
+WF="$REPO_ROOT/.github/workflows/traffic-snapshot.yml"
+if grep -q 'gh pr edit "\$EXISTING" --body-file "\$BODY_FILE"' "$WF"; then ok "workflow: an open PR's body is replaced on a rebuild"; else bad "workflow: no 'gh pr edit \$EXISTING --body-file' for an already-open PR"; fi
+if grep -q 'gh pr list --head "\$BRANCH" --state open' "$WF"; then ok "workflow: the step looks up an open PR for the branch first"; else bad "workflow: no open-PR lookup for the branch"; fi
+if grep -q "select(.week == \$w)" "$WF" && ! grep -q 'tail -n 1 docs/traffic/snapshots.jsonl' "$WF"; then ok "workflow: the PR body reads the measured week's row by key"; else bad "workflow: the PR body still reads the last line, not the week's row"; fi
+
+# --- local referrers: dropped from the row, counted, never named ----------------
+# Regression arm for #4621: a referrer like board.localhost is a private host
+# name that must not land in the public ledger or the PR body. The row keeps
+# the count only (.referrers.local_dropped), never a host string.
+LDIR="$WORK/local"
+mkdir -p "$LDIR"
+run_traffic "$LDIR/stdout" "$LDIR/stderr" "$LDIR/ghout" "$LDIR/snapshots.jsonl" \
+  TRAFFIC_STUB_REFERRERS_FILE=referrers-local.json
+LOUT="$LDIR/snapshots.jsonl"
+
+if [ "$RC" -eq 0 ]; then ok "local: exit 0"; else bad "local: exit $RC (expected 0); stderr: $(cat "$LDIR/stderr")"; fi
+if [ -f "$LOUT" ]; then ok "local: row file written"; else bad "local: row file missing"; fi
+if jq -e '.referrers.items | length == 2' "$LOUT" > /dev/null; then
+  ok "local: only the 2 public referrers survive"
+else
+  bad "local: items wrong: $(jq '.referrers.items' "$LOUT" 2>/dev/null)"
+fi
+if jq -e '[.referrers.items[].referrer] | sort == ["duckduckgo.com", "google.com"]' "$LOUT" > /dev/null; then
+  ok "local: surviving referrers are the public hosts"
+else
+  bad "local: a private host survived: $(jq -r '.referrers.items[].referrer' "$LOUT" 2>/dev/null | tr '\n' ' ')"
+fi
+if jq -e '.referrers.local_dropped == 5' "$LOUT" > /dev/null; then
+  ok "local: local_dropped counts the 5 dropped hosts"
+else
+  bad "local: local_dropped wrong: $(jq '.referrers.local_dropped' "$LOUT" 2>/dev/null)"
+fi
+if ! grep -qE 'localhost|127\.0\.0\.1|::1' "$LOUT"; then
+  ok "local: no local host string anywhere in the row"
+else
+  bad "local: row still names a local host: $(grep -oE '"referrer":"[^"]*"' "$LOUT" | tr '\n' ' ')"
+fi
+
+# --- local referrer edge shapes ------------------------------------------------
+EDIR="$WORK/local-edge"
+mkdir -p "$EDIR"
+run_traffic "$EDIR/stdout" "$EDIR/stderr" "$EDIR/ghout" "$EDIR/snapshots.jsonl" \
+  TRAFFIC_STUB_REFERRERS_FILE=referrers-local-edge.json
+EOUT="$EDIR/snapshots.jsonl"
+if [ "$RC" -eq 0 ]; then ok "local edge: exit 0"; else bad "local edge: exit $RC; stderr: $(cat "$EDIR/stderr")"; fi
+if jq -e '[.referrers.items[].referrer] | sort == ["example.com", "localhost.example.com"]' "$EOUT" > /dev/null; then
+  ok "local edge: the 7 local shapes are dropped, the 2 public hosts survive"
+else
+  bad "local edge: survivors wrong: $(jq -r '.referrers.items[].referrer' "$EOUT" 2>/dev/null | tr '\n' ' ')"
+fi
+if jq -e '.referrers.local_dropped == 7' "$EOUT" > /dev/null; then
+  ok "local edge: local_dropped counts the 7"
+else
+  bad "local edge: local_dropped wrong: $(jq '.referrers.local_dropped' "$EOUT" 2>/dev/null)"
+fi
 
 # --- fault arms: every one must exit non-zero and write NOTHING ------------------
 FAULT_CASES=(
@@ -203,6 +333,35 @@ for case_def in "${FAULT_CASES[@]}"; do
     bad "fault [$label]: file was written despite failure: $(cat "$fdir/snapshots.jsonl")"
   fi
 done
+
+# --- the committed ledger names no local referrer ---------------------------
+# The filter above only protects rows written after it ships. A row already on
+# main keeps whatever host it carried (#4621 shipped one, #4626 review), and
+# the ledger is public. Every committed row must be free of the local and
+# loopback shapes the script drops: localhost, *.localhost, 127.*, 0.0.0.0
+# and ::1, bare or as a URL or host:port.
+LEDGER="$REPO_ROOT/docs/traffic/snapshots.jsonl"
+if [ -f "$LEDGER" ]; then
+  leaked="$(jq -r '
+    select(type == "object") as $row
+    | ($row.referrers.items // [])[]
+    | (.referrer // "" | ascii_downcase
+       | sub("^[a-z][a-z0-9+.-]*://"; "") | split("/")[0]
+       | if startswith("[") then (ltrimstr("[") | split("]")[0])
+         elif (split(":") | length) == 2 then split(":")[0]
+         else . end) as $host
+    | select($host == "localhost" or ($host | endswith(".localhost"))
+             or ($host | test("^127\\.")) or $host == "0.0.0.0" or $host == "::1")
+    | "\($row.week): a local referrer (\($host | length) chars)"
+  ' "$LEDGER")"
+  if [ -z "$leaked" ]; then
+    ok "ledger: no committed row names a local referrer"
+  else
+    bad "ledger: committed rows name a local referrer: $leaked"
+  fi
+else
+  bad "ledger: $LEDGER is missing"
+fi
 
 echo ""
 if [ "$FAIL" -gt 0 ]; then

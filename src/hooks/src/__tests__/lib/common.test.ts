@@ -4,61 +4,11 @@
 /**
  * Unit tests for common.ts utilities
  *
- * Tests outputStderrWarning (CC 2.1.39) and fnv1aHash/writeRulesFile (token-reduction)
+ * Tests fnv1aHash/writeRulesFile (token-reduction) and output helpers
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { fnv1aHash } from '../../lib/common.js';
-
-describe('outputStderrWarning', () => {
-  let mockExit: ReturnType<typeof vi.spyOn>;
-  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-    mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-  });
-
-  test('writes warning message to stderr with newline', async () => {
-    // Dynamic import to avoid hoisting issues with mocks
-    const { outputStderrWarning } = await import('../../lib/common.js');
-
-    // Act
-    outputStderrWarning('Something is deprecated');
-
-    // Assert
-    expect(mockStderrWrite).toHaveBeenCalledWith('\u26a0 Something is deprecated\n');
-  });
-
-  test('exits with code 2', async () => {
-    const { outputStderrWarning } = await import('../../lib/common.js');
-
-    // Act
-    outputStderrWarning('Test warning');
-
-    // Assert
-    expect(mockExit).toHaveBeenCalledWith(2);
-  });
-
-  test('calls stderr.write before process.exit', async () => {
-    const { outputStderrWarning } = await import('../../lib/common.js');
-
-    const callOrder: string[] = [];
-    mockStderrWrite.mockImplementation(() => {
-      callOrder.push('stderr');
-      return true;
-    });
-    mockExit.mockImplementation((() => {
-      callOrder.push('exit');
-    }) as never);
-
-    // Act
-    outputStderrWarning('Order test');
-
-    // Assert
-    expect(callOrder).toEqual(['stderr', 'exit']);
-  });
-});
 
 // =============================================================================
 // #865 Injection Gating — empty-string guard
@@ -67,7 +17,7 @@ describe('outputStderrWarning', () => {
 describe('outputWithContext (#865 injection gate)', () => {
   test('returns silent success for empty string', async () => {
     const { outputWithContext } = await import('../../lib/common.js');
-    const result = outputWithContext('');
+    const result = outputWithContext('', 'PostToolUse');
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
     expect(result.hookSpecificOutput).toBeUndefined();
@@ -75,16 +25,32 @@ describe('outputWithContext (#865 injection gate)', () => {
 
   test('returns silent success for whitespace-only string', async () => {
     const { outputWithContext } = await import('../../lib/common.js');
-    const result = outputWithContext('   \n\t  ');
+    const result = outputWithContext('   \n\t  ', 'PostToolUse');
     expect(result.continue).toBe(true);
     expect(result.hookSpecificOutput).toBeUndefined();
   });
 
   test('injects additionalContext for non-empty string', async () => {
     const { outputWithContext } = await import('../../lib/common.js');
-    const result = outputWithContext('Some context');
+    const result = outputWithContext('Some context', 'PostToolUse');
     expect(result.hookSpecificOutput?.additionalContext).toBe('Some context');
     expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+  });
+
+  // #4683: the label comes from the real event, never a PostToolUse default.
+  test('labels with the event carried by the hook input', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    const result = outputWithContext('ctx', { hook_event: 'PreToolUse' });
+    expect(result.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
+  });
+
+  test('omits the label when the input has no usable event (guard stamps the firing event)', async () => {
+    const { outputWithContext } = await import('../../lib/common.js');
+    for (const input of [{}, { hook_event: 'unknown' as never }]) {
+      const result = outputWithContext('ctx', input);
+      expect(result.hookSpecificOutput?.additionalContext).toBe('ctx');
+      expect(result.hookSpecificOutput).not.toHaveProperty('hookEventName');
+    }
   });
 });
 

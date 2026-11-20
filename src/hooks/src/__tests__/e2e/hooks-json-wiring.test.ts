@@ -44,6 +44,39 @@ describe('hooks.json wiring E2E', () => {
     hooksConfig = JSON.parse(content);
   });
 
+  describe('UserPromptSubmit process consolidation (#4847)', () => {
+    it('runs one dispatcher plus the two async hooks', () => {
+      const hooks = hooksConfig.hooks.UserPromptSubmit.flatMap(g => g.hooks ?? []);
+      const hookNames = hooks
+        .filter(h => h.type === 'command')
+        .map(h => h.args?.[1]);
+
+      expect(hookNames).toEqual([
+        'prompt/unified-dispatcher',
+        'prompt/thrash-detector',
+        'lifecycle/webhook-forwarder',
+      ]);
+      expect(hookNames).not.toContain('prompt/goal-tracker');
+      expect(hookNames).not.toContain('prompt/worktree-advisory-consumer');
+      expect(hooks.find(h => h.args?.[1] === 'prompt/thrash-detector')?.async).toBe(true);
+      expect(hooks.find(h => h.args?.[1] === 'lifecycle/webhook-forwarder')?.async).toBe(true);
+    });
+  });
+
+  describe('SessionStart version notice reaches the person', () => {
+    it('lifecycle/cc-version-check is registered SYNC, in both hooks.json copies', () => {
+      // An async hook's systemMessage is delivered to the MODEL on the next turn and is
+      // not shown to the person (CC hooks docs, "How async hooks execute"). The notice
+      // is for the person, so the hook must run sync.
+      for (const rel of [['..', '..', '..', 'hooks.json'], ['..', '..', '..', '..', '..', 'plugins', 'ork', 'hooks', 'hooks.json']]) {
+        const cfg = JSON.parse(fs.readFileSync(path.resolve(__dirname, ...rel), 'utf-8')) as HooksConfig;
+        const found = cfg.hooks.SessionStart.flatMap(g => g.hooks ?? []).filter(h => h.args?.[1] === 'lifecycle/cc-version-check');
+        expect(found, rel.join('/')).toHaveLength(1);
+        expect(found[0].async, rel.join('/')).not.toBe(true);
+      }
+    });
+  });
+
   // ===========================================================================
   // StopFailure event wiring
   // ===========================================================================

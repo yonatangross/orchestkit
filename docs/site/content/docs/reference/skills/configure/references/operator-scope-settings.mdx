@@ -5,10 +5,6 @@ description: "Paste-ready JSON for controls a plugin bundle cannot carry."
 
 > Part of the [Configure](/docs/reference/skills/configure) skill reference. The main page carries the skill itself; this page holds material that used to sit at the bottom of it.
 
-### Operator Scope Settings
-
-# Operator-Scope Settings
-
 Paste-ready JSON for controls a plugin bundle **cannot** carry. Everything here goes
 into the operator's own `~/.claude/settings.json`. Nothing in this file is applied by
 `ork:configure`, by `ork:doctor`, or by any hook. Reading it changes nothing; pasting
@@ -165,9 +161,9 @@ Before any of the forced-sandbox analysis below applies, there is a plainer way 
 the carve-out to be dead: **`excludedCommands` entries are patterns, and a bare name
 matches only the arg-less command.** The official troubleshooting docs' own example
 is `docker *`. A list of `["op", "docker", "ssh"]` exempts `docker` typed alone and
-nothing else — `docker ps`, `ssh -T git@github.com`, `op whoami` never match.
+nothing else, `docker ps`, `ssh -T git@github.com`, `op whoami` never match.
 Measured 2026-08-22 (live session): a bare-name list exempted zero real invocations
-for a year, hidden because `gh` in the same list *appeared* to work — for the
+for a year, hidden because `gh` in the same list *appeared* to work, for the
 unrelated reason that `enableWeakerNetworkIsolation` + trustd mach-lookups had
 fixed it inside the sandbox. When an allowlist looks dead, check the match syntax
 before the mechanism. The stage-1 JSON above uses the wildcard form.
@@ -176,23 +172,23 @@ before the mechanism. The stage-1 JSON above uses the wildcard form.
 
 - **`sandbox.network.allowUnixSockets`** (macOS): the ONLY knob that permits
   connect() to a unix socket. `filesystem.allowWrite` on the socket's directory does
-  not do it — measured EPERM both ways against `docker.sock` and a custom daemon
+  not do it, measured EPERM both ways against `docker.sock` and a custom daemon
   socket. Because this is network-layer, it keeps working even in a forced sandbox
-  where `excludedCommands` is dead config — making it the load-bearing fix for
+  where `excludedCommands` is dead config, making it the load-bearing fix for
   socket-backed CLIs on machines that force sandboxing.
 - **`sandbox.enableWeakerNetworkIsolation`**: documented fix for Go-based CLIs
   (`gh`, `gcloud`, `terraform`) failing TLS with `x509 OSStatus -26276` under
   Seatbelt. Trade-off: narrow exfil vector through trustd.
 - **`sandbox.network.allowMachLookup`**: pair `["com.apple.trustd*",
   "com.apple.SecurityServer"]` with the above. Do NOT add mDNS/dnssd names hoping to
-  fix DNS — sandbox networking is proxy-based: proxy-aware tools (curl, gh,
+  fix DNS, sandbox networking is proxy-based: proxy-aware tools (curl, gh,
   git-https) resolve at the proxy, and `getaddrinfo` inside the sandbox has no DNS
   path at all. That is why ssh dies with "could not resolve hostname" while curl
   returns 200. The documented remedy for proxy-incompatible tools is exclusion
-  (`ssh *`), which a forced sandbox ignores — there, ssh is simply unavailable.
+  (`ssh *`), which a forced sandbox ignores, there, ssh is simply unavailable.
 
 Also verified: `filesystem` arrays hot-reload per command (documented and measured);
-network keys are not documented as hot-reloading — verify empirically per change.
+network keys are not documented as hot-reloading, verify empirically per change.
 
 ## When the carve-out does nothing
 
@@ -319,7 +315,7 @@ unquoted, which is a real way to conclude a live key does not exist.
 | `sandbox.credentials.envVars[].name` / `.mode` | schema-confirmed | stage 1 |
 
 The credential entry shapes are read from the zod schema in the binary, not inferred
-from ork's old block: `files[]` is `\{path, mode\}` and `envVars[]` is `\{name, mode\}`,
+from ork's old block: `files[]` is `{path, mode}` and `envVars[]` is `{name, mode}`,
 with `mode` constrained to `"deny"` or `"mask"`. On macOS and Windows `mask` degrades
 to `deny`.
 
@@ -331,7 +327,7 @@ to `deny`.
   default is `false`: warn, then run unsandboxed. Consider flipping it after stage 2
   holds, when a silent fallback to unsandboxed is the thing you want to hear about.
 - `filesystem.allowWrite`. Real key. ork's old value was
-  `["$\{projectDir\}", "/tmp", "~/.claude"]` and that interpolation is not something
+  `["${projectDir}", "/tmp", "~/.claude"]` and that interpolation is not something
   this file verified against user-scope settings. The schema documents path resolution
   as absolute, `~` expanded, or relative to the settings file root, which for user
   settings is `~/.claude`. Omitting the key keeps the default rather than shipping an
@@ -351,5 +347,4 @@ weaker than it looks, but weaker is not nothing. #3322 retires it **after** the
 sandbox is observed firing, not before.
 
 Doctor's own account of the gap, including the measured hook-coverage probes, is in
-`$\{CLAUDE_PLUGIN_ROOT\}/skills/doctor/references/settings-posture.md`.
-
+`${CLAUDE_PLUGIN_ROOT}/skills/doctor/references/settings-posture.md`.

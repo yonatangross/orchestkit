@@ -1,0 +1,8 @@
+{
+  "slug": "llm-integration-defer-loading-fix",
+  "source": "docs/fix--llm-integration-defer-loading/index.html",
+  "title": "llm-integration SKILL.md: fix the defer_loading-alone advice",
+  "description": "Follow-up to ork#4495: pairs defer_loading with a non-deferred tool search tool and drops the stale 5-15 tools per request line.",
+  "tags": ["skills", "opus-5-5", "tool-use"],
+  "date": "2026-09-27"
+}

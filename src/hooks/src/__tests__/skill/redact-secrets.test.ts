@@ -525,6 +525,96 @@ describe('redact-secrets', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // Bash tool_response object shape (#4217)
+  // ---------------------------------------------------------------------------
+
+  describe('Bash tool_response object shape (#4217)', () => {
+    /** Synthetic GitLab PAT already used elsewhere in this suite; gitleaks allowlists __tests__. */
+    const TOKEN = 'glpat-1234567890abcdefghijklmnop';
+    const API_WARN = '::warning::Potential API key detected in output - verify redaction\n';
+
+    function bashObjectInput(
+      toolResponse: { stdout: string; stderr: string; interrupted: boolean },
+    ): HookInput {
+      return {
+        tool_name: 'Bash',
+        session_id: 'test-session-4217',
+        project_dir: '/test/project',
+        tool_input: { command: 'printenv' },
+        tool_response: toolResponse,
+      } as any;
+    }
+
+    test('object-shaped tool_response with token in stdout produces the redaction warning', () => {
+      const input = bashObjectInput({
+        stdout: `GITLAB_TOKEN=${TOKEN}`,
+        stderr: '',
+        interrupted: false,
+      });
+
+      redactSecrets(input, testCtx);
+
+      expect(stderrSpy).toHaveBeenCalledWith(API_WARN);
+    });
+
+    test('string-shaped tool_response still warns exactly as before', () => {
+      const input: HookInput = {
+        tool_name: 'Bash',
+        session_id: 'test-session-4217',
+        project_dir: '/test/project',
+        tool_input: { command: 'printenv' },
+        tool_response: `GITLAB_TOKEN=${TOKEN}`,
+      } as any;
+
+      redactSecrets(input, testCtx);
+
+      expect(stderrSpy).toHaveBeenCalledWith(API_WARN);
+    });
+
+    test('token only in stderr is caught', () => {
+      const input = bashObjectInput({
+        stdout: 'ok',
+        stderr: `leak ${TOKEN}`,
+        interrupted: false,
+      });
+
+      redactSecrets(input, testCtx);
+
+      expect(stderrSpy).toHaveBeenCalledWith(API_WARN);
+    });
+
+    test('object with no secret produces no warning', () => {
+      const input = bashObjectInput({
+        stdout: 'build finished, all tests passed',
+        stderr: '',
+        interrupted: false,
+      });
+
+      redactSecrets(input, testCtx);
+
+      expect(stderrSpy).not.toHaveBeenCalled();
+      expect(outputSilentSuccess).toHaveBeenCalled();
+    });
+
+    test('interrupted or empty output does not throw', () => {
+      expect(() =>
+        redactSecrets(
+          bashObjectInput({ stdout: '', stderr: '', interrupted: true }),
+          testCtx,
+        ),
+      ).not.toThrow();
+      expect(() =>
+        redactSecrets(
+          bashObjectInput({ stdout: '', stderr: '', interrupted: false }),
+          testCtx,
+        ),
+      ).not.toThrow();
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(stderrSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Warning message format
   // ---------------------------------------------------------------------------
 

@@ -2,13 +2,10 @@
 name: backend-system-architect
 description: "Backend architect: REST/GraphQL APIs, database schemas, microservice boundaries, distributed systems, clean architecture."
 model: inherit
-category: backend
 maxTurns: 50
 effort: medium
-context: fork
 color: yellow
 memory: project
-isolation: worktree
 tools:
   - Read
   - Edit
@@ -40,25 +37,13 @@ skills:
   - security-patterns
   - performance
   - python-backend
-  - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - build
-  - design
-keywords:
-  - "api"
-  - "rest"
-  - "graphql"
-  - "microservice"
-  - "endpoint"
-  - "authentication"
-  - "authorization"
-  - "middleware"
-  - "service layer"
-examplePrompts:
-  - "Design a REST API for user management with JWT auth"
-  - "Architect a microservice boundary for the payments domain"
+metadata:
+  category: "backend"
+  taskTypes: "build, design"
+  keywords: "api, rest, graphql, microservice, endpoint, authentication, authorization, middleware, service layer"
+  examplePrompts: "Design a REST API for user management with JWT auth | Architect a microservice boundary for the payments domain"
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.
@@ -102,9 +87,8 @@ When running as a teammate in an Agent Teams session:
 
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for FastAPI, SQLAlchemy, Pydantic
-- **Opus 4.8 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
-## Opus 4.8: 128K Output Tokens
+## 128K Output Tokens
 Generate complete API implementations (routes + models + schemas + tests) in a single pass.
 Prefer comprehensive single-response output over multiple incremental generations.
 
@@ -324,6 +308,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.
@@ -342,6 +328,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |security-patterns:{SKILL.md,references/{audit-logging.md,cc-permission-model.md,context-separation.md,langfuse-mask-callback.md,ork-delta.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
 |performance:{SKILL.md,references/{cc-prompt-cache-guide.md,database-optimization.md,ork-delta.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates,sustainability,carbon-footprint,page-weight
 |python-backend:{SKILL.md,references/{eager-loading.md,fastapi-app-boilerplate.md,ork-delta.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

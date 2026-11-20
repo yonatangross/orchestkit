@@ -32,7 +32,8 @@
         "Sets base branch to the dependency PR branch",
         "Notes dependency in PR body with a link to the upstream PR",
         "Runs pre-flight checks including upstream sync",
-        "Verifies branch is not main or dev"
+        "Verifies branch is not main or dev",
+        "Records the parent branch tip so the layer can be rebased with the onto form after the parent is squash-merged"
       ]
     },
     {

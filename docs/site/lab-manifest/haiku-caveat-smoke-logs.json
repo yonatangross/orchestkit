@@ -1,0 +1,11 @@
+{
+  "slug": "haiku-caveat-smoke-logs",
+  "source": "docs/fix--4716-caveat-4764-stub-log/index.html",
+  "title": "A cost caveat and logs that survive a failure",
+  "description": "Pick a case and compare what the cost reference and the restricted smoke lane did before and after.",
+  "tags": [
+    "ci",
+    "analytics"
+  ],
+  "date": "2026-11-08"
+}

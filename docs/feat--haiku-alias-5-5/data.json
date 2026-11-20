@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit#4661",
+  "page": "docs/feat--haiku-alias-5-5/index.html",
+  "lab_slug": "haiku-alias-5-5",
+  "purpose": "PR playground: haiku alias advanced to claude-haiku-5-5, session cost before and after"
+}

@@ -20,7 +20,6 @@ Writes go to `.claude/settings.json` for a normal project, or `src/settings/ork.
 |---|---|---|
 | `ORCHESTKIT_PROTECTED_BRANCHES` | `main,master` | Blocks direct commits and pushes to these branches |
 | `ORCHESTKIT_COMMIT_SCOPE` | `optional` | `optional`, `required`, or `none` |
-| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | Allow `*.localhost` in agent-browser (`0` blocks it) |
 | `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | Write session token snapshots |
 | `ORCHESTKIT_LOG_LEVEL` | `warn` | Hook log verbosity (`debug`, `info`, `warn`, `error`) |
 
@@ -74,15 +73,15 @@ Then restart Claude Code or open a new terminal.
 
 ## Memory Tiers
 
-OrchestKit has 3 memory tiers. All work automatically with zero configuration:
+OrchestKit has 3 memory tiers. Tiers 2 and 3 need no setup; tier 1 needs a memory MCP server, which OrchestKit does not bundle (see [Set up memory](/docs/cookbook/setup-memory)):
 
 | Tier | Storage | Config Needed | What It Does |
 |---|---|---|---|
-| **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Knowledge graph: entities + relations |
-| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence, queue sync |
-| **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected into system prompt |
+| **1. Graph** | MCP `mcp__memory__*` | Needs a memory MCP server (not bundled) | Knowledge graph: entities + relations |
+| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence |
+| **3. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None | Injected into system prompt |
 
-High-confidence decisions (confidence >= 0.7) automatically promote from Graph to CC Native, ensuring they persist even without OrchestKit installed.
+Decisions written to CC Native persist even without OrchestKit installed. Nothing promotes them there automatically: Claude writes them, or you do.
 
 ## MCP Servers
 
@@ -99,7 +98,7 @@ See the full **[MCP Servers guide](/docs/foundations/mcp-servers)** for:
 - Complete agent-to-MCP mapping (all 36 agents)
 - Setup instructions, token overhead, and graceful degradation
 
-**Quick start**: memory and sequential-thinking work with zero config. context7 needs
+**Quick start**: memory and sequential-thinking each need one MCP server entry (OrchestKit does not bundle them). context7 needs
 one `.mcp.json` entry, and is the one server not to skip; the free tier (1,000 requests,
 public repos) needs no API key, and a Context7 Pro key raises that to 5,000 per seat with
 private repo parsing. Tavily needs a free API key from [app.tavily.com](https://app.tavily.com).
@@ -114,8 +113,7 @@ Hooks fire automatically. If a hook blocks an action unexpectedly:
 
 1. Check which hook blocked: the error message includes the hook name
 2. Hooks you can customize:
-   - **file-guard**: Protected file paths and file size limits (override with `ORCHESTKIT_MAX_FILE_LINES` / `ORCHESTKIT_MAX_TEST_FILE_LINES` env vars)
-   - **dangerous-command-blocker**: Blocked commands list
+   - **operator deny rules**: the `permissions.deny` list that `/ork:setup` writes to your settings, covering destructive commands and protected files such as `.env` and private keys (edit it there; `/ork:doctor` audits it)
    - **permission auto-approve**: Safe command patterns
 
 Most users never need to customize hooks. They're designed to be transparent.

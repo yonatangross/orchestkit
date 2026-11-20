@@ -1,30 +1,23 @@
 ---
 name: react-server-components-framework
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
-context: fork
-agent: frontend-ui-developer
-version: 1.5.0
-author: OrchestKit
-tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack]
+compatibility: "Claude Code 2.1.277+."
+description: "Next.js 16+ with React Server Components: App Router, Cache Components, streaming SSR, Server Actions. Use when building server-first Next.js apps."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: next.js
-    version: ">=16.2.6"
+    version: ">=16.3.7"
   - library: react
-    version: ">=19.2.6"
+    version: ">=19.3.0"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.5.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, turbopack"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["*.tsx", "*.jsx", "**/next.config.*", "**/app/**/*.tsx"]
 ---
 

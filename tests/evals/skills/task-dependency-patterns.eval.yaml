@@ -22,15 +22,15 @@ quality_evals:
 
   - prompt: |
       I need multiple agents to work on different parts of a feature
-      simultaneously. When should I use Task tool subagents vs Agent
+      simultaneously. When should I use Agent tool subagents vs Agent
       Teams?
     assertions:
-      - name: "Task tool for simple work"
-        check: "recommends Task tool (star topology) for independent, simple tasks"
+      - name: "Agent tool for simple work"
+        check: "recommends Agent tool subagents (star topology) for independent, simple tasks"
       - name: "Agent Teams for complex coordination"
         check: "recommends Agent Teams (mesh topology) for cross-cutting changes where agents need to communicate"
       - name: "cost comparison"
-        check: "notes that Agent Teams cost approximately 2.5x more than Task tool subagents"
+        check: "notes that Agent Teams cost approximately 2.5x more than Agent tool subagents"
 
   - prompt: |
       My Agent Team ran out of context mid-workflow. Three tasks are

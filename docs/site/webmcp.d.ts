@@ -6,6 +6,26 @@
 // Spec: https://webmachinelearning.github.io/webmcp/#declarative-api
 import "react";
 
+// The imperative getters are not in lib.dom.d.ts (TypeScript 6) either. Spec
+// IDL: `partial interface Document { readonly attribute ModelContext
+// modelContext; }`. Optional here because every browser outside Chrome's
+// origin trial leaves them undefined; lib/webmcp-tools.ts feature-detects.
+// navigator.modelContext is the older origin-trial location.
+declare global {
+	interface Document {
+		readonly modelContext?: import("./lib/webmcp-tools").ModelContext;
+	}
+	interface Navigator {
+		readonly modelContext?: import("./lib/webmcp-tools").ModelContext;
+	}
+	// Tool names already registered, keyed to the path that did it ("inline"
+	// or "chunk"). Name must equal WEBMCP_REGISTRY_KEY in lib/webmcp-tools.ts;
+	// a unit test pins the two together.
+	interface Window {
+		__orkWebMcpRegistered?: Record<string, string>;
+	}
+}
+
 declare module "react" {
 	interface FormHTMLAttributes<T> extends HTMLAttributes<T> {
 		toolname?: string;

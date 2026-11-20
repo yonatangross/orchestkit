@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Reference front door: the skill browser lands on /docs/reference with Type and Complexity filters.">
+<title>Reference front door: find a skill</title>
+<style>
+:root { color-scheme: dark; }
+body { margin: 0; background: hsl(232 26% 7%); color: hsl(220 18% 93%); font: 16px/1.6 system-ui, sans-serif; }
+main { max-width: 880px; margin: auto; padding: 32px 24px 72px; }
+header { padding: 16px 0; border-block-end: 1px solid hsl(226 14% 30%); }
+h1 { font-size: clamp(24px, 4vw, 36px); line-height: 1.2; margin: 0 0 12px; }
+p { max-width: 70ch; }
+.muted { color: hsl(226 14% 72%); }
+button, input { font: inherit; color: inherit; }
+input[type="search"] { width: 100%; box-sizing: border-box; background: hsl(232 20% 15%); border: 1px solid hsl(226 14% 45%); border-radius: 8px; padding: 10px 14px; margin-block: 8px; }
+.pill { background: hsl(232 20% 15%); border: 1px solid hsl(226 14% 45%); border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer; margin: 2px 4px 2px 0; }
+.pill[aria-pressed="true"] { background: hsl(248 84% 68% / .25); border-color: hsl(248 84% 68%); color: hsl(248 84% 85%); }
+.pill:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid hsl(248 84% 68%); outline-offset: 2px; }
+.group-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: hsl(226 14% 72%); margin-block: 10px 4px; }
+.card { border: 1px solid hsl(226 14% 30%); border-radius: 10px; padding: 10px 14px; margin-block: 8px; background: hsl(0 0% 100% / .04); }
+.card b { display: block; }
+.badge { display: inline-block; border-radius: 4px; padding: 0 6px; font-size: 11px; margin-inline-end: 6px; }
+details { margin-block: 20px; padding: 16px; border: 1px solid hsl(226 14% 30%); border-radius: 12px; background: hsl(0 0% 100% / .05); }
+summary { cursor: pointer; font-size: 18px; font-weight: 650; }
+#verdict { border-inline-start: 4px solid #0ca30c; padding: 12px 16px; }
+#count { font-size: 14px; }
+a { color: hsl(248 84% 78%); }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Reference front door: find a skill"><meta property="og:description" content="The /docs/reference catalog page embeds the skill browser with new Type and Complexity filter groups."><meta property="og:url" content="https://orchestkit.dev/lab/76109-reference-front-door.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Reference front door: find a skill"><meta name="twitter:description" content="The /docs/reference catalog page embeds the skill browser with new Type and Complexity filter groups."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<header>
+<h1>The Reference tab gets a real front door</h1>
+<p class="muted">Issue #2957. The catalog page at /docs/reference now embeds the skill browser under a "Find a skill" heading, below the three type cards and above the demo gallery. The browser gains two filter groups it never had: Type (Command or Reference) and Complexity.</p>
+</header>
+<details open>
+<summary>[0] Try the new filter model</summary>
+<p>This is a working model of the component change on six real skills. Search, then combine Type and Complexity pills. The behavior matches <code>docs/site/components/skill-browser.tsx</code>.</p>
+<p id="count" role="status" aria-live="polite"></p>
+<input id="q" type="search" placeholder="Search skills by name, description, or tag" aria-label="Search skills">
+<span class="group-label">Category</span>
+<div id="cats"></div>
+<span class="group-label">Type</span>
+<div id="types"></div>
+<span class="group-label">Complexity</span>
+<div id="cplx"></div>
+<div id="grid"></div>
+</details>
+<details>
+<summary>[1] What changed</summary>
+<p>reference/index.mdx imports LazySkillBrowser and renders it under a new "Find a skill" heading. The three type cards and the DemoGallery stay.</p>
+<p>skill-browser.tsx adds two Orama enum fields (invocable, complexity) and two pill groups. Type maps userInvocable to Command or Reference. Complexity pills list every value the generated data carries, in the atlas order. Each card now also shows a small complexity badge next to the Command badge.</p>
+</details>
+<details>
+<summary>[2] Evidence</summary>
+<p id="verdict">vitest __tests__/skill-browser.test.tsx: 28 tests pass, 8 of them new for the Type and Complexity groups. The narrow-page suite still passes. Docs site build is the CI gate.</p>
+</details>
+<details>
+<summary>[3] Scope kept out</summary>
+<p>Deep reference pages already render breadcrumbs (DocsPage breadcrumb is enabled site wide), so no follow up issue was filed and none was added here.</p>
+</details>
+<p><button id="copy-prompt" type="button">Copy review prompt</button> <span id="copy-status" role="status" aria-live="polite"></span></p>
+</main>
+<script>
+const SKILLS = [
+  { name: "implement", desc: "Full-power feature implementation with parallel agents", cat: "development", inv: true, cplx: "high" },
+  { name: "fastapi-advanced", desc: "Advanced FastAPI patterns including lifespan events", cat: "backend", inv: false, cplx: "medium" },
+  { name: "react-server-components-framework", desc: "React Server Components with Next.js 16+", cat: "frontend", inv: false, cplx: "high" },
+  { name: "owasp-top-10", desc: "OWASP Top 10 security vulnerabilities and mitigations", cat: "security", inv: false, cplx: "medium" },
+  { name: "e2e-testing", desc: "End-to-end testing with Playwright 1.58+", cat: "testing", inv: false, cplx: "low" },
+  { name: "audit-full", desc: "Single-pass 1M-token codebase analysis", cat: "security", inv: true, cplx: "max" },
+];
+const CATS = ["development", "backend", "frontend", "testing", "security"];
+const TYPES = [["command", "Command"], ["reference", "Reference"]];
+const CPLX = ["simple", "low", "medium", "high", "complex", "max"];
+const state = { q: "", cats: new Set(), types: new Set(), cplx: new Set() };
+function pill(label, set, value, host) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "pill"; b.textContent = label;
+  b.setAttribute("aria-pressed", set.has(value));
+  b.onclick = () => { set.has(value) ? set.delete(value) : set.add(value); b.setAttribute("aria-pressed", set.has(value)); render(); };
+  host.appendChild(b);
+}
+function build() {
+  const cats = document.getElementById("cats");
+  const types = document.getElementById("types");
+  const cplx = document.getElementById("cplx");
+  CATS.forEach(c => pill(c, state.cats, c, cats));
+  TYPES.forEach(([v, l]) => pill(l, state.types, v, types));
+  CPLX.forEach(c => pill(c, state.cplx, c, cplx));
+}
+function render() {
+  const q = state.q.toLowerCase();
+  const hits = SKILLS.filter(s =>
+    (!q || s.name.includes(q) || s.desc.toLowerCase().includes(q)) &&
+    (!state.cats.size || state.cats.has(s.cat)) &&
+    (!state.types.size || state.types.has(s.inv ? "command" : "reference")) &&
+    (!state.cplx.size || state.cplx.has(s.cplx)));
+  document.getElementById("count").textContent = "Showing " + hits.length + " of " + SKILLS.length + " skills";
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  hits.forEach(s => {
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = "<b>" + s.name + "</b>" +
+      (s.inv ? '<span class="badge" style="background:hsl(175 60% 30%);color:#aef">Command</span>' : "") +
+      '<span class="badge" style="background:hsl(35 80% 30%);color:#fda">' + s.cplx + "</span> " +
+      '<span class="muted">' + s.desc + "</span>";
+    grid.appendChild(d);
+  });
+}
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+document.getElementById("copy-prompt").onclick = () => {
+  const t = "Review the Reference front door change: /docs/reference embeds LazySkillBrowser under Find a skill; skill-browser adds Type and Complexity filter groups backed by Orama enum fields; 28 skill-browser tests pass.";
+  navigator.clipboard.writeText(t).then(() => { document.getElementById("copy-status").textContent = "Copied"; });
+};
+build(); render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -9,9 +9,10 @@
 // posthog-js and of window so it can be unit-tested; instrumentation-client.ts
 // wires it to the SDK and to the App Router.
 //
-// The PostHog project's URL trigger may say the same thing, but this gate does
-// not rely on it. It is complete on its own: the SDK is initialised with replay
-// disabled, and only this gate ever turns it on.
+// The SDK is initialised with replay disabled and only this gate turns it on,
+// so nothing outside /docs/reference/* can record. The PostHog project's URL
+// trigger still applies on top: ^https://orchestkit\.dev/docs/reference/.*$ is
+// the pattern to set. One naming another host buffers forever and sends nothing.
 
 import type { CapturedNetworkRequest } from "posthog-js";
 
@@ -44,7 +45,17 @@ export interface ReplayGate {
 	stop(): void;
 }
 
-export function createReplayGate(controls: ReplayControls): ReplayGate {
+/**
+ * `canStart` (optional) is asked before every start. When it says no, the gate
+ * neither starts nor records a request, so a later sync() can start for real.
+ * The docs site passes "PostHog loaded and capture on": a start refused while
+ * consent is withdrawn, or during init() before the opt-in, leaves no stale
+ * flag behind (b119 and CodeRabbit, #5106).
+ */
+export function createReplayGate(
+	controls: ReplayControls,
+	canStart: () => boolean = () => true,
+): ReplayGate {
 	// Tracks what this gate asked for, not whether the SDK is recording yet. The
 	// SDK can still be waiting on remote config after start(), and a navigation
 	// away in that window must still stop it, so the flag, not
@@ -64,6 +75,7 @@ export function createReplayGate(controls: ReplayControls): ReplayGate {
 				return;
 			}
 			if (requested) return;
+			if (!canStart()) return;
 			requested = true;
 			// No override argument on purpose: sampling, linked flag and any URL
 			// trigger configured in the PostHog project still apply on top of

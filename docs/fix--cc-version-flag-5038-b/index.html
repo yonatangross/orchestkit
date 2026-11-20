@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cc-version-check keeps its once-per-session flag until it decides</title>
+<meta name="description" content="The Claude Code version check spent its once-per-session flag on a silent env-only pass, so a later call with a real version below the floor never warned. Each call sequence, before and after.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.9rem;font-size:.8rem}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.3rem .7rem;font-family:inherit;font-size:.8rem;cursor:pointer}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.35rem .5rem;text-align:start;vertical-align:top}
+  th{color:var(--dim);font-weight:normal}
+  .bad{color:var(--bad)}
+  .ok{color:var(--ok)}
+</style>
+</head>
+<body><main>
+<h1>cc-version-check keeps its flag until it decides</h1>
+<p class="sub">The hook warns once per session when Claude Code is below the supported floor. Pick a call sequence to see what the flag did before and after the fix.</p>
+
+<section>
+  <h2>Call sequence</h2>
+  <div class="controls" id="picks"></div>
+  <table>
+    <thead><tr><th>Call</th><th>Input</th><th>Before</th><th>After</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</section>
+
+<script>
+(function () {
+  var CASES = {
+    "Cold start, then a real old version": [
+      ["1", "only a stale CLAUDE_CODE_VERSION, no transcript version", "silent pass, flag SET", "silent pass, flag left unset"],
+      ["2", "transcript says a version below the floor", "flag already set: NO warning", "warning shown, flag set"]
+    ],
+    "Confirmed old version first": [
+      ["1", "transcript says a version below the floor", "warning shown, flag set", "warning shown, flag set"],
+      ["2", "any later call", "skipped (flag set)", "skipped (flag set)"]
+    ],
+    "Version cannot be resolved": [
+      ["1", "no env value, no transcript version", "could-not-resolve message, flag set", "could-not-resolve message, flag set"]
+    ]
+  };
+  var picks = document.getElementById("picks");
+  var tbody = document.getElementById("rows");
+  var buttons = [];
+
+  function cell(text, cls) {
+    var td = document.createElement("td");
+    if (cls) td.className = cls;
+    td.textContent = text;
+    return td;
+  }
+
+  function show(name) {
+    buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.textContent === name)); });
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    CASES[name].forEach(function (r) {
+      var changed = r[2] !== r[3];
+      var tr = document.createElement("tr");
+      tr.appendChild(cell(r[0]));
+      tr.appendChild(cell(r[1]));
+      tr.appendChild(cell(r[2], changed ? "bad" : ""));
+      tr.appendChild(cell(r[3], changed ? "ok" : ""));
+      tbody.appendChild(tr);
+    });
+  }
+
+  Object.keys(CASES).forEach(function (name) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = name;
+    b.addEventListener("click", function () { show(name); });
+    picks.appendChild(b);
+    buttons.push(b);
+  });
+  show(Object.keys(CASES)[0]);
+})();
+</script>
+</main></body>
+</html>

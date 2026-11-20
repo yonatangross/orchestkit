@@ -31,8 +31,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://orchestkit.yonyon.ai"
-Documentation = "https://orchestkit.yonyon.ai/sdk"
+Homepage = "https://orchestkit.dev"
+Documentation = "https://orchestkit.dev/sdk"
 Repository = "https://github.com/yonatangross/orchestkit"
 Issues = "https://github.com/yonatangross/orchestkit/issues"
 

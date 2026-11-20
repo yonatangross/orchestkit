@@ -1,0 +1,11 @@
+{
+  "slug": "windows-hook-paths",
+  "source": "docs/fix--windows-hook-paths/index.html",
+  "title": "Why every edit on Windows reported a blocked hook",
+  "description": "Type a project path and compare what the OrchestKit stale import hook did with it before and after the Windows fix.",
+  "tags": [
+    "hooks",
+    "windows"
+  ],
+  "date": "2026-11-08"
+}

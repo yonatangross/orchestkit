@@ -1,0 +1,76 @@
+{
+  "source": "https://api.github.com/repos/yonatangross/orchestkit/contributors",
+  "snapshotDate": "2026-10-20",
+  "contributors": [
+    {
+      "login": "yonatangross",
+      "url": "https://github.com/yonatangross",
+      "avatar": "https://avatars.githubusercontent.com/u/19869074?v=4",
+      "contributions": 1720,
+      "isBot": false
+    },
+    {
+      "login": "orchestkit-release-bot[bot]",
+      "url": "https://github.com/apps/orchestkit-release-bot",
+      "avatar": "https://avatars.githubusercontent.com/u/19869074?v=4",
+      "contributions": 592,
+      "isBot": true
+    },
+    {
+      "login": "dependabot[bot]",
+      "url": "https://github.com/apps/dependabot",
+      "avatar": "https://avatars.githubusercontent.com/in/29110?v=4",
+      "contributions": 250,
+      "isBot": true
+    },
+    {
+      "login": "github-actions[bot]",
+      "url": "https://github.com/apps/github-actions",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "contributions": 14,
+      "isBot": true
+    },
+    {
+      "login": "7487",
+      "url": "https://github.com/7487",
+      "avatar": "https://avatars.githubusercontent.com/u/35531877?v=4",
+      "contributions": 1,
+      "isBot": false
+    },
+    {
+      "login": "ClaraOswald076",
+      "url": "https://github.com/ClaraOswald076",
+      "avatar": "https://avatars.githubusercontent.com/u/193146337?v=4",
+      "contributions": 1,
+      "isBot": false
+    },
+    {
+      "login": "latent-9",
+      "url": "https://github.com/latent-9",
+      "avatar": "https://avatars.githubusercontent.com/u/296084221?v=4",
+      "contributions": 1,
+      "isBot": false
+    },
+    {
+      "login": "thejesh23",
+      "url": "https://github.com/thejesh23",
+      "avatar": "https://avatars.githubusercontent.com/u/35212698?v=4",
+      "contributions": 1,
+      "isBot": false
+    },
+    {
+      "login": "ThomasHartDev",
+      "url": "https://github.com/ThomasHartDev",
+      "avatar": "https://avatars.githubusercontent.com/u/238765603?v=4",
+      "contributions": 1,
+      "isBot": false
+    },
+    {
+      "login": "Yoliani",
+      "url": "https://github.com/Yoliani",
+      "avatar": "https://avatars.githubusercontent.com/u/70610879?v=4",
+      "contributions": 1,
+      "isBot": false
+    }
+  ]
+}

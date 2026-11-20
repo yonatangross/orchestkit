@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS instances (
     branch TEXT NOT NULL,
     agent_type TEXT,
     capabilities TEXT,  -- JSON array: ["backend", "frontend", "testing"]
-    model TEXT DEFAULT 'claude-opus-4-5-20251101',
+    model TEXT DEFAULT 'claude-opus-5-5',
     status TEXT CHECK(status IN ('active', 'idle', 'paused', 'terminated')) DEFAULT 'active',
     priority INTEGER DEFAULT 1 CHECK(priority BETWEEN 0 AND 3),
     current_load INTEGER DEFAULT 0,  -- Number of active claims

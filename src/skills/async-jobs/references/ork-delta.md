@@ -1,6 +1,6 @@
 # Async Jobs: our delta
 
-House thresholds, working config and ordering constraints for background jobs in OrchestKit projects. Everything here is the part vendor docs cannot supply: the numbers we picked and the order we do things in. Product mechanics live upstream, linked per entry. Neighbouring skills: `ork:python-backend` (FastAPI, asyncio, SQLAlchemy runtime), `ork:distributed-systems` (circuit breakers around the queue), `ork:monitoring-observability` (the alerting layer these thresholds feed), `ork:langgraph` (LLM workflows, which never belong in Celery).
+House thresholds, working config and ordering constraints for background jobs in OrchestKit projects. Everything here is the part vendor docs cannot supply: the numbers we picked and the order we do things in. Product mechanics live upstream, linked per entry. Neighbouring skills: `ork:python-backend` (FastAPI, asyncio, SQLAlchemy runtime), `ork-extras:distributed-systems` (circuit breakers around the queue), `ork-extras:monitoring-observability` (the alerting layer these thresholds feed), `ork-extras:langgraph` (LLM workflows, which never belong in Celery).
 
 Provenance: the retired reference files carried no issue, PR or commit reference, so no entry below claims one. Each names the retired file it was distilled from.
 

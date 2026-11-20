@@ -8,6 +8,11 @@
       "name": "ork",
       "source": "plugins/ork",
       "description": "The full OrchestKit plugin for Cursor: the same skills, commands, and agents Claude Code gets. Claude hook scripts are not registered (they need CLAUDE_PLUGIN_ROOT). No plugin MCP servers."
+    },
+    {
+      "name": "ork-extras",
+      "source": "plugins/ork-extras",
+      "description": "Opt-in OrchestKit reference skills (library patterns and engineering domain guides) split out of ork. Skills and one command, no agents. Install next to ork."
     }
   ]
 }

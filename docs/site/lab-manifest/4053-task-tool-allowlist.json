@@ -1,0 +1,12 @@
+{
+  "slug": "4053-task-tool-allowlist",
+  "source": "docs/chore--dsp-44057-ork-fix-4053/task-tool-allowlist.html",
+  "title": "CC 2.1.268 task tool availability",
+  "description": "Select a model and a flag source to explore the named model allowlist, TodoWrite, and the operator override.",
+  "tags": [
+    "cc-adoption",
+    "compatibility",
+    "task-management"
+  ],
+  "date": "2026-10-15"
+}

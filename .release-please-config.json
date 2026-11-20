@@ -1,9 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "simple",
-  "versioning": "prerelease",
-  "prerelease": true,
-  "prerelease-type": "beta",
+  "prerelease": false,
   "include-component-in-tag": false,
   "changelog-sections": [
     { "type": "feat", "section": "Features", "hidden": false },
@@ -17,7 +15,7 @@
   "bootstrap-sha": "c5fbeca5028a6cb309cef3bb1f2d6cc7c2f2ddfa",
   "packages": {
     ".": {
-      "exclude-paths": ["docs/adr", "docs/audits", "docs/catalog-currency-audit"],
+      "exclude-paths": ["docs/adr", "docs/audits", "docs/catalog-currency-audit", ".claude-plugin"],
       "extra-files": [
         {
           "type": "json",
@@ -95,6 +93,26 @@
           "jsonpath": "$.version"
         },
         {
+          "type": "json",
+          "path": "manifests/ork-extras.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "plugins/ork-extras/.claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "plugins/ork-extras/.cursor-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "plugins/ork-extras/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
           "type": "generic",
           "path": "pyproject.toml"
         },
@@ -105,10 +123,6 @@
         {
           "type": "generic",
           "path": "docs/site/lib/generated/plugins-data.ts"
-        },
-        {
-          "type": "generic",
-          "path": "plugins/ork/hooks/bin/stop-uncommitted-check.mjs"
         }
       ]
     }

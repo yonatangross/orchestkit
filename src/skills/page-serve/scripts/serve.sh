@@ -94,7 +94,7 @@ if ! command -v portless >/dev/null 2>&1; then
   printf 'serve.sh: portless is not installed. Install: npm i -g portless   (then: portless service install)\n' >&2
   exit 2
 fi
-svc_out="$(portless service status 2>&1)"; svc_rc=$?
+svc_rc=0; svc_out="$(portless service status 2>&1)" || svc_rc=$?
 case "$svc_out" in
   *"Proxy on 443: responding"*) ;;
   *)
@@ -109,9 +109,10 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 # ── 3. Reuse or start the static server ──────────────────────────────────────
-read_state() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get(sys.argv[2], ""))' "$STATE_FILE" "$1"; }
+read_state() { python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get(sys.argv[2], ""))' "$STATE_FILE" "$1"; }
 
 live_pid=0
+new_pid=0
 PORT=""
 if [[ -f "$STATE_FILE" ]]; then
   prev_root="$(read_state root)"
@@ -130,14 +131,35 @@ if [[ -f "$STATE_FILE" ]]; then
 fi
 
 if [[ "$live_pid" == "0" ]]; then
-  PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
+  PORT="$(python3 -I -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
   LOG="${STATE_DIR}/${NAME}.log"
-  ( cd "$ROOT" && exec python3 -m http.server "$PORT" --bind 127.0.0.1 >"$LOG" 2>&1 ) &
+  # The server outlives this call, so it must not keep the caller's fds (a flock
+  # slot, a lock file, a pipe): a held fd keeps that resource taken after the
+  # caller's job ends. Close every fd above 2 in the daemon subshell; 0 goes to
+  # /dev/null, 1 and 2 to the log.
+  (
+    cd "$ROOT"
+    if [[ -d /dev/fd ]]; then
+      for fd_path in /dev/fd/*; do
+        fd_num="${fd_path##*/}"
+        [[ "$fd_num" =~ ^[0-9]+$ && "$fd_num" -gt 2 ]] && eval "exec ${fd_num}>&-"
+      done
+    fi
+    # Bash cannot list fds on every platform and the glob above can miss one
+    # opened by the listing itself, so also sweep the low range explicitly.
+    fd_num=3
+    while [[ "$fd_num" -le 255 ]]; do
+      eval "exec ${fd_num}>&-"
+      fd_num=$((fd_num + 1))
+    done
+    exec python3 -I -m http.server "$PORT" --bind 127.0.0.1 </dev/null >"$LOG" 2>&1
+  ) &
   live_pid=$!
+  new_pid=$!
   ok=0
   for _ in $(seq 1 30); do
     # silent: gating-relaxed (readiness poll; connection refused is the expected early answer)
-    if python3 -c 'import socket,sys; s=socket.socket(); s.settimeout(0.2); s.connect(("127.0.0.1",int(sys.argv[1]))); s.close()' "$PORT" 2>/dev/null; then ok=1; break; fi
+    if python3 -I -c 'import socket,sys; s=socket.socket(); s.settimeout(0.2); s.connect(("127.0.0.1",int(sys.argv[1]))); s.close()' "$PORT" 2>/dev/null; then ok=1; break; fi
     sleep 0.1
   done
   if [[ "$ok" != "1" ]]; then
@@ -149,18 +171,18 @@ if [[ "$live_pid" == "0" ]]; then
 fi
 
 # ── 4. Register the route (--force overrides a stale alias for the same name) ─
-alias_out="$(portless alias "$NAME" "$PORT" --force 2>&1)"; alias_rc=$?
+alias_rc=0; alias_out="$(portless alias "$NAME" "$PORT" --force 2>&1)" || alias_rc=$?
 if [[ "$alias_rc" != "0" ]]; then
   printf 'serve.sh: portless alias %s %s failed (rc=%s): %s\n' "$NAME" "$PORT" "$alias_rc" "$alias_out" >&2
-  # silent: post-cleanup (undo the server we just started)
-  kill "$live_pid" 2>/dev/null || true
+  # silent: post-cleanup (undo the server this run started; a reused server is left alone)
+  if [[ "$new_pid" != "0" ]]; then kill "$new_pid" 2>/dev/null || true; fi
   exit 2
 fi
 
 URL="https://${NAME}.localhost/${FILE}"
 
 # ── 5. Record state ──────────────────────────────────────────────────────────
-python3 - "$STATE_FILE" "$NAME" "$ROOT" "$FILE" "$PORT" "$live_pid" "$URL" <<'PY'
+python3 -I - "$STATE_FILE" "$NAME" "$ROOT" "$FILE" "$PORT" "$live_pid" "$URL" <<'PY'
 import json, sys, datetime
 f, name, root, file, port, pid, url = sys.argv[1:8]
 json.dump({"name": name, "root": root, "file": file, "port": int(port), "pid": int(pid),
@@ -169,7 +191,7 @@ json.dump({"name": name, "root": root, "file": file, "port": int(port), "pid": i
 PY
 
 # ── 6. Verify the URL answers through the proxy (portless CA is self-signed: -k) ─
-code="$(curl -sSk -o /dev/null -m 8 -w '%{http_code}' "$URL" 2>&1)"; curl_rc=$?
+curl_rc=0; code="$(curl -sSk -o /dev/null -m 8 -w '%{http_code}' "$URL" 2>&1)" || curl_rc=$?
 if [[ "$curl_rc" != "0" || "$code" != "200" ]]; then
   printf 'serve.sh: %s answered %s (curl rc=%s), not 200. The server is up on :%s; check: portless list\n' "$URL" "$code" "$curl_rc" "$PORT" >&2
   final_rc=4
@@ -185,7 +207,13 @@ fi
 if [[ "$SHOT" == "yes" ]]; then
   if command -v agent-browser >/dev/null 2>&1; then
     SHOT_PATH="${STATE_DIR}/${NAME}.png"
-    shot_out="$(agent-browser open "$URL" 2>&1 && agent-browser screenshot "$SHOT_PATH" 2>&1)"; shot_rc=$?
+    # Redirect to a file with stdin closed, not a $(...) capture: the first open may start
+    # the agent-browser daemon, which would inherit a capture pipe's write end and hold the
+    # reader open (the #5289 hang on native Windows under Git Bash).
+    shot_log="${STATE_DIR}/${NAME}.shot.log"
+    shot_rc=0
+    { agent-browser open "$URL" && agent-browser screenshot "$SHOT_PATH"; } > "$shot_log" 2>&1 < /dev/null || shot_rc=$?
+    shot_out="$(tail -c 200 "$shot_log" 2>/dev/null || true)"
     if [[ "$shot_rc" != "0" || ! -s "$SHOT_PATH" ]]; then
       printf 'serve.sh: screenshot failed (agent-browser rc=%s): %s. The page is still served.\n' "$shot_rc" "${shot_out:0:200}" >&2
       SHOT_PATH=""

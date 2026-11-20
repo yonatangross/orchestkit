@@ -1,6 +1,6 @@
 ---
 title: "Release Sync"
-description: "Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge."
+description: "After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Use after tagging a release."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
@@ -11,7 +11,7 @@ description: "Syncs latest release content to NotebookLM and HQ Knowledge Base a
 
 <ContextualSkillSidebar slug="release-sync" />
 
-> **Release Sync** Syncs latest release content to NotebookLM and HQ Knowledge Base after version tagging. Reads CHANGELOG, CLAUDE.md, and hook README, updates notebook sources, and ingests release digest. Optionally generates podcast from updated knowledge base. Use after tagging a new version to propagate release knowledge.
+> **Release Sync** After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Use after tagging a release.
 
 
 # Release Content Sync
@@ -98,7 +98,7 @@ targets = {
 
 Three AskUserQuestion round-trips. The rest of this skill reads `targets["notebooklm"]`, `targets["hq_kb"]`, `targets["slack"]`, `targets["notes"]` regardless of source.
 
-**Privacy note:** all targets are opt-in (default false). NotebookLM notebook IDs and HQ knowledge bases are user-private — the open-source plugin must not assume they exist or push to them implicitly.
+**Privacy note:** all targets are opt-in (default false). NotebookLM notebook IDs and HQ knowledge bases are user-private, the open-source plugin must not assume they exist or push to them implicitly.
 
 ## Step 3: Update NotebookLM Sources
 

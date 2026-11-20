@@ -8,7 +8,7 @@ import { TOTALS, MIN_CC_VERSION } from "./generated/shared-data";
 export const SITE = {
   name: "OrchestKit",
   version: orkManifest.version,
-  domain: "https://orchestkit.yonyon.ai",
+  domain: "https://orchestkit.dev",
   github: "https://github.com/yonatangross/orchestkit",
   // Shell one-liner that installs the plugin when pasted into a terminal.
   // `claude install` is NOT a plugin command (it installs the Claude Code
@@ -28,12 +28,52 @@ export const SITE = {
   ccVersion: `${MIN_CC_VERSION}+`,
 } as const;
 
+// The host the site was served from before v10 GA. It stays attached to the
+// same Vercel project: middleware.ts sends pages there to SITE.domain with a
+// 301, and keeps the MCP, well-known and auth.md paths at 200 so installed MCP
+// clients (which often do not follow a redirect on POST) keep working.
+export { LEGACY_HOST } from "./site-redirects.mjs";
+
+// The brand mark in the nav. This is the one slot to change when a new icon
+// is picked; nothing else in the nav names the image file.
+export const BRAND = {
+  mark: "/brand/george-nav.png",
+} as const;
+
 export const COUNTS = {
+  // Every skill OrchestKit publishes, core ork plus the opt-in ork-extras.
   skills: TOTALS.skills,
+  // What installing ork alone gives you, and what ork-extras adds (#4936).
+  coreSkills: TOTALS.coreSkills,
+  extrasSkills: TOTALS.extrasSkills,
   agents: TOTALS.agents,
   hooks: TOTALS.hooks,
   commands: TOTALS.commands,
 } as const;
+
+// Same ids and order as design/og-card/brand.py HOSTS (claude first). The OG
+// card tagline counts len(HOSTS) - 1; SITE_TITLE uses this list so both stay
+// in lockstep when a host is added or removed.
+export const SITE_HOSTS = [
+  "claude",
+  "cursor",
+  "codex",
+  "muse",
+  "agy",
+  "devin",
+  "opencode",
+  "pi",
+] as const;
+
+export const SITE_TITLE = `${SITE.name}: for Claude Code and ${SITE_HOSTS.length - 1} more agents`;
+
+// The homepage search result title (<title>, og:title, twitter:title). It
+// names what the reader gets. SITE_TITLE stays the OG card tagline and the
+// alt text of that card image, because the image shows that text.
+// 30 to 60 characters, brand first, and it names more than one agent host:
+// the plugin runs in Claude Code and the other SITE_HOSTS, so a title that
+// says "Claude Code plugin" alone undersells it (SEO gaps row 1, 15.11.2026).
+export const HOME_TITLE = `${SITE.name}: ${COUNTS.skills} skills for Claude Code, Cursor and Codex`;
 
 // One-sentence summaries shared by an HTML page and its Markdown twin. Each is
 // already that page's `metadata.description`; hoisting it here is what lets the
@@ -41,8 +81,12 @@ export const COUNTS = {
 // instead of a second sentence that can drift away from it.
 export const PAGE_SUMMARY = {
   // Root layout `metadata.description`. The homepage sets no page-level
-  // override, so this is the description of "/" itself.
-  site: `${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks for Claude Code. Stop explaining your stack. Start shipping.`,
+  // override, so this is the description of "/" itself. Counts match
+  // opengraph-image.tsx (COUNTS from generated shared-data).
+  // Keep it 140 to 160 characters: a search result cuts a longer one.
+  // Cross-harness and one skill total (AEO fix list, 15.11.2026): skills and
+  // agents load in Cursor and Codex too, hooks run in Claude Code only.
+  site: `${SITE.name}: ${COUNTS.skills} skills and ${COUNTS.agents} agents for Claude Code, Cursor and Codex, plus ${COUNTS.hooks} Claude Code hooks for review, testing, security, memory. Free and open source.`,
   // app/(home)/pricing `metadata.description`, and the lead of /pricing.md.
   pricing: `${SITE.name} is free and open source under the MIT license. No paid tiers, no usage limits, no account required.`,
 } as const;
@@ -67,7 +111,7 @@ export const ORG = {
 } as const;
 
 // Yonyon — the independent software studio that publishes OrchestKit. The apex
-// brand "Yonyon" (from the domain orchestkit.yonyon.ai) collides with an
+// brand "Yonyon" (from the former domain orchestkit.yonyon.ai) collides with an
 // unrelated musician in search/training corpora. Modeling Yonyon as a
 // first-class Organization (parent of OrchestKit) with its own /yonyon page and
 // a disambiguatingDescription gives a "yonyon"-keyed crawler or LLM a canonical
@@ -76,10 +120,10 @@ export const ORG = {
 export const YONYON = {
   name: "Yonyon",
   description:
-    "Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It is the publisher of OrchestKit, a free, open-source plugin for Claude Code.",
+    "Yonyon is an independent software studio building developer tooling for AI-assisted engineering. It is the publisher of OrchestKit, a free, open-source library of skills and agents for Claude Code, Cursor, Codex and other agent hosts.",
   // Plain-language collision note, surfaced as schema.org disambiguatingDescription.
   disambiguation:
-    "Yonyon here is a software studio (the publisher of OrchestKit) — not the musician of the same name.",
+    "Yonyon here is a software studio (the publisher of OrchestKit), not the musician of the same name.",
   // Apex brand home. The studio's official website is the apex domain, and the
   // /yonyon page there is the canonical brand page for the studio entity. The
   // Yonyon Organization JSON-LD reuses the apex entity (url + sameAs point at
@@ -92,6 +136,10 @@ export const YONYON = {
   // Organization's official website.
   url: `${SITE.domain}/yonyon`,
   wikidata: "https://www.wikidata.org/wiki/Q141457913",
+  // The logo the apex site declares for this same entity (@id
+  // https://yonyon.ai/#organization), restated verbatim so the two
+  // declarations agree. Read from yonyon.ai's own JSON-LD on 15.11.2026.
+  logo: { url: "https://yonyon.ai/logo.png", width: 512, height: 512 },
 } as const;
 
 // Authoritative external references for the OrchestKit entity. Reused verbatim
@@ -120,7 +168,7 @@ export const SAME_AS = [
   "https://pypi.org/project/orchestkit-hook-contract/",
 ] as const;
 
-export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · Claude Code ${SITE.ccVersion}`;
+export const BANNER_TEXT = `OrchestKit v${SITE.version} · ${COUNTS.skills} skills (${COUNTS.extrasSkills} opt-in), ${COUNTS.agents} agents, ${COUNTS.hooks} hooks · works in ${SITE_HOSTS.length} agents`;
 
 // Providers OrchestKit or this docs site genuinely integrates with — each entry
 // below is backed by a real dependency or documented integration, not a

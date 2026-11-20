@@ -23,6 +23,8 @@ function isPidAlive(pid: number): boolean {
   }
 }
 
+const CREATION_GRACE_MS = 1000;
+
 export function acquirePidLock(lockPath: string, staleMs: number): boolean {
   try {
     writeFileSync(lockPath, String(process.pid), { flag: 'wx' });
@@ -31,8 +33,12 @@ export function acquirePidLock(lockPath: string, staleMs: number): boolean {
     try {
       const holderPid = Number.parseInt(readFileSync(lockPath, 'utf8'), 10);
       const age = Date.now() - statSync(lockPath).mtimeMs;
+      const pidMissingOrCorrupt = !Number.isInteger(holderPid) || holderPid <= 0;
+      if (pidMissingOrCorrupt && age < Math.min(staleMs, CREATION_GRACE_MS)) {
+        return false;
+      }
       const abandoned =
-        age > staleMs || !Number.isInteger(holderPid) || holderPid <= 0 || !isPidAlive(holderPid);
+        age > staleMs || pidMissingOrCorrupt || !isPidAlive(holderPid);
       if (abandoned) {
         unlinkSync(lockPath);
         writeFileSync(lockPath, String(process.pid), { flag: 'wx' });

@@ -1,0 +1,13 @@
+{
+  "slug": "hooks-pretool-event-and-veil-dismiss",
+  "source": "docs/fix--hooks-pretool-event-and-veil-dismiss/index.html",
+  "title": "Hook context labelled with the real event; an expired copy question says so",
+  "description": "Two hook fixes. outputWithContext no longer labels every caller PostToolUse: pick an event to see the label before and after. And the secrets-veil copy question now says it expires: slide the answer time to see what a late Copy does.",
+  "tags": [
+    "hooks",
+    "pretool",
+    "secrets-veil",
+    "mods"
+  ],
+  "date": "2026-11-02"
+}

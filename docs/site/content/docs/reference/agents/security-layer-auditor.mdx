@@ -21,7 +21,6 @@ description: "Security layer auditor who verifies defense-in-depth implementatio
 ## Skills Used
 
 - [security-patterns](/docs/reference/skills/security-patterns)
-- [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
 ## Agent-Scoped Hooks
@@ -387,7 +386,6 @@ async def test_search_is_tenant_isolated(tenant_a_ctx, tenant_b_ctx):
 
 This agent uses:
 - `security-patterns` skill for layer definitions, Layer 5/6 checks, and OWASP compliance
-- `security-checklist` skill for additional OWASP compliance checks
 
 ## Task Boundaries
 
@@ -421,6 +419,8 @@ This agent uses:
 
 ## Status Protocol
 
-Report using the standardized status protocol. Load: `Read("$\{CLAUDE_PLUGIN_ROOT\}/shared/status-protocol.md")`.
+Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.

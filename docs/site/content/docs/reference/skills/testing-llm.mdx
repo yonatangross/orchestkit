@@ -1,15 +1,15 @@
 ---
-title: "Testing Llm"
-description: "LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines."
+title: "Testing LLM"
+description: "LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features."
 ---
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Auto-activated** — this skill loads automatically when Claude detects matching context.
+> **Auto-activated**, this skill loads automatically when Claude detects matching context.
 
 <ContextualSkillSidebar slug="testing-llm" />
 
-> **Testing Llm** LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
+> **Testing LLM** LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features.
 
 
 # LLM & AI Testing Patterns
@@ -24,6 +24,7 @@ Patterns and tools for testing LLM integrations, evaluating AI output quality, m
 | **Rules** | `rules/llm-mocking.md` | Mock LLM responses, VCR.py recording, custom request matchers |
 | **Reference** | `references/ork-delta.md` | House rules the vendor docs do not carry: GEval and RAGAS API corrections, threshold direction, cassette path, golden-dataset and latency budgets |
 | **Reference** | `references/healer-agent.md` | Auto-fixes failing tests (selectors, waits, dynamic content) |
+| **Reference** | `references/langfuse-v4.md` | Langfuse Python SDK v4 tracing and dataset runs, plus the non-zero throughput assertion |
 | **Checklist** | `checklists/llm-test-checklist.md` | Complete LLM testing checklist (setup, coverage, CI/CD) |
 
 ## Upstream coverage (do not restate)
@@ -107,7 +108,7 @@ print(metric.score, metric.reason)
 # 0.62  "Response addresses the topic but omits the date asked for."
 ```
 
-**RAGAS** uses a class-based metric API — instantiate metric classes and pass an `EvaluationDataset`. `llm=` is optional; omit it to use the configured default grader:
+**RAGAS** uses a class-based metric API, instantiate metric classes and pass an `EvaluationDataset`. `llm=` is optional; omit it to use the configured default grader:
 
 ```python
 from ragas import evaluate
@@ -199,12 +200,12 @@ its refusal to touch test logic are house limits rather than vendor defaults.
 
 For every LLM integration, cover these paths:
 
-- **Empty/null inputs** -- empty strings, None values
-- **Long inputs** -- truncation behavior near token limits
-- **Timeouts** -- fail-open vs fail-closed behavior
-- **Schema violations** -- invalid structured output
-- **Prompt injection** -- adversarial input resistance
-- **Unicode** -- non-ASCII characters in prompts and responses
+- **Empty/null inputs**: empty strings, None values
+- **Long inputs**: truncation behavior near token limits
+- **Timeouts**: fail-open vs fail-closed behavior
+- **Schema violations**: invalid structured output
+- **Prompt injection**: adversarial input resistance
+- **Unicode**: non-ASCII characters in prompts and responses
 
 See `checklists/llm-test-checklist.md` for the complete checklist.
 
@@ -221,9 +222,9 @@ See `checklists/llm-test-checklist.md` for the complete checklist.
 
 ## Related Skills
 
-- `ork:testing-unit` — Unit testing fundamentals, AAA pattern
-- `ork:testing-integration` — Integration testing for AI pipelines
-- `ork:golden-dataset` — Evaluation dataset management
+- `ork:testing-unit`: Unit testing fundamentals, AAA pattern
+- `ork:testing-integration`: Integration testing for AI pipelines
+- `ork-extras:golden-dataset`: Evaluation dataset management
 - `ork:testing-e2e` owns the Planner and Generator agent workflow and the Playwright locator ladder
 - `ork:testing-perf` owns the latency and load budgets referenced in `references/ork-delta.md`
 
@@ -265,7 +266,7 @@ assert_test(test_case, metrics)
 | Hallucination | &lt;= 0.3 | No fabricated facts |
 | Context Precision | >= 0.7 | Retrieved contexts relevant |
 
-**Incorrect — Testing only the output exists:**
+**Incorrect, Testing only the output exists:**
 ```python
 def test_llm_response():
     result = get_llm_answer("What is Paris?")
@@ -273,7 +274,7 @@ def test_llm_response():
     # No quality validation
 ```
 
-**Correct — Testing multiple quality dimensions:**
+**Correct, Testing multiple quality dimensions:**
 ```python
 test_case = LLMTestCase(
     input="What is the capital of France?",
@@ -329,7 +330,7 @@ async def test_structured_output():
 | Timeout | Always test with &lt; 1s timeout |
 | Edge cases | Test all null/empty paths |
 
-**Incorrect — No schema validation on LLM output:**
+**Incorrect, No schema validation on LLM output:**
 ```python
 async def test_llm_response():
     result = await get_llm_response("test query")
@@ -337,7 +338,7 @@ async def test_llm_response():
     assert result["confidence"] > 0  # No type checking
 ```
 
-**Correct — Pydantic validation ensures schema correctness:**
+**Correct, Pydantic validation ensures schema correctness:**
 ```python
 class LLMResponse(BaseModel):
     answer: str = Field(min_length=1)
@@ -398,7 +399,7 @@ async def test_llm_integration():
 | Timeout | Always test with &lt; 1s timeout |
 | Edge cases | Test all null/empty paths |
 
-**Incorrect — Testing against live LLM API in CI:**
+**Incorrect, Testing against live LLM API in CI:**
 ```python
 async def test_summarize():
     response = await openai.chat.completions.create(
@@ -408,7 +409,7 @@ async def test_summarize():
     # Slow, expensive, non-deterministic
 ```
 
-**Correct — Mocking LLM for fast, deterministic tests:**
+**Correct, Mocking LLM for fast, deterministic tests:**
 ```python
 @pytest.fixture
 def mock_llm():
@@ -471,14 +472,14 @@ def vcr_config():
 - Not filtering sensitive data
 - Missing cassettes in git
 
-**Incorrect — Recording mode allows live API calls in CI:**
+**Incorrect, Recording mode allows live API calls in CI:**
 ```python
 @pytest.fixture(scope="module")
 def vcr_config():
     return {"record_mode": "all"}  # Makes live calls in CI
 ```
 
-**Correct — CI uses 'none' mode to prevent live calls:**
+**Correct, CI uses 'none' mode to prevent live calls:**
 ```python
 @pytest.fixture(scope="module")
 def vcr_config():
@@ -493,7 +494,7 @@ def vcr_config():
 
 ---
 
-## References (2)
+## References (3)
 
 ### Healer Agent
 
@@ -570,6 +571,70 @@ Healer can't fix:
 - Auth/permission issues
 
 These require manual intervention.
+
+
+### Langfuse V4
+
+# Langfuse Python SDK v4 for eval harnesses
+
+Verified against `langfuse-python` `main` (`start_observation`, `run_experiment`, `run_batched_evaluation`). Migration note: v4 removed `Langfuse.client`, `DatasetItem.link()`, and the v2/v3 `langfuse.trace()` / `trace.generation()` / `trace.span()` builders. Failures from those calls were logged at debug and a harness could exit 0 after processing nothing. Do not generate the removed calls except inside a migration note.
+
+## Trace
+
+```python
+from langfuse import get_client, observe, propagate_attributes
+
+@observe(name="eval-item")
+def score_item(item):
+    langfuse = get_client()
+    with propagate_attributes(metadata={"dataset_item": item.id}):
+        with langfuse.start_as_current_observation(name="grade", as_type="evaluator") as obs:
+            obs.update(output={"score": 1})
+            return 1
+```
+
+`start_observation` returns a span object, not a context manager, putting it inside `with` raises `TypeError` ("does not support the context manager protocol" on 3.11+). The `with` form is `start_as_current_observation`. Prefer `@observe` when the function boundary is the span, but never around `run_experiment` itself: it copies one context for every item, so all item spans would share a single trace_id.
+
+## Dataset run
+
+```python
+langfuse = get_client()
+dataset = langfuse.get_dataset("golden")
+
+def task(*, item, **kwargs):
+    return score_item(item)
+
+result = dataset.run_experiment(name="golden-v4", task=task)
+```
+
+Local items, no remote dataset: `langfuse.run_experiment(name="...", data=[...], task=task)`, the kwarg is `data`, not `dataset`.
+
+Existing traces, not a dataset: `langfuse.run_batched_evaluation(scope="traces", mapper=to_inputs, evaluators=[...])`. That reader still talks to the platform v3 traces API. Do not use it as a substitute for `dataset.run_experiment` on a golden set.
+
+## Throughput assertion (required)
+
+A harness that swallows the old API and reports success is worse than a red run. After `run_experiment`, always fail on zero processed items; a remote `dataset.run_experiment` must also have recorded a dataset run:
+
+```python
+items = list(getattr(result, "item_results", None) or [])
+if len(items) == 0:
+    raise RuntimeError("eval no-op: items=0")
+# Remote dataset rows wrap a DatasetItem (dataset_id lives on row.item);
+# the run also records a dataset_run_id on the row. Local
+# run_experiment(data=[...]) rows carry neither. Key on the item shape,
+# not on whether a variable named `dataset` exists: get_dataset raises
+# rather than returning None, a local-only harness has no such variable
+# at all, and a dataset fetched only to build the data= list would
+# false-fail a good run.
+remote_items = [
+    row for row in items if getattr(getattr(row, "item", None), "dataset_id", None)
+]
+run_ids = {row.dataset_run_id for row in remote_items if getattr(row, "dataset_run_id", None)}
+if remote_items and len(run_ids) == 0:
+    raise RuntimeError(f"eval no-op: dataset_runs={len(run_ids)}")
+```
+
+Same bar for `run_batched_evaluation`: the returned processed count must be greater than zero. Zero items is a failed harness, not a quiet pass.
 
 
 ### Ork Delta
@@ -692,7 +757,7 @@ Upstream: https://deepeval.com/docs/evaluation-test-cases
 
 ## Checklists (1)
 
-### Llm Test Checklist
+### LLM Test Checklist
 
 # LLM Testing Checklist
 

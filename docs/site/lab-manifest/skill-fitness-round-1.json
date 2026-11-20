@@ -1,0 +1,12 @@
+{
+  "slug": "skill-fitness-round-1",
+  "source": "docs/chore--skill-fitness-round-1/index.html",
+  "title": "Skill fitness round 1: three skills get a routing boundary",
+  "description": "Round 1 of the OrchestKit quality loop. A fresh-eyes agent scored the ten most-used skills; pick one of the three lowest to see its score, the top issue it found, and what changed.",
+  "tags": [
+    "skills",
+    "quality",
+    "routing"
+  ],
+  "date": "2026-11-01"
+}

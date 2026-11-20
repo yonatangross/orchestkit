@@ -16,7 +16,15 @@
  *   fanout      = ids imported (transitively) by reachable dispatcher files
  *   agentScoped = ids referenced by src/agents markdown frontmatter hooks
  *   skillScoped = ids referenced by SKILL.md frontmatter hooks
- *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped
+ *   skillBody   = ids a SKILL.md body runs itself as a step, written
+ *                 `run-hook.mjs" <id>` (#4683: a context: fork skill never
+ *                 runs frontmatter hooks, so it runs its loaders in the body).
+ *                 Reachable, but not counted as hooks: nothing registers them.
+ *   flagVariant = ids the generated hooks.json dispatches but the registry
+ *                 does not name (today pretool/tool-dispatcher and
+ *                 posttool/tool-dispatcher, written by unified-pretool-hooks.mjs;
+ *                 the shipped default since #5003). Reachable; not counted.
+ *   closure     = direct ∪ fanout ∪ agentScoped ∪ skillScoped ∪ skillBody ∪ flagVariant
  *
  * FAIL conditions:
  *   1. GHOST:  closure references an id that is NOT registered (runtime failure)
@@ -45,7 +53,9 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, normalize, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { load } from 'js-yaml';
+import { UNIFIED_PRETOOL_HANDLER, UNIFIED_POSTTOOL_HANDLER } from './unified-pretool-hooks.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const hooksRoot = join(__dirname, '..');
@@ -117,6 +127,46 @@ function checkSchemaKeys(data) {
   return failures;
 }
 
+/** Parse YAML frontmatter and reject matcher items that CC cannot execute. */
+export function checkFrontmatterHookShapes(content, label) {
+  const lines = content.split(/\r?\n/);
+  const delimiter = '-'.repeat(3);
+  if (lines[0] !== delimiter) return [];
+  const end = lines.indexOf(delimiter, 1);
+  if (end === -1) return [`${label}: frontmatter has no closing delimiter`];
+  let data;
+  try {
+    data = load(lines.slice(1, end).join('\n'));
+  } catch (error) {
+    return [`${label}: invalid YAML frontmatter: ${error.message}`];
+  }
+  const failures = [];
+  for (const [event, groups] of Object.entries(data?.hooks || {})) {
+    if (!Array.isArray(groups)) {
+      failures.push(`${label}: hooks.${event} must be an array`);
+      continue;
+    }
+    groups.forEach((group, i) => {
+      if (!group || Object.hasOwn(group, 'command') ||
+          !Array.isArray(group.hooks) || group.hooks.length === 0 ||
+          group.hooks.some(handler => !handler?.type)) {
+        failures.push(`${label}: hooks.${event}[${i}] is flat (command on the matcher item); nest it under hooks: - type: command`);
+      } else if (group.hooks.some(handler => handler.type === 'command' &&
+          (typeof handler.command !== 'string' || !handler.command.trim()))) {
+        failures.push(`${label}: hooks.${event}[${i}] has a command handler with no command`);
+      }
+    });
+  }
+  return failures;
+}
+
+function checkMarkdownHookShapes(files) {
+  return files.flatMap(file => checkFrontmatterHookShapes(
+    readFileSync(file, 'utf-8'),
+    file.endsWith('SKILL.md') ? dirname(file).split(sep).pop() : file.split(sep).pop(),
+  ));
+}
+
 /** entries/*.ts registry maps → Set of registered hook ids */
 function parseEntryFiles() {
   const entriesDir = join(hooksRoot, 'src', 'entries');
@@ -132,11 +182,18 @@ function parseEntryFiles() {
   return registered;
 }
 
-/** run-hook.mjs references in agent/skill markdown frontmatter → Set of ids */
+/**
+ * run-hook.mjs references in agent/skill markdown frontmatter → Set of ids, plus
+ * handlerCount: every `type: command|http` handler, the rule bin/count-hooks.sh
+ * uses. A handler that runs its own script (freeze, careful) has no registry id
+ * but is still a hook, so the drift check reads handlerCount (#5078).
+ */
 function parseMarkdownHookRefs(files) {
   const ids = new Set();
   let refCount = 0;
+  let handlerCount = 0;
   const re = /run-hook\.mjs\s+([\w/.-]+)/g;
+  const handlerRe = /^[ \t]*(?:- )?type: ["']?(?:command|http)["']?[ \t]*$/gm;
   for (const f of files) {
     const content = readFileSync(f, 'utf-8');
     let m;
@@ -144,8 +201,21 @@ function parseMarkdownHookRefs(files) {
       ids.add(m[1]);
       refCount++;
     }
+    handlerCount += (content.match(handlerRe) ?? []).length;
   }
-  return { ids, refCount };
+  return { ids, refCount, handlerCount };
+}
+
+/** `run-hook.mjs" <id>` steps in skill bodies (the quote is the marker) → Set of ids */
+function parseSkillBodyRuns(files) {
+  const ids = new Set();
+  const re = /run-hook\.mjs"\s+([\w/.-]+)/g;
+  for (const f of files) {
+    const content = readFileSync(f, 'utf-8');
+    let m;
+    while ((m = re.exec(content)) !== null) ids.add(m[1]);
+  }
+  return ids;
 }
 
 function agentFiles() {
@@ -207,8 +277,9 @@ function main() {
   const registered = parseEntryFiles();
   const agents = parseMarkdownHookRefs(agentFiles());
   const skills = parseMarkdownHookRefs(skillFiles());
+  const skillBody = parseSkillBodyRuns(skillFiles());
 
-  const failures = [];
+  const failures = checkMarkdownHookShapes([...agentFiles(), ...skillFiles()]);
 
   // 5. SELF-CHECK — the previous version of this script parsed the legacy
   // command format, saw 0 hooks.json ids, and PASSED for months. Never again.
@@ -223,13 +294,14 @@ function main() {
   failures.push(...checkSchemaKeys(JSON.parse(readFileSync(hooksJsonPath, 'utf-8'))));
 
   // Closure
-  const seeds = new Set([...directIds, ...agents.ids, ...skills.ids]);
+  const flagVariant = new Set([UNIFIED_PRETOOL_HANDLER, UNIFIED_POSTTOOL_HANDLER]);
+  const seeds = new Set([...directIds, ...agents.ids, ...skills.ids, ...skillBody, ...flagVariant]);
   const closure = dispatcherFanout(seeds, registered);
 
   // 1. GHOSTS — referenced but not registered → fails at runtime
   const ghosts = [...seeds].filter(id => !registered.has(id)).sort();
   if (ghosts.length > 0) {
-    failures.push(`GHOSTS (${ghosts.length}): referenced by hooks.json/frontmatter but NOT in any entries map — these FAIL AT RUNTIME:\n    ${ghosts.join('\n    ')}`);
+    failures.push(`GHOSTS (${ghosts.length}): referenced by hooks.json/frontmatter/skill body steps but NOT in any entries map, so these FAIL AT RUNTIME:\n    ${ghosts.join('\n    ')}`);
   }
 
   // 2/3. DEAD vs ratchet baseline
@@ -242,7 +314,7 @@ function main() {
 
   if (newDead.length > 0) {
     failures.push(
-      `NEW DEAD HOOKS (${newDead.length}): registered but unreachable from hooks.json ∪ agent/skill frontmatter ∪ dispatcher fan-out.\n` +
+      `NEW DEAD HOOKS (${newDead.length}): registered but unreachable from hooks.json ∪ agent/skill frontmatter ∪ skill body steps ∪ dispatcher fan-out.\n` +
       `  Wire each into a dispatch path, or delete it. Do NOT add to the baseline — it only shrinks.\n    ${newDead.join('\n    ')}`,
     );
   }
@@ -256,7 +328,7 @@ function main() {
   const countMatch = description.match(/(\d+)\s+global\s*\+\s*(\d+)\s+agent-scoped\s*\+\s*(\d+)\s+skill-scoped\s*=\s*(\d+)\s+total/);
   if (countMatch) {
     const [declGlobal, declAgent, declSkill, declTotal] = countMatch.slice(1).map(Number);
-    const actual = { global: commandCount, agent: agents.refCount, skill: skills.refCount };
+    const actual = { global: commandCount, agent: agents.handlerCount, skill: skills.handlerCount };
     const actualTotal = actual.global + actual.agent + actual.skill;
     const drift = [];
     if (declGlobal !== actual.global) drift.push(`global ${declGlobal}→${actual.global}`);
@@ -279,6 +351,8 @@ function main() {
   console.log(`hooks.json dispatch cmds  : ${commandCount} (${directIds.size} unique ids)`);
   console.log(`agent-scoped refs         : ${agents.refCount} (${agents.ids.size} unique ids)`);
   console.log(`skill-scoped refs         : ${skills.refCount} (${skills.ids.size} unique ids)`);
+  console.log(`skill body steps          : ${skillBody.size} unique ids (reachable, not counted)`);
+  console.log(`flag variant ids          : ${flagVariant.size} unique ids (reachable when on, not counted)`);
   console.log(`reachable closure         : ${closure.size}`);
   console.log(`dead (grandfathered)      : ${dead.length - newDead.length} of baseline ${baseline.size}`);
   console.log('');
@@ -292,4 +366,4 @@ function main() {
   process.exit(0);
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

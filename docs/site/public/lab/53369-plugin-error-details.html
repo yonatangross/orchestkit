@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>doctor reads errorDetails and noteDetails (GH-4054)</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 2rem 1.25rem; background: #fafaf7; color: #1d1d1b; font: 15px/1.55 system-ui, sans-serif; }
+  main { max-width: 60rem; margin-inline: auto; }
+  h1 { font-size: 1.35rem; margin: 0 0 .3rem; }
+  .sub { color: #6a675f; margin: 0 0 1.4rem; font-size: .9rem; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #dcdad2; border-radius: 8px; overflow: hidden; font-size: .88rem; }
+  th, td { text-align: start; padding: .55rem .7rem; border-bottom: 1px solid #dcdad2; vertical-align: top; }
+  th { color: #6a675f; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; }
+  button { font: inherit; color: inherit; background: #fff; border: 1px solid #dcdad2; border-radius: 6px; padding: .3rem .6rem; cursor: pointer; }
+  button[aria-pressed="true"] { border-color: #0b5cad; color: #0b5cad; font-weight: 600; }
+  .panel { margin-top: 1.2rem; border: 1px solid #dcdad2; border-radius: 8px; background: #fff; padding: 1rem 1.2rem; }
+  .panel h2 { font-size: .95rem; margin: 0 0 .6rem; }
+  .verdict-ok { color: #1a7f37; font-weight: 600; }
+  .verdict-warn { color: #9a6700; font-weight: 600; }
+  .warn { color: #9a6700; }
+  .info { color: #4d5b6b; }
+  .muted { color: #6a675f; font-size: .85rem; }
+  #copied { color: #1a7f37; font-size: .85rem; min-height: 1.2em; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #16171a; color: #e8e8e4; }
+    table, .panel, button { background: #1e2024; border-color: #33363d; }
+    th, td { border-color: #33363d; }
+    th, .sub, .muted { color: #9a9a94; }
+    button[aria-pressed="true"] { border-color: #7dd3fc; color: #7dd3fc; }
+    .verdict-ok { color: #4ade80; }
+    .verdict-warn, .warn { color: #fbbf24; }
+    .info { color: #9fb3c8; }
+    #copied { color: #4ade80; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none; transition: none; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="doctor reads errorDetails and noteDetails on plugin rows (GH-4054)"><meta property="og:description" content="CC 2.1.268 put errorDetails and noteDetails on each row of the plugin list JSON output. Toggle the fields on sample rows and watch the doctor verdict move from all OK to warnings plus info notes."><meta property="og:url" content="https://orchestkit.dev/lab/53369-plugin-error-details.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="doctor reads errorDetails and noteDetails on plugin rows (GH-4054)"><meta name="twitter:description" content="CC 2.1.268 put errorDetails and noteDetails on each row of the plugin list JSON output. Toggle the fields on sample rows and watch the doctor verdict move from all OK to warnings plus info notes."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>doctor reads errorDetails and noteDetails</h1>
+  <p class="sub">GH-4054, CC 2.1.268. Toggle the diagnostic fields on sample rows of the plugin list JSON output and watch the doctor verdict change. Before this change a row that loaded with an error looked identical to a clean one.</p>
+
+  <table>
+    <thead>
+      <tr><th>plugin row</th><th>errorDetails</th><th>noteDetails</th><th>simulate</th></tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <div class="panel">
+    <h2>doctor output</h2>
+    <div id="verdict"></div>
+    <ul id="findings"></ul>
+    <p class="muted">Rule source: src/skills/doctor/rules/mcp-status-checks.md, the plugin row health bullet (CC 2.1.268+). A row with neither field stays silent; the keys are omitted on clean rows, so absent means empty.</p>
+    <button type="button" id="copy">Copy doctor output as markdown</button>
+    <span id="copied" role="status"></span>
+  </div>
+</main>
+<script>
+const ROWS = [
+  { id: "ork@orchestkit", version: "10.0.0-beta.172", errorDetails: "", noteDetails: "" },
+  { id: "hq-ext@yonatan-hq", version: "1.66.0", errorDetails: "", noteDetails: "" },
+  { id: "candlekeep-cowork@candlekeep", version: "0.7.2", errorDetails: "", noteDetails: "" }
+];
+const SAMPLE_ERR = "SKILL.md frontmatter failed to parse: missing name field";
+const SAMPLE_NOTE = "update available: installed behind the marketplace pin";
+
+const tbody = document.getElementById("rows");
+const verdictEl = document.getElementById("verdict");
+const findingsEl = document.getElementById("findings");
+
+function render() {
+  tbody.textContent = "";
+  for (const [i, row] of ROWS.entries()) {
+    const tr = document.createElement("tr");
+    const name = document.createElement("td");
+    const code = document.createElement("code");
+    code.textContent = row.id + "@" + row.version;
+    name.append(code);
+    const err = document.createElement("td");
+    const errBtn = document.createElement("button");
+    errBtn.type = "button";
+    errBtn.setAttribute("aria-pressed", String(row.errorDetails !== ""));
+    errBtn.textContent = row.errorDetails ? "on: " + row.errorDetails : "empty";
+    errBtn.addEventListener("click", () => { row.errorDetails = row.errorDetails ? "" : SAMPLE_ERR; render(); });
+    err.append(errBtn);
+    const note = document.createElement("td");
+    const noteBtn = document.createElement("button");
+    noteBtn.type = "button";
+    noteBtn.setAttribute("aria-pressed", String(row.noteDetails !== ""));
+    noteBtn.textContent = row.noteDetails ? "on: " + row.noteDetails : "empty";
+    noteBtn.addEventListener("click", () => { row.noteDetails = row.noteDetails ? "" : SAMPLE_NOTE; render(); });
+    note.append(noteBtn);
+    const sim = document.createElement("td");
+    sim.className = "muted";
+    sim.textContent = row.errorDetails ? "loaded with an error" : (row.noteDetails ? "loaded, note attached" : "loaded clean");
+    tr.append(name, err, note, sim);
+    tbody.append(tr);
+  }
+
+  findingsEl.textContent = "";
+  const lines = [];
+  let warnCount = 0;
+  for (const row of ROWS) {
+    if (row.errorDetails) {
+      warnCount += 1;
+      const li = document.createElement("li");
+      li.className = "warn";
+      li.textContent = "warning: " + row.id + " errorDetails: " + row.errorDetails;
+      findingsEl.append(li);
+      lines.push("- warning: " + row.id + " errorDetails: " + row.errorDetails);
+    }
+    if (row.noteDetails) {
+      const li = document.createElement("li");
+      li.className = "info";
+      li.textContent = "info: " + row.id + " noteDetails: " + row.noteDetails;
+      findingsEl.append(li);
+      lines.push("- info: " + row.id + " noteDetails: " + row.noteDetails);
+    }
+  }
+  if (warnCount > 0) {
+    verdictEl.innerHTML = "";
+    const v = document.createElement("span");
+    v.className = "verdict-warn";
+    v.textContent = "Plugin rows: " + warnCount + " warning(s). The verdict can not be all-ok while errorDetails rows exist.";
+    verdictEl.append(v);
+    lines.unshift("Plugin rows: " + warnCount + " warning(s)");
+  } else {
+    verdictEl.innerHTML = "";
+    const v = document.createElement("span");
+    v.className = "verdict-ok";
+    v.textContent = "Plugin rows: all OK";
+    verdictEl.append(v);
+    lines.unshift("Plugin rows: all OK");
+  }
+  document.getElementById("copy").onclick = async () => {
+    const text = "doctor plugin row health\n" + lines.join("\n") + "\n";
+    try {
+      await navigator.clipboard.writeText(text);
+      document.getElementById("copied").textContent = "copied";
+    } catch {
+      document.getElementById("copied").textContent = text;
+    }
+  };
+}
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -65,6 +65,15 @@ beforeEach(() => {
   delete process.env.ORK_SESSION_IDENTITY;
   delete process.env.ORK_SESSION_IDENTITY_CHILD;
   delete process.env.ORK_SESSION_IDENTITY_WAIT_MS;
+  delete process.env.ORK_SESSION_IDENTITY_RATE_MAX;
+  delete process.env.ORK_SESSION_IDENTITY_RATE_WINDOW_MS;
+  // Isolate the per-host rate-cap file so tests can't consume each other's
+  // spawn budget through the shared tmpdir default.
+  process.env.ORK_SESSION_IDENTITY_RATE_FILE = path.join(tmpDir, 'rate-spawns.json');
+});
+
+afterEach(() => {
+  delete process.env.ORK_SESSION_IDENTITY_RATE_FILE;
 });
 
 afterEach(() => {
@@ -132,6 +141,39 @@ describe('manageSessionIdentity', () => {
     manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
     manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
     expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+  });
+
+  it('#4248: the spawned marker survives a branch change — no respawn', () => {
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    const otherBranch: HookContext = { ...ctx, branch: 'feat/other-work' };
+    manageSessionIdentity(makeInput(), otherBranch, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.spawned'))).toBe(true);
+  });
+
+  it('#4248: marker written before spawn — a failed spawn never retries', () => {
+    vi.mocked(spawnIdentityGenerator).mockReturnValue(false);
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.spawned'))).toBe(true);
+    expect(fs.existsSync(path.join(sessionDir, 'session-identity.failed'))).toBe(true);
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+  });
+
+  it('#4248: per-host cap refuses the N+1th spawn across sessions and logs it', () => {
+    process.env.ORK_SESSION_IDENTITY_RATE_MAX = '1';
+    const lines: string[] = [];
+    const logCtx: HookContext = { ...ctx, log: (_h: string, m: string) => void lines.push(m) };
+    const dirA = path.join(tmpDir, 'sess-a');
+    const dirB = path.join(tmpDir, 'sess-b');
+
+    manageSessionIdentity(makeInput(), logCtx, dirA, tmpDir);
+    manageSessionIdentity(makeInput({ session_id: 'sess-b' }), logCtx, dirB, tmpDir);
+
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    expect(lines.some((l) => l.includes('rate-capped'))).toBe(true);
+    // The refused session keeps no marker, so it can title once the window slides.
+    expect(fs.existsSync(path.join(dirB, 'session-identity.spawned'))).toBe(false);
   });
 
   it('harvests generator output: returns title and upgrades the color', () => {
@@ -211,6 +253,24 @@ describe('manageSessionIdentity', () => {
     expect(manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir)).toBeNull();
     expect(fs.existsSync(path.join(sessionDir, 'session-identity.failed'))).toBe(false);
   });
+
+  it('#4248: a corrupt rate-cap file really resets the window, not just logs', () => {
+    const rateFile = process.env.ORK_SESSION_IDENTITY_RATE_FILE as string;
+    fs.writeFileSync(rateFile, '{not json at all', 'utf8');
+    process.env.ORK_SESSION_IDENTITY_RATE_MAX = '1';
+
+    // Corrupt state must not block the spawn AND must be replaced by a fresh
+    // window — otherwise every later call fails open on the same torn bytes.
+    manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+    const rewritten = JSON.parse(fs.readFileSync(rateFile, 'utf8')) as number[];
+    expect(Array.isArray(rewritten)).toBe(true);
+    expect(rewritten).toHaveLength(1);
+    // ...and the cap now applies normally: a second session is refused.
+    const dirB = path.join(tmpDir, 'sess-b');
+    manageSessionIdentity(makeInput({ session_id: 'sess-b' }), ctx, dirB, tmpDir);
+    expect(spawnIdentityGenerator).toHaveBeenCalledOnce();
+  });
 });
 
 describe('manageSessionIdentity category provider (opt-in)', () => {
@@ -234,6 +294,13 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
     return { ...ctx, lines, log: (_hook: string, msg: string) => void lines.push(msg) };
   }
 
+  // Clear BEFORE each case too: a shell with Jev shadow vars exported made
+  // the first "provider unset" case inherit ORK_SESSION_CATEGORY_PROVIDER
+  // and fail 3 of 3 locally while passing under env -u.
+  beforeEach(() => {
+    delete process.env.ORK_SESSION_CATEGORY_PROVIDER;
+    delete process.env.ORK_TYPESAFE_API_KEY;
+  });
   afterEach(() => {
     delete process.env.ORK_SESSION_CATEGORY_PROVIDER;
     delete process.env.ORK_TYPESAFE_API_KEY;
@@ -258,6 +325,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
   });
 
   it('shadow mode: haiku still spawns and still decides the title and color; the pair is logged once', async () => {
+    const log = loggingCtx();
     const fetchSpy = vi.fn(async () => answer('docs'));
     vi.stubGlobal('fetch', fetchSpy);
     process.env.ORK_SESSION_CATEGORY_PROVIDER = 'shadow';
@@ -272,7 +340,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
     expect(transcriptColorRecords().at(-1)?.agentColor).toBe(hashColor(SESSION_ID));
 
     fs.writeFileSync(path.join(sessionDir, 'session-identity.raw'), RAW, 'utf8');
-    const title = manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
+    const title = manageSessionIdentity(makeInput(), log, sessionDir, tmpDir);
     // Haiku said bugfix (red); Jev said docs (blue). The displayed identity is haiku's.
     expect(title).toBe(`${colorEmoji('red')} Fix login redirect`);
     expect(transcriptColorRecords().at(-1)?.agentColor).toBe('red');
@@ -287,6 +355,11 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
       error: null,
     });
     expect(JSON.stringify(shadow)).not.toContain('fix the login redirect bug');
+    const event = log.lines.find((line) => line.startsWith('category shadow:'));
+    expect(event).toBeDefined();
+    for (const key of ['jev_pick', 'jev_confidence', 'incumbent_pick', 'agree', 'floor', 'decided_by']) {
+      expect(event).toContain(`${key}=`);
+    }
 
     const before = fs.readFileSync(shadowFile(), 'utf8');
     manageSessionIdentity(makeInput(), ctx, sessionDir, tmpDir);
@@ -331,7 +404,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
       decided_by: 'jev',
       threshold: 0.8,
     });
-    expect(log.lines).toContainEqual(expect.stringContaining('decided_by=jev threshold=0.8'));
+    expect(log.lines).toContainEqual(expect.stringContaining('floor=0.8 decided_by=jev'));
   });
 
   it('jev mode, below the threshold: haiku decides the color and the fallback is logged', async () => {
@@ -355,7 +428,7 @@ describe('manageSessionIdentity category provider (opt-in)', () => {
       jev_confidence: 0.62,
       decided_by: 'haiku',
     });
-    expect(log.lines).toContainEqual(expect.stringContaining('decided_by=haiku threshold=0.8'));
+    expect(log.lines).toContainEqual(expect.stringContaining('floor=0.8 decided_by=haiku'));
   });
 
   it('jev mode but the call fails: title and color come from haiku and the error is logged', async () => {

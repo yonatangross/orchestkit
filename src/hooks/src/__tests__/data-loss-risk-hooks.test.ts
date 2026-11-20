@@ -492,6 +492,7 @@ describe('retryHandler', () => {
   describe('output format', () => {
     test('returns outputWithContext format for non-success outcomes', () => {
       const input = createHookInput({
+        hook_event: 'SubagentStop',
         subagent_type: 'test-generator',
         error: 'Something went wrong',
       });
@@ -501,7 +502,8 @@ describe('retryHandler', () => {
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
       expect(result.hookSpecificOutput).toBeDefined();
-      expect(result.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+      // #4683: labelled with the event it fired on, not a PostToolUse default.
+      expect(result.hookSpecificOutput?.hookEventName).toBe('SubagentStop');
       expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
       expect(typeof result.hookSpecificOutput?.additionalContext).toBe('string');
     });

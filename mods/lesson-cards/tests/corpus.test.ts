@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { parseLessonsMd, joinPath, homeDir } from '../src/corpus.js';
+import { parseLessonsMd, joinPath } from '../src/corpus.js';
 
 describe('parseLessonsMd', () => {
   test('parses simple lesson file', () => {
@@ -141,10 +141,5 @@ describe('path helpers', () => {
   test('joinPath drops empty segments and joins with slashes', () => {
     expect(joinPath('/home/u', '.claude', '', 'hq')).toBe('/home/u/.claude/hq');
     expect(joinPath()).toBe('');
-  });
-
-  test('homeDir falls back to empty string without env', () => {
-    // Depends on the test environment; both shapes are acceptable
-    expect(typeof homeDir()).toBe('string');
   });
 });

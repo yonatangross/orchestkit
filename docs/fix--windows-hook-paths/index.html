@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why every edit on Windows reported a blocked hook</title>
+<meta name="description" content="Type a project path and compare what the OrchestKit stale import hook did with it before and after the Windows fix.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--dim);font-size:.8rem;margin-top:.6rem}
+  input{width:100%;background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.8rem;min-height:4rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--dim);font-weight:400}
+</style>
+</head>
+<body><main>
+<h1>Why every edit on Windows reported a blocked hook</h1>
+<p class="sub">Branch fix/windows-hook-paths, 2026-11-08. The stale import hook checked the project path against a list of characters that are safe in a shell, but it never used a shell. A path outside that list made the hook throw, and a throw counts as a block.</p>
+
+<section><h2>Try a project path</h2>
+<label for="dir">Project path</label>
+<input id="dir" value="C:\Users\RICU" spellcheck="false">
+<div class="grid">
+  <div><h3>Before</h3><div class="out" id="before"></div></div>
+  <div><h3>Now</h3><div class="out ok">The path goes to grep as a plain argument, so any path works and the edit reports no error.</div></div>
+</div>
+</section>
+
+<script>
+const SAFE = /^[a-zA-Z0-9._/~=:@-]+$/;
+const dir = document.getElementById('dir');
+const before = document.getElementById('before');
+function show() {
+  const ok = SAFE.test(dir.value);
+  before.className = 'out ' + (ok ? 'ok' : 'bad');
+  before.textContent = ok
+    ? 'Accepted: every character is on the allowlist.'
+    : 'Blocked on every Edit and Write: Unsafe shell project dir.';
+}
+dir.addEventListener('input', show);
+show();
+</script>
+</main></body>
+</html>

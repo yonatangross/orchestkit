@@ -1,0 +1,8 @@
+{
+  "slug": "demo-producer-code-drawn",
+  "source": "docs/feat--demo-producer-code-drawn/index.html",
+  "title": "Code-drawn mode: the storyboard page renders the film",
+  "description": "demo-producer's code-drawn mode: one page draws every frame from time alone, the owner approves it, and the same code renders the film. A live drawFrame scrubber and the real compare numbers from the OrchestKit verify reel.",
+  "tags": ["demo-producer", "video", "verification"],
+  "date": "2026-11-10"
+}

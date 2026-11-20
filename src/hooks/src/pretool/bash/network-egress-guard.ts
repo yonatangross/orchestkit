@@ -10,14 +10,15 @@
  *
  * Scope split (mirrors dangerous-command-blocker's DENY/ASK/ALLOW tiers):
  *
- *   DENY  — remote code execution via fetched content. Never legitimate for an
- *           agent: `bash <(curl …)`, `eval $(curl …)`, `nc -e` reverse shell.
- *           NOTE: `curl … | sh` / `… | base64 -d | sh` are ALREADY blocked by
- *           dangerous-command-blocker's PIPE_TO_SHELL_RE (runs first), so we do
- *           NOT duplicate the simple pipe-to-shell case here.
+ *   DENY  - remote code execution via fetched content. Never legitimate for an
+ *           agent: `bash <(curl ...)`, `eval $(curl ...)`, `curl ... | sh`,
+ *           `curl ... | python3`, `nc -e` reverse shell.
+ *           NOTE: dangerous-command-blocker (and its PIPE_TO_SHELL_RE) was
+ *           retired in #3835. Plain pipe-to-shell / pipe-to-interpreter shapes
+ *           live in THIS guard's DENY tier now (#4220 HR-5).
  *
  *   ASK   — sometimes-legitimate egress that is also the classic exfil/install
- *           vector: staged download-then-run (`curl -o x.sh … && sh x.sh`),
+ *           vector: staged download-then-run (`curl -o x.sh ... && sh x.sh`),
  *           data UPLOAD (POST/PUT/-d/-F/-T) to a non-allowlisted host, and
  *           nc/scp/rsync to a non-allowlisted host.
  *
@@ -44,6 +45,7 @@
  * Issue: #2533. CC 2.1.7 compliant (JSON with continue field via output builders).
  */
 
+import { posix } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny } from '../../lib/common.js';
 import { normalizeSingle, blankQuotedHeredocBodies } from '../../lib/normalize-command.js';
@@ -52,97 +54,1878 @@ import { NOOP_CTX } from '../../lib/context.js';
 const HOOK_NAME = 'network-egress-guard';
 
 // =============================================================================
-// Allowlist — hosts the agent routinely + safely talks to. User-extensible via
-// ORCHESTKIT_EGRESS_ALLOWLIST (comma-separated). Suffix-matched, so `github.com`
-// also covers `api.github.com`, `raw.githubusercontent.com`, etc.
-// =============================================================================
-
-const DEFAULT_ALLOWLIST = [
-  'github.com',
-  'githubusercontent.com',
-  'codeload.github.com',
-  'registry.npmjs.org',
-  'npmjs.com',
-  'npmjs.org',
-  'pypi.org',
-  'files.pythonhosted.org',
-  'crates.io',
-  'api.anthropic.com',
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  '::1',
-];
-
-function allowlist(): string[] {
-  const extra = (process.env.ORCHESTKIT_EGRESS_ALLOWLIST || '')
-    .split(',')
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-  return [...DEFAULT_ALLOWLIST, ...extra];
-}
-
-/** True when `host` is the allowlist entry or a subdomain of it. */
-function isAllowlisted(host: string): boolean {
-  const h = host.toLowerCase().replace(/:\d+$/, ''); // strip :port
-  return allowlist().some((a) => h === a || h.endsWith(`.${a}`));
-}
-
-/** Extract hostnames from `http(s)://host[:port]/…` occurrences. */
-function extractUrlHosts(cmd: string): string[] {
-  const hosts: string[] = [];
-  for (const m of cmd.matchAll(/https?:\/\/([^/\s"'`)]+)/gi)) {
-    // strip credentials in `user:pass@host`
-    hosts.push(m[1].replace(/^[^@]*@/, ''));
-  }
-  return hosts;
-}
-
-// =============================================================================
 // DENY tier — remote code execution via fetched content
 // =============================================================================
 
 const DENY_REGEX: { re: RegExp; label: string }[] = [
-  // interpreter reading a process-substitution network fetch: bash <(curl …)
+  // interpreter reading a process-substitution network fetch: bash <(curl ...)
   {
     re: /\b(?:ba|z|k|da)?sh\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'shell <(curl …) — executes fetched remote content',
+    label: 'shell <(curl ...): executes fetched remote content',
   },
   {
     re: /\b(?:source|\.)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'source <(curl …) — sources fetched remote content',
+    label: 'source <(curl ...): sources fetched remote content',
   },
   {
     re: /\b(?:python[0-9.]*|node|ruby|perl|php)\s+<\(\s*(?:curl|wget|fetch)\b/i,
-    label: 'interpreter <(curl …) — runs fetched remote content',
+    label: 'interpreter <(curl ...): runs fetched remote content',
   },
-  // eval of a command substitution that fetches: eval $(curl …) / eval `curl …`
+  // eval of a command substitution that fetches: eval $(curl ...) / eval `curl ...`
   {
     re: /\beval\b[^\n]{0,60}?(?:\$\(|`)\s*(?:curl|wget|fetch)\b/i,
-    label: 'eval $(curl …) — evaluates fetched remote content',
+    label: 'eval $(curl ...): evaluates fetched remote content',
   },
   // netcat reverse shell: nc -e /bin/sh host port
   {
     re: /\b(?:nc|ncat|netcat)\b[^\n]*\s-e\b/i,
-    label: 'nc -e — netcat command-exec (reverse shell)',
+    label: 'nc -e: netcat command-exec (reverse shell)',
   },
+  // Plain pipe-to-shell (#4220 HR-5). The retired dangerous-command-blocker
+  // used to own these; without them an allowlisted `curl ... | sh` runs with no
+  // deny (measured #3877 / CC 2.1.263).
+  // Fetcher is curl/wget, or fetch as its own command word (not `git fetch`).
+  // Optional path prefix ([\w./-]*/) covers `/bin/sh`, `/usr/bin/bash`, etc.
+  {
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|sh: pipes fetched content to a shell',
+  },
+  {
+    re: /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)[^\n]{0,200}\|\s*base64\b(?:\s+-[A-Za-z]*)?[^\n]{0,80}\|\s*(?:[\w./-]*\/)?(?:ba|z|k|da)?sh\b/i,
+    label: 'curl|base64|sh: pipes decoded remote content to a shell',
+  },
+  // curl|interpreter stdin-program shapes use pipeToInterpreterStdinProgram()
+  // below (not a single regex): bare/sudo/env, lone `-`, `/dev/stdin`, and
+  // option-only / value-taking flags must DENY; per-interpreter code flags
+  // or a real script path must ALLOW.
 ];
+
+/** curl/wget, or fetch not preceded by `git ` (so `git fetch` is not a fetcher). */
+const FETCHER_RE = /(?:\bcurl\b|\bwget\b|(?<!\bgit\s)\bfetch\b)/i;
+
+/** Path-optional interpreter that can run a fetched body as its program. */
+const INTERPRETER_NAME_RE = /^(?:[\w./-]*\/)?(?:python[0-9.]*|node|ruby|perl|php)$/i;
+
+type InterpreterFamily = 'python' | 'node' | 'ruby' | 'perl' | 'php';
+
+/** Flags whose next arg is code/module (ALLOW), keyed by interpreter family. */
+const CODE_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set(['-c', '-m']),
+  node: new Set(['-e', '-p', '--eval', '--print']),
+  ruby: new Set(['-e']),
+  perl: new Set(['-e', '-E']),
+  php: new Set(['-r']),
+};
+
+/** Options that consume the next token as a value (not a script path). */
+const VALUE_OPTS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set(['-W', '-X', '-Q']),
+  node: new Set([
+    '-r',
+    '--require',
+    '--import',
+    '--loader',
+    '--experimental-loader',
+    '-C',
+    '--conditions',
+    '--env-file',
+  ]),
+  ruby: new Set(['-r', '-I', '-C', '-E', '--encoding']),
+  perl: new Set(['-M', '-I']),
+  // php -f is a boolean below: the following token is the script path (ALLOW).
+  // -c here is php.ini, not code.
+  php: new Set(['-d', '-c', '-z']),
+};
+
+/**
+ * Known boolean flags (skipped). Fail-closed: any other token starting with `-`
+ * is an unknown option and DENYs (stdin-program).
+ */
+const BOOLEAN_FLAGS: Record<InterpreterFamily, ReadonlySet<string>> = {
+  python: new Set([
+    '-u',
+    '-E',
+    '-I',
+    '-O',
+    '-OO',
+    '-B',
+    '-S',
+    '-s',
+    '-v',
+    '-V',
+    '-h',
+    '-q',
+    '-R',
+    '--help',
+    '--version',
+  ]),
+  node: new Set([
+    '-h',
+    '-c',
+    '--check',
+    '--help',
+    '--version',
+    '--jitless',
+    '--no-warnings',
+    '--trace-warnings',
+    '--inspect',
+    '--inspect-brk',
+    // Benign experimental boolean (LAND over-block nit); unknown opts still DENY.
+    '--experimental-vm-modules',
+  ]),
+  ruby: new Set([
+    '-h',
+    '--help',
+    '--version',
+    '-v',
+    '-w',
+    '-W',
+    '-W0',
+    '-W1',
+    '-W2',
+    '-d',
+    '-n',
+    '-p',
+    '-l',
+    '-a',
+    '-s',
+    '-S',
+    '-y',
+    // -x may take an attached directory (`-x/tmp`) but never a separate argv token.
+    '-x',
+  ]),
+  // -n/-p/-a/-l/-w so clusters like `-ne` stay ALLOW when `-e` is a code flag.
+  perl: new Set(['-n', '-p', '-a', '-l', '-w', '-c', '-d', '-t', '-T', '-U', '-u', '-W', '-X', '-S', '-h', '-v']),
+  php: new Set(['-n', '-f', '-h', '-v', '-w', '--help', '--version']),
+};
+
+/**
+ * Exact value-opt (`-M foo`) or glued form (`-Mstrict`, `-I/lib`, `--require=fs`).
+ * Returns `exact` (always consume next token), `glued` (value already in token),
+ * or null.
+ */
+function valueOptKind(
+  a: string,
+  valueOpts: ReadonlySet<string>,
+): 'exact' | 'glued' | null {
+  if (valueOpts.has(a)) return 'exact';
+  for (const opt of valueOpts) {
+    if (!a.startsWith(opt) || a.length <= opt.length) continue;
+    if (opt.startsWith('--')) {
+      if (a.startsWith(`${opt}=`)) return 'glued';
+      continue;
+    }
+    return 'glued';
+  }
+  return null;
+}
+
+function interpreterFamily(name: string): InterpreterFamily | null {
+  const base = name.replace(/^.*\//, '').toLowerCase();
+  if (/^python[0-9.]*$/.test(base)) return 'python';
+  if (base === 'node') return 'node';
+  if (base === 'ruby') return 'ruby';
+  if (base === 'perl') return 'perl';
+  if (base === 'php') return 'php';
+  return null;
+}
+
+/**
+ * Tokenize one simple-command suffix (after `|`) with shell quoting rules:
+ * - single quotes: literal until the closing `'`
+ * - double quotes: `\"` and `\\` are escapes; other chars are literal
+ * - outside quotes: a backslash escapes the next character
+ * Adjacent quoted/unquoted pieces join into one word (`-M'strict'`).
+ * Stops at unquoted `; | &` or newline.
+ *
+ * Must receive a view that still has backslashes (not stripBackslashEscapes).
+ */
+function tokenizePipeRhs(s: string): string[] {
+  const tokens: string[] = [];
+  let i = 0;
+
+  const readSingleQuoted = (): string => {
+    // caller saw opening '
+    i++;
+    let tok = '';
+    while (i < s.length && s[i] !== "'") {
+      tok += s[i];
+      i++;
+    }
+    if (i < s.length) i++; // closing '
+    return tok;
+  };
+
+  const readDoubleQuoted = (): string => {
+    // caller saw opening "
+    i++;
+    let tok = '';
+    while (i < s.length && s[i] !== '"') {
+      if (s[i] === '\\' && i + 1 < s.length) {
+        const n = s[i + 1]!;
+        if (n === '"' || n === '\\') {
+          tok += n;
+          i += 2;
+          continue;
+        }
+      }
+      tok += s[i];
+      i++;
+    }
+    if (i < s.length) i++; // closing "
+    return tok;
+  };
+
+  while (i < s.length) {
+    const ch = s[i]!;
+    if (ch === ';' || ch === '\n' || ch === '|' || ch === '&') break;
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+
+    let tok = '';
+    // One shell word: unquoted runs + adjacent quoted runs glued together.
+    while (i < s.length) {
+      const c = s[i]!;
+      if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      if (c === "'") {
+        tok += readSingleQuoted();
+        continue;
+      }
+      if (c === '"') {
+        tok += readDoubleQuoted();
+        continue;
+      }
+      if (c === '\\' && i + 1 < s.length) {
+        // Keep the backslash so fail-closed expansion checks can see escapes.
+        tok += '\\';
+        tok += s[i + 1];
+        i += 2;
+        continue;
+      }
+      tok += c;
+      i++;
+    }
+    if (tok.length > 0) tokens.push(tok);
+  }
+  return tokens;
+}
+
+/** True when a normalized absolute path sits under a kernel filesystem tree. */
+function isKernelFsPath(n: string): boolean {
+  return n === '/dev' || n === '/proc' || n.startsWith('/dev/') || n.startsWith('/proc/');
+}
+
+/**
+ * Fail-closed stdin-program path check against a cwd candidate set.
+ * After posix.normalize:
+ * (a) lone `-`
+ * (b) absolute path under `/dev` or `/proc`
+ * (c) relative path: DENY when cwd is unknown; otherwise DENY when the path
+ *     resolves under `/dev` or `/proc` from ANY candidate
+ */
+function isStdinProgramPath(a: string, cwdCandidates: string[] | null): boolean {
+  if (a === '-') return true;
+  const n = posix.normalize(a);
+  if (n === '-') return true;
+  // Relative climb into a kernel tree name (no cwd needed).
+  if (/^(?:\.\.\/)+(?:dev|proc)(?:\/|$)/.test(n)) return true;
+
+  if (posix.isAbsolute(n)) return isKernelFsPath(n);
+
+  // Relative path: unknown cwd is fail-closed; else resolve against every candidate.
+  if (cwdCandidates === null) return true;
+  if (cwdCandidates.length === 0) return true;
+  for (const c of cwdCandidates) {
+    if (isKernelFsPath(posix.normalize(posix.join(c, n)))) return true;
+  }
+  return false;
+}
+
+/**
+ * True when a program token still has shell expansion surface: glob/brace
+ * metacharacters, `$` / backtick substitution, a backslash escape, or a
+ * leading `~` (HOME / user / `~+` / `~-` tilde expansion).
+ * Quoted literals that keep those shapes after tokenize may over-block.
+ */
+function programArgIsShellExpanded(a: string): boolean {
+  if (a.startsWith('~')) return true;
+  if (/[*?[{]/.test(a)) return true;
+  if (/[`$]/.test(a)) return true;
+  if (a.includes('\\')) return true;
+  return false;
+}
+
+/**
+ * Input redirection or process substitution on the interpreter segment.
+ * Output redirections (`>`, `>>`, `2>`, `2>&1`, `&>`) are not matched.
+ */
+function isInputRedirectOrProcSub(tok: string): boolean {
+  if (/^<\(/.test(tok) || /^>\(/.test(tok)) return true;
+  // Output forms first so `2>&1` / `2>/dev/null` / `&>` stay allowed.
+  if (/^&>/.test(tok)) return false;
+  if (/^(?:\d*)>/.test(tok)) return false;
+  if (/^(?:\d*)(?:<<|<>|<&|<)/.test(tok)) return true;
+  return tok === '<';
+}
+
+/**
+ * True when this program token must be treated as an unknown/stdin program:
+ * shell-expanded form, or a path under a kernel filesystem tree (resolved
+ * against every cwd candidate when relative).
+ */
+function programArgIsDenied(a: string, cwdCandidates: string[] | null): boolean {
+  return programArgIsShellExpanded(a) || isStdinProgramPath(a, cwdCandidates);
+}
+
+/**
+ * Hook payload cwd (CC shared base), falling back to project_dir.
+ */
+function hookInputCwd(input: HookInput): string | null {
+  const rec = input as unknown as Record<string, unknown>;
+  if (typeof rec.cwd === 'string' && rec.cwd.length > 0) return rec.cwd;
+  if (typeof input.project_dir === 'string' && input.project_dir.length > 0) {
+    return input.project_dir;
+  }
+  return null;
+}
+
+/** Directory-changing builtins tracked for the cwd candidate set. */
+function isDirChangeWord(w: string): boolean {
+  return w === 'cd' || w === 'pushd' || w === 'popd' || w === 'chdir';
+}
+
+/** True when `eval` / `source` / `.` appears as a whole word (effect unknown). */
+function isOpaqueDirEffectWord(w: string): boolean {
+  return w === 'eval' || w === 'source' || w === '.';
+}
+
+/**
+ * A dir-change word inside a multi-word token (typical of a quoted string
+ * after quote stripping, e.g. `cd /dev` from `"cd /dev"`) cannot yield a
+ * trusted literal target; treat as UNKNOWN.
+ */
+function tokenEmbedsDirChangeWord(tok: string): boolean {
+  if (!/\s/.test(tok)) return false;
+  return /(?:^|[\s;|&()])(cd|pushd|popd|chdir)(?=[\s;|&()]|$)/.test(tok);
+}
+
+/**
+ * Scan every token in a simple-command segment for directory-change words.
+ * Fail-closed: a word `cd` / `pushd` / `popd` / `chdir` anywhere counts, not
+ * only in command position (covers `time cd`, `then cd`, `do cd`, ...).
+ * A literal following target is ADDed; anything else makes the set UNKNOWN.
+ * `eval` / `source` / `.`, dir-change words embedded in quoted tokens,
+ * redirection tokens, bare relative targets (no ./ or ../), and multi-operand
+ * `cd` also make the set UNKNOWN.
+ */
+function isRedirectionToken(tok: string): boolean {
+  if (tok === '<' || tok === '>' || tok === '>>' || tok === '&>' || tok === '&>>') {
+    return true;
+  }
+  if (/^&>/.test(tok)) return true;
+  if (/^(?:\d*)>{1,2}/.test(tok)) return true;
+  if (/^(?:\d*)(?:<<|<>|<&|<)/.test(tok)) return true;
+  return false;
+}
+
+function applyDirChangesInSegment(
+  tokens: string[],
+  addTarget: (target: string) => boolean,
+): 'ok' | 'unknown' {
+  if (tokens.length === 0) return 'ok';
+  // Keep backslashes so escaped targets stay shell-expanded / UNKNOWN.
+  const words = tokens.map((t) => unwrapToken(t));
+  if (words.some(isRedirectionToken)) return 'unknown';
+
+  for (let i = 0; i < words.length; i++) {
+    const rawWord = words[i]!;
+    if (tokenEmbedsDirChangeWord(rawWord)) return 'unknown';
+
+    const head = rawWord.replace(/\\/g, '');
+    if (isOpaqueDirEffectWord(head)) return 'unknown';
+    if (!isDirChangeWord(head)) continue;
+    if (head === 'popd') return 'unknown';
+
+    // Collect operands until the next dir-change word.
+    const operands: string[] = [];
+    for (let j = i + 1; j < words.length; j++) {
+      const w = words[j]!.replace(/\\/g, '');
+      if (isDirChangeWord(w) || isOpaqueDirEffectWord(w)) break;
+      operands.push(words[j]!);
+    }
+    if (operands.length === 0) return 'unknown';
+    // zsh two-argument `cd` and any multi-operand form.
+    if (operands.length !== 1) return 'unknown';
+
+    const target = operands[0]!;
+    if (target === '-') return 'unknown';
+    if (head === 'pushd' && /^[+-]\d+$/.test(target)) return 'unknown';
+    if (target.startsWith('-') && target !== '-') return 'unknown';
+    if (programArgIsShellExpanded(target)) return 'unknown';
+    if (isDirChangeWord(target.replace(/\\/g, ''))) return 'unknown';
+    if (tokenEmbedsDirChangeWord(target)) return 'unknown';
+    // Bare relative (no ./ or ../): CDPATH / cdable_vars / shell options.
+    const cleaned = target.replace(/\\/g, '');
+    if (
+      (head === 'cd' || head === 'pushd' || head === 'chdir') &&
+      isCdpathEligibleTarget(cleaned)
+    ) {
+      return 'unknown';
+    }
+    if (!addTarget(cleaned)) return 'unknown';
+  }
+  return 'ok';
+}
+
+/** Cap cwd candidates and directory changes; overflow => UNKNOWN. */
+const CWD_CANDIDATE_CAP = 32;
+const CWD_DIR_CHANGE_CAP = 32;
+
+/**
+ * Relative targets that bash may resolve via CDPATH (not absolute, not ./ or ../).
+ */
+function isCdpathEligibleTarget(target: string): boolean {
+  if (posix.isAbsolute(target)) return false;
+  if (target.startsWith('./') || target.startsWith('../')) return false;
+  return true;
+}
+
+/**
+ * True when CDPATH may be in play for the command: the word CDPATH appears,
+ * a variable-setting builtin / eval / source / dot appears, or the hook
+ * process already has a non-empty CDPATH.
+ */
+function cdpathMayAffectCommand(fullCommand: string): boolean {
+  if (typeof process.env.CDPATH === 'string' && process.env.CDPATH.length > 0) {
+    return true;
+  }
+  if (/\bCDPATH\b/.test(fullCommand)) return true;
+  if (
+    /\b(?:read|declare|typeset|export|local|mapfile|readarray|let)\b/.test(fullCommand)
+  ) {
+    return true;
+  }
+  // `printf -v NAME` can assign without `NAME=` text.
+  if (/\bprintf\b[^\n;|&]{0,120}-v\b/.test(fullCommand)) return true;
+  if (/\b(?:eval|source)\b/.test(fullCommand)) return true;
+  if (/(?:^|[\s;|&()])\.(?=[\s;|&()]|$)/.test(fullCommand)) return true;
+  return false;
+}
+
+/**
+ * Add one directory-change target to a candidate set. Returns false when the
+ * set becomes UNKNOWN (CDPATH-eligible under risk, or cap overflow).
+ */
+function addCwdCandidateTarget(
+  candidates: Set<string>,
+  target: string,
+  state: { dirChanges: number; cdpathRisk: boolean },
+): boolean {
+  if (state.dirChanges >= CWD_DIR_CHANGE_CAP) return false;
+  state.dirChanges++;
+
+  if (state.cdpathRisk && isCdpathEligibleTarget(target)) return false;
+
+  if (posix.isAbsolute(target)) {
+    if (candidates.size >= CWD_CANDIDATE_CAP) return false;
+    candidates.add(posix.normalize(target));
+    return candidates.size <= CWD_CANDIDATE_CAP;
+  }
+
+  if (candidates.size === 0) return false;
+  const next = new Set(candidates);
+  for (const c of candidates) {
+    next.add(posix.normalize(posix.join(c, target)));
+    if (next.size > CWD_CANDIDATE_CAP) return false;
+  }
+  candidates.clear();
+  for (const p of next) candidates.add(p);
+  return true;
+}
+
+/**
+ * Build the never-shrinking set of directories the shell could be in after the
+ * prefix before a fetcher|interpreter pipe. Starts from `baseCandidates`
+ * (hook cwd, or an outer set when scanning an executed-quote body). Every
+ * directory change ADDS targets. Returns null when the set is UNKNOWN.
+ */
+function resolveCwdCandidates(
+  prefix: string,
+  baseCandidates: string[] | null,
+  fullCommand: string,
+): string[] | null {
+  // Once unknown, stay unknown (do not recover via later absolute cds).
+  if (baseCandidates === null) return null;
+
+  const cdpathRisk = cdpathMayAffectCommand(fullCommand);
+  const candidates = new Set<string>();
+  for (const c of baseCandidates) {
+    if (c.length > 0) candidates.add(posix.normalize(c));
+  }
+
+  const state = { dirChanges: 0, cdpathRisk };
+  let pos = 0;
+  const n = prefix.length;
+
+  const addTarget = (target: string): boolean =>
+    addCwdCandidateTarget(candidates, target, state);
+
+  while (pos < n) {
+    while (pos < n && /\s/.test(prefix[pos]!)) pos++;
+    if (pos >= n) break;
+
+    const ch0 = prefix[pos]!;
+    if (ch0 === '(' || ch0 === '{') {
+      pos++;
+      continue;
+    }
+    if (ch0 === ')' || ch0 === '}') {
+      pos++;
+      continue;
+    }
+
+    let end = pos;
+    while (end < n) {
+      const c = prefix[end]!;
+      if (c === '"' || c === "'") {
+        const q = c;
+        end++;
+        while (end < n && prefix[end] !== q) {
+          if (q === '"' && prefix[end] === '\\' && end + 1 < n) end += 2;
+          else end++;
+        }
+        if (end < n) end++;
+        continue;
+      }
+      if (c === '(' || c === '{' || c === ')' || c === '}') break;
+      if (c === ';' || c === '\n' || c === '|') break;
+      if (c === '&') break;
+      end++;
+    }
+
+    const segment = prefix.slice(pos, end).trim();
+    if (segment.length > 0) {
+      const applied = applyDirChangesInSegment(tokenizePipeRhs(segment), addTarget);
+      if (applied === 'unknown') return null;
+    }
+
+    if (end >= n) break;
+    const sep = prefix[end]!;
+    // Continue across every separator, including earlier pipes and `||`.
+    if (sep === '|') {
+      pos = prefix[end + 1] === '|' ? end + 2 : end + 1;
+      continue;
+    }
+    if (sep === ';' || sep === '\n') {
+      pos = end + 1;
+      continue;
+    }
+    if (sep === '&') {
+      pos = prefix[end + 1] === '&' ? end + 2 : end + 1;
+      continue;
+    }
+    if (sep === '(' || sep === '{' || sep === ')' || sep === '}') {
+      pos = end + 1;
+      continue;
+    }
+    pos = end;
+  }
+
+  return [...candidates];
+}
+
+/** Unescaped basename of a command token (`/usr/bin/env`, `en\\v` → `env`). */
+function commandBasename(tok: string): string {
+  const u = unescapeInterpreterName(unwrapToken(tok));
+  const slash = u.lastIndexOf('/');
+  return (slash >= 0 ? u.slice(slash + 1) : u).toLowerCase();
+}
+
+const SHELL_BASENAMES = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh']);
+
+type WrapperSkipResult =
+  | { kind: 'not' }
+  | { kind: 'deny' }
+  | { kind: 'skip'; nextIdx: number };
+
+/**
+ * Peel one known front wrapper with its EXACT option grammar. Unknown options
+ * on a known wrapper mean the whole RHS is an UNKNOWN program (DENY). `watch`
+ * has no positional duration; after its options the next token is the command.
+ * `timeout` takes options, then one DURATION, then the command.
+ */
+function skipOneFrontWrapper(tokens: string[], startIdx: number): WrapperSkipResult {
+  if (startIdx >= tokens.length) return { kind: 'not' };
+  const base = commandBasename(tokens[startIdx]!);
+  let i = startIdx + 1;
+
+  if (base === 'nohup') {
+    // nohup [command...]; no options.
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'catchsegv') {
+    // catchsegv PROGRAM; no options.
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'setsid') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-c' || a === '-f' || a === '-w' || a === '--ctty' || a === '--fork' || a === '--wait') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'ionice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-t' || a === '--ignore') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--class=') || a.startsWith('--classdata=')) {
+        i++;
+        continue;
+      }
+      if (a === '-c' || a === '--class' || a === '-n' || a === '--classdata') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // Glued -c3 / -n0
+      if (/^-[cn].+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'time') {
+    // Shell keyword or /usr/bin/time: -p; GNU also -f/-o VALUE, -a, -v.
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '-p' ||
+        a === '--portability' ||
+        a === '-a' ||
+        a === '--append' ||
+        a === '-v' ||
+        a === '--verbose'
+      ) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--format=') || a.startsWith('--output=')) {
+        i++;
+        continue;
+      }
+      if (a === '-f' || a === '--format' || a === '-o' || a === '--output') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (/^-f.+/.test(a) || /^-o.+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'exec') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-a') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (a === '-c' || a === '-l') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'command') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a === '-p' || a === '-v' || a === '-V') {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'nice') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (a.startsWith('--adjustment=')) {
+        i++;
+        continue;
+      }
+      if (a === '-n' || a === '--adjustment') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // Glued -nN
+      if (/^-n.+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'stdbuf') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a.startsWith('--input-size=') ||
+        a.startsWith('--output-size=') ||
+        a.startsWith('--error-size=')
+      ) {
+        i++;
+        continue;
+      }
+      if (a === '--input-size' || a === '--output-size' || a === '--error-size') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // -i0 / -oL / -e0 glued, or -i / -o / -e with a separate value.
+      if (/^-[ioe]/.test(a)) {
+        if (/^-[ioe].+/.test(a)) {
+          i++;
+          continue;
+        }
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'timeout') {
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '--preserve-status' ||
+        a === '--foreground' ||
+        a === '--verbose' ||
+        a === '-v' ||
+        a === '-p' ||
+        a === '-f'
+      ) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--signal=') || a.startsWith('--kill-after=')) {
+        i++;
+        continue;
+      }
+      if (a === '--signal' || a === '--kill-after' || a === '-s' || a === '-k') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    // Exactly one DURATION token, then the command.
+    if (i >= tokens.length) return { kind: 'deny' };
+    i++;
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  if (base === 'watch') {
+    // watch [OPTION]... COMMAND; no positional interval (-n/--interval takes the value).
+    while (i < tokens.length) {
+      const a = unwrapToken(tokens[i]!);
+      if (a === '--') {
+        i++;
+        break;
+      }
+      if (
+        a === '-t' ||
+        a === '--no-title' ||
+        a === '-c' ||
+        a === '--color' ||
+        a === '-p' ||
+        a === '--precise' ||
+        a === '-e' ||
+        a === '--errexit' ||
+        a === '-g' ||
+        a === '--chgexit' ||
+        a === '-b' ||
+        a === '--beep' ||
+        a === '-w' ||
+        a === '--no-redraw' ||
+        a === '-x' ||
+        a === '--exec' ||
+        a === '-d' ||
+        a === '--differences' ||
+        a.startsWith('--differences=')
+      ) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('--interval=') || a.startsWith('--equexit=')) {
+        i++;
+        continue;
+      }
+      if (a === '-n' || a === '--interval' || a === '-q' || a === '--equexit') {
+        if (i + 1 >= tokens.length) return { kind: 'deny' };
+        i += 2;
+        continue;
+      }
+      // Glued -n1
+      if (/^-n.+/.test(a)) {
+        i++;
+        continue;
+      }
+      if (a.startsWith('-') && a !== '-') return { kind: 'deny' };
+      break;
+    }
+    return { kind: 'skip', nextIdx: i };
+  }
+
+  return { kind: 'not' };
+}
+
+/**
+ * Peel wrappers + env / sudo / su / runuser in front of the interpreter with a
+ * POSITIVE option allowlist. Match on unescaped basename. Run the env/sudo
+ * parser after every skipped wrapper. Login modes make the cwd UNKNOWN.
+ * Unknown wrapper/env/sudo options mean the whole RHS is an UNKNOWN program.
+ */
+function applyInterpreterFrontChdir(
+  tokens: string[],
+  startIdx: number,
+  candidates: string[] | null,
+  fullCommand: string,
+): {
+  nextIdx: number;
+  candidates: string[] | null;
+  denyProgram: boolean;
+  execBody: string | null;
+} {
+  let unknownCwd = candidates === null;
+  let denyProgram = false;
+  let execBody: string | null = null;
+  const set = new Set<string>(candidates ?? []);
+  const state = {
+    dirChanges: 0,
+    cdpathRisk: cdpathMayAffectCommand(fullCommand),
+  };
+  let idx = startIdx;
+
+  const addTarget = (raw: string): void => {
+    const target = unwrapToken(raw).replace(/\\/g, '');
+    if (target.length === 0 || programArgIsShellExpanded(target) || target === '-') {
+      unknownCwd = true;
+      return;
+    }
+    if (!addCwdCandidateTarget(set, target, state)) unknownCwd = true;
+  };
+
+  const takeValue = (): string | null => {
+    if (idx + 1 >= tokens.length) return null;
+    idx++;
+    return unwrapToken(tokens[idx]!);
+  };
+
+  while (idx < tokens.length) {
+    const wrap = skipOneFrontWrapper(tokens, idx);
+    if (wrap.kind === 'deny') {
+      denyProgram = true;
+      break;
+    }
+    if (wrap.kind === 'skip') {
+      idx = wrap.nextIdx;
+      continue;
+    }
+
+    const t = commandBasename(tokens[idx]!);
+
+    if (t === 'env') {
+      idx++;
+      while (idx < tokens.length) {
+        const a = unwrapToken(tokens[idx]!);
+        if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(a)) {
+          idx++;
+          continue;
+        }
+        if (a === '--') {
+          idx++;
+          break;
+        }
+        if (a.startsWith('--')) {
+          if (a === '--chdir') {
+            const v = takeValue();
+            if (v === null) {
+              denyProgram = true;
+              break;
+            }
+            addTarget(v);
+            idx++;
+            continue;
+          }
+          if (a.startsWith('--chdir=')) {
+            addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          if (a === '--unset') {
+            if (takeValue() === null) {
+              denyProgram = true;
+              break;
+            }
+            idx++;
+            continue;
+          }
+          if (a.startsWith('--unset=')) {
+            idx++;
+            continue;
+          }
+          if (a === '--ignore-environment' || a === '--debug') {
+            idx++;
+            continue;
+          }
+          denyProgram = true;
+          break;
+        }
+        if (a.startsWith('-') && a !== '-') {
+          let p = 1;
+          let clusterBad = false;
+          while (p < a.length) {
+            const ch = a[p]!;
+            if (ch === 'C') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                addTarget(glued);
+                p = a.length;
+              } else {
+                const v = takeValue();
+                if (v === null) {
+                  clusterBad = true;
+                  break;
+                }
+                addTarget(v);
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'u' || ch === 'P') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                p = a.length;
+              } else if (takeValue() === null) {
+                clusterBad = true;
+                break;
+              } else {
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'i' || ch === '0' || ch === 'v') {
+              p++;
+              continue;
+            }
+            clusterBad = true;
+            break;
+          }
+          if (clusterBad) {
+            denyProgram = true;
+            break;
+          }
+          idx++;
+          continue;
+        }
+        break;
+      }
+      if (denyProgram) break;
+      continue;
+    }
+
+    if (t === 'sudo') {
+      idx++;
+      while (idx < tokens.length) {
+        const a = unwrapToken(tokens[idx]!);
+        if (a === '--') {
+          idx++;
+          break;
+        }
+        if (a.startsWith('--')) {
+          if (a === '--chdir') {
+            const v = takeValue();
+            if (v === null) {
+              denyProgram = true;
+              break;
+            }
+            addTarget(v);
+            idx++;
+            continue;
+          }
+          if (a.startsWith('--chdir=')) {
+            addTarget(a.slice('--chdir='.length));
+            idx++;
+            continue;
+          }
+          if (a === '--shell') {
+            idx++;
+            continue;
+          }
+          if (a === '--login') {
+            unknownCwd = true;
+            idx++;
+            continue;
+          }
+          denyProgram = true;
+          break;
+        }
+        if (a.startsWith('-') && a !== '-') {
+          let p = 1;
+          let clusterBad = false;
+          while (p < a.length) {
+            const ch = a[p]!;
+            if (ch === 'D') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                addTarget(glued);
+                p = a.length;
+              } else {
+                const v = takeValue();
+                if (v === null) {
+                  clusterBad = true;
+                  break;
+                }
+                addTarget(v);
+                p = a.length;
+              }
+              continue;
+            }
+            if (ch === 'u' || ch === 'g' || ch === 'U' || ch === 'p' || ch === 'C') {
+              const glued = a.slice(p + 1);
+              if (glued.length > 0) {
+                p = a.length;
+              } else if (takeValue() === null) {
+                clusterBad = true;
+                break;
+              } else {
+                p = a.length;
+              }
+              continue;
+            }
+            if (
+              ch === 'E' ||
+              ch === 'H' ||
+              ch === 'n' ||
+              ch === 'k' ||
+              ch === 'K' ||
+              ch === 'b' ||
+              ch === 'P' ||
+              ch === 's'
+            ) {
+              p++;
+              continue;
+            }
+            if (ch === 'i') {
+              unknownCwd = true;
+              p++;
+              continue;
+            }
+            clusterBad = true;
+            break;
+          }
+          if (clusterBad) {
+            denyProgram = true;
+            break;
+          }
+          idx++;
+          continue;
+        }
+        break;
+      }
+      if (denyProgram) break;
+      if (idx >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      const utilBase = commandBasename(tokens[idx]!);
+      if (SHELL_BASENAMES.has(utilBase) && idx + 1 >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      continue;
+    }
+
+    // su / runuser: parse the WHOLE option list first (a later login flag after
+    // -c still makes cwd UNKNOWN). -c/--command STRING is an executed body.
+    if (t === 'su' || t === 'runuser') {
+      idx++;
+      let sawCommand = false;
+      let body: string | null = null;
+      while (idx < tokens.length) {
+        const a = unwrapToken(tokens[idx]!);
+        if (a === '--') {
+          idx++;
+          break;
+        }
+        if (a === '-' || a === '-l' || a === '--login') {
+          unknownCwd = true;
+          idx++;
+          continue;
+        }
+        if (a === '-c' || a === '--command') {
+          const v = takeValue();
+          if (v === null) {
+            denyProgram = true;
+            break;
+          }
+          body = v;
+          sawCommand = true;
+          idx++;
+          continue;
+        }
+        if (a.startsWith('--command=')) {
+          body = a.slice('--command='.length);
+          sawCommand = true;
+          idx++;
+          continue;
+        }
+        // -u USER / --user for runuser; plain USER for su: consume and continue.
+        if (a === '-u' || a === '--user') {
+          if (takeValue() === null) {
+            denyProgram = true;
+            break;
+          }
+          idx++;
+          continue;
+        }
+        if (a.startsWith('--user=')) {
+          idx++;
+          continue;
+        }
+        if (a.startsWith('-') && a !== '-') {
+          denyProgram = true;
+          break;
+        }
+        // Positional user name (su USER / runuser USER).
+        idx++;
+      }
+      if (denyProgram) break;
+      if (sawCommand && body !== null) {
+        execBody = body;
+        break;
+      }
+      // Interactive su/runuser with no -c would read the pipe.
+      if (idx >= tokens.length) {
+        denyProgram = true;
+        break;
+      }
+      continue;
+    }
+
+    break;
+  }
+
+  return {
+    nextIdx: idx,
+    candidates: unknownCwd || denyProgram ? null : [...set],
+    denyProgram,
+    execBody,
+  };
+}
+
+/**
+ * Fail-closed stdin-program classifier. Walk args left to right:
+ * - any input redirection / process substitution on the segment => DENY
+ * - known value option always consumes the next token (even if it starts with `-`)
+ * - known boolean is skipped
+ * - perl `-0` / `-0<digits>` (record-separator) is skipped as a boolean
+ * - known CODE flag => ALLOW (not stdin)
+ * - `--` ends options: next token is the program (script ALLOW; expanded/stdin DENY)
+ * - first non-option: shell-expanded or stdin-program path => DENY; else script ALLOW
+ * - any unknown option (starts with `-`, not in the tables) => DENY
+ * - end of args => DENY
+ * Short clusters like `perl -ne` expand letter-by-letter.
+ */
+function interpreterArgsAreStdinProgram(
+  family: InterpreterFamily,
+  args: string[],
+  cwdCandidates: string[] | null,
+): boolean {
+  if (args.length === 0) return true;
+  if (args.some(isInputRedirectOrProcSub)) return true;
+
+  const codeFlags = CODE_FLAGS[family];
+  const valueOpts = VALUE_OPTS[family];
+  const booleans = BOOLEAN_FLAGS[family];
+
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+
+    const vKind = valueOptKind(a, valueOpts);
+    if (vKind === 'exact') {
+      // Always consume the next token, even when it looks like a flag (`-W -c`).
+      if (i + 1 < args.length) i++;
+      continue;
+    }
+    if (vKind === 'glued') continue;
+
+    if (codeFlags.has(a)) return false; // ALLOW: inline code/module
+
+    if (booleans.has(a)) continue;
+    // ruby -x[dir]: directory is attached to the flag, never a following argv token.
+    if (family === 'ruby' && a.startsWith('-x/')) continue;
+    // perl -0 / -0777: input record separator; digits attach to the flag.
+    if (family === 'perl' && /^-0[0-9]*$/.test(a)) continue;
+
+    // Short option cluster: `-ne` => `-n` then `-e`, etc.
+    if (/^-[A-Za-z0-9]+$/.test(a) && a.length > 2) {
+      let denyCluster = false;
+      let allowCluster = false;
+      for (let k = 1; k < a.length; k++) {
+        const flag = `-${a[k]!}`;
+        if (valueOpts.has(flag)) {
+          if (k + 1 < a.length) {
+            // Remainder of this token is the glued value (`-Ilib`).
+            break;
+          }
+          // Value is the next argv token.
+          if (i + 1 < args.length) i++;
+          break;
+        }
+        if (codeFlags.has(flag)) {
+          allowCluster = true;
+          break;
+        }
+        if (booleans.has(flag)) continue;
+        denyCluster = true;
+        break;
+      }
+      if (allowCluster) return false;
+      if (denyCluster) return true;
+      continue;
+    }
+
+    // End of options: the next token is the program.
+    if (a === '--') {
+      if (i + 1 >= args.length) return true;
+      return programArgIsDenied(args[i + 1]!, cwdCandidates);
+    }
+
+    // Output redirection tokens are not the program; skip and keep walking.
+    if (/^&>/.test(a) || /^(?:\d*)>/.test(a)) {
+      // `>` / `>>` / `2>` take a following path word when the op is bare.
+      if (/^(?:\d*)>{1,2}$/.test(a) || a === '&>' || a === '&>>') {
+        if (i + 1 < args.length) i++;
+      }
+      continue;
+    }
+
+    // Stdin-program path or shell-expanded program token.
+    if (programArgIsDenied(a, cwdCandidates)) return true;
+
+    // Unknown option => DENY (fail closed).
+    if (a.startsWith('-')) return true;
+
+    return false; // script path => ALLOW
+  }
+  return true;
+}
+
+/**
+ * Indexes of `|` that sit outside quotes (so a pipe inside a grep/echo string
+ * is not treated as a pipeline). Honors the same escapes as tokenizePipeRhs.
+ */
+function findUnquotedPipeIndexes(cmd: string): number[] {
+  const pipes: number[] = [];
+  let i = 0;
+  while (i < cmd.length) {
+    const ch = cmd[i]!;
+    if (ch === "'") {
+      i++;
+      while (i < cmd.length && cmd[i] !== "'") i++;
+      if (i < cmd.length) i++;
+      continue;
+    }
+    if (ch === '"') {
+      i++;
+      while (i < cmd.length && cmd[i] !== '"') {
+        if (cmd[i] === '\\' && i + 1 < cmd.length) {
+          const n = cmd[i + 1]!;
+          if (n === '"' || n === '\\') {
+            i += 2;
+            continue;
+          }
+        }
+        i++;
+      }
+      if (i < cmd.length) i++;
+      continue;
+    }
+    if (ch === '\\' && i + 1 < cmd.length) {
+      i += 2;
+      continue;
+    }
+    if (ch === '|') pipes.push(i);
+    i++;
+  }
+  return pipes;
+}
+
+/**
+ * HR-5 curl|interpreter: detect fetcher|pipe on the quote-blanked denyScan
+ * (so quoted mentions do not fire), but tokenize the RHS from quoteIntact so
+ * values like `--require 'fs'` stay as their own token and are not dropped.
+ */
+function pipeToInterpreterStdinProgram(
+  denyScan: string,
+  quoteIntact: string,
+  baseCandidates: string[] | null,
+): boolean {
+  const denyPipes: number[] = [];
+  for (let i = 0; i < denyScan.length; i++) {
+    if (denyScan[i] === '|') denyPipes.push(i);
+  }
+  const intactPipes = findUnquotedPipeIndexes(quoteIntact);
+  // Unquoted pipes should align 1:1; when blanking removes a quoted `|`, counts
+  // still match because that `|` was never in intactPipes either.
+  if (denyPipes.length !== intactPipes.length) {
+    // Divergent views: parse from quoteIntact only, with fetcher check on the
+    // same left slice (rare; prefer not to miss a real script path).
+    for (const pipe of intactPipes) {
+      const left = quoteIntact.slice(Math.max(0, pipe - 200), pipe);
+      if (!FETCHER_RE.test(left)) continue;
+      const cwdCandidates = resolveCwdCandidates(
+        quoteIntact.slice(0, pipe),
+        baseCandidates,
+        quoteIntact,
+      );
+      if (
+        rhsIsStdinInterpreter(
+          tokenizePipeRhs(quoteIntact.slice(pipe + 1)),
+          cwdCandidates,
+          quoteIntact,
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  for (let i = 0; i < denyPipes.length; i++) {
+    const dPipe = denyPipes[i]!;
+    const left = denyScan.slice(Math.max(0, dPipe - 200), dPipe);
+    if (!FETCHER_RE.test(left)) continue;
+    const pipe = intactPipes[i]!;
+    const cwdCandidates = resolveCwdCandidates(
+      quoteIntact.slice(0, pipe),
+      baseCandidates,
+      quoteIntact,
+    );
+    const tokens = tokenizePipeRhs(quoteIntact.slice(pipe + 1));
+    if (rhsIsStdinInterpreter(tokens, cwdCandidates, quoteIntact)) return true;
+  }
+  return false;
+}
+
+/**
+ * Collapse horizontal whitespace and line continuations, but keep real newlines
+ * as command separators so `curl U | python3\necho done` still ends the RHS.
+ */
+function collapseHorizontalWhitespace(cmd: string): string {
+  return cmd
+    .replace(/\\\r?\n/g, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .trim();
+}
+
+/**
+ * Bodies of quotes governed by eval / sh -c / python -c / etc., paired with
+ * the text before that quote (used to resolve the outer cwd candidate set).
+ */
+function extractExecutedQuoteBodies(raw: string): { body: string; prefix: string }[] {
+  const bodies: { body: string; prefix: string }[] = [];
+  let cmdStart = 0;
+  let segStart = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (ch === '"' || ch === "'") {
+      const q = ch;
+      let j = i + 1;
+      let content = '';
+      while (j < raw.length && raw[j] !== q) {
+        if (q === '"' && raw[j] === '\\' && j + 1 < raw.length) {
+          // Keep escapes in the body so nested quoteIntact can tokenize them.
+          content += raw[j]!;
+          content += raw[j + 1]!;
+          j += 2;
+          continue;
+        }
+        content += raw[j]!;
+        j++;
+      }
+      const seg = raw.slice(segStart, i);
+      if (execGovernsQuote(seg, raw.slice(cmdStart, i))) {
+        bodies.push({ body: content, prefix: raw.slice(0, i) });
+      } else if (q === '"' && /\$\(|<\(|>\(|`/.test(content)) {
+        // Double-quoted strings are opaque as wholes, but command / process
+        // substitutions inside them still execute. Recurse so substitutions
+        // inside quoted arguments are scanned as their own command position.
+        for (const inner of extractExecutedQuoteBodies(content)) {
+          bodies.push(inner);
+        }
+      }
+      i = j;
+      segStart = i + 1;
+      continue;
+    }
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
+      // Do not treat $( / <( / >( as a new simple command.
+      if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
+        continue;
+      }
+      // Backslash-newline is a line continuation, not a command separator.
+      if (ch === '\n' && i > 0 && raw[i - 1] === '\\') continue;
+      if (ch === '\n' && i > 1 && raw[i - 1] === '\r' && raw[i - 2] === '\\') continue;
+      cmdStart = i + 1;
+      segStart = i + 1;
+    }
+  }
+  return bodies;
+}
+
+const MAX_EXEC_QUOTE_DEPTH = 8;
+
+/**
+ * Top-level + nested scan: run the pipe check on this command, then on every
+ * executed-quote body as its own command. The outer cwd candidate set from the
+ * prefix up to that quote becomes the inner base (so `cd ...; bash -c '...'` keeps
+ * the directory change).
+ */
+function scanFetcherInterpreterPipes(
+  rawCmd: string,
+  baseCandidates: string[] | null,
+  depth = 0,
+): boolean {
+  if (depth > MAX_EXEC_QUOTE_DEPTH) return false;
+  const blanked = blankQuotedHeredocBodies(rawCmd);
+  const denyScan = normalizeSingle(egressDenyScanView(blanked));
+  const quoteIntact = collapseHorizontalWhitespace(blanked);
+  if (pipeToInterpreterStdinProgram(denyScan, quoteIntact, baseCandidates)) return true;
+  for (const { body, prefix } of extractExecutedQuoteBodies(blanked)) {
+    const outer = resolveCwdCandidates(prefix, baseCandidates, blanked);
+    if (scanFetcherInterpreterPipes(body, outer, depth + 1)) return true;
+  }
+  return false;
+}
+
+/**
+ * Strip one layer of matching surrounding quotes from a token. Used after
+ * tokenize so `"python3"` / `"-"` classify like their unquoted forms.
+ */
+function unwrapToken(tok: string): string {
+  if (tok.length >= 2) {
+    const a = tok[0]!;
+    const b = tok[tok.length - 1]!;
+    if ((a === '"' || a === "'") && a === b) return tok.slice(1, -1);
+  }
+  return tok;
+}
+
+/**
+ * Bash may write `py\thon3` before the interpreter runs. Strip escapes so the
+ * name still matches; program-argument tokens keep their backslashes for the
+ * shell-expanded fail-closed rule.
+ */
+function unescapeInterpreterName(name: string): string {
+  return name.replace(/\\/g, '');
+}
+
+/** Shared sudo/env skip + interpreter arg scan for one pipe RHS token list. */
+function rhsIsStdinInterpreter(
+  tokens: string[],
+  cwdCandidates: string[] | null,
+  fullCommand: string,
+): boolean {
+  const unwrapped = tokens.map(unwrapToken);
+  const front = applyInterpreterFrontChdir(unwrapped, 0, cwdCandidates, fullCommand);
+  // Unknown env/sudo/wrapper option: the whole RHS is an unknown program → DENY.
+  if (front.denyProgram) return true;
+  // su/runuser -c STRING: compound bodies (; & | newline) DENY only when the
+  // separator is outside quoted spans. A simple body is scanned as its own RHS.
+  if (front.execBody !== null) {
+    if (hasUnquotedShellSeparator(front.execBody)) return true;
+    return rhsIsStdinInterpreter(
+      tokenizePipeRhs(front.execBody),
+      front.candidates,
+      fullCommand,
+    );
+  }
+  const idx = front.nextIdx;
+  const resolvedCandidates = front.candidates;
+  if (idx >= unwrapped.length) return false;
+  const name = unescapeInterpreterName(unwrapped[idx]!);
+  if (!INTERPRETER_NAME_RE.test(name)) return false;
+  const family = interpreterFamily(name);
+  return Boolean(
+    family &&
+      interpreterArgsAreStdinProgram(family, unwrapped.slice(idx + 1), resolvedCandidates),
+  );
+}
 
 // =============================================================================
 // Quote-aware view for the DENY tier (#3122)
 // =============================================================================
 
 /**
+ * True when `s` has a shell command separator (`;`, `&`, `|`, newline) outside
+ * single/double quotes. Separators inside quoted spans are argument data.
+ */
+function hasUnquotedShellSeparator(s: string): boolean {
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i]!;
+    if (c === "'") {
+      i++;
+      while (i < s.length && s[i] !== "'") i++;
+      if (i < s.length) i++;
+      continue;
+    }
+    if (c === '"') {
+      i++;
+      while (i < s.length && s[i] !== '"') {
+        if (s[i] === '\\' && i + 1 < s.length) {
+          i += 2;
+          continue;
+        }
+        i++;
+      }
+      if (i < s.length) i++;
+      continue;
+    }
+    if (c === '\\' && i + 1 < s.length) {
+      i += 2;
+      continue;
+    }
+    if (c === '\n' || c === ';' || c === '|' || c === '&') return true;
+    i++;
+  }
+  return false;
+}
+
+/** Max option words walked after a su/runuser (fail closed past this). */
+const MAX_SU_RUNUSER_GOVERN_WORDS = 64;
+
+/**
+ * True when a token is su/runuser, including nested command-sub / process-sub
+ * forms (`$(su`, `<(su`, `` `su ``) and trailing punctuation (`su)`).
+ */
+function isSuRunuserToken(tok: string): boolean {
+  let b = commandBasename(tok);
+  if (b === 'su' || b === 'runuser') return true;
+  b = b.replace(/^\$\(/, '').replace(/^[<>]\(/, '').replace(/^`+/, '');
+  b = b.replace(/[)`]+$/, '');
+  return b === 'su' || b === 'runuser';
+}
+
+/**
+ * Walk option tokens after a su/runuser. Returns whether that wrapper governs
+ * the quote (body missing as next word, or fail-closed past the word bound).
+ */
+function suOptionsGovernQuote(optionTokens: string[]): boolean {
+  let walked = 0;
+  for (let j = 0; j < optionTokens.length; j++) {
+    walked++;
+    if (walked > MAX_SU_RUNUSER_GOVERN_WORDS) return true;
+    const a = unwrapToken(optionTokens[j]!);
+    if (a === '--') return false;
+    if (a === '-c' || a === '--command') return j + 1 >= optionTokens.length;
+    if (a.startsWith('--command=')) return a.length === '--command='.length;
+    if (/^-[A-Za-z]*c$/.test(a)) return j + 1 >= optionTokens.length;
+    if (a === '-u' || a === '--user') {
+      if (j + 1 < optionTokens.length) {
+        j++;
+        walked++;
+        if (walked > MAX_SU_RUNUSER_GOVERN_WORDS) return true;
+      }
+      continue;
+    }
+    if (a.startsWith('--user=')) continue;
+    if (
+      a === '-' ||
+      a === '-l' ||
+      a === '--login' ||
+      a === '-m' ||
+      a === '-p' ||
+      a === '--preserve-environment'
+    ) {
+      continue;
+    }
+    if (a.startsWith('-')) return true;
+  }
+  return false;
+}
+
+/**
+ * Streaming scan: true when some su/runuser in the segment governs the next
+ * quote. Jumps to su/runuser-like tokens so long echo-arg lists stay fast.
+ * Fail closed past the option-word bound. No exemption (fail closed on
+ * echo/grep/printf argument forms too).
+ */
+function segmentHasGoverningSuRunuser(segment: string): boolean {
+  let i = 0;
+  const n = segment.length;
+
+  const skipWs = (): void => {
+    while (i < n) {
+      if (/\s/.test(segment[i]!)) {
+        i++;
+        continue;
+      }
+      // Bash line continuation: backslash-newline is whitespace between words.
+      if (segment[i] === '\\' && i + 1 < n && segment[i + 1] === '\n') {
+        i += 2;
+        continue;
+      }
+      if (
+        segment[i] === '\\' &&
+        i + 2 < n &&
+        segment[i + 1] === '\r' &&
+        segment[i + 2] === '\n'
+      ) {
+        i += 3;
+        continue;
+      }
+      break;
+    }
+  };
+
+  const readToken = (): string | null => {
+    skipWs();
+    if (i >= n) return null;
+    const start = i;
+    while (i < n) {
+      const c = segment[i]!;
+      if (/\s/.test(c) || c === ';' || c === '|' || c === '&' || c === '\n') break;
+      // Line continuation ends the current word; skipWs consumes it next.
+      if (c === '\\' && i + 1 < n && segment[i + 1] === '\n') break;
+      if (c === '\\' && i + 2 < n && segment[i + 1] === '\r' && segment[i + 2] === '\n') break;
+      if (c === "'") {
+        i++;
+        while (i < n && segment[i] !== "'") i++;
+        if (i < n) i++;
+        continue;
+      }
+      if (c === '"') {
+        i++;
+        while (i < n && segment[i] !== '"') {
+          if (segment[i] === '\\' && i + 1 < n) {
+            i += 2;
+            continue;
+          }
+          i++;
+        }
+        if (i < n) i++;
+        continue;
+      }
+      if (c === '\\' && i + 1 < n) {
+        i += 2;
+        continue;
+      }
+      i++;
+    }
+    return start === i ? null : segment.slice(start, i);
+  };
+
+  // Case-insensitive indexOf probes beat a multi-alternative RegExp across
+  // 50k echo words. Validate each hit with isSuRunuserToken after peel.
+  const lower = segment.toLowerCase();
+
+  while (i < n) {
+    if (segment[i] === ';' || segment[i] === '\n' || segment[i] === '|' || segment[i] === '&') break;
+
+    skipWs();
+    if (i >= n) break;
+
+    let hit = lower.indexOf('su', i);
+    const hitRu = lower.indexOf('runuser', i);
+    if (hitRu >= 0 && (hit < 0 || hitRu < hit)) hit = hitRu;
+    if (hit < 0) break;
+
+    // Walk back over wrappers / quotes / path so readToken starts on the word.
+    let at = hit;
+    while (at > i) {
+      const p = segment[at - 1]!;
+      if (p === '\\' || p === '`' || p === '"' || p === "'") {
+        at--;
+        continue;
+      }
+      if (at >= 2 && segment.slice(at - 2, at) === '$(') {
+        at -= 2;
+        continue;
+      }
+      if (at >= 2 && (segment.slice(at - 2, at) === '<(' || segment.slice(at - 2, at) === '>(')) {
+        at -= 2;
+        continue;
+      }
+      if (p === '/') {
+        // Keep path prefix (/bin/su); readToken eats it.
+        at--;
+        while (at > i && /[\w.-]/.test(segment[at - 1]!)) at--;
+        continue;
+      }
+      break;
+    }
+    // Reject mid-word hits (e.g. "issue" containing "su").
+    if (at > 0 && /[^\s;|&"'`$()\\/]/.test(segment[at - 1]!)) {
+      i = hit + 1;
+      continue;
+    }
+    i = at;
+
+    const tok = readToken();
+    if (tok === null) break;
+    if (!isSuRunuserToken(tok)) {
+      // Advance past this false hit so indexOf does not spin.
+      if (i <= hit) i = hit + 1;
+      continue;
+    }
+
+    const optionTokens: string[] = [];
+    let capped = false;
+    for (;;) {
+      const save = i;
+      const opt = readToken();
+      if (opt === null) break;
+      if (isSuRunuserToken(opt)) {
+        i = save;
+        break;
+      }
+      optionTokens.push(opt);
+      if (optionTokens.length > MAX_SU_RUNUSER_GOVERN_WORDS) {
+        capped = true;
+        break;
+      }
+    }
+    if (capped || suOptionsGovernQuote(optionTokens)) return true;
+  }
+  return false;
+}
+
+/**
+ * su/runuser governor: default ON when a su/runuser option walk says the quote
+ * is an executed body (any gap, nested substitutions, fail closed past the word
+ * bound). No exemption for echo/grep/printf argument forms.
+ *
+ * Horizontal whitespace runs of length 2+ are collapsed so a 100k-space gap
+ * stays O(words) for the option walk (newlines stay: they are real separators).
+ */
+function suRunuserGovernsExecutedQuote(prefix: string): boolean {
+  if (!/su|runuser/i.test(prefix)) return false;
+
+  // Line continuations are whitespace to the shell; collapse them before the
+  // word walk so su then backslash-newline then -c stays one simple command.
+  const continued = prefix.replace(/\\\r?\n/g, ' ');
+  // Collapse runs of 2+ horizontal whitespace only (single-spaced word lists
+  // stay as-is; a 100k-space gap becomes one space).
+  const collapsed = /[^\S\n]{2,}/.test(continued) ? continued.replace(/[^\S\n]{2,}/g, ' ') : continued;
+
+  // Bound the segment to the current simple command without a full char walk
+  // when the prefix is huge: find the last real separator from the end.
+  let start = 0;
+  for (let i = collapsed.length - 1; i >= 0; i--) {
+    const ch = collapsed[i]!;
+    if (ch === ';' || ch === '\n' || ch === '&' || ch === '|') {
+      start = i + 1;
+      break;
+    }
+    if (ch === '(') {
+      const prev = i > 0 ? collapsed[i - 1]! : '';
+      if (prev === '$' || prev === '<' || prev === '>') continue; // keep scanning
+      start = i + 1;
+      break;
+    }
+  }
+  return segmentHasGoverningSuRunuser(start === 0 ? collapsed : collapsed.slice(start));
+}
+
+/**
  * True when the unquoted text just before a quote makes that quote EXECUTED
- * code: `eval "…"`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
+ * code: `eval "..."`, an inline-script shell (`sh -c`, `bash -euc`), `python -c`,
  * node/perl/ruby `-e`, php `-r`. A quote governed by none of these is opaque
  * data (a grep/rg pattern, an echo string, a jq filter).
+ *
+ * `seg` is the unquoted run immediately before the quote (regex governors).
+ * `simpleCmd` is the full simple-command text including quoted words.
  */
-function execGovernsQuote(prefix: string): boolean {
-  const p = prefix.slice(-200); // bound the governor scan (ReDoS-safe)
+function execGovernsQuote(seg: string, simpleCmd: string = seg): boolean {
+  const p = seg.slice(-200); // bound the regex governors (ReDoS-safe)
   return (
     /\beval\s*$/i.test(p) ||
     /\b(?:ba|z|k|da)?sh\b[^\n]{0,120}\s-[A-Za-z]*c\b\s*$/i.test(p) ||
+    suRunuserGovernsExecutedQuote(simpleCmd) ||
     /\bpython[0-9.]*\b[^\n]{0,120}\s-c\b\s*$/i.test(p) ||
     /\b(?:node|perl|ruby)\b[^\n]{0,120}\s-e\b\s*$/i.test(p) ||
     /\bphp\b[^\n]{0,120}\s-r\b\s*$/i.test(p)
@@ -162,36 +1945,57 @@ function execGovernsQuote(prefix: string): boolean {
  */
 function egressDenyScanView(raw: string): string {
   let out = '';
-  let seg = ''; // unquoted text of the current simple command (governor context)
+  let cmdStart = 0;
+  let runStart = 0; // start of the current unquoted run to copy into out
+  let segStart = 0; // start of unquoted governor text after the last quote/separator
+  const flushRun = (upto: number): void => {
+    if (upto > runStart) out += raw.slice(runStart, upto);
+  };
   for (let i = 0; i < raw.length; i++) {
-    const ch = raw[i];
+    const ch = raw[i]!;
     if (ch === '"' || ch === "'") {
+      flushRun(i);
+      const seg = raw.slice(segStart, i);
       const q = ch;
       let j = i + 1;
       let content = '';
       while (j < raw.length && raw[j] !== q) {
         if (q === '"' && raw[j] === '\\' && j + 1 < raw.length) {
-          content += raw[j + 1];
+          content += raw[j + 1]!;
           j += 2;
           continue;
         }
-        content += raw[j];
+        content += raw[j]!;
         j++;
       }
-      if (execGovernsQuote(seg)) out += ` ${content} `; // re-expose executed code
-      seg = '';
+      if (execGovernsQuote(seg, raw.slice(cmdStart, i))) out += ` ${content} `; // re-expose executed code
+      else if (q === '"' && /\$\(|<\(|>\(|`/.test(content)) {
+        // Only re-expose nested executed quote bodies inside substitutions,
+        // not the opaque double-quoted text itself (grep "source <(curl" stays data).
+        for (const { body } of extractExecutedQuoteBodies(content)) {
+          out += ` ${body} `;
+        }
+      }
       i = j; // for-loop ++ moves past the closing quote
+      runStart = i + 1;
+      segStart = i + 1;
       continue;
     }
     // A new simple-command / substitution boundary resets the governor context.
     if (ch === ';' || ch === '\n' || ch === '&' || ch === '|' || ch === '(') {
-      seg = '';
-      out += ch;
-      continue;
+      if (ch === '(' && i > 0 && (raw[i - 1] === '$' || raw[i - 1] === '<' || raw[i - 1] === '>')) {
+        continue;
+      }
+      // Backslash-newline is a line continuation, not a command separator.
+      if (ch === '\n' && i > 0 && raw[i - 1] === '\\') continue;
+      if (ch === '\n' && i > 1 && raw[i - 1] === '\r' && raw[i - 2] === '\\') continue;
+      flushRun(i + 1); // include the separator in out
+      cmdStart = i + 1;
+      runStart = i + 1;
+      segStart = i + 1;
     }
-    seg += ch;
-    out += ch;
   }
+  flushRun(raw.length);
   return out;
 }
 
@@ -203,12 +2007,9 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   const raw = input.tool_input?.command || '';
   if (!raw) return outputSilentSuccess();
 
-  const command = normalizeSingle(raw);
   // #3122/#3125: both tiers scan the quote-aware view so a quoted mention of an
   // RCE/staged-run/exfil pattern (a grep/rg search string, an echo) is not
-  // flagged. `command` (quote-STRIPPED, not quote-aware) is kept only for host
-  // extraction (extractUrlHosts/firstRemoteHost) on the two ASK checks that
-  // genuinely need to see a quoted URL to resolve its allowlist status.
+  // flagged. The DENY tier blanks quoted regions except executed quote bodies.
   // #3632: blank QUOTED heredoc bodies BEFORE the quote view. A `<<'SH'` body is
   // inert payload being written to a file, exactly like a single-quoted string,
   // so a `curl -o` on one body line is not an operator of THIS command. This
@@ -217,7 +2018,8 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
   // and pair a body-local curl with an unrelated later `bash <file>`.
   // Same precedent dangerous-command-blocker applies to its pipe-to-shell check
   // (#3098). UNQUOTED heredocs are shell-expanded, so they are left untouched.
-  const denyScan = normalizeSingle(egressDenyScanView(blankQuotedHeredocBodies(raw)));
+  const heredocBlanked = blankQuotedHeredocBodies(raw);
+  const denyScan = normalizeSingle(egressDenyScanView(heredocBlanked));
 
   // --- DENY tier ---
   for (const { re, label } of DENY_REGEX) {
@@ -232,6 +2034,21 @@ export function networkEgressGuard(input: HookInput, ctx: HookContext = NOOP_CTX
           'separate reviewed step.',
       );
     }
+  }
+
+  const hookCwd = hookInputCwd(input);
+  const baseCandidates = hookCwd !== null && hookCwd.length > 0 ? [hookCwd] : [];
+  if (scanFetcherInterpreterPipes(raw, baseCandidates)) {
+    const label = 'curl|interpreter: pipes fetched content to an interpreter';
+    ctx.log(HOOK_NAME, `BLOCKED: ${label}`);
+    ctx.logPermission('deny', label, input);
+    return outputDeny(
+      `Blocked remote-code-execution pattern: ${label}\n\n` +
+        'Fetching content from the network and executing it in one step is a ' +
+        'common exfiltration / supply-chain vector and has been blocked. If this ' +
+        'is intentional, download to a file, inspect it, then run it as a ' +
+        'separate reviewed step.',
+    );
   }
 
   // ASK tier retired 2026-08-31 (#3835 wave 2). It stood down behind an

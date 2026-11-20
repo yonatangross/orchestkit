@@ -65,8 +65,8 @@ for (const dir of skillDirs) {
     continue;
   }
 
-  // Check if complexity already exists
-  if (/^complexity:/m.test(content)) {
+  // Check if complexity already exists (top level, or under metadata since m1)
+  if (/^[ \t]*complexity:/m.test(content)) {
     stats.skipped++;
     continue;
   }
@@ -96,8 +96,18 @@ for (const dir of skillDirs) {
     continue;
   }
 
-  // Insert complexity field before the closing ---
-  lines.splice(frontmatterEnd, 0, `complexity: ${complexity}`);
+  // complexity is an ork house key, so it lives under metadata as a quoted
+  // string (Agent Skills spec shape, gated by scripts/check-frontmatter.py).
+  // Append it to the metadata block, or open one before the closing ---.
+  const metaAt = lines.slice(0, frontmatterEnd).findIndex(l => /^metadata:\s*$/.test(l));
+  if (metaAt === -1) {
+    lines.splice(frontmatterEnd, 0, 'metadata:', `  complexity: "${complexity}"`);
+  } else {
+    let end = metaAt + 1;
+    while (end < frontmatterEnd && /^[ \t]/.test(lines[end])) end++;
+    const indent = (lines[metaAt + 1] || '').match(/^[ \t]+/)?.[0] || '  ';
+    lines.splice(end, 0, `${indent}complexity: "${complexity}"`);
+  }
   const newContent = lines.join('\n');
 
   if (dryRun) {

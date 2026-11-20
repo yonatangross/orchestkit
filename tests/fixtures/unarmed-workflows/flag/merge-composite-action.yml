@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a composite action (action.yml shape) that merges the caller's PR.
+name: merge-it
+description: fixture composite action
+inputs:
+  pr:
+    description: PR number
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Merge
+      shell: bash
+      env:
+        PR: ${{ inputs.pr }}
+      run: gh pr merge "$PR" --squash

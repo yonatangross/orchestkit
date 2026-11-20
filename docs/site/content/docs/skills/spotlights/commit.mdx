@@ -11,7 +11,7 @@ The `/ork:commit` command replaces the manual cycle of staging, linting, formatt
 
 Most failed CI runs trace back to something that could have been caught locally: a lint error, a type mismatch, a commit to `main` instead of a feature branch. The `/ork:commit` skill front-loads those checks so that by the time your code reaches CI, it has already passed.
 
-It is the lowest-complexity command skill in OrchestKit (`complexity: low`) and one of the most frequently used. Unlike `/ork:implement` or `/ork:review-pr`, it does not spawn agents -- it runs checks directly and generates a commit message from the staged diff.
+It is the lowest-complexity command skill in OrchestKit (`complexity: low`) and one of the most frequently used. Unlike `/ork:implement` or `/ork:review-pr`, it does not spawn agents; it runs checks directly and generates a commit message from the staged diff.
 
 ## Quick Start
 
@@ -31,7 +31,7 @@ Before anything else, the skill checks the current branch name:
 BRANCH=$(git branch --show-current)
 ```
 
-If the branch is `main`, `master`, or `dev`, the skill stops immediately and tells you to create a feature branch. This prevents accidental direct commits to protected branches -- a mistake that is easy to make in the flow of development and painful to clean up.
+If the branch is `main`, `master`, or `dev`, the skill stops immediately and tells you to create a feature branch. This prevents accidental direct commits to protected branches, a mistake that is easy to make in the flow of development and painful to clean up.
 
 ### Step 2: Run Validation Locally
 
@@ -61,7 +61,7 @@ git diff --staged
 git diff
 ```
 
-This gives Claude full context about what will be committed and what will be left behind, so the commit message accurately reflects the staged changes -- not the full working tree.
+This gives Claude full context about what will be committed and what will be left behind, so the commit message accurately reflects the staged changes, not the full working tree.
 
 ### Step 4: Generate and Create the Commit
 
@@ -134,7 +134,7 @@ The skill automatically includes issue references when it detects them from cont
 </Callout>
 
 <Callout type="warn">
-**Validation runs every time.** Even for a one-line typo fix, the skill runs lint and type checks. This catches cases where a "trivial" change accidentally breaks something. If you need to bypass this for a genuine emergency, use `git commit` directly -- but you lose the conventional message formatting and branch safety.
+**Validation runs every time.** Even for a one-line typo fix, the skill runs lint and type checks. This catches cases where a "trivial" change accidentally breaks something. If you need to bypass this for a genuine emergency, use `git commit` directly, but you lose the conventional message formatting and branch safety.
 </Callout>
 
 <Callout type="info">
@@ -154,7 +154,7 @@ The skill automatically includes issue references when it detects them from cont
 
 ## Related Skills
 
-- [/ork:create-pr](/docs/skills/spotlights/review-pr) -- Push and open a pull request after committing
-- [/ork:review-pr](/docs/skills/spotlights/review-pr) -- Review changes before or after committing
-- [/ork:verify](/docs/skills/spotlights/verify) -- Run comprehensive verification before committing
-- [Command Skills Reference](/docs/skills/command-skills) -- All 36 command skills
+- [/ork:create-pr](/docs/skills/spotlights/review-pr): Push and open a pull request after committing
+- [/ork:review-pr](/docs/skills/spotlights/review-pr): Review changes before or after committing
+- [/ork:verify](/docs/skills/spotlights/verify): Run comprehensive verification before committing
+- [Command Skills Reference](/docs/skills/command-skills): Every command skill, grouped by task

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>compare.py: still names must be finite times</title>
+<style>
+  :root { --bg: #0f1117; --panel: #181b24; --border: #2a2f3d; --text: #e6e8ee; --dim: #8b91a3; --accent: #7aa2f7; --red: #f7768e; --green: #9ece6a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin-bottom: .3rem; }
+  .sub { color: var(--dim); margin-bottom: 1.4rem; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1rem; }
+  h2 { font-size: 1rem; margin-bottom: .6rem; color: var(--accent); }
+  code { background: #10131b; border: 1px solid var(--border); border-radius: 4px; padding: .1rem .35rem; font-size: .85em; }
+  label { display: block; color: var(--dim); font-size: .85rem; margin-bottom: .3rem; }
+  input { width: 100%; min-height: 40px; background: #10131b; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .5rem; font: .9rem ui-monospace, monospace; }
+  input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  table { width: 100%; border-collapse: collapse; font: .88rem ui-monospace, monospace; margin-top: .8rem; }
+  th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--dim); font-family: -apple-system, "Segoe UI", sans-serif; }
+  .ok { color: var(--green); } .bad { color: var(--red); }
+  button { background: #10131b; color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; cursor: pointer; font: inherit; min-height: 40px; margin-top: .8rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="compare.py: still names must be finite times"><meta property="og:description" content="demo-producer code-drawn compare.py now refuses nan.png and inf.png: float parses them, math.isfinite does not accept them. Try a file name."><meta property="og:url" content="https://orchestkit.dev/lab/compare-isfinite.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="compare.py: still names must be finite times"><meta name="twitter:description" content="demo-producer code-drawn compare.py now refuses nan.png and inf.png: float parses them, math.isfinite does not accept them. Try a file name."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>compare.py: still names must be finite times</h1>
+<p class="sub">One-line follow-up from the #5187 review. <code>float()</code> parses <code>nan</code> and <code>inf</code>, so <code>nan.png</code> passed the name check. Now <code>math.isfinite</code> is required.</p>
+<section>
+<h2>Try a file name</h2>
+<label for="n">approved still file name</label>
+<input id="n" value="nan.png">
+<table><thead><tr><th>check</th><th>before</th><th>after</th></tr></thead><tbody id="rows"></tbody></table>
+<button id="copy">Copy as prompt</button>
+</section>
+<section>
+<h2>Tested</h2>
+<p><code>nan.png</code> and <code>inf.png</code> now give REFUSE and exit 1. The verify reel's real stills still PASS. <code>ruff check src/skills</code> passes.</p>
+</section>
+</main>
+<script>
+const n = document.getElementById('n'), rows = document.getElementById('rows');
+const stem = s => s.endsWith('.png') ? s.slice(0, -4) : null;
+const pyFloat = s => { const t = s.trim().toLowerCase();
+  if (/^[+-]?(nan|inf|infinity)$/.test(t)) return t.includes('nan') ? NaN : (t.startsWith('-') ? -Infinity : Infinity);
+  return /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(t) ? Number(t) : undefined; };
+function judge() {
+  const s = stem(n.value), f = s === null ? undefined : pyFloat(s);
+  const before = f !== undefined, after = f !== undefined && Number.isFinite(f);
+  // built with textContent: the typed name is never parsed as HTML
+  const tr = document.createElement('tr');
+  [[n.value || '(empty)', ''], [before ? 'accepted' : 'REFUSE', before ? 'ok' : 'bad'], [after ? 'accepted' : 'REFUSE', after ? 'ok' : 'bad']]
+    .forEach(([text, cls]) => { const td = document.createElement('td'); td.textContent = text; if (cls) td.className = cls; tr.appendChild(td); });
+  rows.replaceChildren(tr);
+}
+n.oninput = judge; judge();
+document.getElementById('copy').onclick = async () => {
+  const text = `compare.py name check: ${n.value} is ${rows.querySelector('td:last-child').textContent} after the isfinite fix.`;
+  try { await navigator.clipboard.writeText(text); } catch (e) { n.select(); } };
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

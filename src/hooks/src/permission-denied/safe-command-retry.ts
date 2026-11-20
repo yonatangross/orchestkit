@@ -21,7 +21,12 @@
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
-import { isCompoundCommand, normalizeSingle } from '../lib/normalize-command.js';
+import {
+  isCompoundCommand,
+  normalizeSingle,
+  hasUnquotedExpansion,
+  hasBackgroundOperator,
+} from '../lib/normalize-command.js';
 import { REJECT_PATTERNS } from '../lib/bash-patterns.js';
 import { NOOP_CTX } from '../lib/context.js';
 
@@ -46,8 +51,7 @@ const RETRY_SAFE_PATTERNS: RegExp[] = [
   /^find\s/,
   /^which\s/,
   /^type\s/,
-  /^env$/,
-  /^printenv/,
+  // SEC (#4216 HR-1): env/printenv dump exported secrets — never auto-retry.
 
   // Package manager read-only
   /^npm (list|ls|outdated|audit)\b/,
@@ -91,6 +95,11 @@ export function safeCommandRetry(input: HookInput, ctx: HookContext = NOOP_CTX):
   // SEC: Never retry compound commands
   if (isCompoundCommand(command)) {
     ctx.log(HOOK_NAME, 'Compound command — not retrying');
+    return outputSilentSuccess();
+  }
+
+  if (hasUnquotedExpansion(command) || hasBackgroundOperator(command)) {
+    ctx.log(HOOK_NAME, 'Expansion or background operator — not retrying');
     return outputSilentSuccess();
   }
 

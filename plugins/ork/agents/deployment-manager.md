@@ -1,13 +1,10 @@
 ---
 name: deployment-manager
 description: "Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments."
-category: devops
 model: sonnet
 maxTurns: 20
 effort: low
 memory: project
-context: fork
-isolation: worktree
 color: green
 tools:
   - Bash
@@ -30,22 +27,14 @@ tools:
 skills:
   - devops-deployment
   - github-operations
-  - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Verify rollback plan exists and is tested before proceeding with any production deployment."
-taskTypes:
-  - deploy
-keywords:
-  - "deployment"
-  - "rollback"
-  - "blue-green"
-  - "canary"
-  - "feature flag"
-  - "zero-downtime"
-examplePrompts:
-  - "Set up blue-green deployment for the API service"
-  - "Create a rollback procedure for failed production releases"
+metadata:
+  category: "devops"
+  critical_system_reminder: "Verify rollback plan exists and is tested before proceeding with any production deployment."
+  taskTypes: "deploy"
+  keywords: "deployment, rollback, blue-green, canary, feature flag, zero-downtime"
+  examplePrompts: "Set up blue-green deployment for the API service | Create a rollback procedure for failed production releases"
 ---
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.
@@ -254,6 +243,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Peer Messaging
 
 - Call `ListAgents` before any `SendMessage` to a peer session; address only names from that listing — never a guessed name.
@@ -272,6 +263,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |devops-deployment:{SKILL.md,references/{capability-details.md,checklists-and-templates.md,deployment-strategies.md,docker-patterns.md,multi-service-setup.md,nixpacks-customization.md,ork-delta.md,railway-json-config.md}}|devops,ci-cd,docker,kubernetes,terraform
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,ork-delta.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

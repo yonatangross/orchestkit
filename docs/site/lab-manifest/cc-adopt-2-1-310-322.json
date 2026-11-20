@@ -1,0 +1,12 @@
+{
+  "slug": "cc-adopt-2-1-310-322",
+  "source": "docs/chore--cc-adopt-2.1.310-322/index.html",
+  "title": "CC 2.1.310 to 2.1.322 adoption",
+  "description": "Filter the Claude Code 2.1.310 to 2.1.322 items that matter to ork by verdict: adopted here, documented, or a follow-up issue, and copy a selection as a prompt.",
+  "tags": [
+    "cc-adoption",
+    "triage",
+    "otel"
+  ],
+  "date": "2026-11-10"
+}

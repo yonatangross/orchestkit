@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why the stable description lost its numbers, and the scan got a longer fuse</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; font-weight: 600; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Why the stable description lost its numbers, and the scan got a longer fuse"><meta property="og:description" content="Nothing stamps the stable ork entry or the Devin manifest, and a slow fetch could spend the whole Secret Scanning budget. Pick a state to see what CI answers."><meta property="og:url" content="https://orchestkit.dev/lab/stable-desc-scan-budget.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Why the stable description lost its numbers, and the scan got a longer fuse"><meta name="twitter:description" content="Nothing stamps the stable ork entry or the Devin manifest, and a slow fetch could spend the whole Secret Scanning budget. Pick a state to see what CI answers."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Why the stable description lost its numbers, and the scan got a longer fuse</h1>
+<p>Two follow-ups from the 10.7.4 stable pin. Nothing stamps the stable <code>ork</code> entry or the Devin manifest, so any count in them drifts. And the Secret Scanning job had 5 minutes in total, which a slow full-history fetch could spend alone.</p>
+
+<fieldset>
+<legend>The description</legend>
+<label><input type="radio" name="desc" value="count" checked> Carries counts (before)</label>
+<label><input type="radio" name="desc" value="plain"> No counts (after)</label>
+</fieldset>
+
+<output id="desc-result" aria-live="polite"></output>
+
+<fieldset>
+<legend>The Secret Scanning budget</legend>
+<label><input type="radio" name="budget" value="shared" checked> 5 minutes for the whole job (before)</label>
+<label><input type="radio" name="budget" value="split"> Fetch 8, scan 5, job 15 (after)</label>
+</fieldset>
+
+<fieldset>
+<legend>Minutes the full-history fetch takes</legend>
+<label><input type="range" id="fetch" min="1" max="12" value="6"> <span id="fetch-value"></span></label>
+</fieldset>
+
+<output id="scan-result" aria-live="polite"></output>
+</main>
+<script>
+const descResult = document.getElementById("desc-result");
+const scanResult = document.getElementById("scan-result");
+const fetchInput = document.getElementById("fetch");
+const fetchValue = document.getElementById("fetch-value");
+function render() {
+  const desc = document.querySelector('input[name="desc"]:checked').value;
+  const budget = document.querySelector('input[name="budget"]:checked').value;
+  const minutes = Number(fetchInput.value);
+  fetchValue.textContent = minutes + " min";
+  const stale = desc === "count";
+  descResult.dataset.state = stale ? "red" : "green";
+  descResult.textContent = stale
+    ? "The schema test fails: nothing stamps these numbers, so they go stale."
+    : "The schema test passes. Live counts come from claude plugin details ork.";
+  const limit = budget === "shared" ? 5 : 8;
+  const cut = minutes >= limit;
+  scanResult.dataset.state = cut ? "red" : "green";
+  if (cut) {
+    scanResult.textContent = "The fetch hits its limit, the required check fails, and no one reads it as a pass.";
+  } else {
+    scanResult.textContent = "The fetch finishes and the scan runs over the full history.";
+  }
+}
+document.querySelectorAll("input").forEach((input) => input.addEventListener("input", render));
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

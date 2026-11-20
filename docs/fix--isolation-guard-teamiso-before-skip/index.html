@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isolation guard: teammate check runs before the Phase 4 skip</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .bar { height:10px; background:var(--bad); border-radius:3px; display:inline-block; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>Isolation guard: teammate check runs before the Phase 4 skip</h1>
+  <p class="lede">The isolation guard skips Phase 4 of agent-phases.md, because those agents write specs, not files. The skip ran before the teammate check, so a Phase 4 teammate that passes isolation on its call (which makes it a plain subagent) was not flagged. The teammate check now runs first; the skip covers only the writer checks.</p></div>
+  <button id="theme" type="button">Dark</button></div>
+  <section class="card"><h2>Red, then green</h2><table><tr><th>Input</th><th>Before</th><th>After</th></tr>
+  <tr><td>Pinned fixture: a Phase 4 teammate with name, team_name and isolation</td><td class="bad">FAIL: self-check, not flagged. RESULT: 1 failure(s)</td><td class="ok">flagged. RESULT: all checks passed</td></tr>
+  <tr><td>The same call added to a copy of the real agent-phases.md</td><td class="bad">passes</td><td class="ok">FAIL at agent-phases.md:31</td></tr>
+  <tr><td>Real tree</td><td class="ok">32 writer spawns checked</td><td class="ok">32 writer spawns checked</td></tr></table></section>
+  <section class="card"><h2>What changed</h2><ul>
+  <li><b>tests/agents/test-agent-isolation-allowlist.sh</b>: the scan is a function, so the test can run it on a fixture. A pinned self-check feeds it a Phase 4 teammate with isolation and fails when that call is not flagged.</li>
+  <li><b>Order</b>: the name plus isolation check runs before the Phase 4 skip. The skip still covers the writer checks, so the writer count stays at 32.</li>
+  <li><b>Why</b>: CodeRabbit thread 4239736563 on #4695, answered there as a follow-up. No current template was exposed; this closes the gap for future ones.</li></ul></section>
+</main>
+<script>
+  document.getElementById("theme").addEventListener("click", (e) => {
+    const dark = document.documentElement.dataset.theme !== "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    e.target.textContent = dark ? "Light" : "Dark";
+  });
+</script>
+</body>
+</html>

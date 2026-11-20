@@ -133,7 +133,7 @@ for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
 
     if [[ "$agent_spawn_count" -ge 3 ]]; then
         # Extract complexity from frontmatter (between first and second ---)
-        complexity=$(awk '/^---$/{c++; next} c==1' "$skill_md" | grep -E '^complexity:' | head -1 | sed 's/complexity:[[:space:]]*//')
+        complexity=$(awk '/^---$/{c++; next} c==1' "$skill_md" | grep -E '^[[:space:]]*complexity:' | head -1 | sed -E 's/^[[:space:]]*complexity:[[:space:]]*//; s/"//g')
 
         if [[ "$complexity" == "low" ]]; then
             COMPLEXITY_VIOLATIONS+=("$skill_name")

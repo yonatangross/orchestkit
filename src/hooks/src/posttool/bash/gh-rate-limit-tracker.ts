@@ -114,7 +114,7 @@ export async function ghRateLimitTracker(
   const hit = detectRateLimit(combined);
   if (!hit) return outputSilentSuccess();
 
-  return outputWithContext(buildContext(hit.reason, hit.resetAt));
+  return outputWithContext(buildContext(hit.reason, hit.resetAt), input);
 }
 
 // Testing-only exports

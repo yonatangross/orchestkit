@@ -53,7 +53,7 @@ describe("buildReleaseChronoCards", () => {
     });
     expect(cards[1]).toMatchObject({
       title: "relative paths",
-      status: "Shipped",
+      status: "Added",
       tone: "added",
       notesHref: "/changelog#10.0.0-beta.11",
       diffHref: "https://github.com/yonatangross/orchestkit/issues/4012",

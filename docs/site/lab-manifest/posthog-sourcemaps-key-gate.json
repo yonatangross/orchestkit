@@ -1,0 +1,12 @@
+{
+  "slug": "posthog-sourcemaps-key-gate",
+  "source": "docs/fix--docs-site-posthog-sourcemaps/index.html",
+  "title": "PostHog Source Maps, Gated on the Key's Shape",
+  "description": "The docs site sends exceptions to PostHog but served no source maps, so minified frames stayed unreadable. The build now uploads maps to the project and deletes them, and only a personal API key turns that on. Pick what the build sees to watch a missing key, a placeholder or a PostHog outage degrade to no upload, never to no deploy.",
+  "tags": [
+    "analytics",
+    "error-tracking",
+    "build"
+  ],
+  "date": "2026-11-06"
+}

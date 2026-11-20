@@ -1,27 +1,20 @@
 ---
 name: security-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.
-tags: [security, authentication, authorization, defense-in-depth, owasp, input-validation, llm-safety, pii-masking, jwt, oauth]
-context: fork
-agent: security-auditor
-version: 2.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Auth, defense in depth, input validation, OWASP Top 10, LLM prompt-injection defense and PII masking. Use when implementing auth or security layers."
 user-invocable: false
 disable-model-invocation: false
-complexity: high
-persuasion-type: discipline
 effort: high
 model: opus
 metadata:
+  owner-agent: "security-auditor"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "security, authentication, authorization, defense-in-depth, owasp, input-validation, llm-safety, pii-masking, jwt, oauth"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: ["src/**/auth/**", "src/**/middleware/**", "**/*security*"]
 path_patterns: ["**/auth/**", "**/middleware/**", "**/security/**", ".env*"]
 ---
@@ -319,7 +312,7 @@ artifact.user_id = llm_output["user_id"]           # Trusting LLM-generated IDs
 
 # PII
 logger.info(f"User email: {user.email}")           # Raw PII in logs
-langfuse.trace(input=raw_prompt)                   # Unmasked observability data
+get_client().start_observation(name="llm", input=raw_prompt)  # Unmasked observability data
 ```
 
 ## Detailed Documentation
@@ -343,7 +336,7 @@ Load on demand with `Read("references/<file>")`:
 ## Related Skills
 
 - `api-design-framework` - API security patterns
-- `ork:rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
+- `ork-extras:rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
 - `llm-evaluation` - Output quality assessment including hallucination detection
 
 ## Capability Details

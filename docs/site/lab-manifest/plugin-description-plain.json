@@ -1,0 +1,11 @@
+{
+  "slug": "plugin-description-plain",
+  "source": "docs/fix\u002d\u002dplugin-description-plain/index.html",
+  "title": "Plugin description: before and after",
+  "description": "Compare the prior plugin description with the hook scope and opt-in network disclosure.",
+  "tags": [
+    "plugin",
+    "review"
+  ],
+  "date": "2026-10-15"
+}

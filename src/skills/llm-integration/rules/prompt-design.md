@@ -70,12 +70,13 @@ final_prompt = ChatPromptTemplate.from_messages([
 | Zero-shot | Simple, well-defined tasks | Classification, extraction |
 | Few-shot | Complex tasks needing examples | Format conversion, style matching |
 | CoT | Reasoning, math, logic | Problem solving, analysis |
-| Zero-shot CoT | Quick reasoning boost | Add "Let's think step by step" |
+| Zero-shot CoT | Quick reasoning boost (models without built-in thinking) | Add "Let's think step by step" |
 | ReAct | Tool use, multi-step | Agent tasks, API calls |
 | Structured | JSON/schema output | Data extraction, API responses |
 
 Key decisions:
 - Few-shot examples: 3-5 diverse, representative examples
 - Example ordering: most similar examples last (recency bias)
-- CoT trigger: "Let's think step by step" or explicit format
-- Always use CoT for math/logic tasks
+- CoT trigger: "Let's think step by step" or explicit format, for models without built-in thinking only
+- Claude models that think by default (Opus 5.5 "always thinks before it replies"): delete CoT triggers and "show your reasoning" asks; change `effort` for depth, and ask for a short rationale when you need one
+- Math/logic tasks: use CoT on models without built-in thinking; on thinking models, raise the provider's thinking control instead: Claude `effort`; Gemini 3 `thinking_level` (Interactions `generation_config`, or `thinking_config` in generateContent); Gemini 2.5 `thinking_budget`

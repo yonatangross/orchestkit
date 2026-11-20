@@ -8,11 +8,15 @@ FIX="$H/fixtures/version-skip-pattern"
 # hook and the "Check if version bump required" step of version-check.yml.
 #   control: each consumer SKIPS a release-please branch name (exit 0, before
 #            any git work, so no fixture repo history is needed).
+#   lane_*_control: each consumer SKIPS a lane/<name> branch too (#4600).
+#            Floor lanes push from lane/ branches and release-please owns
+#            the version, so a bump demand there is the wrong answer.
 #   fault:   the pattern file emptied. fault2: the pattern file missing.
 # Every fault arm must FAIL: not skip, and not fall through to enforcement,
 # which is what an empty ERE does on its own (bash reports it as no-match).
 
 RP_BRANCH="release-please--branches--main"
+LANE_BRANCH="lane/ork-glyph-js-art-1"
 
 # The workflow step body, cut from the YAML at the `run: |` under the step's
 # name and de-indented, then run the way a runner runs it (bash -eo pipefail).
@@ -53,15 +57,15 @@ fi
 # still goes red if the pattern file stops being honoured.
 SKIP_MARKER='Skipping version check for'
 
-run_hook() {  # $1 = repo root to run in
-    local out
+run_hook() {  # $1 = repo root to run in, $2 = branch (default RP_BRANCH)
+    local out br="${2:-$RP_BRANCH}"
     # ORK_PRE_PUSH_VERSION_GATE_ONLY=1 stops the hook right after the version
     # gate decides, which is all this probe reads. Without it the control arm
     # ran the ENTIRE local pre-push pipeline (unit, security, build, manifests)
     # inside the pre-commit lint step, and in a sandboxed worktree that hung
     # every commit touching src/hooks or src/skills for 5+ minutes (2026-09-12,
     # isolated by a 25s-alarm bisect of 19 lint scripts then 12 probes).
-    out=$(printf 'refs/heads/%s 0000 refs/heads/%s 0000\n' "$RP_BRANCH" "$RP_BRANCH" \
+    out=$(printf 'refs/heads/%s 0000 refs/heads/%s 0000\n' "$br" "$br" \
         | ( cd "$1" && ORK_PRE_PUSH_VERSION_GATE_ONLY=1 bash bin/git-hooks/pre-push origin https://example.invalid/x.git ) 2>&1)
     printf '%s\n' "$out" >&2
     # 0 = the version gate stood down for this branch, which is the contract.
@@ -71,13 +75,25 @@ run_hook() {  # $1 = repo root to run in
     # bug into the very fix that closes a false-signal issue.
     grep -qF "$SKIP_MARKER" <<<"$out"
 }
-run_step() {  # $1 = checkout root to run in
-    ( cd "$1" && BRANCH_NAME="$RP_BRANCH" GITHUB_OUTPUT="$FIX/gh-output" bash -eo pipefail "$FIX/step.sh" ) >&2
+run_step() {  # $1 = checkout root to run in, $2 = branch (default RP_BRANCH)
+    ( cd "$1" && BRANCH_NAME="${2:-$RP_BRANCH}" GITHUB_OUTPUT="$FIX/gh-output" bash -eo pipefail "$FIX/step.sh" ) >&2
+}
+
+# The step exits 0 whether it skips or enforces (enforcement is "skip=false"
+# in GITHUB_OUTPUT), so the lane arm reads the pattern-skip decision from the
+# step's own output, the same way run_hook does.
+step_skips() {  # $1 = checkout root, $2 = branch
+    local out
+    out=$( ( cd "$1" && BRANCH_NAME="$2" GITHUB_OUTPUT="$FIX/gh-output-lane" bash -eo pipefail "$FIX/step.sh" ) 2>&1)
+    printf '%s\n' "$out" >&2
+    grep -qF "Skipping version check for $2" <<<"$out"
 }
 
 # control: the real files, in the real checkout.
 run_hook "$REPO"; hook_control=$?
 run_step "$REPO"; wf_control=$?
+run_hook "$REPO" "$LANE_BRANCH"; lane_hook_control=$?
+step_skips "$REPO" "$LANE_BRANCH"; lane_wf_control=$?
 
 # The hook resolves PROJECT_ROOT with `git rev-parse --show-toplevel`, so its
 # fixture must be a repository. Neither arm reaches any git command past that.
@@ -98,5 +114,5 @@ build_fixture "$FIX/missing"
 run_hook "$FIX/missing"; hook_fault2=$?
 run_step "$FIX/missing"; wf_fault2=$?
 
-printf 'RESULT gate=%s hook_control=%s wf_control=%s hook_fault=%s wf_fault=%s hook_fault2=%s wf_fault2=%s\n' \
-    "version-skip-pattern" "$hook_control" "$wf_control" "$hook_fault" "$wf_fault" "$hook_fault2" "$wf_fault2"
+printf 'RESULT gate=%s hook_control=%s wf_control=%s lane_hook_control=%s lane_wf_control=%s hook_fault=%s wf_fault=%s hook_fault2=%s wf_fault2=%s\n' \
+    "version-skip-pattern" "$hook_control" "$wf_control" "$lane_hook_control" "$lane_wf_control" "$hook_fault" "$wf_fault" "$hook_fault2" "$wf_fault2"

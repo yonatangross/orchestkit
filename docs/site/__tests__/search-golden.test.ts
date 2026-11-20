@@ -92,10 +92,7 @@ const ANY_OF: Array<[query: string, urls: string[]]> = [
   ["playground", ["/docs/showcase/lab"]], // → lab
   [
     "cmd", // → command / slash-command
-    [
-      "/docs/skills/command-skills",
-      "/docs/hooks/spotlights/dangerous-command-blocker",
-    ],
+    ["/docs/skills/command-skills"],
   ],
 ];
 

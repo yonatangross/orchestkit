@@ -1,0 +1,12 @@
+{
+  "slug": "review-pr-inline",
+  "source": "docs/fix--review-pr-inline/index.html",
+  "title": "review-pr runs inline: a fork drops its hooks",
+  "description": "Two claude -p runs on one plugin copy: as a fork the skill's frontmatter hook never ran, inline it ran and denied the call.",
+  "tags": [
+    "review",
+    "skills",
+    "hooks"
+  ],
+  "date": "2026-10-08"
+}

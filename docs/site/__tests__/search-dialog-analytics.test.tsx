@@ -16,7 +16,8 @@ const state = vi.hoisted(() => ({
 	data: null as unknown,
 }));
 
-vi.mock("fumadocs-core/search/client", () => ({
+vi.mock("fumadocs-core/search/client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("fumadocs-core/search/client")>()),
 	useDocsSearch: () => ({
 		search: state.search,
 		setSearch: (v: string) => {
@@ -45,19 +46,19 @@ import CustomSearchDialog from "@/components/search-dialog";
 const ROWS = [
 	{
 		id: "/docs/a",
-		url: "https://orchestkit.yonyon.ai/docs/a",
+		url: "https://orchestkit.dev/docs/a",
 		type: "page",
 		content: "Alpha Page",
 	},
 	{
 		id: "/docs/a-1",
-		url: "https://orchestkit.yonyon.ai/docs/a#why",
+		url: "https://orchestkit.dev/docs/a#why",
 		type: "text",
 		content: "matched excerpt",
 	},
 	{
 		id: "/docs/b",
-		url: "https://orchestkit.yonyon.ai/docs/b",
+		url: "https://orchestkit.dev/docs/b",
 		type: "page",
 		content: "Bravo Page",
 	},

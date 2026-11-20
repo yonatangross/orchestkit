@@ -1,0 +1,13 @@
+{
+  "slug": "feat--cover-behaviour-authoring-gate",
+  "source": "docs/feat--cover-behaviour-authoring-gate/index.html",
+  "title": "cover writes a test only when it asserts behaviour",
+  "description": "ork:cover drops its 90% business logic coverage target and picks targets by risk (changed code, complex branches, error paths, security and money paths, past bugs), recording why each was chosen. A new Phase 3b runs src/skills/cover/scripts/check-behaviour-tests.mjs over the new test files and rejects tests that only assert mock calls, assert nothing, or read the source instead of executing it. Pick a committed fixture and read the checker's real per-test verdicts.",
+  "tags": [
+    "testing",
+    "cover",
+    "behaviour-tests",
+    "quality-gates"
+  ],
+  "date": "2026-09-24"
+}

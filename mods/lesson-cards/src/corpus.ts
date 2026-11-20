@@ -10,11 +10,6 @@
  * or on /lessons reload, never inside tool.call.
  */
 
-/** Home directory from the environment, without importing node:os (hooks module rule). */
-export function homeDir(): string {
-  return process.env.HOME || process.env.USERPROFILE || '';
-}
-
 /** Slash-joined path segments; sufficient for read-only fs access on all platforms. */
 export function joinPath(...parts: string[]): string {
   return parts.filter(p => p.length > 0).join('/');
@@ -23,6 +18,8 @@ export function joinPath(...parts: string[]): string {
 /** One entry from hq-ext's configs/lesson-patterns.json */
 export interface LessonPattern {
   id: string;
+  /** Corpus entry kind: simple, window-check, block-check or dockerfile-check. */
+  type?: string;
   severity: 'block' | 'warn';
   category: string;
   pattern?: string;
@@ -37,6 +34,8 @@ export interface LessonPattern {
   message: string;
   why?: string;
   example_fix?: string;
+  /** One exact command the lesson accepts (hq-ext lesson-patterns.json field). */
+  allowed_form?: string;
   window_lines?: number;
   repos?: string[];
 }

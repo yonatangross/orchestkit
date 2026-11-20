@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hook context labelled with the real event; an expired copy question says so</title>
+<meta name="description" content="Two hook fixes. outputWithContext no longer labels every caller PostToolUse: pick an event to see the label before and after. And the secrets-veil copy question now says it expires: slide the answer time to see what a late Copy does.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button,input{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  input[type=range]{padding:0;width:16rem}
+  button{cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+  .card{border:1px solid var(--edge);border-radius:8px;padding:.7rem .9rem;font-size:.8rem}
+  .card h3{margin:0 0 .4rem;font-size:.8rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  .track{position:relative;height:1.4rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;margin:.6rem 0}
+  .deadline{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--warn)}
+  .dot{position:absolute;top:.2rem;width:.9rem;height:.9rem;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+  @media (max-width:40rem){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<h1>Hook context labelled with the real event; an expired copy question says so</h1>
+<p class="sub">Branch fix/hooks-pretool-event-and-veil-dismiss, PR #5005. Refs #4683 (docs conformance; the user-visible effect is not proven by a live Claude Code run) and Fixes #4450.</p>
+
+<section><h2>1. #4683: which event does the context say it is for?</h2>
+<p class="sub" style="margin-bottom:.8rem"><code>outputWithContext(ctx)</code> used to default <code>hookEventName</code> to <code>PostToolUse</code>. 52 callers on other events took the default. Claude Code's hooks docs say <code>hookSpecificOutput</code> requires <code>hookEventName</code> set to the event name. The event is now a required argument, read from the hook's own input.</p>
+<div class="controls">
+  <label>the hook fires on
+  <select id="event" aria-label="firing event">
+    <option value="PreToolUse">PreToolUse (skill loaders, Bash and Write dispatchers)</option>
+    <option value="PostToolUse">PostToolUse (commit-nudge, failure handler)</option>
+    <option value="SubagentStart">SubagentStart (subagent-validator)</option>
+    <option value="SubagentStop">SubagentStop (retry-handler)</option>
+    <option value="Setup">Setup (setup-check, first-run-setup)</option>
+    <option value="none">input carries no event (test harness, probe)</option>
+  </select></label>
+</div>
+<div class="grid">
+  <div class="card"><h3>before</h3><div id="before"></div></div>
+  <div class="card"><h3>after</h3><div id="after"></div></div>
+</div>
+<p class="note"><strong>What is not proven.</strong> The docs do not say what Claude Code does with a mismatched label, or whether skill frontmatter hooks run under <code>context: fork</code>. This page shows the label the hook emits, not a live session where the context reaches the model.</p>
+</section>
+
+<section><h2>2. #4450: the copy question after its deadline</h2>
+<p class="sub" style="margin-bottom:.8rem">With <code>SECRETS_VEIL_OFFER_COPY=1</code> a masked result opens a question. On Claude Code 2.1.316 <code>$.ui.ask</code> takes no signal and returns no handle, so a mod cannot close the dialog it opened. The question now says it expires, and a late answer is told so.</p>
+<div class="controls">
+  <label>the person answers after <output id="secs">60</output> s
+  <input id="t" type="range" min="0" max="240" step="5" value="60" aria-label="answer time in seconds"></label>
+  <label>with
+  <select id="pick" aria-label="answer"><option>Copy to clipboard</option><option>Keep hidden</option><option value="dismiss">Esc (dismiss)</option></select></label>
+</div>
+<div class="track" aria-hidden="true"><div class="deadline" style="left:50%"></div><div class="dot" id="dot"></div></div>
+<div class="grid">
+  <div class="card"><h3>before</h3><div id="vbefore"></div></div>
+  <div class="card"><h3>after</h3><div id="vafter"></div></div>
+</div>
+<p class="note"><strong>Always true.</strong> The tool result the model reads stays masked in every case, and no question, toast, status line or log carries the value.</p>
+</section>
+
+<section><h2>3. Take it with you</h2>
+<div class="controls"><button id="copy" type="button">copy this case as a prompt</button><span id="copied" class="sub"></span></div>
+<div class="out" id="prompt"></div>
+</section>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+// Every result is a list of segments: plain text, an optional colour class,
+// or a line break. Segments become DOM nodes through textContent only, and
+// the copy-as-prompt text is the same segments joined, so no markup string is
+// ever built or parsed.
+const seg = (text, cls) => ({ text, cls });
+const BR = { br: true };
+
+function show(el, parts) {
+  el.replaceChildren();
+  for (const p of parts) {
+    if (p.br) { el.append(document.createElement('br')); continue; }
+    if (p.cls) {
+      const span = document.createElement('span');
+      span.className = p.cls;
+      span.textContent = p.text;
+      el.append(span);
+    } else {
+      el.append(document.createTextNode(p.text));
+    }
+  }
+}
+
+const plain = (parts) => parts.map((p) => (p.br ? ' ' : p.text)).join('');
+
+function labelCase(ev) {
+  const before = ev === 'PostToolUse'
+    ? [seg('hookEventName: PostToolUse', 'ok'), BR, seg('matches the event.')]
+    : [seg('hookEventName: PostToolUse', 'bad'), BR, seg(ev === 'none' ? 'a guess.' : 'the event is ' + ev + '.')];
+  const after = ev === 'none'
+    ? [seg('no label from the helper', 'ok'), BR, seg("run-hook's output guard stamps the event that actually fired (its Rule 0).")]
+    : [seg('hookEventName: ' + ev, 'ok'), BR, seg('read from the hook input.')];
+  return { before, after };
+}
+
+function veilCase(t, pick) {
+  const late = t > 120;
+  if (pick === 'dismiss') return {
+    before: [seg(late ? 'nothing; the offer had already ended as Keep.' : 'ask rejects; value stays covered.')],
+    after: [seg(late ? 'ends quietly; value stays covered.' : 'ask rejects; value stays covered.')]
+  };
+  if (!late) {
+    const copied = pick.startsWith('Copy')
+      ? [seg('copied', 'ok'), seg('; Claude still sees dots.')]
+      : [seg('nothing copied.')];
+    return { before: copied, after: copied };
+  }
+  return {
+    before: [seg('nothing happens and nothing says so', 'bad'), seg('; the offer ended as Keep at 120 s, the dialog still looks live.')],
+    after: [seg('nothing copied, and one toast: '), seg('"that copy question had expired; nothing was copied, the value stays covered"', 'warn'), seg('.')]
+  };
+}
+
+function render() {
+  const ev = $('event').value;
+  const l = labelCase(ev);
+  show($('before'), l.before); show($('after'), l.after);
+  const t = Number($('t').value), pick = $('pick').value;
+  $('secs').textContent = t;
+  $('dot').style.left = (t / 240 * 100) + '%';
+  const v = veilCase(t, pick);
+  show($('vbefore'), v.before); show($('vafter'), v.after);
+  const evText = ev === 'none' ? 'an input with no event' : ev;
+  $('prompt').textContent =
+    'In orchestkit PR #5005, check two cases:\n' +
+    '1. A hook firing on ' + evText + ' that returns outputWithContext(ctx, input): expect ' +
+    (ev === 'none' ? 'no hookEventName from the helper, then the firing event stamped by sanitizeOutput.' : 'hookEventName ' + ev + '.') + '\n' +
+    '2. secrets-veil copy question answered with "' + (pick === 'dismiss' ? 'Esc' : pick) + '" after ' + t + ' s (deadline 120 s): expect ' +
+    plain(v.after);
+}
+
+['event','t','pick'].forEach((id) => $(id).addEventListener('input', render));
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('prompt').textContent); $('copied').textContent = 'copied'; }
+  catch { $('copied').textContent = 'clipboard refused; select the text below'; }
+});
+render();
+</script>
+</main></body>
+</html>

@@ -1,10 +1,10 @@
 ---
-description: "Decomposes a PRD, issue, or spec into a copy-pasteable single `/goal until ..., or stop after N turns` line. Use when running /goal against a spec, to reduce acceptance criteria to AND-joined boolean assertions."
+description: "Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal against a spec."
 argument-hint: "[prd-text | issue#N | path/to/spec.md]"
 context: inherit
 user-invocable: true
 name: prd-to-goal
-allowed-tools: [Read, Write, Bash, Grep, Agent]
+allowed-tools: "Read Write Bash Grep Agent"
 ---
 
 # Auto-generated from skills/prd-to-goal/SKILL.md
@@ -170,7 +170,7 @@ Where §3–5 *generate* a custom `/goal` line from a spec, the recipe library *
 | 🔴 Production error sweep | clear a backlog of actionable errors | `fix-issue` |
 | 📚 Docs-drift sweep | docs / reference drifted from code | `audit-full` |
 | ⚡ Page-load budget | a page exceeds its latency budget | `performance` |
-| 🧹 Repository cleanup | stale memory / state accumulated | `dream` |
+| 🧹 Repository cleanup | stale memory / state accumulated | `memory dream` |
 | ✅ Quality streak | don't trust a single green (flaky suite) | `verify` |
 | 🎫 Ticket → PR-ready | drive an issue to a CI-green PR | `fix-issue` → `create-pr` |
 | 🧼 Type/lint zero | clear a type/lint backlog without suppressions | fixer agent |
@@ -211,4 +211,4 @@ Full pattern (prompt template, independence rules, worked example): `skills/chai
 
 - `ork:write-prd` — if the input has no acceptance criteria, run this first.
 - `ork:brainstorm` — useful when the PRD itself is contested and you want options before writing the goal.
-- `ork:audit-full` — after `/goal` exits, run audit-full to confirm the assertions actually held end-to-end (the loop trusts the boolean; audit re-checks the intent).
+- `ork-extras:audit-full` — after `/goal` exits, run audit-full to confirm the assertions actually held end-to-end (the loop trusts the boolean; audit re-checks the intent).

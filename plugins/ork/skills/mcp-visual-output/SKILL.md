@@ -1,26 +1,27 @@
 ---
 name: mcp-visual-output
-compatibility: "Claude Code 2.1.251+"
-description: "Interactive MCP visual output via @json-render/mcp: upgrade plain JSON tool responses to dashboards rendered in sandboxed iframes inside MCP clients like Claude, Cursor, and ChatGPT. Use when a tool result would read better as a stat grid, data table, or status badge than as text. For the server itself (transport, auth, tool handlers, security) reach for ork:mcp-patterns."
-tags: [mcp, json-render, visual-output, dashboard, iframe, sandbox, interactive-ui, genui]
-version: 1.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "Renders MCP tool JSON results as dashboards via @json-render/mcp (stat grids, tables, badges). Use when a result reads better visually. Not for building the server."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
 context: inherit
-persuasion-type: guidance
 metadata:
   category: mcp
   upstream-package: "@json-render/mcp"
-  upstream-version-tested: "0.20.0"
+  upstream-version-tested: "0.21.3"
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "mcp, json-render, visual-output, dashboard, iframe, sandbox, interactive-ui, genui"
 ---
+
+Upstream version reference: `@json-render/mcp` 0.21.3 (2026-10-24).
 
 # MCP Visual Output
 
 Upgrade plain MCP tool responses to interactive dashboards rendered inside AI conversations. Built on `@json-render/mcp`, which bridges the json-render spec system with MCP's tool/resource model -- the AI generates a typed JSON spec, and a sandboxed iframe renders it as an interactive UI.
 
-> **Building an MCP server from scratch?** Use `ork:mcp-patterns` for server setup, transport, and security. This skill focuses on the **visual output layer** after your server is running.
+> **Building an MCP server from scratch?** Use `ork-extras:mcp-patterns` for server setup, transport, and security. This skill focuses on the **visual output layer** after your server is running.
 >
 > **Need the full component catalog?** See `ork:json-render-catalog` for all available components, props, and composition patterns.
 
@@ -126,6 +127,10 @@ registerJsonRenderResource(server, { resourceUri, html: bundledHtml })
 ```
 
 `registerJsonRenderResource()` was added in 0.15 to separate **tool registration** from **UI resource serving** — useful when the host caches the bundled HTML (clients: Claude, ChatGPT, Cursor, VS Code Copilot, Goose, Postman). Transports: stdio **and** Streamable HTTP (Express) both supported. This skill is verified against `@json-render/mcp` **0.20.0**, which shipped zero code change: every published file is byte-identical to 0.19.0 apart from the version and its pinned `@json-render/core` dependency. New capability in that release therefore belongs to core and react, not to this package. What reaches an MCP-rendered iframe indirectly is named slots and nested repeats, plus a fix so named `onSuccess`/`onError` chained actions actually receive their configured `params`.
+
+## Smallest Proof: One Tool, UI Resource Plus Text Fallback
+
+`scripts/glyph-card-server.mjs` is a dependency-free MCP server (stdio, or `--http <port>` for Streamable HTTP) with one tool, `render_glyph_card`. The tool lists `_meta.ui.resourceUri` (plus the legacy `ui/resourceUri` and the ChatGPT alias `openai/outputTemplate`), serves a `ui://` resource as `text/html;profile=mcp-app`, and returns a glyph text card in `content` with the same rows in `structuredContent`. Hosts without UI use the text; MCP Apps hosts draw the card. One caveat: Claude Code passes `structuredContent` JSON to the model when it is present, so the text card is not what the model sees there. The HTTP mode refuses any non-local Host or Origin with 403 unless you name one host with `--allow-host <host>`, so a tunnel serves only that name. Unit tests: `tests/unit/test-mcp-glyph-card.mjs`.
 
 ## Client-Side Iframe App
 
@@ -259,7 +264,7 @@ The AI generates a spec like this -- flat element map, no nesting beyond 2 level
 
 ## Related Skills
 
-- `ork:mcp-patterns` -- MCP server building, transport, security
+- `ork-extras:mcp-patterns` -- MCP server building, transport, security
 - `ork:json-render-catalog` -- Full component catalog and composition patterns
 - `ork:multi-surface-render` -- Rendering across Claude, Cursor, ChatGPT, web
-- `ork:ai-ui-generation` -- GenUI patterns for AI-generated interfaces
+- `ork-extras:ai-ui-generation` -- GenUI patterns for AI-generated interfaces

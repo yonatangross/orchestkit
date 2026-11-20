@@ -1,0 +1,12 @@
+{
+  "slug": "hero-a-conductor-bleed",
+  "source": "docs/chore--dsp-72228-hero-build-a-md-hero/index.html",
+  "title": "Hero A: conductor bleed",
+  "description": "Interactive playground for the docs homepage hero option A: left headline column with conductor art bleeding on the right under an L to R gradient mask, plus mobile 16:9 band under the headline.",
+  "tags": [
+    "docs-site",
+    "hero",
+    "design"
+  ],
+  "date": "2026-09-23"
+}

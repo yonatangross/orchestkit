@@ -1,0 +1,11 @@
+{
+  "slug": "ci-sentinel-cost-model",
+  "source": "docs/fix--ci-sentinel-cost-model/index.html",
+  "title": "ci-sentinel described an older, heavier dispatch",
+  "description": "Pick a part of the ci-sentinel skill and compare what it said before and after it was matched to the workflow file.",
+  "tags": [
+    "ci",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

@@ -1,9 +1,10 @@
 // OrchestKit CLI Demo (15-second ScrapbookDemo for YouTube/Twitter)
 // Showcases: Skills invocation, agent orchestration, plugin system
 
-import { ScrapbookDemoProps } from "./plugins/ork/skills/demo-producer/components/ScrapbookDemo";
+import type { ComponentProps } from "react";
+import type { ScrapbookDemo } from "../src/components/ScrapbookDemo";
 
-export const orchestkitCliDemoConfig: ScrapbookDemoProps = {
+export const orchestkitCliDemoConfig: ComponentProps<typeof ScrapbookDemo> = {
   // Hero Section (0-3s)
   title: "OrchestKit",
   tagline: "92 skills. 33 agents. 1 plugin.",

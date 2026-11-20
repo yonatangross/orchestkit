@@ -347,6 +347,14 @@ ork_run_with_budget() {
   fi
 }
 
+# True when a run-hook.mjs stderr file shows the 100 ms stdin watchdog fired
+# (#3415): the hook ran on {} and "measured nothing", so whatever it answered
+# is not a verdict. A starved run is a harness error, never a pass or a fail of
+# the hook under test (#4352). Usage: ork_stdin_starved <stderr-file>
+ork_stdin_starved() {
+  grep -qiE 'measured nothing|0 bytes' "$1"
+}
+
 # Ask a LIVE hook for its permission decision.
 # Usage: decision=$(hook_decision "pretool/bash/dangerous-command-blocker" "$json_input")
 # Echoes: deny | ask | allow
@@ -425,9 +433,22 @@ hook_decision() {
   # exactly the failure the warning exists to announce. Sending it to /dev/null
   # discarded the only signal separating "measured nothing" from "measured and
   # declined to decide".
-  local err_file rc=0
+  local err_file input_file rc=0
   err_file=$(mktemp "${TMPDIR:-/tmp}/ork-hook-stderr.XXXXXX")
-  out=$(printf '%s' "$input" | ork_run_with_budget "$ORK_HOOK_BUDGET" node "$runner" "$hook_key" 2>"$err_file") || rc=$?
+  input_file=$(mktemp "${TMPDIR:-/tmp}/ork-hook-input.XXXXXX") || {
+    rm -f "$err_file"
+    echo "ERROR"
+    echo "hook '$hook_key' could not create a payload file" >&2
+    return 0
+  }
+  if ! printf '%s' "$input" >"$input_file"; then
+    rm -f "$err_file" "$input_file"
+    echo "ERROR"
+    echo "hook '$hook_key' could not write its payload" >&2
+    return 0
+  fi
+  out=$(ork_run_with_budget "$ORK_HOOK_BUDGET" node "$runner" "$hook_key" <"$input_file" 2>"$err_file") || rc=$?
+  rm -f "$input_file"
 
   # A hook the budget had to kill produced no verdict. Reporting ERROR with
   # the cause is what keeps a loaded machine from reading as a regression
@@ -449,7 +470,7 @@ hook_decision() {
   # that measured nothing and an `expect deny` one failed with the cause two
   # lines away from the miss. ERROR is the honest answer: it fails BOTH shapes
   # of assertion and names why.
-  if grep -qiE 'measured nothing|0 bytes' "$err_file"; then
+  if ork_stdin_starved "$err_file"; then
     echo "ERROR"
     echo "hook '$hook_key' timed out after 0.1s: run-hook.mjs stdin watchdog fired before the payload was read (machine under load?), so the hook ran on an EMPTY payload and its answer is not a verdict. Hook stderr: $(tr '\n' ' ' <"$err_file")" >&2
     rm -f "$err_file"

@@ -242,7 +242,7 @@ class RetryHandler:
                 if attempt >= self.config.max_attempts:
                     if self._on_failure:
                         self._on_failure(attempt, e)
-                    raise MaxRetriesExceededError(attempt, e)
+                    raise MaxRetriesExceededError(attempt, e) from e
 
                 # Calculate delay
                 delay = calculate_delay(

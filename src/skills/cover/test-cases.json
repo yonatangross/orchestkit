@@ -43,7 +43,19 @@
         "Runs generated tests and identifies failures",
         "Heals failing tests up to 3 iterations maximum",
         "Fixes only test code, never modifies production source code",
+        "Never rewrites an expected value to match current output; reports each value mismatch as 'possible product bug: expected X, got Y (file:line)' and leaves the test failing",
         "Reports remaining failures if not resolved within 3 iterations"
+      ]
+    },
+    {
+      "id": "behaviour-gate-risk-targets",
+      "rule": null,
+      "query": "Write tests for the refund service",
+      "expectedBehavior": [
+        "Picks targets by risk (changed code, error paths, money paths, past bugs) and states why each was chosen",
+        "Sets no coverage percentage target; reports coverage as information only",
+        "Runs scripts/check-behaviour-tests.mjs over the new test files before executing them",
+        "Drops or rewrites any test that only asserts mock calls, asserts nothing, or reads source text"
       ]
     },
     {

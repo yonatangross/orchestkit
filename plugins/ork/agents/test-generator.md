@@ -2,11 +2,8 @@
 name: test-generator
 description: "Test specialist: coverage gap analysis, unit/integration test generation, fixtures, API mocking (MSW), HTTP recording."
 model: sonnet
-category: testing
-isolation: worktree
 maxTurns: 50
 effort: medium
-context: fork
 color: green
 memory: project
 tools:
@@ -37,23 +34,14 @@ skills:
   - testing-perf
   - architecture-patterns
   - browser-tools
-  - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Never mock the database in integration tests. Use testcontainers or docker-compose for real service dependencies."
-taskTypes:
-  - test
-  - build
-keywords:
-  - "test"
-  - "coverage"
-  - "unit test"
-  - "integration test"
-  - "msw"
-  - "fixture"
-examplePrompts:
-  - "Generate unit tests for the auth service with 90% coverage"
-  - "Create integration tests for the payment API with MSW mocking"
+metadata:
+  category: "testing"
+  critical_system_reminder: "Never mock the database in integration tests. Use testcontainers or docker-compose for real service dependencies."
+  taskTypes: "test, build"
+  keywords: "test, coverage, unit test, integration test, msw, fixture"
+  examplePrompts: "Generate unit tests for the auth service with 90% coverage | Create integration tests for the payment API with MSW mocking"
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
@@ -113,7 +101,7 @@ When running as a teammate in an Agent Teams session:
 ## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
 
-## Opus 4.8: 128K Output Tokens
+## 128K Output Tokens
 Generate complete test suites (unit + integration + fixtures + MSW handlers) in a single pass.
 With 128K output, produce full coverage for an entire module without splitting across responses.
 
@@ -438,7 +426,9 @@ class TestFeedbackService:
 
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
-Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about. Use DONE_WITH_CONCERNS when the commit landed but something is worth flagging (list each concern); `committed_sha` is the full 40-hex or 64-hex id. A commit or push that a hook, guard or check refuses is BLOCKED: report `committed_sha: null` and name the refusing hook in `blocked_reason`, never an empty or placeholder sha (`shared/build-result.schema.json`).
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Skill Index
 
@@ -452,11 +442,10 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |testing-unit:{SKILL.md,references/{aaa-pattern.md,factory-patterns.md,msw-2x-api.md,stateful-testing.md}}|testing,unit,mocking,msw,vcr,fixtures,factories,vitest-4,aroundEach
 |testing-e2e:{SKILL.md,references/{ork-delta.md,playwright-setup.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
-|testing-llm:{SKILL.md,references/{healer-agent.md,ork-delta.md}}|testing,llm,ai,deepeval,ragas,evaluation,mocking
+|testing-llm:{SKILL.md,references/{healer-agent.md,langfuse-v4.md,ork-delta.md}}|testing,llm,ai,deepeval,ragas,evaluation,mocking
 |testing-integration:{SKILL.md,references/{consumer-tests.md,ork-delta.md,strategies-guide.md}}|testing,integration,contract,pact,property,zod,api
 |testing-perf:{SKILL.md,references/{custom-plugins.md,k6-patterns.md,xdist-parallel.md}}|testing,performance,k6,locust,pytest,load-testing,benchmarking
 |architecture-patterns:{SKILL.md,references/{naming-conventions.md,ork-delta.md,structure-import-direction.md,testing-naming-conventions.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards,right-sizing,over-engineering,context-aware
-|browser-tools:{SKILL.md,references/{ork-delta.md,upstream-dogfood.md,upstream-electron.md,upstream-sandbox.md,upstream-slack.md,upstream.md}}|browser,automation,security,rate-limiting,scraping-ethics
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|browser-tools:{SKILL.md,references/{ork-delta.md,upstream-dogfood.md,upstream-electron.md,upstream-sandbox.md,upstream-slack.md,upstream.md}}|browser,automation,security,scraping-ethics
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

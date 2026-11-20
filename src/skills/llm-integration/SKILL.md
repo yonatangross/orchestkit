@@ -1,25 +1,18 @@
 ---
 name: llm-integration
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.
-tags: [llm, function-calling, streaming, ollama, fine-tuning, lora, tool-use, local-inference]
-context: fork
-agent: llm-integrator
-version: 2.0.0
-author: OrchestKit
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "llm-integrator"
   category: mcp-enhancement
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "llm, function-calling, streaming, ollama, fine-tuning, lora, tool-use, local-inference"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # LLM Integration
@@ -95,7 +88,7 @@ model = FastLanguageModel.get_peft_model(model, r=16, lora_alpha=32)
 
 ## Function Calling
 
-Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. Limit to 5-15 tools per request, validate all inputs with Pydantic/Zod, and return errors as tool results.
+Enable LLMs to use external tools and return structured data. Use strict mode schemas (2026 best practice) for reliability. On Claude keep the `tools` array stable across turns so the prompt cache holds; add tools mid-session with an inline `tool_addition` (beta `inline-tools-2026-09-15`, Claude API only, available on Sonnet 5.5 but not on Sonnet 5) instead of swapping subsets (https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#mid-conversation-tool-changes). For large tool sets, use a non-deferred tool search tool with `defer_loading: true` on the rest, never `defer_loading` alone (a request cannot have every tool deferred). Forced `tool_choice` (`any` or a named tool) returns a 400 on Sonnet 5.5, Opus 5.5, Fable 5.1 and Mythos 5.1; use `auto` with `strict: true` tools. Validate all inputs with Pydantic/Zod, and return errors as tool results. <!-- model-recency-ok: per-model contrast, Sonnet 5 lacks what Sonnet 5.5 has (platform docs 2026-09-28) -->
 
 - `calling-tool-definition.md` -- Strict mode schemas, OpenAI/Anthropic formats, LangChain binding
 - `calling-parallel.md` -- Parallel tool execution, asyncio.gather, strict mode constraints
@@ -178,7 +171,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 | Decision | Recommendation |
 |----------|----------------|
 | Tool schema mode | `strict: true` (2026 best practice) |
-| Tool count | 5-15 max per request |
+| Tool count | Load roughly 5-15 up front; defer the rest behind a non-deferred tool search tool |
 | Streaming protocol | SSE for web, WebSocket for bidirectional |
 | Buffer size | 50-200 tokens |
 | Local model (reasoning) | `deepseek-r1:70b` |
@@ -188,7 +181,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 | Training epochs | 1-3 (more risks overfitting) |
 | Context compression | Anchored iterative (60-80%) |
 | Compress trigger | 70% utilization, target 50% |
-| Judge model | `claude-haiku-4-5-20251001` (cost tier), `gpt-5.5`, or `gemini-3.8-flash` (Google's GA general-purpose model, priced under Haiku through 2026-12-31 and a third vendor for the different-model rule; price lives in `models.vocab.json`, not here) |
+| Judge model | `claude-haiku-5-5` (cost tier), `gpt-5.5`, or `gemini-3.8-flash` (Google's GA general-purpose model and a third vendor for the different-model rule; price lives in `models.vocab.json`, not here) |
 | Quality threshold | 0.7 production, 0.6 drafts |
 | Few-shot examples | 3-5 diverse, representative |
 | Prompt versioning | Langfuse with labels |
@@ -196,7 +189,7 @@ and scars. Our delta on all of it is in `references/ork-delta.md`.
 
 ## Related Skills
 
-- `ork:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
+- `ork-extras:rag-retrieval` -- Embedding patterns, when RAG is better than fine-tuning
 - `agent-loops` -- Multi-step tool use with reasoning
 - `llm-evaluation` -- Evaluate fine-tuned and local models
 - `langfuse-observability` -- Track training experiments

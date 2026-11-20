@@ -1,0 +1,8 @@
+{
+  "slug": "agents-maxturns-budget",
+  "source": "docs/fix--agents-maxturns-budget/index.html",
+  "title": "Builder agents stop at their turn cap",
+  "description": "ci-cd-engineer and frontend-ui-developer capped at 30 turns against 25-40 documented tool calls; raised to 60 with a test that keeps the cap above the documented workload.",
+  "tags": ["agents", "workflows", "ci"],
+  "date": "2026-11-10"
+}

@@ -1,13 +1,10 @@
 ---
 name: deployment-manager
 description: "Deployment specialist: production releases, rollback procedures, feature flags, blue-green/zero-downtime deployments."
-category: devops
 model: sonnet
 maxTurns: 20
 effort: low
 memory: project
-context: fork
-isolation: worktree
 color: green
 tools:
   - Bash
@@ -30,22 +27,14 @@ tools:
 skills:
   - devops-deployment
   - github-operations
-  - remember
   - memory
 mcpServers: [context7]
-critical_system_reminder: "Verify rollback plan exists and is tested before proceeding with any production deployment."
-taskTypes:
-  - deploy
-keywords:
-  - "deployment"
-  - "rollback"
-  - "blue-green"
-  - "canary"
-  - "feature flag"
-  - "zero-downtime"
-examplePrompts:
-  - "Set up blue-green deployment for the API service"
-  - "Create a rollback procedure for failed production releases"
+metadata:
+  category: "devops"
+  critical_system_reminder: "Verify rollback plan exists and is tested before proceeding with any production deployment."
+  taskTypes: "deploy"
+  keywords: "deployment, rollback, blue-green, canary, feature flag, zero-downtime"
+  examplePrompts: "Set up blue-green deployment for the API service | Create a rollback procedure for failed production releases"
 ---
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.
@@ -253,6 +242,8 @@ Task: "Deploy v2.3.1 to production with blue-green strategy"
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Peer Messaging
 

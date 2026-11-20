@@ -1,0 +1,8 @@
+{
+  "slug": "lesson-cards-home-env",
+  "source": "docs/fix--lesson-cards-home-env/index.html",
+  "title": "lesson-cards: home from $.env HOME then USERPROFILE, /lessons registered first",
+  "description": "The home lookup reads HOME then USERPROFILE through the mod env reader with no process read, /lessons is registered before the corpus load, and a 0-lesson reload names its sources.",
+  "tags": ["mods", "lesson-cards", "windows"],
+  "date": "2026-10-05"
+}

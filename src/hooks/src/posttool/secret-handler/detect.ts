@@ -75,23 +75,5 @@ export function hashSpans(spans: string[]): string {
   return h.digest('hex').slice(0, 12);
 }
 
-/**
- * Stringify tool_output for scanning. Read returns string; Bash returns
- * string; Grep can return array. Returns null if uncoercable.
- */
-export function stringifyOutput(output: unknown): string | null {
-  if (typeof output === 'string') return output;
-  if (output == null) return null;
-  if (Array.isArray(output)) {
-    try {
-      return output.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join('\n');
-    } catch {
-      return null;
-    }
-  }
-  try {
-    return JSON.stringify(output);
-  } catch {
-    return null;
-  }
-}
+/** Re-export shared helper; callers may import from here or from lib/. */
+export { stringifyOutput } from '../../lib/stringify-output.js';

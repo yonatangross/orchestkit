@@ -204,7 +204,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "ai-safety-auditor",
-    "name": "Ai Safety Auditor",
+    "name": "AI Safety Auditor",
     "description": "AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, and OWASP LLM compliance.",
     "category": "security",
     "model": "opus",
@@ -253,7 +253,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "ci-cd-engineer",
-    "name": "Ci Cd Engineer",
+    "name": "CI/CD Engineer",
     "description": "CI/CD specialist: GitHub Actions, GitLab CI pipelines, deployment automation, build optimization, caching, security scanning.",
     "category": "devops",
     "model": "sonnet",
@@ -278,7 +278,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "claude-design-orchestrator",
     "name": "Claude Design Orchestrator",
-    "description": "Parses claude.ai/design handoff bundles: validates schema, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks bundle→PR provenance so design intent stays linked to shipped code.",
+    "description": "Reads Claude Design exports (zip, HTML or folder): parses the prototypes, dedups proposed components against the codebase via component-search, reconciles tokens, and tracks export-to-PR provenance so design intent stays linked to shipped code.",
     "category": "frontend",
     "model": "sonnet",
     "taskTypes": [
@@ -287,15 +287,15 @@ export const AGENTS: Agent[] = [
     ],
     "keywords": [
       "claude design",
-      "claude.ai/design",
-      "handoff bundle",
+      "design export",
+      "design artifact",
       "design handoff",
       "design import",
       "design-to-pr"
     ],
     "examplePrompts": [
-      "Import this Claude Design handoff bundle and scaffold the components",
-      "Parse the handoff URL and tell me which components already exist"
+      "Import this Claude Design export and scaffold the components",
+      "Read this design export and tell me which components already exist"
     ]
   },
   {
@@ -630,7 +630,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "frontend-ui-developer",
-    "name": "Frontend Ui Developer",
+    "name": "Frontend UI Developer",
     "description": "Frontend developer: React 19/TypeScript components, optimistic updates, Zod-validated APIs, design system tokens, animation/motion, modern 2026 patterns.",
     "category": "frontend",
     "model": "inherit",
@@ -680,7 +680,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "git-operations-engineer",
     "name": "Git Operations Engineer",
-    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history.",
+    "description": "Git operations: branch management, rebases, merges, stacked PRs, recovery operations, clean commit history. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).",
     "category": "other",
     "model": "sonnet",
     "taskTypes": [
@@ -727,7 +727,7 @@ export const AGENTS: Agent[] = [
   },
   {
     "id": "llm-integrator",
-    "name": "Llm Integrator",
+    "name": "LLM Integrator",
     "description": "LLM integration: OpenAI/Anthropic/Ollama APIs, prompt templates, function calling, streaming, token cost optimization.",
     "category": "ai",
     "model": "sonnet",
@@ -797,7 +797,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "multimodal-specialist",
     "name": "Multimodal Specialist",
-    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 4.8, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
+    "description": "Vision, audio, image and video generation, and multimodal processing specialist. Integrates Claude Opus 5.5, GPT-5, Gemini 2.5/3, GPT Image 2, Nano Banana Pro, Kling 3.0, Sora 2 and Veo 3.1 for analysis, generation, transcription and multimodal RAG.",
     "category": "ai",
     "model": "sonnet",
     "taskTypes": [
@@ -867,7 +867,7 @@ export const AGENTS: Agent[] = [
   {
     "id": "release-engineer",
     "name": "Release Engineer",
-    "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking.",
+    "description": "Release and versioning specialist for GitHub releases, milestones, changelogs, semantic versioning and release automation. Needs a git repository cwd; spawn it from inside the target repo (it runs in its own worktree).",
     "category": "devops",
     "model": "haiku",
     "taskTypes": [

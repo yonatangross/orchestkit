@@ -303,11 +303,14 @@ function trackAgentResult(input: HookInput): void {
     // the subagent_type staged at SubagentStart (#245), which is the only source
     // of the type for forks/background agents whose SubagentStop payload omits it.
     const agentCtx = resolveAgentContext(input.agent_id || '');
+    // null means the session-state lock or read failed (#4386): fall back to
+    // payload fields below and skip the ledger row rather than write
+    // duration_ms 0 / stage 0 / commit_base ''.
 
     const agentType = input.tool_input?.subagent_type as string
       || input.subagent_type
       || input.agent_type
-      || agentCtx.type
+      || agentCtx?.type
       || 'unknown';
     // Still read for the branch-activity LEDGER and transcript quality record
     // below — those are separate sinks from agent-usage.jsonl. It is also always
@@ -321,14 +324,14 @@ function trackAgentResult(input: HookInput): void {
     // performed, and statting unconditionally is what makes `has_transcript`
     // trustworthy on attributed rows too.
     const hasTranscript = hasTranscriptOnDisk(input.agent_transcript_path);
-    const phantom = isPhantomStop(agentType, agentCtx.startMs, hasTranscript);
+    const phantom = isPhantomStop(agentType, agentCtx?.startMs ?? 0, hasTranscript);
 
     // #3034: CC delivers neither `duration_ms` nor `tool_input` nor
     // `agent_output`/`output` at SubagentStop — 0 of 11,319 real rows carried
     // any of them. The only true sources are the SubagentStart-staged start
     // time and the transcript, so both are computed before the write.
     const effectiveDuration = input.duration_ms
-      || (agentCtx.startMs ? Date.now() - agentCtx.startMs : 0);
+      || (agentCtx?.startMs ? Date.now() - agentCtx.startMs : 0);
     const metrics = hasTranscript && input.agent_transcript_path
       ? analyzeTranscript(input.agent_transcript_path)
       : null;
@@ -397,28 +400,32 @@ function trackAgentResult(input: HookInput): void {
 
     // Determine stage: first agent = lead, background = parallel, rest = follow-up
     const isBackground = !!(input.tool_input?.run_in_background);
-    const stage = agentCtx.counter === 0 ? 0 : (isBackground ? 1 : 2);
 
     // Detect orchestrating skill from environment
     const orchestrator = process.env.CLAUDE_SKILL_NAME
       || process.env.ORCHESTKIT_ACTIVE_SKILL
       || undefined;
 
-    appendLedgerEntry({
-      ts: new Date().toISOString(),
-      agent: agentType,
-      agent_name: agentName,
-      stage,
-      duration_ms: effectiveDuration,
-      success,
-      summary: cleanSummary,
-      prompt: promptSummary || undefined,
-      commit_base: agentCtx.commitBase,
-      orchestrator,
-      background: isBackground || undefined,
-      // CC 2.1.69: transcript path for post-mortem analysis
-      transcript_path: input.agent_transcript_path || undefined,
-    });
+    // agentCtx null = state lock/read failed; the row would be all zeros, so
+    // skip it rather than record a fake lead-stage, zero-duration attribution.
+    if (agentCtx) {
+      const stage = agentCtx.counter === 0 ? 0 : (isBackground ? 1 : 2);
+      appendLedgerEntry({
+        ts: new Date().toISOString(),
+        agent: agentType,
+        agent_name: agentName,
+        stage,
+        duration_ms: effectiveDuration,
+        success,
+        summary: cleanSummary,
+        prompt: promptSummary || undefined,
+        commit_base: agentCtx.commitBase,
+        orchestrator,
+        background: isBackground || undefined,
+        // CC 2.1.69: transcript path for post-mortem analysis
+        transcript_path: input.agent_transcript_path || undefined,
+      });
+    }
 
     // Issue #1245: Analyze transcript for quality scoring
     analyzeAndRecordTranscript(input, agentType, agentName, effectiveDuration);

@@ -1,0 +1,93 @@
+{
+  "repo": "orchestkit",
+  "repo_url": "https://github.com/yonatangross/orchestkit/blob/main/",
+  "read_at": "d21e50af2957818c3919901faf2f507b7f8e997d",
+  "eyebrow": "yonatangross / orchestkit · docs/ARCHITECTURE.md",
+  "title": "OrchestKit, a Claude Code plugin library",
+  "lede": "Skills, agents and hooks built from src/ into one installable plugin, pinned by release tags, plus a public docs site with a read-only MCP endpoint.",
+  "brand_icon": "hq:claude",
+  "stats": [
+    {"value": 115, "label": "skills"},
+    {"value": 36, "label": "agents"},
+    {"value": 163, "label": "hooks"},
+    {"value": 58, "label": "CI workflows"}
+  ],
+  "stats_note": "Counts from the manifests and file listings at the read sha (git ls-tree, hooks.json), not from a live install.",
+  "maps": [
+    {
+      "id": "hook",
+      "label": "Hook path",
+      "w": 1080,
+      "h": 420,
+      "nodes": {
+        "cc": [90, 210, "hq:claude", "Claude Code"],
+        "runner": [300, 210, "hq:nodejs", "run-hook.mjs"],
+        "bundle": [510, 110, "hq:package", "event bundle"],
+        "disp": [700, 110, "hq:typescript", "dispatcher + hooks"],
+        "db": [510, 330, "hq:sqlite", "sessions.db"],
+        "jev": [930, 70, "hq:mono-ts", "TypeSafe Jev (opt-in)"],
+        "hook": [930, 230, "hq:webhook", "user webhook (opt-in)"]
+      },
+      "edges": [["cc", "runner"], ["runner", "bundle"], ["bundle", "disp"], ["runner", "db"], ["disp", "jev"], ["runner", "hook"]],
+      "steps": [
+        {"text": "A tool call or session event fires; Claude Code runs node run-hook.mjs with the hook name and JSON on stdin.", "edges": ["cc-runner"], "nodes": ["cc", "runner"], "src": "src/hooks/hooks.json:3-20"},
+        {"text": "The runner maps the hook name prefix to one split bundle and imports only that bundle.", "edges": ["runner-bundle"], "nodes": ["runner", "bundle"], "src": "run-hook.mjs:77,405-412"},
+        {"text": "If a security hook's bundle is missing or broken, the runner blocks with exit 2 instead of failing open.", "edges": ["runner-bundle"], "nodes": ["runner"], "src": "run-hook.mjs:232,477,484-497"},
+        {"text": "The dispatcher runs its hooks; an opt-in session category cascade may call TypeSafe Jev.", "edges": ["bundle-disp", "disp-jev"], "nodes": ["bundle", "disp", "jev"], "src": "session-category-provider.ts:49,53"},
+        {"text": "Session hooks write the local SQLite registry: running, heartbeat, completed or crashed.", "edges": ["runner-db"], "nodes": ["runner", "db"], "src": "session-registrar.ts:198,224; heartbeat.ts:47"},
+        {"text": "The runner sanitizes the result and prints JSON; an opt-in webhook can receive batched telemetry.", "edges": ["cc-runner", "runner-hook"], "nodes": ["cc", "hook"], "src": "run-hook.mjs:927; telemetry-sync.mjs:127-144"}
+      ]
+    },
+    {
+      "id": "release",
+      "label": "Release path",
+      "w": 1080,
+      "h": 420,
+      "nodes": {
+        "src": [90, 210, "hq:github", "src/ + manifests/"],
+        "ci": [280, 210, "hq:github-actions", "23 required checks"],
+        "rp": [460, 110, "hq:mono-rp", "release-please"],
+        "tag": [640, 110, "hq:tag", "tag vX.Y.Z"],
+        "pin": [840, 50, "hq:package", "stable pin PR"],
+        "ghcr": [840, 170, "hq:docker", "GHCR image"],
+        "site": [640, 320, "hq:vercel", "docs site on Vercel"],
+        "user": [1000, 110, "hq:claude", "users install ork"]
+      },
+      "edges": [["src", "ci"], ["ci", "rp"], ["rp", "tag"], ["tag", "pin"], ["tag", "ghcr"], ["ci", "site"], ["pin", "user"]],
+      "steps": [
+        {"text": "A PR to main runs the build and 23 required checks, including plugin validation and secret scanning.", "edges": ["src-ci"], "nodes": ["src", "ci"], "src": "gh api .../branches/main/protection"},
+        {"text": "On main, release-please keeps a release PR open; merging it cuts the vX.Y.Z tag.", "edges": ["ci-rp", "rp-tag"], "nodes": ["rp", "tag"], "src": "release-please.yml:27-37,77"},
+        {"text": "release.yml creates the GitHub release with build provenance and syncs plugins/ork to the dist repo.", "edges": ["rp-tag"], "nodes": ["tag"], "src": "release.yml:31,152,293"},
+        {"text": "It opens the stable pin PR so the ork marketplace entry moves to the new tag, and pushes the docs MCP image.", "edges": ["tag-pin", "tag-ghcr"], "nodes": ["pin", "ghcr"], "src": "release.yml:158-161,176,437"},
+        {"text": "Users on the stable entry get the pinned tag; ork-alpha tracks main ahead of it.", "edges": ["pin-user"], "nodes": ["pin", "user"], "src": ".claude-plugin/marketplace.json:14-40"},
+        {"text": "Separately, Vercel deploys the docs site from main only.", "edges": ["ci-site"], "nodes": ["site"], "src": "docs/site/vercel.json:3-7"}
+      ]
+    }
+  ],
+  "map_note": "Hover or click a step to light its path. Vendors are called by the hook runner or the docs site, never by each other. WAHA and Prodigi are not wired here and are not drawn.",
+  "layers": [
+    {"key": "content", "title": "Plugin content", "what": "115 skills, 36 agents, 8 workflow scripts", "icons": ["hq:claude", "hq:package"], "accent": "#D97757",
+     "why": ["Skills and agents are Markdown with frontmatter, so they ship as plain files and Claude Code loads them without a runtime.", "One manifest lists what ships, and count tests fail a PR that drifts from it."],
+     "ref": "CLAUDE.md:27-28; manifests/ork.json:22-34"},
+    {"key": "hooks", "title": "Hook runtime", "what": "163 hooks over 32 events, one Node runner, split bundles", "icons": ["hq:nodejs", "hq:typescript"], "accent": "#3C873A",
+     "why": ["Each event loads only its own bundle, which keeps cold start small on every tool call.", "Security hooks fail closed: a missing bundle blocks rather than lets a call through."],
+     "ref": "run-hook.mjs:8,232,477"},
+    {"key": "state", "title": "Local state", "what": "sessions.db on node:sqlite, per user", "icons": ["hq:sqlite"], "accent": "#0F80CC",
+     "why": ["Built-in node:sqlite means no native addon to install or rebuild.", "One file shared by all sessions on the machine lets hooks see siblings and mark crashed ones."],
+     "ref": "session-registry.ts:15-20,112"},
+    {"key": "site", "title": "Docs site", "what": "Next.js 16 + Fumadocs on Vercel, /api/mcp, search", "icons": ["hq:nextjs", "hq:vercel", "hq:mcp"], "accent": "#111827",
+     "why": ["The MCP endpoint is stateless JSON-RPC over the same search the pages use, so agents and readers see one index.", "A stdio image of the same server serves registries and offline clients."],
+     "ref": "docs/site/app/api/mcp/route.ts:8-13; Dockerfile:1-9"},
+    {"key": "release", "title": "Release", "what": "release-please, tags, stable pin, dist repo, GHCR", "icons": ["hq:github-actions", "hq:mono-rp"], "accent": "#2088FF",
+     "why": ["Stable users install a pinned tag, so main can move without breaking them.", "A slim dist repo carries only plugins/ork for directory size limits."],
+     "ref": "release.yml:156-161,277-280"}
+  ],
+  "decisions": [
+    {"title": "Edit src/, ship generated plugins/", "gain": "One source of truth with a build that assembles real directories Claude Code can load.", "cost": "Generated files are committed and can drift; CI and count checks must guard them.", "adr": null},
+    {"title": "One Node runner with per-event split bundles", "gain": "Small cold start on every hook call.", "cost": "A broken bundle silences every hook in it until rebuilt.", "adr": null},
+    {"title": "Security hooks fail closed", "gain": "A bad install cannot quietly disable command and write guards.", "cost": "A broken install blocks tool calls until the user rebuilds or reinstalls.", "adr": null},
+    {"title": "Local SQLite registry on built-in node:sqlite", "gain": "No native dependency; sessions on one machine share state.", "cost": "Needs Node 22.5 or newer; unused tables had to be dropped later.", "adr": null},
+    {"title": "Stable pin plus an alpha entry that tracks main", "gain": "Stable users get tagged releases; early users opt in to main.", "cost": "Two marketplace entries and a pin PR on every release.", "adr": null},
+    {"title": "Public docs API with optional identity", "gain": "Anonymous reads are the product; agents can still find auth metadata.", "cost": "More well-known endpoints to keep correct.", "adr": {"label": "ADR: Optional agent identity", "path": "docs/adr/optional-agent-identity.md"}}
+  ]
+}

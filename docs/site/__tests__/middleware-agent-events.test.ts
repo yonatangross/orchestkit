@@ -30,7 +30,7 @@ import { middleware } from "@/middleware";
 
 /** A request shaped like real browser XHR: no headers beyond Accept: */
 function browserXhr(url: string, method = "GET") {
-	return new NextRequest(`https://orchestkit.yonyon.ai${url}`, {
+	return new NextRequest(`https://orchestkit.dev${url}`, {
 		method,
 		headers: {
 			accept: "*/*",
@@ -89,7 +89,7 @@ describe("middleware agent telemetry volume gates", () => {
 	});
 
 	it("emits nothing for ordinary browser page loads", () => {
-		const page = new NextRequest("https://orchestkit.yonyon.ai/docs", {
+		const page = new NextRequest("https://orchestkit.dev/docs", {
 			headers: {
 				accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 			},

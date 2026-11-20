@@ -325,7 +325,7 @@ function checkCriticalComponents(pluginRoot: string): boolean {
 /**
  * Setup repair hook
  */
-export function setupRepair(_input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
+export function setupRepair(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const pluginRoot = ctx.pluginRoot;
 
   ctx.log('setup-repair', 'Setup repair starting');
@@ -358,7 +358,7 @@ export function setupRepair(_input: HookInput, ctx: HookContext = NOOP_CTX): Hoo
 
   // Output result
   if (notifyUser && repairSummary) {
-    return outputWithContext(`OrchestKit auto-repair: ${repairSummary}`);
+    return outputWithContext(`OrchestKit auto-repair: ${repairSummary}`, input);
   }
 
   return outputSilentSuccess();

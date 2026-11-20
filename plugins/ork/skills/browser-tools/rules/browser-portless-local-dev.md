@@ -75,5 +75,5 @@ portless get app  # → https://app.localhost
 - Use `portless alias` (v0.5+) for services not started by portless (databases, queues)
 - Use `portless get <name>` (v0.6+) to programmatically retrieve URLs in scripts
 - If Portless is not installed, fall back to `lsof -iTCP -sTCP:LISTEN -nP` to discover ports
-- The OrchestKit safety hook allows `*.localhost` subdomains via `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST`
+- Nothing in OrchestKit blocks `*.localhost` (the agent-browser safety hook was retired 2026-08-31); with the sandbox network allow list on, list the local host names in `allowedDomains`
 - Install Portless globally: `npm i -g portless`

@@ -74,11 +74,11 @@ async def backup_golden_dataset():
 
         # Write backup file
         BACKUP_DIR.mkdir(exist_ok=True)
-        with open(BACKUP_FILE, "w") as f:
+        with BACKUP_FILE.open("w") as f:
             json.dump(backup_data, f, indent=2, default=str)
 
         # Write metadata (quick stats)
-        with open(METADATA_FILE, "w") as f:
+        with METADATA_FILE.open("w") as f:
             json.dump(backup_data["metadata"], f, indent=2)
 
         logger.info(
@@ -156,7 +156,7 @@ async def restore_golden_dataset(replace: bool = False):
         print(f"❌ Backup file not found: {BACKUP_FILE}")
         return False
 
-    with open(BACKUP_FILE) as f:
+    with BACKUP_FILE.open() as f:
         backup_data = json.load(f)
 
     # Validate structure
@@ -274,7 +274,7 @@ async def verify_golden_dataset():
         return False
 
     # Load expected metadata
-    with open(METADATA_FILE) as f:
+    with METADATA_FILE.open() as f:
         expected_metadata = json.load(f)
 
     print("\n🔍 Validating golden dataset...\n")

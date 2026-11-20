@@ -1,0 +1,6 @@
+{
+  "name": "tool-list-mod",
+  "version": "0.1.0",
+  "description": "Probe plugin for the R3 function-hook question: answers tool.list with one named tool removed and writes one marker file per call. Used by tests/probes/function-hooks-probe.sh.",
+  "license": "MIT"
+}

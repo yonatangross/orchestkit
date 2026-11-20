@@ -1,21 +1,19 @@
 ---
 name: memory-fabric
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Knowledge graph orchestration layer with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting. Unifies search results ranked by recency, relevance, and authority. Use when designing memory retrieval, building entity graphs, or optimizing knowledge graph queries."
-context: fork
-version: 2.1.0
-author: OrchestKit
-tags: [memory, orchestration, graph-first, graph, unified-search, deduplication, cross-reference]
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Memory retrieval internals: knowledge graph orchestration with entity extraction, natural language query parsing, deduplication (>85% similarity), and cross-reference boosting over unified recency, relevance, and authority ranking. Use when designing or debugging how memory search itself works. Everyday lookups belong to memory search; entry storage to memory remember; consolidation to memory dream."
 user-invocable: false
 disable-model-invocation: true
-allowed-tools: [Read, Bash, mcp__memory__search_nodes]
-complexity: high
-persuasion-type: collaborative
+allowed-tools: "Read Bash mcp__memory__search_nodes"
 effort: high
 metadata:
   category: mcp-enhancement
   mcp-server: memory
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "memory, orchestration, graph-first, graph, unified-search, deduplication, cross-reference"
 ---
 
 # Memory Fabric - Graph Orchestration
@@ -246,7 +244,7 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 ## Related Skills
 
 - `ork:memory` - User-facing memory operations (search, load, sync, viz)
-- `ork:remember` - User-facing memory storage
+- `ork:memory remember` - User-facing memory storage
 - `caching` - Caching layer that can use fabric
 
 ## Key Decisions

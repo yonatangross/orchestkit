@@ -1,0 +1,8 @@
+{
+  "slug": "cli-missing-option-value",
+  "source": "docs/fix--cli-missing-option-value/index.html",
+  "title": "OrchestKit CLI: option values",
+  "description": "Compare CLI output and exit codes for missing, invalid, and valid option values.",
+  "tags": ["cli"],
+  "date": "2026-11-20"
+}

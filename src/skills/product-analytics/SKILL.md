@@ -1,25 +1,18 @@
 ---
 name: product-analytics
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "A/B test evaluation, cohort retention analysis, funnel metrics, and experiment-driven product decisions. Use when analyzing experiments, measuring feature adoption, diagnosing conversion drop-offs, or evaluating statistical significance of product changes."
-tags: [ab-test, cohort, retention, funnel, conversion, analytics, experiment, statistical-significance]
-context: fork
-agent: product-strategist
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "A/B test evaluation, cohort retention, funnels and significance. Use when analyzing experiments, feature adoption or conversion drop-offs."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
 metadata:
+  owner-agent: "product-strategist"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ab-test, cohort, retention, funnel, conversion, analytics, experiment, statistical-significance"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Product Analytics
@@ -145,7 +138,7 @@ Plain-English explanations of the stats every PM needs. Load `references/stats-c
 ## Related Skills
 
 - `ork:product-frameworks` — OKRs, KPI trees, RICE prioritization, PRD templates
-- `ork:monitoring-observability` — Metric definition, alerting, and drift monitoring
+- `ork-extras:monitoring-observability` — Metric definition, alerting, and drift monitoring
 - `ork:brainstorm` — Generate hypotheses and experiment ideas
 - `ork:assess` — Evaluate product quality and risks
 

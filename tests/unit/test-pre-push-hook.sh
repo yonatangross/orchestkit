@@ -14,6 +14,12 @@ set -euo pipefail
 # exported repository-locating GIT_* variables.
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR \
     GIT_OBJECT_DIRECTORY
+# HQ_CI_ONLY=1 skips the unit tier this file counts, and a lane push runs
+# this suite with it exported. Every helper that launches the hook must clear
+# it itself (env -u HQ_CI_ONLY), so this file sets it on purpose: a helper
+# that forgets runs the hook with the unit tier skipped and its count cases
+# fail, instead of passing only because the caller's env was clean (#4753).
+export HQ_CI_ONLY=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -151,12 +157,17 @@ test_skip_regex_parity() {
     fi
     log_pass "scripts/ci/version-skip-pattern.sh defines VERSION_SKIP_PATTERN"
 
-    # 4b: behaviour, not text. Every conventional-commit prefix, a release-please
-    # branch and a Dependabot branch skip; a bare-named branch and main do not.
+    # 4b: behaviour, not text. Every conventional-commit prefix, a floor lane/
+    # branch, a wip/ park branch, a release-please branch and a Dependabot branch
+    # skip; a bare-named branch and main do not. A wip/ park branch holds a
+    # parked commit and never becomes a release, so a bump there would be a
+    # ghost version (#1457); without the skip a park cannot be published at
+    # all (2026-11-11, wip/park-2026-11-11/fix-5172 refused by this gate).
     local wrong=()
     local skip_names=(docs/x chore/x ci/x style/x test/x feat/x fix/x perf/x refactor/x issue/x bug/x
+        lane/x wip/park-2026-11-11/fix-5172
         release-please--branches--main dependabot/npm_and_yarn/lodash-4.17.21)
-    local enforce_names=(main hotfix-1457 docs bugfix/x feature/x)
+    local enforce_names=(main hotfix-1457 docs bugfix/x feature/x wip wipe/x)
     local name
     for name in "${skip_names[@]}"; do
         [[ "$name" =~ $pattern ]] || wrong+=("should-skip:$name")
@@ -749,11 +760,19 @@ test_shared_load_backoff_fixture() {
     log_section "Test 12: every stage receives one 5-minute load back-off (#4238)"
 
     local hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
-    local tmp bin stub_log fns out count notice
+    local tmp bin root stub_log fns out count notice missing
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-backoff.XXXXXX")
     bin="$tmp/bin"
     stub_log="$tmp/stub.log"
     mkdir -p "$bin"
+    # The stages run from this fixture root, not PROJECT_ROOT. Both stages
+    # check the tree before they run: security needs an executable
+    # tests/security/run-security-tests.sh, and vitest SKIPs when
+    # src/hooks/node_modules/.bin/vitest is absent (#4220). A worktree with no
+    # src/hooks install used to fail this test on every push, because the vitest
+    # stage skipped and never reached the npx stub.
+    root="$tmp/root"
+    mkdir -p "$root/tests/security" "$root/src/hooks/node_modules/.bin"
 
     fns=$(sed -n '/^load5_from_uptime_tail()/,/^}/p' "$hook")
     fns+=$'\n'"$(sed -n '/^resolve_pre_push_jobs()/,/^}/p' "$hook")"
@@ -765,10 +784,6 @@ test_shared_load_backoff_fixture() {
     fns+=$'\n'"$(sed -n '/^run_security_stage()/,/^}/p' "$hook")"
     fns+=$'\n'"$(sed -n '/^run_hooks_vitest_stage()/,/^}/p' "$hook")"
     printf '%s\n' "$fns" > "$tmp/fns.sh"
-    # This extracted copy calls the logging stub by path. The hook does not
-    # grow a PATH switch to make that possible.
-    sed "s#\\./tests/security/run-security-tests.sh#${bin}/run-security-tests.sh#" "$tmp/fns.sh" > "$tmp/fns.stub.sh"
-    mv "$tmp/fns.stub.sh" "$tmp/fns.sh"
 
     if [[ -z "$fns" || "$fns" != *'run_hooks_vitest_stage()'* ]]; then
         log_fail "could not extract the three stage runners from the hook"
@@ -784,12 +799,27 @@ test_shared_load_backoff_fixture() {
     printf '%s\n' \
         '#!/bin/bash' \
         'printf "SECURITY jobs=%s args=%s\n" "${ORK_PRE_PUSH_STAGE_JOBS:-unset}" "$*" >> "$STUB_LOG"' \
-        'exit 0' > "$bin/run-security-tests.sh"
+        'exit 0' > "$root/tests/security/run-security-tests.sh"
     printf '%s\n' \
         '#!/bin/bash' \
         'printf "NPX %s\n" "$*" >> "$STUB_LOG"' \
         'exit 0' > "$bin/npx"
-    chmod +x "$bin/xargs" "$bin/run-security-tests.sh" "$bin/npx"
+    # Only has to exist and be executable: the stage calls npx, which is stubbed.
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'printf "VITEST-BIN %s\n" "$*" >> "$STUB_LOG"' \
+        'exit 0' > "$root/src/hooks/node_modules/.bin/vitest"
+    chmod +x "$bin/xargs" "$bin/npx" \
+        "$root/tests/security/run-security-tests.sh" \
+        "$root/src/hooks/node_modules/.bin/vitest"
+
+    # stub_legs <jobs>: prints the legs of the stub log that do not show <jobs>,
+    # or nothing when unit, security and vitest all received it.
+    stub_legs() {
+        grep -F -q -- "-P $1 " "$stub_log" || printf 'unit(xargs -P %s) ' "$1"
+        grep -F -q "SECURITY jobs=$1 args=" "$stub_log" || printf 'security(jobs=%s) ' "$1"
+        grep -F -q -- "--maxWorkers=$1" "$stub_log" || printf 'vitest(--maxWorkers=%s) ' "$1"
+    }
 
     local second
     second=$(/bin/bash -c 'source "$1"; load5_from_uptime_tail "$2"' _ "$tmp/fns.sh" "1.25 80.5 9.0")
@@ -808,7 +838,7 @@ test_shared_load_backoff_fixture() {
     # run_case <ncpu> <load5>
     run_case() {
         : > "$stub_log"
-        out=$(cd "$PROJECT_ROOT" && env -u ORK_PRE_PUSH_JOBS \
+        out=$(cd "$root" && env -u ORK_PRE_PUSH_JOBS \
             PATH="$bin:$PATH" \
             STUB_LOG="$stub_log" \
             /bin/bash -c '
@@ -831,12 +861,11 @@ test_shared_load_backoff_fixture() {
     else
         log_fail "load 80 notice count=$count (want 3). output: $out"
     fi
-    if grep -F -q -- '-P 1 ' "$stub_log" \
-        && grep -F -q 'SECURITY jobs=1 args=' "$stub_log" \
-        && grep -F -q -- '--maxWorkers=1' "$stub_log"; then
+    missing=$(stub_legs 1)
+    if [[ -z "$missing" ]]; then
         log_pass "load 80 on 16 cores: unit, security, and vitest all receive jobs=1"
     else
-        log_fail "load 80 stub log did not show jobs=1: $(cat "$stub_log")"
+        log_fail "load 80: missing ${missing}in stub log: $(cat "$stub_log") output: $out"
     fi
 
     run_case 16 0
@@ -847,12 +876,11 @@ test_shared_load_backoff_fixture() {
     else
         log_fail "idle box printed a load notice: $out"
     fi
-    if grep -F -q -- '-P 8 ' "$stub_log" \
-        && grep -F -q 'SECURITY jobs=8 args=' "$stub_log" \
-        && grep -F -q -- '--maxWorkers=8' "$stub_log"; then
+    missing=$(stub_legs 8)
+    if [[ -z "$missing" ]]; then
         log_pass "idle 16-core box keeps the old cap of 8 on every stage"
     else
-        log_fail "idle stub log was not the cap of 8: $(cat "$stub_log")"
+        log_fail "idle: missing ${missing}in stub log: $(cat "$stub_log") output: $out"
     fi
 
     rm -rf "$tmp"
@@ -860,30 +888,535 @@ test_shared_load_backoff_fixture() {
 
 # A captured stage that exits 7 must make the hook exit 7.
 # Reading $? after the if reports 0, so the gate used to pass.
+# The typecheck stage runs src/hooks/node_modules/.bin/tsc directly (#4220),
+# so stub that binary (npx is no longer on this path).
+#
+# Covers both setups the push gate can hit:
+#   - tsc ABSENT: plant a test-owned exit-7 stub; remove it on cleanup.
+#   - tsc is a RELATIVE symlink (npm ci): move it aside, stub, restore with
+#     -L||-f so a dangling $tmp backup is not skipped (#4220 / CodeRabbit).
+# The nested hook runs in full mode, whatever the caller's ORK_PRE_PUSH_MODE.
+# A lane push exports targeted, and the nested hook inherited it: targeted mode
+# skips the typecheck stage this case plants a tsc stub for (exit 0, want 7),
+# and it takes a machine-wide test slot (#4238) while the push running this
+# suite already holds one, so a second holder anywhere failed the case with
+# "could not acquire a test slot". Full mode runs the stage and takes no slot.
+_run_pre_push_for_exit_status() {
+    local hook="$1" rc=0 out
+    out=$(env -u HQ_CI_ONLY ORK_PRE_PUSH_MODE=full /bin/bash "$hook" origin "https://example.invalid/repo.git" \
+        <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+    printf '%s\n' "$out"
+    return "$rc"
+}
+
 test_captured_stage_exit_status() {
     log_section "Test: captured stage exit status is the hook exit status"
 
-    local tmp bin hook rc out kept
+    local tmp hook tsc_bin tsc_dir
+    local tsc_backup="" tsc_park="" tsc_link_target="" planted_stub=0
+    local rc out kept had_original=0
+
     tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-rc.XXXXXX")
-    bin="$tmp/bin"
-    mkdir -p "$bin"
-    printf '%s\n' '#!/bin/bash' 'exit 7' > "$bin/npx"
-    chmod +x "$bin/npx"
     hook="${PROJECT_ROOT}/bin/git-hooks/pre-push"
+    tsc_bin="${PROJECT_ROOT}/src/hooks/node_modules/.bin/tsc"
+    tsc_dir=$(dirname "$tsc_bin")
+    # In a worktree with no hooks deps, the mkdir -p below leaves an empty
+    # src/hooks/node_modules behind. That flips the build from "skip the
+    # hooks rebuild" to "refresh with esbuild", which then fails on missing
+    # esbuild. Record the prior state so cleanup removes only what it made.
+    local hooks_nm="${PROJECT_ROOT}/src/hooks/node_modules"
+    local hooks_nm_preexisting=0
+    [[ -d "$hooks_nm" ]] && hooks_nm_preexisting=1
+    mkdir -p "$tsc_dir"
+    tsc_backup="$tmp/tsc.real"
+
+    cleanup_exit_status_tsc() {
+        # Restore a backed-up original (regular file OR relative symlink).
+        if [[ -n "$tsc_backup" && ( -L "$tsc_backup" || -f "$tsc_backup" ) ]]; then
+            mv -f "$tsc_backup" "$tsc_bin"
+        elif [[ "$planted_stub" -eq 1 ]]; then
+            # No original existed for this case: drop the test-owned stub.
+            rm -f "$tsc_bin"
+        fi
+        # Park holds the real tree binary while the absent case runs.
+        if [[ -n "$tsc_park" && ( -L "$tsc_park" || -f "$tsc_park" ) ]]; then
+            mv -f "$tsc_park" "$tsc_bin"
+            tsc_park=""
+        fi
+        # rmdir refuses a non-empty directory, so a real node_modules (or
+        # anything else that landed meanwhile) is never removed here.
+        if [[ "$hooks_nm_preexisting" -eq 0 ]]; then
+            rmdir "$tsc_dir" "$hooks_nm" 2>/dev/null || true
+        fi
+    }
+    trap cleanup_exit_status_tsc EXIT
+
+    # ----- Case A: tsc ABSENT -----
+    if [[ -e "$tsc_bin" || -L "$tsc_bin" ]]; then
+        had_original=1
+        tsc_park="$tmp/tsc.park"
+        mv "$tsc_bin" "$tsc_park"
+    fi
+    planted_stub=1
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$tsc_bin"
+    chmod +x "$tsc_bin"
 
     rc=0
-    out=$(PATH="$bin:$PATH" /bin/bash "$hook" origin "https://example.invalid/repo.git" \
-        <<<'refs/heads/chore/exit-status 0000000000000000000000000000000000000000 refs/heads/chore/exit-status 0000000000000000000000000000000000000000') || rc=$?
+    out=$(_run_pre_push_for_exit_status "$hook") || rc=$?
+    # No backup for this case: cleanup removes the planted stub, then park.
+    rm -f "$tsc_backup"
+    cleanup_exit_status_tsc
+    planted_stub=0
 
     if [[ "$rc" -eq 7 ]]; then
-        log_pass "stubbed stage exit 7 is the hook exit status"
+        log_pass "absent tsc: planted stub exit 7 is the hook exit status"
     else
-        log_fail "hook exited $rc, want 7. output: $out"
+        log_fail "absent tsc: hook exited $rc, want 7. output: $out"
     fi
+    if [[ -f "$tsc_bin" ]] && ! [[ -L "$tsc_bin" ]] && grep -q 'exit 7' "$tsc_bin" 2>/dev/null; then
+        log_fail "absent tsc: exit-7 stub still present after cleanup"
+    else
+        log_pass "absent tsc: cleanup removed the planted stub"
+    fi
+
+    # ----- Case B: relative-symlink tsc -----
+    if [[ ! -L "$tsc_bin" ]]; then
+        # No real npm link: install a relative-symlink fixture under .bin.
+        # Case A cleanup may have removed the directory it created, so
+        # recreate it here rather than assuming it still exists.
+        mkdir -p "$tsc_dir"
+        printf '%s\n' '#!/bin/bash' 'exit 0' > "$tsc_dir/tsc.fixture-bin"
+        chmod +x "$tsc_dir/tsc.fixture-bin"
+        ln -s ./tsc.fixture-bin "$tsc_bin"
+    fi
+    if [[ ! -L "$tsc_bin" ]]; then
+        log_fail "relative-symlink case: could not obtain a symlink at $tsc_bin"
+        trap - EXIT
+        rm -rf "$tmp"
+        return
+    fi
+    tsc_link_target=$(readlink "$tsc_bin")
+    # Fresh backup path for the symlink move.
+    tsc_backup="$tmp/tsc.real"
+    planted_stub=0
+    mv "$tsc_bin" "$tsc_backup"
+    printf '%s\n' '#!/bin/bash' 'exit 7' > "$tsc_bin"
+    chmod +x "$tsc_bin"
+
+    rc=0
+    out=$(_run_pre_push_for_exit_status "$hook") || rc=$?
+    cleanup_exit_status_tsc
+
+    if [[ "$rc" -eq 7 ]]; then
+        log_pass "relative-symlink tsc: stubbed exit 7 is the hook exit status"
+    else
+        log_fail "relative-symlink tsc: hook exited $rc, want 7. output: $out"
+    fi
+    if [[ -L "$tsc_bin" && "$(readlink "$tsc_bin")" == "$tsc_link_target" ]]; then
+        log_pass "relative-symlink tsc restored as the original link ($tsc_link_target)"
+    else
+        log_fail "tsc not restored as original link (was -> $tsc_link_target, now: $(ls -la "$tsc_bin" 2>&1))"
+    fi
+
+    # Drop fixture sibling if we created one (do not delete a real typescript link).
+    if [[ "$tsc_link_target" == "./tsc.fixture-bin" ]]; then
+        rm -f "$tsc_bin" "$tsc_dir/tsc.fixture-bin"
+    fi
+
+    # Same guard as cleanup_exit_status_tsc: when this test created
+    # src/hooks/node_modules in a dep-less worktree, take the empty dirs
+    # back out so the build keeps skipping the hooks esbuild refresh.
+    if [[ "$hooks_nm_preexisting" -eq 0 ]]; then
+        rmdir "$tsc_dir" "$hooks_nm" 2>/dev/null || true
+    fi
+
+    trap - EXIT
     kept=$(printf '%s\n' "$out" | sed -n 's/.*Full log kept at: //p')
     if [[ -n "$kept" ]]; then
         rm -f "$kept"
     fi
+    rm -rf "$tmp"
+}
+
+# ============================================================================
+# Targeted mode harness (#4238)
+#
+# Runs the real hook end to end inside a throwaway clone of this checkout,
+# with every external suite stubbed on PATH:
+#   repo  a shallow, single-branch clone (no origin/main, no HEAD~1): the
+#         same shape a CI checkout has, so ambient refs decide nothing
+#   git   answers `diff` from FAKE_DIFF (or fails when FAKE_DIFF_RC != 0);
+#         every other git call is delegated to the real binary
+#   bash  logs the invocation; `bash -c` is delegated so the hook's own
+#         machinery (_run_test via xargs) still executes, while
+#         `bash <file>` is recorded instead of run
+#   npx/npm/node  logged, exit 0
+#
+# So `BASH tests/unit/test-*` lines in the stub log are exactly the unit
+# files the hook executed, and `tests/security/test-` lines prove the
+# security stage ran. No real suite ever runs.
+PP_RUN_OUT=""
+PP_RUN_STUB=""
+PP_RUN_RC=0
+PP_RUN_TMP=""
+
+_prepush_stubbed_run() {
+    # _prepush_stubbed_run <mode-or-empty> <fake-diff-lines> [diff-rc] [diff-fail-match] [slot-dir]
+    # When diff-fail-match is set, `git diff` fails only when its args
+    # contain that string, which models "origin/main unreadable but
+    # HEAD~1 readable" without touching real refs. slot-dir overrides the
+    # per-run ORK_TEST_SLOT_DIR so a caller can pre-seed held slots.
+    local mode="$1" fake="$2" diff_rc="${3:-0}" diff_match="${4:-}" slot_dir="${5:-}"
+    local tmp bin repo real_git real_bash out rc=0
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-mode.XXXXXX")
+    bin="$tmp/bin"
+    repo="$tmp/repo"
+    mkdir -p "$bin" "$tmp/slots"
+    real_git=$(command -v git)
+    real_bash=$(command -v bash)
+
+    # A shallow single-branch clone reproduces CI's checkout exactly: no
+    # origin/main and no HEAD~1. Running the hook here keeps the targeted
+    # path independent of whatever refs the ambient repo happens to carry.
+    git clone --quiet --single-branch --depth 1 "file://$PROJECT_ROOT" "$repo"
+    # Overlay dirty-worktree state so the clone still mirrors the caller.
+    # (New untracked files must be committed to be visible to the clone.)
+    if ! git -C "$PROJECT_ROOT" diff --quiet HEAD; then
+        git -C "$PROJECT_ROOT" diff HEAD | git -C "$repo" apply -q
+    fi
+    # node_modules is gitignored, so it is never in the clone. The hook now
+    # requires the local .bin binaries before it runs tsc or vitest (npx
+    # must not fetch the unrelated `tsc` package), so stub them here:
+    # tsc is invoked directly, vitest only needs to exist for the -x gate
+    # because the stage still invokes npx, which the PATH stub logs.
+    mkdir -p "$repo/src/hooks/node_modules/.bin"
+    printf '%s\n' '#!/bin/bash' 'printf "TOOL=tsc %s\n" "$*" >> "$STUB_LOG"' \
+        'exit 0' > "$repo/src/hooks/node_modules/.bin/tsc"
+    printf '%s\n' '#!/bin/bash' 'exit 0' > "$repo/src/hooks/node_modules/.bin/vitest"
+    chmod +x "$repo/src/hooks/node_modules/.bin/tsc" "$repo/src/hooks/node_modules/.bin/vitest"
+
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'if [[ "$1" == "diff" ]]; then' \
+        '  if [[ "${FAKE_DIFF_RC:-0}" != "0" ]]; then' \
+        '    if [[ -z "${FAKE_DIFF_MATCH:-}" || "$*" == *"${FAKE_DIFF_MATCH}"* ]]; then' \
+        '      exit "$FAKE_DIFF_RC"' \
+        '    fi' \
+        '  fi' \
+        '  printf "%s\n" "${FAKE_DIFF:-}"' \
+        '  exit 0' \
+        'fi' \
+        "exec \"${real_git}\" \"\$@\"" > "$bin/git"
+
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'printf "BASH %s\n" "$*" >> "$STUB_LOG"' \
+        'if [[ "$1" == "-c" ]]; then' \
+        "  exec \"${real_bash}\" \"\$@\"" \
+        'fi' \
+        'exit 0' > "$bin/bash"
+
+    local tool
+    for tool in npx npm node; do
+        printf '%s\n' \
+            '#!/bin/bash' \
+            "printf 'TOOL=${tool} %s\n' \"\$*\" >> \"\$STUB_LOG\"" \
+            'exit 0' > "$bin/$tool"
+        chmod +x "$bin/$tool"
+    done
+    chmod +x "$bin/git" "$bin/bash"
+
+    local hook="${repo}/bin/git-hooks/pre-push"
+    local -a env_args=(
+        "PATH=${bin}:${PATH}"
+        "STUB_LOG=${tmp}/stub.log"
+        "FAKE_DIFF=${fake}"
+        "FAKE_DIFF_RC=${diff_rc}"
+        "FAKE_DIFF_MATCH=${diff_match}"
+        "ORK_TEST_SLOT_DIR=${slot_dir:-${tmp}/slots}"
+        "ORK_PRE_PUSH_JOBS=1"
+    )
+    [[ -n "$mode" ]] && env_args+=("ORK_PRE_PUSH_MODE=${mode}")
+    : > "$tmp/stub.log"
+
+    out=$(
+        cd "$repo" &&
+        env -u CI -u GITHUB_ACTIONS -u ORK_PRE_PUSH_MODE -u HQ_CI_ONLY "${env_args[@]}" \
+            /bin/bash "$hook" origin "https://example.invalid/repo.git" \
+            <<<'refs/heads/l 0000000000000000000000000000000000000000 refs/heads/chore/lane 1111111111111111111111111111111111111111'
+    ) || rc=$?
+
+    PP_RUN_OUT="$out"
+    PP_RUN_STUB="$tmp/stub.log"
+    PP_RUN_RC=$rc
+    PP_RUN_TMP="$tmp"
+    return 0
+}
+
+_pp_unit_ran_count() {
+    awk '/^BASH tests\/unit\/test-/ {n++} /^TOOL=node tests\/unit\/test-/ {n++} END {print n+0}' "$1"
+}
+
+_pp_security_ran_count() {
+    awk '/tests\/security\/test-/ {n++} END {print n+0}' "$1"
+}
+
+_pp_unit_total() {
+    (cd "$PROJECT_ROOT" && find tests/unit \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f | wc -l | tr -d ' ')
+}
+
+# Test 13: with ORK_PRE_PUSH_MODE unset the hook runs everything it ran
+# before, and in targeted mode the selector, the security gate and the
+# src-stage gate all take effect (#4238).
+test_targeted_mode_selection() {
+    log_section "Test 13: ORK_PRE_PUSH_MODE=targeted narrows the suites (#4238)"
+
+    local want_count ran_count sec_count
+
+    # Case A: mode unset behaves exactly as today.
+    _prepush_stubbed_run "" "docs/anywhere.md" 0
+    want_count=$(_pp_unit_total)
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    sec_count=$(_pp_security_ran_count "$PP_RUN_STUB")
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" == "$want_count" && "$want_count" -gt 0 ]]; then
+        log_pass "mode unset: all ${want_count} discovered unit files ran"
+    else
+        log_fail "mode unset: ran ${ran_count} of ${want_count} unit files (rc=${PP_RUN_RC}): ${PP_RUN_OUT}"
+    fi
+    if [[ "$sec_count" -gt 0 ]]; then
+        log_pass "mode unset: security stage ran (${sec_count} security tests stubbed)"
+    else
+        log_fail "mode unset: security stage did not run: ${PP_RUN_OUT}"
+    fi
+    if grep -F -q 'deferred to CI:' <<< "$PP_RUN_OUT"; then
+        log_fail "mode unset: a deferral line printed under the default mode: ${PP_RUN_OUT}"
+    else
+        log_pass "mode unset: nothing is reported as deferred"
+    fi
+    rm -rf "$PP_RUN_TMP"
+
+    # Case A2: mode unset never touches the governor. Both slots are held
+    # by live pids; if the hook tried to acquire, the 2s timeout would
+    # fail the run. It must run the full suite immediately and create no
+    # slot dir (#4238 hold: default pushes cannot queue behind lanes).
+    local slot_dir live1 live2 slot_entries
+    slot_dir=$(mktemp -d "${TMPDIR:-/tmp}/ork-pre-push-slots.XXXXXX")
+    sleep 60 & live1=$!
+    sleep 60 & live2=$!
+    mkdir -p "$slot_dir/slot-1" "$slot_dir/slot-2"
+    printf '%s\n' "$live1" > "$slot_dir/slot-1/pid"
+    printf '%s\n' "$live2" > "$slot_dir/slot-2/pid"
+    ORK_TEST_SLOT_TIMEOUT=2 _prepush_stubbed_run "" "docs/anywhere.md" 0 "" "$slot_dir"
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" == "$want_count" ]]; then
+        log_pass "mode unset: full suite ran with every slot held (no queue, no wait)"
+    else
+        log_fail "mode unset: governor interfered (rc=${PP_RUN_RC}, ran ${ran_count}/${want_count}): ${PP_RUN_OUT}"
+    fi
+    slot_entries=$(find "$slot_dir" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
+    if [[ "$slot_entries" == "2" && ! -d "$slot_dir/slot-3" ]]; then
+        log_pass "mode unset: no slot dir created (slot dir untouched)"
+    else
+        log_fail "mode unset: slot dir gained entries: $(ls "$slot_dir")"
+    fi
+    if grep -F -q '[test-slot]' <<< "$PP_RUN_OUT"; then
+        log_fail "mode unset: governor output appeared under the default mode: ${PP_RUN_OUT}"
+    else
+        log_pass "mode unset: no governor output"
+    fi
+    kill "$live1" "$live2" 2>/dev/null || true
+    rm -rf "$slot_dir" "$PP_RUN_TMP"
+
+    # Case B: targeted + docs-only diff selects zero and skips security.
+    _prepush_stubbed_run "targeted" "docs/site/content/docs/guide.md
+README.md" 0
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    sec_count=$(_pp_security_ran_count "$PP_RUN_STUB")
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" -eq 0 ]]; then
+        log_pass "targeted docs-only: 0 unit files ran"
+    else
+        log_fail "targeted docs-only: ${ran_count} unit files ran (rc=${PP_RUN_RC}): ${PP_RUN_OUT}"
+    fi
+    if [[ "$sec_count" -eq 0 ]] \
+        && grep -F -q 'Security tests: SKIP' <<< "$PP_RUN_OUT"; then
+        log_pass "targeted docs-only: security stage skipped"
+    else
+        log_fail "targeted docs-only: security ran or skip line missing: ${PP_RUN_OUT}"
+    fi
+    if grep -F -q 'deferred to CI: Unit Tests (node 22), Security Tests' <<< "$PP_RUN_OUT"; then
+        log_pass "targeted docs-only: prints the deferral line"
+    else
+        log_fail "targeted docs-only: deferral line missing: ${PP_RUN_OUT}"
+    fi
+    rm -rf "$PP_RUN_TMP"
+
+    # Case C: targeted + a pretool hook diff runs security and src stages.
+    _prepush_stubbed_run "targeted" "src/hooks/src/pretool/fake-lane-hook.ts" 0
+    sec_count=$(_pp_security_ran_count "$PP_RUN_STUB")
+    if [[ $PP_RUN_RC -eq 0 && "$sec_count" -gt 0 ]]; then
+        log_pass "targeted pretool diff: security stage ran (${sec_count} stubbed)"
+    else
+        log_fail "targeted pretool diff: security did not run (rc=${PP_RUN_RC}): ${PP_RUN_OUT}"
+    fi
+    if grep -F -q 'TOOL=tsc ' "$PP_RUN_STUB" && grep -F -q 'TOOL=npm run build' "$PP_RUN_STUB"; then
+        log_pass "targeted pretool diff: tsc and build ran (src/ changed)"
+    else
+        log_fail "targeted pretool diff: src stages did not run: $(cat "$PP_RUN_STUB")"
+    fi
+    if grep -Fxq '  deferred to CI: Unit Tests (node 22)' <<< "$PP_RUN_OUT"; then
+        log_pass "targeted pretool diff: only the unit suite is deferred"
+    else
+        log_fail "targeted pretool diff: deferral line wrong: ${PP_RUN_OUT}"
+    fi
+    rm -rf "$PP_RUN_TMP"
+}
+
+# Test 14: an unknown mode or an unreadable diff base must fall back to the
+# full suite with exactly one WARN line (#4238).
+test_targeted_mode_fallbacks() {
+    log_section "Test 14: unknown mode and bad diff base fall back to full (#4238)"
+
+    local want_count ran_count warn_count
+    want_count=$(_pp_unit_total)
+
+    _prepush_stubbed_run "bogus-mode" "bin/git-hooks/pre-push" 0
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    warn_count=$(printf '%s\n' "$PP_RUN_OUT" | awk '/WARN:/ {n++} END {print n+0}')
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" == "$want_count" && "$warn_count" -eq 1 ]]; then
+        log_pass "unknown mode: full suite ran with exactly one WARN"
+    else
+        log_fail "unknown mode: ran=${ran_count}/${want_count} warns=${warn_count} rc=${PP_RUN_RC}: ${PP_RUN_OUT}"
+    fi
+    rm -rf "$PP_RUN_TMP"
+
+    _prepush_stubbed_run "targeted" "src/hooks/src/x.ts" 1
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    warn_count=$(printf '%s\n' "$PP_RUN_OUT" | awk '/WARN:/ {n++} END {print n+0}')
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" == "$want_count" && "$warn_count" -eq 1 ]]; then
+        log_pass "bad diff base: full suite ran with exactly one WARN"
+    else
+        log_fail "bad diff base: ran=${ran_count}/${want_count} warns=${warn_count} rc=${PP_RUN_RC}: ${PP_RUN_OUT}"
+    fi
+    rm -rf "$PP_RUN_TMP"
+
+    # origin/main unreadable while HEAD~1 still diffs: CHANGED_FILES then
+    # holds only the last commit, which under-selects silently, so this is
+    # the full suite too (the CodeRabbit scenario on pre-push:292).
+    _prepush_stubbed_run "targeted" "src/hooks/src/x.ts" 1 "origin/main"
+    ran_count=$(_pp_unit_ran_count "$PP_RUN_STUB")
+    warn_count=$(printf '%s\n' "$PP_RUN_OUT" | awk '/WARN:/ {n++} END {print n+0}')
+    if [[ $PP_RUN_RC -eq 0 && "$ran_count" == "$want_count" && "$warn_count" -eq 1 ]]; then
+        log_pass "unreadable origin/main: full suite ran with exactly one WARN"
+    else
+        log_fail "unreadable origin/main: ran=${ran_count}/${want_count} warns=${warn_count} rc=${PP_RUN_RC}: ${PP_RUN_OUT}"
+    fi
+    rm -rf "$PP_RUN_TMP"
+}
+
+# Test 15: the selector picks a test file that names the changed path (#4238).
+test_selector_picks_matching_tests() {
+    log_section "Test 15: selector picks tests that name the changed path (#4238)"
+
+    local lib="${PROJECT_ROOT}/scripts/lib/pre-push-select.sh"
+    if [[ ! -f "$lib" ]]; then
+        log_fail "scripts/lib/pre-push-select.sh is missing"
+        return
+    fi
+
+    local out
+    out=$(cd "$PROJECT_ROOT" && /bin/bash -c '
+        set -u
+        . scripts/lib/pre-push-select.sh
+        CHANGED_FILES="bin/git-hooks/pre-push"
+        pre_push_select_unit_tests
+    ')
+    if grep -Fxq 'tests/unit/test-pre-push-hook.sh' <<< "$out"; then
+        log_pass "a diff on the hook selects the test file that names it"
+    else
+        log_fail "selector did not pick test-pre-push-hook.sh: ${out}"
+    fi
+
+    # A changed unit test selects itself.
+    out=$(cd "$PROJECT_ROOT" && /bin/bash -c '
+        set -u
+        . scripts/lib/pre-push-select.sh
+        CHANGED_FILES="tests/unit/test-prepush-interpreter-dispatch.sh"
+        pre_push_select_unit_tests
+    ')
+    if grep -Fxq 'tests/unit/test-prepush-interpreter-dispatch.sh' <<< "$out"; then
+        log_pass "a changed unit test file selects itself"
+    else
+        log_fail "changed unit test did not select itself: ${out}"
+    fi
+
+    # Security predicate: a docs change does not arm it; hooks.json,
+    # tests/security, and secret-scan config do.
+    local sec
+    sec=$(cd "$PROJECT_ROOT" && /bin/bash -c '
+        set -u
+        . scripts/lib/pre-push-select.sh
+        CHANGED_FILES="docs/a.md"; pre_push_select_wants_security; echo "docs:$?"
+        CHANGED_FILES="src/hooks/hooks.json"; pre_push_select_wants_security; echo "hooksjson:$?"
+        CHANGED_FILES="tests/security/test-x.sh"; pre_push_select_wants_security; echo "sectests:$?"
+        CHANGED_FILES=".gitleaks.toml"; pre_push_select_wants_security; echo "gitleaks:$?"
+    ' || true)
+    if [[ "$sec" == *"docs:1"* && "$sec" == *"hooksjson:0"* && "$sec" == *"sectests:0"* && "$sec" == *"gitleaks:0"* ]]; then
+        log_pass "security predicate: docs disarm, hooks.json, tests/security and .gitleaks.toml arm"
+    else
+        log_fail "security predicate misclassified: ${sec}"
+    fi
+}
+
+# Test 16: the 2-slot governor queues a third suite and reclaims a dead
+# holder's slot (#4238). Fixtures are slot dirs written by hand; the
+# acquiring shell is a child so its slot dies with it.
+test_slot_governor_queue_and_reclaim() {
+    log_section "Test 16: test-slot governor queues and reclaims (#4238)"
+
+    local lib="${PROJECT_ROOT}/scripts/lib/test-slot.sh"
+    if [[ ! -f "$lib" ]]; then
+        log_fail "scripts/lib/test-slot.sh is missing"
+        return
+    fi
+
+    local tmp slots sleeper1 sleeper2 out rc
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/ork-test-slot.XXXXXX")
+    slots="$tmp/slots"
+    mkdir -p "$slots/slot-1" "$slots/slot-2"
+    sleep 30 & sleeper1=$!
+    sleep 30 & sleeper2=$!
+    echo "$sleeper1" > "$slots/slot-1/pid"
+    echo "$sleeper2" > "$slots/slot-2/pid"
+
+    # Third caller with both slots live must queue and time out.
+    rc=0
+    out=$(env -u CI ORK_TEST_SLOT_DIR="$slots" ORK_TEST_SLOT_TIMEOUT=4 \
+        /bin/bash -c '. "$1"; acquire_test_slot "third-suite"' _ "$lib" 2>&1) || rc=$?
+    if [[ $rc -eq 1 && "$out" == *"queueing"* && "$out" == *"TIMEOUT"* ]]; then
+        log_pass "a third concurrent suite queues and times out"
+    else
+        log_fail "third suite did not queue (rc=$rc): ${out}"
+    fi
+
+    # A slot whose pid is dead is reclaimed by the next caller.
+    echo "999999" > "$slots/slot-1/pid"
+    rc=0
+    out=$(env -u CI ORK_TEST_SLOT_DIR="$slots" ORK_TEST_SLOT_TIMEOUT=4 \
+        /bin/bash -c '. "$1"; acquire_test_slot "reclaimer" || exit $?;
+                      cat "$TEST_SLOT_DIR/slot-1/pid"' _ "$lib" 2>&1) || rc=$?
+    if [[ $rc -eq 0 && -n "$out" && "$out" != "999999" ]]; then
+        log_pass "a slot held by a dead pid is reclaimed (new pid ${out})"
+    else
+        log_fail "dead-pid slot was not reclaimed (rc=$rc): ${out}"
+    fi
+    # The still-live holder was not evicted by the reclaim.
+    if [[ "$(cat "$slots/slot-2/pid")" == "$sleeper2" ]]; then
+        log_pass "the live holder's slot survives another caller's reclaim"
+    else
+        log_fail "reclaim disturbed the live slot-2"
+    fi
+
+    kill "$sleeper1" "$sleeper2" 2>/dev/null || true
     rm -rf "$tmp"
 }
 
@@ -946,6 +1479,10 @@ main() {
     test_security_stage_rejects_path_stub
     test_stages_do_not_inherit_worktree_git_dir
     test_scrub_keeps_locators_without_rediscovery
+    test_targeted_mode_selection
+    test_targeted_mode_fallbacks
+    test_selector_picks_matching_tests
+    test_slot_governor_queue_and_reclaim
 
     # Summary
     echo ""

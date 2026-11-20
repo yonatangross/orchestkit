@@ -7,7 +7,11 @@
  * - tool.call{tool=Edit}: Match file/content, return context
  * - tool.call{tool=Write}: Match file/content, return context
  * - ui.render{component=ToolUse}: Append card under tool row
- * - command.register: /lessons reload command
+ * - command.run{command=lessons}: /lessons reload (declared with $.command.register at session start)
+ *
+ * Advisory only: a lesson never blocks a tool call. Every match, block or
+ * warn severity, in every session, adds a card and model context and the
+ * call runs. No refusal, no dialog (operator word 2026-10-21).
  *
  * Hooks module format: exports register(on, options); $ is only ever used
  * as $.noun.event(...), so all $-taking helpers live in this file.
@@ -15,33 +19,42 @@
 
 import {
   parseLessonsMd,
-  homeDir,
   joinPath,
   type Corpus,
   type LessonPattern,
   type LessonBullet,
 } from '../src/corpus.js';
 import { matchAll, matchFileEdit } from '../src/match.js';
-import { buildCard, formatContext } from '../src/card.js';
+import { buildCard, formatContext, type CardElements } from '../src/card.js';
 import type { MatchedLesson } from '../src/types.js';
 
 /** Minimal $ facade for the events this module uses. */
 type Hook$ = {
+  env: {
+    get: (name: string) => Promise<string | undefined>;
+  };
   fs: {
-    read: (path: string, encoding?: string) => Promise<string | Uint8Array>;
-    list: (path: string) => Promise<Array<{ name: string; isDirectory: boolean; isFile: boolean }> | null>;
-    stat: (path: string) => Promise<{ size: number; mtime?: number; isFile: boolean; isDirectory: boolean } | null>;
+    read: (path: string) => Promise<string>;
+    list: (path: string) => Promise<Array<{ name: string; kind: 'file' | 'dir' | 'other' }> | null>;
+    stat: (path: string) => Promise<{ size: number; mtimeMs: number; kind: 'file' | 'dir' | 'other' } | null>;
+    /** true or false, never a logged failure; absent on engines that predate it. */
+    exists: (path: string) => Promise<boolean>;
   };
   ui: {
     notice: (toolUseId: string, message: string) => Promise<void>;
     invalidate: (component: string) => Promise<void>;
+    /** The element constructors this render may return (Box, Text, ...). */
+    resolve: (e: UiRenderEvent) => Promise<CardElements>;
+  };
+  command: {
+    register: (spec: { name: string; description: string }) => Promise<unknown>;
   };
 };
 
 type ToolCallEvent = {
   tool: string;
-  args: Record<string, unknown>;
   tool_use_id?: string;
+  [argument: string]: unknown;
 };
 
 type UiRenderEvent = {
@@ -51,6 +64,8 @@ type UiRenderEvent = {
 
 type NextFn<E> = (ev: E) => Promise<unknown>;
 
+type SessionStartEvent = { cwd: string; isInteractive: boolean };
+
 // Module-scope state (per session)
 let corpus: Corpus | null = null;
 const matchMap = new Map<string, MatchedLesson[]>();
@@ -58,8 +73,8 @@ const matchMap = new Map<string, MatchedLesson[]>();
 /**
  * Find the newest hq-ext version directory.
  */
-async function findNewestHqExt($: Hook$): Promise<string | null> {
-  const cacheBase = joinPath(homeDir(), '.claude', 'plugins', 'cache', 'yonatan-hq', 'hq-ext');
+async function findNewestHqExt($: Hook$, home: string): Promise<string | null> {
+  const cacheBase = joinPath(home, '.claude', 'plugins', 'cache', 'yonatan-hq', 'hq-ext');
 
   try {
     const entries = await $.fs.list(cacheBase);
@@ -67,7 +82,7 @@ async function findNewestHqExt($: Hook$): Promise<string | null> {
 
     // Sort by version, highest first
     const versions = entries
-      .filter(e => e.isDirectory)
+      .filter(e => e.kind === 'dir')
       .map(e => e.name)
       .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
 
@@ -83,7 +98,7 @@ async function findNewestHqExt($: Hook$): Promise<string | null> {
 async function loadPatterns($: Hook$, hqExtPath: string): Promise<LessonPattern[]> {
   const configPath = joinPath(hqExtPath, 'configs', 'lesson-patterns.json');
   try {
-    const content = await $.fs.read(configPath, 'utf-8');
+    const content = await $.fs.read(configPath);
     if (typeof content !== 'string') return [];
     const parsed = JSON.parse(content) as unknown;
     return Array.isArray(parsed) ? (parsed as LessonPattern[]) : [];
@@ -95,8 +110,8 @@ async function loadPatterns($: Hook$, hqExtPath: string): Promise<LessonPattern[
 /**
  * Load newest three lessons.md files.
  */
-async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
-  const hqBase = joinPath(homeDir(), '.claude', 'hq');
+async function loadLessonsMds($: Hook$, home: string): Promise<LessonBullet[]> {
+  const hqBase = joinPath(home, '.claude', 'hq');
   const allBullets: LessonBullet[] = [];
 
   try {
@@ -105,17 +120,30 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
     if (!hqEntries) return [];
 
     const floorDirs = hqEntries
-      .filter(e => e.isDirectory && e.name.startsWith('floor-'))
+      .filter(e => e.kind === 'dir' && e.name.startsWith('floor-'))
       .map(e => joinPath(hqBase, e.name));
 
     // Collect lessons.md files with their mtime
     const lessonsFiles: { path: string; mtime: number }[] = [];
     for (const dir of floorDirs) {
       const lessonsPath = joinPath(dir, 'lessons.md');
+      // Most floor dirs have no lessons.md: ask fs.exists first, so the engine does not log a
+      // failed fs.stat (ENOENT) for each of them (88 such lines per session start, measured
+      // 2026-10-20). An engine without fs.exists keeps the old stat-only path.
+      // $ is only ever called as $.noun.event(...) (the validator refuses a feature test such as
+      // `if ($.fs.exists)`), so an engine without fs.exists is detected by its throw: null = unknown,
+      // and the old stat-only path runs.
+      let present: boolean | null = null;
+      try {
+        present = (await $.fs.exists(lessonsPath)) === true;
+      } catch {
+        present = null;
+      }
+      if (present === false) continue;
       try {
         const stat = await $.fs.stat(lessonsPath);
-        if (stat) {
-          lessonsFiles.push({ path: lessonsPath, mtime: stat.mtime ?? 0 });
+        if (stat && stat.kind === 'file') {
+          lessonsFiles.push({ path: lessonsPath, mtime: stat.mtimeMs });
         }
       } catch {
         // File doesn't exist, skip
@@ -128,7 +156,7 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
 
     for (const { path } of newest) {
       try {
-        const content = await $.fs.read(path, 'utf-8');
+        const content = await $.fs.read(path);
         if (typeof content === 'string') {
           allBullets.push(...parseLessonsMd(content));
         }
@@ -147,14 +175,26 @@ async function loadLessonsMds($: Hook$): Promise<LessonBullet[]> {
  * Load the full corpus at session.start.
  */
 async function loadCorpus($: Hook$): Promise<Corpus> {
+  // A mod has no process.env: HOME comes from $.env (types/claude-code.d.ts `$.env.get("HOME")`).
+  // On Windows HOME is normally unset and USERPROFILE set, so read it second through the
+  // same env reader. Never read the process global: a mod worker does not have it.
+  const home =
+    (await $.env.get('HOME').catch(() => undefined)) ||
+    (await $.env.get('USERPROFILE').catch(() => undefined)) ||
+    '';
   const startTime = Date.now();
 
+  // No home means every corpus path would be relative and resolve under the session's cwd.
+  if (!home) {
+    return { patterns: [], bullets: [], loadedAt: startTime, loadError: 'HOME and USERPROFILE are not set' };
+  }
+
   try {
-    const hqExtPath = await findNewestHqExt($);
+    const hqExtPath = await findNewestHqExt($, home);
 
     const [patterns, bullets] = await Promise.all([
       hqExtPath ? loadPatterns($, hqExtPath) : Promise.resolve([] as LessonPattern[]),
-      loadLessonsMds($),
+      loadLessonsMds($, home),
     ]);
 
     return {
@@ -173,51 +213,61 @@ async function loadCorpus($: Hook$): Promise<Corpus> {
 }
 
 /**
+ * Match one tool call against the corpus: Bash by command, Edit and Write by
+ * file path and new content. Pure over its inputs; the hook owns all I/O.
+ */
+function matchToolCall(e: ToolCallEvent, loaded: Corpus): MatchedLesson[] {
+  const args: Record<string, unknown> = e;
+  if (e.tool === 'Bash') {
+    const command = String(args.command || '');
+    return command ? matchAll(command, loaded.patterns, loaded.bullets) : [];
+  }
+  if (e.tool === 'Edit') {
+    const filePath = String(args.file_path || '');
+    const newContent = String(args.new_string || args.content || '');
+    return filePath ? matchFileEdit(filePath, newContent, loaded.patterns, 'Edit') : [];
+  }
+  if (e.tool === 'Write') {
+    const filePath = String(args.file_path || '');
+    const content = String(args.content || '');
+    return filePath ? matchFileEdit(filePath, content, loaded.patterns, 'Write') : [];
+  }
+  return [];
+}
+
+/**
  * Register the lesson-cards hooks.
  */
-export function register(on: (event: string, hook: unknown) => void, _options?: unknown): void {
-  on('session.start', async ($: Hook$) => {
-    corpus = await loadCorpus($);
+export function register(on: (event: string, matcherOrHook: unknown, hook?: unknown) => void, _options?: unknown): void {
+  on('session.start', async ($: Hook$, e: SessionStartEvent, next: NextFn<SessionStartEvent>) => {
+    // Register first: CC skips the whole hook when session.start throws, so a
+    // corpus load failure must never take the /lessons command down with it
+    // (measured on a Windows screen 2026-10-05: "Unknown command: /lessons").
+    await $.command.register({ name: 'lessons', description: 'Reload the lesson cards corpus' });
     matchMap.clear();
+    corpus = await loadCorpus($).catch((err: unknown) => ({
+      patterns: [],
+      bullets: [],
+      loadedAt: Date.now(),
+      loadError: err instanceof Error ? err.message : 'Unknown error',
+    }));
+    return next(e);
   });
 
   on('tool.call', async ($: Hook$, e: ToolCallEvent, next?: NextFn<ToolCallEvent>) => {
-    const { tool, args, tool_use_id } = e;
-    const requestId = tool_use_id || `tool-${Date.now()}`;
-
-    // First, let the tool execute
-    const result = next ? ((await next(e)) ?? {}) : {};
+    const requestId = e.tool_use_id || `tool-${Date.now()}`;
 
     if (!corpus) {
-      return result;
+      return next ? ((await next(e)) ?? {}) : {};
     }
 
-    let matches: MatchedLesson[] = [];
-
-    if (tool === 'Bash') {
-      const command = String(args.command || '');
-      if (command) {
-        matches = matchAll(command, corpus.patterns, corpus.bullets);
-      }
-    } else if (tool === 'Edit') {
-      const filePath = String(args.file_path || '');
-      const newContent = String(args.new_content || args.content || '');
-      if (filePath) {
-        matches = matchFileEdit(filePath, newContent, corpus.patterns);
-      }
-    } else if (tool === 'Write') {
-      const filePath = String(args.file_path || '');
-      const content = String(args.content || '');
-      if (filePath) {
-        matches = matchFileEdit(filePath, content, corpus.patterns);
-      }
-    }
-
+    // Match before the tool runs, so the card and context ride with the call.
+    const matches = matchToolCall(e, corpus);
     if (matches.length === 0) {
-      return result;
+      return next ? ((await next(e)) ?? {}) : {};
     }
 
-    // Store matches for ui.render
+    // Store matches for ui.render: the card draws under this tool row.
     matchMap.set(requestId, matches);
 
     // Try to show notice during permission dialog (only works if dialog is open)
@@ -227,20 +277,26 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
       // Notice refused - dialog not open, ignore
     }
 
-    // Add context for model
+    // Advisory only: the lesson rides along as context and the call runs.
+    // A block-severity lesson is marked as such, but nothing is enforced.
     const context = formatContext(matches[0]);
-    return { ...result, context: [context] };
+
+    // A hook adds to the context its next() returned and never replaces it:
+    // CC reads an answer that drops an entry a hook below attached as the
+    // wrong shape and skips this hook.
+    const result = (next ? ((await next(e)) ?? {}) : {}) as Record<string, unknown>;
+    const prior = Array.isArray(result.context)
+      ? (result.context as unknown[]).filter((c): c is string => typeof c === 'string' && c !== '')
+      : [];
+    return { ...result, context: prior.includes(context) ? prior : [...prior, context] };
   });
 
-  on('ui.render', async ($: Hook$, e: UiRenderEvent, next?: NextFn<UiRenderEvent>) => {
-    if (e.component !== 'ToolUse') {
-      return next ? await next(e) : {};
-    }
+  // Wrap, never mutate: next(e) hands back an opaque engine node ({ type, ref }),
+  // so the card goes beside it in a new column Box built from $.ui.resolve(e).
+  on('ui.render', { component: 'ToolUse' }, async ($: Hook$, e: UiRenderEvent, next?: NextFn<UiRenderEvent>) => {
+    const tree = next ? await next(e) : null;
 
-    // Get the rendered tree
-    const tree = next ? await next(e) : {};
-
-    if (!e.requestId || !matchMap.has(e.requestId)) {
+    if (e.component !== 'ToolUse' || !e.requestId) {
       return tree;
     }
 
@@ -249,31 +305,31 @@ export function register(on: (event: string, hook: unknown) => void, _options?: 
       return tree;
     }
 
-    // Append card under the tool row
-    const card = buildCard(matches[0], e.requestId);
-
-    const treeWithCard = tree as { children?: unknown[] };
-    if (!treeWithCard.children) {
-      treeWithCard.children = [];
-    }
-    treeWithCard.children.push(card);
-
-    return tree;
+    const el = await $.ui.resolve(e);
+    const card = buildCard(matches[0], e.requestId, el);
+    return el.Box({ flexDirection: 'column', children: tree ? [tree, card] : [card] });
   });
 
-  on('command.register', async ($: Hook$, e: { command: string }) => {
-    if (e.command === '/lessons') {
-      // Reload corpus
-      corpus = await loadCorpus($);
-      matchMap.clear();
-      // Invalidate UI to show updated state
-      try {
-        await $.ui.invalidate('ui.render');
-      } catch {
-        // Ignore if invalidate fails
-      }
-      return { message: 'Lessons reloaded' };
+  on('command.run', { command: 'lessons' }, async ($: Hook$) => {
+    corpus = await loadCorpus($).catch((err: unknown) => ({
+      patterns: [],
+      bullets: [],
+      loadedAt: Date.now(),
+      loadError: err instanceof Error ? err.message : 'Unknown error',
+    }));
+    matchMap.clear();
+    try {
+      await $.ui.invalidate('ui.render');
+    } catch {
+      // nothing drawn yet: nothing to refresh
     }
-    return {};
+    const n = corpus ? corpus.patterns.length + corpus.bullets.length : 0;
+    if (n === 0) {
+      const reason = corpus?.loadError ? `: ${corpus.loadError}` : '';
+      return {
+        text: `Lessons reloaded (0 entries)${reason}. Lessons come from configs/lesson-patterns.json in the newest hq-ext cache and ~/.claude/hq/floor-*/lessons.md.`,
+      };
+    }
+    return { text: `Lessons reloaded (${n} entries)` };
   });
 }

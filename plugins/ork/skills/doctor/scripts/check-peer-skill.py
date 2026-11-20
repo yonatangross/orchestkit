@@ -28,8 +28,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
+from pathlib import Path
 
 DEFAULT_PLUGIN = "typesafe@typesafe-ai"
 OK_VERDICTS = {"UP_TO_DATE", "VERSION_UNKNOWN"}
@@ -39,19 +39,20 @@ class RegistryUnreadable(Exception):
     """The registry file exists but cannot be read or parsed."""
 
 
-def load(path: str) -> dict:
+def load(path: str | Path) -> dict:
     """Return the registry dict; {} when absent; raise when present but unreadable."""
-    if not os.path.exists(path):
+    p = Path(path)
+    if not p.exists():
         return {}
     try:
-        with open(path, encoding="utf-8") as fh:
+        with p.open(encoding="utf-8") as fh:
             data = json.load(fh)
     except (OSError, ValueError) as exc:
-        raise RegistryUnreadable(f"{path}: {exc}") from exc
+        raise RegistryUnreadable(f"{p}: {exc}") from exc
     return data if isinstance(data, dict) else {}
 
 
-def installed_version(installed_file: str, ref: str) -> str:
+def installed_version(installed_file: str | Path, ref: str) -> str:
     plugins = load(installed_file).get("plugins")
     if not isinstance(plugins, dict):
         return ""
@@ -70,7 +71,7 @@ def published_version(market_entry: dict, plugin: str) -> str:
     location = market_entry.get("installLocation")
     if not isinstance(location, str) or not location:
         return ""
-    manifest = load(os.path.join(location, ".claude-plugin", "marketplace.json"))
+    manifest = load(Path(location) / ".claude-plugin" / "marketplace.json")
     for item in manifest.get("plugins") or []:
         if (
             isinstance(item, dict)
@@ -94,7 +95,7 @@ def resolve(plugins_dir: str, ref: str) -> dict:
         "fix": None,
     }
     try:
-        markets = load(os.path.join(plugins_dir, "known_marketplaces.json"))
+        markets = load(Path(plugins_dir) / "known_marketplaces.json")
     except RegistryUnreadable as exc:
         result["verdict"] = "REGISTRY_UNREADABLE"
         result["detail"] = str(exc)
@@ -109,7 +110,7 @@ def resolve(plugins_dir: str, ref: str) -> dict:
         )
         return result
     try:
-        installed = installed_version(os.path.join(plugins_dir, "installed_plugins.json"), ref)
+        installed = installed_version(Path(plugins_dir) / "installed_plugins.json", ref)
     except RegistryUnreadable as exc:
         result["verdict"] = "REGISTRY_UNREADABLE"
         result["detail"] = str(exc)
@@ -158,7 +159,7 @@ def main() -> int:
         "--plugin", default=DEFAULT_PLUGIN, help="NAME@MARKETPLACE (default typesafe@typesafe-ai)"
     )
     parser.add_argument(
-        "--plugins-dir", default=os.path.join(os.path.expanduser("~"), ".claude", "plugins")
+        "--plugins-dir", default=Path.home() / ".claude" / "plugins"
     )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork artifact pairs: plan and research files you review in place</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; padding: 2rem 1.25rem; background: #fafaf7; color: #1d1d1b; font: 15px/1.55 system-ui, sans-serif }
+  main { max-width: 62rem; margin-inline: auto }
+  h1 { font-size: 1.4rem; margin: 0 0 .3rem }
+  h2 { font-size: 1.05rem; margin: 1.6rem 0 .6rem }
+  .sub { color: #6a675f; margin: 0 0 1.2rem; font-size: .92rem }
+  .flow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .4rem 0 1rem }
+  .step { background: #fff; border: 1px solid #dcdad2; border-radius: 8px; padding: .5rem .8rem; cursor: pointer }
+  .step[aria-pressed="true"] { border-color: #0b5cad; color: #0b5cad; font-weight: 600 }
+  .arrow { color: #6a675f }
+  pre { background: #fff; border: 1px solid #dcdad2; border-radius: 8px; padding: .9rem 1rem; overflow-x: auto; font: .82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0 }
+  .hl { background: #fff4c2 }
+  .note { margin: .6rem 0 0; font-size: .9rem }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #dcdad2; font-size: .86rem }
+  th, td { text-align: start; padding: .45rem .65rem; border-bottom: 1px solid #dcdad2; vertical-align: top }
+  th { color: #6a675f; font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem }
+  button { font: inherit; color: inherit; background: #fff; border: 1px solid #dcdad2; border-radius: 6px; padding: .35rem .7rem; cursor: pointer }
+  #copied { color: #1a7f37; font-size: .85rem; min-height: 1.2em }
+  body.dark { background: #16171a; color: #e8e8e4 }
+  body.dark pre, body.dark table, body.dark .step, body.dark button { background: #1e2024; border-color: #33363d }
+  body.dark th, body.dark td { border-color: #33363d }
+  body.dark .sub, body.dark th, body.dark .arrow { color: #9a9a94 }
+  body.dark .hl { background: #4a3f12 }
+  body.dark .step[aria-pressed="true"] { border-color: #7dd3fc; color: #7dd3fc }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Artifact pairs: plans and research you review in the file"><meta property="og:description" content="Step through the life of one ork plan artifact: create, a reviewer comment, an iterate that keeps the comment, and approval, then copy the layout contract as a prompt."><meta property="og:url" content="https://orchestkit.dev/lab/l6-artifact-pairs.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Artifact pairs: plans and research you review in the file"><meta name="twitter:description" content="Step through the life of one ork plan artifact: create, a reviewer comment, an iterate that keeps the comment, and approval, then copy the layout contract as a prompt."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Artifact pairs: plans and research you review in the file</h1>
+  <p class="sub">Five ork skills port humanlayer's riptide create/iterate pattern. Each artifact is one file under <code>.ork/tasks/&lt;task&gt;/</code>. Review comments live at the end of that file, and an iterate rewrites the body but keeps every comment. Step through the life of one plan below. <button id="theme" type="button">Dark</button></p>
+
+  <h2>One plan, step by step</h2>
+  <div class="flow" id="flow"></div>
+  <pre id="file"></pre>
+  <p class="note" id="note"></p>
+
+  <h2>The skills</h2>
+  <table>
+    <thead><tr><th>Skill</th><th>Writes</th><th>Script call</th></tr></thead>
+    <tbody>
+      <tr><td><code>create-research</code></td><td>new <code>NN-research-&lt;slug&gt;.md</code></td><td><code>artifact.mjs create --kind research</code></td></tr>
+      <tr><td><code>iterate-research</code></td><td>same file, revision + 1</td><td><code>artifact.mjs iterate</code></td></tr>
+      <tr><td><code>create-plan</code></td><td>new <code>NN-plan-&lt;slug&gt;.md</code></td><td><code>artifact.mjs create --kind plan</code></td></tr>
+      <tr><td><code>iterate-plan</code></td><td>same file, revision + 1</td><td><code>artifact.mjs iterate</code></td></tr>
+      <tr><td><code>review-artifact-comments</code></td><td>replies, resolves, approval</td><td><code>artifact.mjs list | reply | resolve | approve</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Take it with you</h2>
+  <p class="sub">Copies the layout contract as a prompt for the lane that builds L2's auto-advance table.</p>
+  <button id="copy" type="button">Copy as prompt</button>
+  <div id="copied"></div>
+</main>
+<script>
+const FM = (rev, status) => `---\nork_artifact: 1\ntask: l6-artifact-pairs\nkind: plan\nslug: artifact-pairs\ntitle: "L6 artifact pairs"\nauthor: ork-cc-adopt\nrevision: ${rev}\nstatus: ${status}\ncreated: 2026-10-24T03:18:29Z\nupdated: ...\nrepo: orchestkit\nbranch: feat/l6-artifact-pairs\nsha: ...${status === "approved" ? "\napproved_by: sub-plugins\napproved_ref: <LAND id>" : ""}\n---`;
+const C1 = `<comment id="c1" author="sub-plugins" status="open">\n> and this file reaches `+"`status: approved`"+` with no open comment.\nWho may set status: approved? A lane must not self-approve its own artifact. Record the approver...\n</comment>`;
+const C1R = `<comment id="c1" author="sub-plugins" status="open">\n> and this file reaches `+"`status: approved`"+` with no open comment.\nWho may set status: approved? A lane must not self-approve its own artifact. Record the approver...\n  ork-cc-adopt: Phase 1 now specifies it: create records author; approve needs --by and --ref...\n</comment>`;
+const STEPS = [
+  { name: "create-plan", rev: 1, status: "draft", body: "# L6 artifact pairs: implementation plan\n...\n## Phase 2: five skills and the layout reference", block: "", hl: "fm",
+    note: "create writes NN-plan-<slug>.md with revision 1, status draft and an empty comment block." },
+  { name: "reviewer comments", rev: 1, status: "in-review", body: "# L6 artifact pairs: implementation plan\n...\n## Phase 2: five skills and the layout reference", block: C1, hl: "block",
+    note: "A reviewer adds c1 with the script or by hand. The first comment moves draft to in-review." },
+  { name: "iterate-plan", rev: 2, status: "in-review", body: "# L6 artifact pairs: implementation plan\n...\n## Phase 1: helper and tests\nApproval cannot come from the lane itself (review c1)...\n## Phase 4: the Elicitation check (finish-line item 3)", block: C1R, hl: "body",
+    note: "iterate replaces the body and bumps the revision to 2. The comment block is written back byte for byte; the reply was added after, by review-artifact-comments. This is the real L6 plan and its real comment c1." },
+  { name: "approve", rev: 2, status: "approved", body: "# L6 artifact pairs: implementation plan\n...", block: C1R.replace('status="open"', 'status="resolved"'), hl: "fm",
+    note: "approve needs --by and --ref, is refused while any comment is open, and is refused when --by is the author. approved, nothing open, approver not the author: that is L2's phase-done signal." },
+];
+let at = 0;
+const flow = document.getElementById("flow");
+STEPS.forEach((s, i) => {
+  if (i) { const a = document.createElement("span"); a.className = "arrow"; a.textContent = "→"; flow.appendChild(a); }
+  const b = document.createElement("button"); b.className = "step"; b.textContent = `${i + 1}. ${s.name}`; b.addEventListener("click", () => { at = i; render(); }); flow.appendChild(b);
+});
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function render() {
+  const s = STEPS[at];
+  [...flow.querySelectorAll(".step")].forEach((b, i) => b.setAttribute("aria-pressed", String(i === at)));
+  const part = (t, k) => s.hl === k ? `<span class="hl">${esc(t)}</span>` : esc(t);
+  const block = `<!-- ork:comments -->\n${s.block ? s.block + "\n" : ""}<!-- /ork:comments -->`;
+  document.getElementById("file").innerHTML = `${part(FM(s.rev, s.status), "fm")}\n${part(s.body, "body")}\n\n${part(block, "block")}`;
+  document.getElementById("note").textContent = s.note;
+}
+document.getElementById("theme").addEventListener("click", (e) => { document.body.classList.toggle("dark"); e.target.textContent = document.body.classList.contains("dark") ? "Light" : "Dark"; });
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = "In orchestkit, build L2's auto-advance on the ork task artifacts. Read src/skills/create-plan/references/artifact-layout.md first; it is the contract. A phase is done when its kind has an artifact with done:true in `node scripts/artifact.mjs status --task-dir .ork/tasks/<task> --json` (status approved and no open comment). Do not parse front matter yourself and never write artifacts directly.";
+  try { await navigator.clipboard.writeText(text); document.getElementById("copied").textContent = "Copied."; }
+  catch (e) { document.getElementById("copied").textContent = "Copy failed: select the text in the layout reference instead."; }
+});
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

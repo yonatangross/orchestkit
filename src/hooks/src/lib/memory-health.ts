@@ -1,10 +1,13 @@
 /**
- * Memory Health Check - Validate 2-tier memory architecture
+ * Memory Health Check - Validate the two health-checked tiers of the 3-tier memory model
  *
  * Checks:
  * - Tier 1 (Graph): mcp__memory__* availability, .claude/memory/ directory
- * - Tier 2 (CC Native): ~/.claude/projects/<project>/memory/MEMORY.md
+ * - Tier 3 (CC Native): ~/.claude/projects/<project>/memory/MEMORY.md
  * - Integrity: General health validation
+ *
+ * Tier 2 (Local JSONL) is optional storage, not a health tier: analyzeJsonlFile()
+ * reports per-file metrics when those files exist.
  */
 
 import { existsSync, readFileSync, statSync } from 'node:fs';

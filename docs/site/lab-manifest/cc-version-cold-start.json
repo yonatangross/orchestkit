@@ -1,0 +1,14 @@
+{
+  "slug": "cc-version-cold-start",
+  "source": "docs/fix--cc-version-cold-start/index.html",
+  "title": "Unconfirmed env must not warn below floor",
+  "description": "Cloud cold start: only CLAUDE_CODE_VERSION=2.1.42, no transcript, no versions/ symlink. Env alone must not fire the below-floor warning.",
+  "tags": [
+    "hooks",
+    "cc-version",
+    "cloud",
+    "cold-start",
+    "false-signal"
+  ],
+  "date": "2026-11-03"
+}

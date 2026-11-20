@@ -1,32 +1,27 @@
 ---
 name: quality-gates
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
-context: fork
-agent: code-quality-reviewer
-version: 1.3.0
-author: OrchestKit
-tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering]
+compatibility: "Claude Code 2.1.277+."
+description: "Task complexity scoring (1-5), escalation when stuck, and best-practice checks. Use before complex tasks or after repeated failed attempts."
 skills: [scope-appropriate-architecture]
 user-invocable: false
 disable-model-invocation: false
-complexity: max
-persuasion-type: discipline
 effort: high
 hooks:
   PreToolUse:
     - matcher: "Read"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/quality-baseline-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/quality-baseline-loader"
+          once: true
 metadata:
+  owner-agent: "code-quality-reviewer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.3.0"
+  author: "OrchestKit"
+  complexity: "max"
+  tags: "quality, complexity, planning, escalation, blocking, best-practices, patterns, yagni, over-engineering"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Quality Gates
@@ -252,7 +247,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 - `ork:scope-appropriate-architecture` - Project tier detection that feeds YAGNI gate
 - `ork:architecture-patterns` - Enforce testing standards as part of quality gates
 - `ork:testing-llm` - LLM-as-judge patterns for quality validation (DeepEval, RAGAS)
-- `ork:golden-dataset` - Validate datasets meet quality thresholds
+- `ork-extras:golden-dataset` - Validate datasets meet quality thresholds
 
 ## Key Decisions
 

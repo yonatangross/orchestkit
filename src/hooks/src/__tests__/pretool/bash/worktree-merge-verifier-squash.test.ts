@@ -35,6 +35,7 @@ beforeAll(() => {
   run(['init', '-q', '-b', 'main', '.']);
   run(['config', 'user.email', 't@t.t']);
   run(['config', 'user.name', 't']);
+  run(['config', 'commit.gpgsign', 'false']);
   writeFileSync(join(repo, 'f.txt'), 'base\n');
   run(['add', '.']);
   run(['commit', '-qm', 'base']);

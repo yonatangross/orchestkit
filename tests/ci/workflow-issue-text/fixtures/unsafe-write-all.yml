@@ -1,0 +1,12 @@
+# PLANTED UNSAFE FIXTURE (security review of 5b84e983). permissions: write-all
+# grants id-token: write, so a job reading issue text holds it.
+name: Unsafe write-all fixture
+on: workflow_dispatch
+
+permissions: write-all
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh issue view 1

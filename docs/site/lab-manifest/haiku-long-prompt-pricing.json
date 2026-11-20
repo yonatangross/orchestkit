@@ -1,0 +1,11 @@
+{
+  "slug": "haiku-long-prompt-pricing",
+  "source": "docs/fix--5023-tiered-pricing/index.html",
+  "title": "Haiku 5.5 long prompts in the cost estimate",
+  "description": "Pick a prompt size and compare what the estimate charged before and after the higher rate card.",
+  "tags": [
+    "pricing",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

@@ -95,27 +95,9 @@ AskUserQuestion(questions=[{
 
 Generated env var: `ORCHESTKIT_COMMIT_SCOPE=<value>`
 
-### Step 3: Local Dev Browser Access
+### Step 3: Local Dev Browser Access (no question)
 
-```python
-AskUserQuestion(questions=[{
-  "question": "Should agents be allowed to browse *.localhost URLs (e.g. hq-web.localhost)?",
-  "header": "Localhost browser",
-  "options": [
-    {
-      "label": "Yes, allow *.localhost (Recommended)",
-      "description": "RFC 6761 reserved TLD — cannot route to external hosts. Enables visual verification of local dev servers."
-    },
-    {
-      "label": "No, block all localhost",
-      "description": "Stricter mode — blocks *.localhost AND bare localhost. Use for enterprise/sandboxed environments."
-    }
-  ],
-  "multiSelect": false
-}])
-```
-
-Generated env var: `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST=<value>`
+Skip this step. The `agent-browser-safety` hook that read `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` was retired on 2026-08-31, so the wizard no longer writes it. If the operator turned on the sandbox network allow list, the local host names go in `sandbox.network.allowedDomains` instead.
 
 ### Step 4: Performance Telemetry
 
@@ -243,7 +225,6 @@ new_env = {
 # env_from_wizard = {
 #   "ORCHESTKIT_PROTECTED_BRANCHES": <from step 1>,
 #   "ORCHESTKIT_COMMIT_SCOPE": <from step 2>,
-#   "ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST": <from step 3>,
 #   "ORCHESTKIT_PERF_SNAPSHOT_ENABLED": <from step 4>,
 #   "ORCHESTKIT_LOG_LEVEL": <from step 5>,
 # }
@@ -264,7 +245,6 @@ OrchestKit Configuration Written → .claude/settings.json
 ──────────────────────────────────────────────────────────
   Protected branches    main,master
   Commit scope          optional
-  Localhost browser     allowed (RFC 6761)
   Perf snapshot         enabled
   Log level             warn
 
@@ -280,7 +260,6 @@ To see full readiness: /ork:setup --score-only
 |---------|---------|--------|--------|
 | `ORCHESTKIT_PROTECTED_BRANCHES` | `main,master` | comma-separated branches | Blocks direct commits/pushes |
 | `ORCHESTKIT_COMMIT_SCOPE` | `optional` | `optional` \| `required` \| `none` | Commit message scope enforcement |
-| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | `1` | `1` \| `0` | Allow `*.localhost` browser access |
 | `ORCHESTKIT_PERF_SNAPSHOT_ENABLED` | `1` | `1` \| `0` | Write session token snapshots |
 | `ORCHESTKIT_LOG_LEVEL` | `warn` | `debug` \| `info` \| `warn` \| `error` | Hook log verbosity |
 | `ORCHESTKIT_HOOK_TOKEN` | (unset) | Bearer token string | Auth for webhook HTTP hooks |

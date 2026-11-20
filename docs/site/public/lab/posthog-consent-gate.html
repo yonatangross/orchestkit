@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostHog waits for consent on the docs site</title>
+<meta name="description" content="The OrchestKit docs site now loads PostHog only after a visitor allows analytics. Pick a stored choice and an action to see whether the banner shows and whether PostHog may load.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--dim);font-size:.8rem;margin-top:.6rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.8rem;min-height:3.2rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+  ul{margin:.4rem 0 0;padding-left:1.1rem;font-size:.8rem;color:var(--dim)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="PostHog waits for consent on the docs site"><meta property="og:description" content="The OrchestKit docs site now loads PostHog only after a visitor allows analytics. Pick a stored choice and an action to see whether the banner shows and whether PostHog may load."><meta property="og:url" content="https://orchestkit.dev/lab/posthog-consent-gate.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="PostHog waits for consent on the docs site"><meta name="twitter:description" content="The OrchestKit docs site now loads PostHog only after a visitor allows analytics. Pick a stored choice and an action to see whether the banner shows and whether PostHog may load."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>PostHog waits for consent on the docs site</h1>
+<p class="sub">Branch fix/docs-posthog-consent, 2026-11-07. Before this change the docs site imported posthog-js and started it on every page load, and the privacy page said there was no consent prompt. Now nothing PostHog loads until a visitor presses "Allow analytics" in a banner.</p>
+
+<section><h2>Try a visit</h2>
+<label for="stored">choice already stored in this browser</label>
+<select id="stored">
+  <option value="none">none (first visit)</option>
+  <option value="accepted">accepted</option>
+  <option value="declined">declined</option>
+</select>
+<label for="action">what the visitor does on this page</label>
+<select id="action">
+  <option value="nothing">reads the page, presses nothing</option>
+  <option value="allow">presses Allow analytics</option>
+  <option value="decline">presses Decline</option>
+  <option value="reset">presses Change analytics choice on the privacy page</option>
+</select>
+<div class="grid">
+  <div><div class="dim">banner</div><div class="out" id="banner" aria-live="polite"></div></div>
+  <div><div class="dim">PostHog (script and ph_ cookie)</div><div class="out" id="posthog" aria-live="polite"></div></div>
+</div>
+</section>
+
+<section><h2>What did not change</h2>
+<ul>
+  <li>The site's own /api/analytics keeps working without the banner: it sets no cookie and is the system of record.</li>
+  <li>Session replay still runs on /docs/reference/* only, and only once PostHog has loaded.</li>
+  <li>Decline and Allow have the same styling, so declining is as easy as allowing.</li>
+</ul>
+</section>
+
+<script>
+function decide(stored, action) {
+  let choice = stored;
+  if (action === 'allow') choice = 'accepted';
+  if (action === 'decline') choice = 'declined';
+  if (action === 'reset') choice = 'none';
+  const bannerShown = choice === 'none';
+  const loads = choice === 'accepted';
+  return { choice, bannerShown, loads };
+}
+function render() {
+  const { choice, bannerShown, loads } = decide(
+    document.getElementById('stored').value, document.getElementById('action').value);
+  const banner = document.getElementById('banner');
+  banner.textContent = bannerShown
+    ? 'Shown at the bottom of the page: Decline or Allow analytics.'
+    : `Hidden. Stored choice: ${choice}.`;
+  const ph = document.getElementById('posthog');
+  ph.className = 'out ' + (loads ? 'ok' : 'bad');
+  ph.textContent = loads
+    ? 'Loads now: posthog-js is imported and starts.'
+    : 'Not loaded: posthog-js is never imported, no request reaches PostHog.';
+}
+document.getElementById('stored').addEventListener('change', render);
+document.getElementById('action').addEventListener('change', render);
+render();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

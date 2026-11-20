@@ -1,5 +1,5 @@
 ---
-description: "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks."
+description: "Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI component or an alternative to one."
 argument-hint: "[component description]"
 model: sonnet
 effort: low
@@ -7,7 +7,7 @@ context: fork
 user-invocable: true
 name: component-search
 background: false
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: "Read Glob Grep WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate mcp__21st-dev-magic__search_picker mcp__21st-dev-magic__search mcp__21st-dev-magic__get_component mcp__21st-dev-magic__get_theme mcp__21st-dev-magic__search_logo mcp__21st-dev-magic__get_usage TaskList"
 ---
 
 # Auto-generated from skills/component-search/SKILL.md
@@ -195,4 +195,4 @@ For the selected component:
 
 - `ork:design-to-code` — Full mockup-to-component pipeline (uses this skill)
 - `ork:design-system-tokens` — Adapt components to project tokens
-- `ork:ui-components` — Component library patterns
+- `ork-extras:ui-components` — Component library patterns

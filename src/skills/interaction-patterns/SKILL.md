@@ -1,25 +1,18 @@
 ---
 name: interaction-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: UI interaction design patterns for skeleton loading, infinite scroll with accessibility, progressive disclosure, modal/drawer/inline selection, drag-and-drop with keyboard alternatives, tab overflow handling, and toast notification positioning. Use when implementing loading states, content pagination, disclosure patterns, overlay components, reorderable lists, or notification systems.
-tags: [interaction-design, skeleton-loading, infinite-scroll, progressive-disclosure, modal, drawer, drag-drop, tabs, toast, ux-patterns]
-context: fork
-agent: frontend-ui-developer
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "UI interaction patterns: skeleton loading, infinite scroll, progressive disclosure, modal/drawer/inline selection, drag-and-drop, tab overflow, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications."
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "interaction-design, skeleton-loading, infinite-scroll, progressive-disclosure, modal, drawer, drag-drop, tabs, toast, ux-patterns"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Interaction Patterns
@@ -211,8 +204,8 @@ Fitts's Law touch targets (44px mobile), top-aligned labels, Poka-Yoke error pre
 
 ## Related Skills
 
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:animation-motion-design` — Motion library and View Transitions API
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:animation-motion-design` — Motion library and View Transitions API
+- `ork-extras:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork-extras:responsive-patterns` — Responsive layout and container query patterns
 - `ork:performance` — Core Web Vitals and runtime performance optimization

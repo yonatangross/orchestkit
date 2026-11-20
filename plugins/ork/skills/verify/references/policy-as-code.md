@@ -29,7 +29,7 @@ rules:
 blockers:
   - dimension: security
     condition: below
-    value: 5.0
+    value: 9.0
     message: "Security score below minimum"
 
   - check: critical_vulnerabilities

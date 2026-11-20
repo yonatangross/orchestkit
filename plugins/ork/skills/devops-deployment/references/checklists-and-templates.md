@@ -54,12 +54,3 @@ charts/app/
 | `argocd-application.yaml` | GitOps application |
 | `external-secrets.yaml` | Secrets Manager integration |
 
----
-
-## Extended Thinking Triggers
-
-Use adaptive thinking for:
-- **Architecture decisions** - Kubernetes vs serverless, multi-region setup
-- **Migration planning** - Moving between cloud providers
-- **Incident response** - Complex deployment failures
-- **Security design** - Zero-trust architecture

@@ -1,0 +1,12 @@
+{
+  "slug": "review-pr-fanout-rule",
+  "source": "docs/chore--dsp-44673-ork-fix-4672/index.html",
+  "title": "Review fan-out rule explorer",
+  "description": "Compare the old default with the explicit Fan-out rule. No reviewer means BLOCKED.",
+  "tags": [
+    "review",
+    "skills",
+    "verification"
+  ],
+  "date": "2026-10-15"
+}

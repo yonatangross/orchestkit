@@ -1,6 +1,6 @@
 ---
-title: "Security Gates and File Guards"
-description: "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations -- the defense-in-depth hooks that run before every tool use."
+title: "Security Gates and Operator Deny Rules"
+description: "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations: the defense-in-depth hooks that run before every tool use."
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -8,281 +8,68 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ## Defense in Depth
 
-OrchestKit implements security at multiple layers. No single hook is responsible for all safety -- instead, hooks compose to form a defense-in-depth chain:
+OrchestKit implements security at multiple layers. No single hook is responsible for all safety; instead, hooks compose to form a defense-in-depth chain:
 
 ```
 PermissionRequest  -->  PreToolUse  -->  Tool Executes  -->  PostToolUse
       |                     |                                     |
-  auto-approve          file-guard                          secret-redactor
-  safe commands     dangerous-command-blocker               audit-logger
-  project writes    security-pattern-validator               error-handler
-                    architecture-change-detector
-                    multi-instance-lock
+  auto-approve        operator deny rules                    secret-handler
+  safe commands       (enforced by Claude Code)              failure-handler
+  project writes      sync-bash-dispatcher                   (on tool errors)
+                      sync-write-edit-dispatcher
+                      sync-task-dispatcher
 ```
 
 If any hook in the chain returns `{ continue: false }`, the operation is blocked and Claude receives the `stopReason` explaining why.
 
-## Dangerous Command Blocker
-
-**Hook:** `pretool/bash/dangerous-command-blocker`
-**Event:** PreToolUse (Bash)
-**Behavior:** Blocks commands that match known destructive patterns.
-
-### What It Blocks
-
-The blocker checks against three categories of dangerous patterns:
-
-<Tabs items={["Literal Patterns", "Regex Patterns"]}>
-<Tab value="Literal Patterns">
-
-These are matched as literal substrings in the normalized (lowercased, whitespace-collapsed) command:
-
-| Pattern | Category |
-|---------|----------|
-| `rm -rf /` | Filesystem destruction |
-| `rm -rf ~` | Filesystem destruction |
-| `rm -fr /` | Filesystem destruction (alternate flag order) |
-| `rm -fr ~` | Filesystem destruction |
-| `mv /* /dev/null` | Filesystem destruction |
-| `> /dev/sda` | Device wiping |
-| `mkfs.` | Device wiping (filesystem format) |
-| `dd if=/dev/zero of=/dev/` | Device wiping |
-| `dd if=/dev/random of=/dev/` | Device wiping |
-| `chmod -R 777 /` | Permission abuse |
-| `:(){:\|:&};:` | Fork bomb |
-| `git reset --hard` | Destructive git (data loss) |
-| `git clean -fd` | Destructive git (data loss) |
-| `drop database` | Database destruction |
-| `drop schema` | Database destruction |
-| `truncate table` | Database destruction |
-
-</Tab>
-<Tab value="Regex Patterns">
-
-These are matched using regular expressions for patterns that require flexible matching:
-
-| Pattern | What It Catches |
-|---------|-----------------|
-| `/\|\s*(sh\|bash\|zsh\|dash)\b/i` | Piping to shell: `curl url \| bash`, `wget url \| sh` |
-| `/git\s+push\s+.*(-f\|--force)\b/i` | Force push: `git push --force`, `git push -f origin main` |
+## Destructive Commands: Operator Deny Rules
 
-</Tab>
-</Tabs>
+The old `pretool/bash/dangerous-command-blocker` hook was removed in #3841. Its patterns are now `permissions.deny` rules in your own settings scope (`~/.claude/settings.json` or `<project>/.claude/settings.json`). A plugin cannot ship enforcing permission rules, because Claude Code reads only `agent` and `subagentStatusLine` from a plugin settings file. Rules in your own scope are enforced by Claude Code itself, even under `--dangerously-skip-permissions`.
 
-### How Normalization Prevents Bypass
+- **Written by** `/ork:setup` phase 3.6, which shows a dry run first and writes only after you say yes. The payload is `src/skills/setup/references/operator-permissions.json`, delivered by `src/skills/setup/scripts/write-operator-permissions.mjs`.
+- **Audited by** `/ork:doctor` (`check-operator-permissions.sh`), which reports whether the rules are present.
 
-Before pattern matching, commands are normalized to prevent evasion techniques:
-
-```typescript
-function normalizeCommand(command: string): string {
-  return command
-    .replace(/\\\s*[\r\n]+/g, ' ')  // Remove line continuations (rm -rf \<newline>/)
-    .replace(/\n/g, ' ')             // Replace newlines with spaces
-    .replace(/\s+/g, ' ')            // Collapse whitespace
-    .trim();
-}
-```
+### What the Rules Deny
 
-This means `rm \<newline>-rf /` is caught just as reliably as `rm -rf /`.
+| Rule (examples) | Category |
+|-----------------|----------|
+| `Bash(rm -rf /)`, `Bash(rm -rf ~)`, `Bash(rm -fr .)` | Filesystem destruction |
+| `Bash(mv /* /dev/null)` | Filesystem destruction |
+| `Bash(> /dev/sd*)`, `Bash(mkfs*)`, `Bash(dd if=*)` | Device wiping |
+| `Bash(chmod 777 *)`, `Bash(chmod -R 777 *)` | Permission abuse |
+| `Bash(find *-delete*)` | Bulk deletion |
+| `Bash(git push --force origin main)` and its `-f` and `master` variants | Force push to main or master |
+| `Read(~/.ssh/**)`, `Read(**/.env)`, `Edit(**/*.pem)` | Secret and credential files |
 
-### When a Command Is Blocked
+The JSON file holds the full list. It also names two admitted gaps: the SQL substrings the old hook matched (`drop database`, `drop schema`, `truncate table` inside a `psql -c` string) and the fork bomb cannot be written as `Bash()` rules, so no rule denies them.
 
-The user sees a clear denial message:
+### What Still Runs as a Hook
 
-```json
-{
-  "continue": false,
-  "stopReason": "Command matches dangerous pattern: rm -rf /\n\nThis command could cause severe system damage and has been blocked.",
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "deny",
-    "permissionDecisionReason": "Command matches dangerous pattern: rm -rf /"
-  }
-}
-```
+`pretool/bash/sync-bash-dispatcher` is the synchronous PreToolUse entry for Bash. Inside it, `pretool/bash/network-egress-guard` keeps a DENY tier for commands that execute fetched remote content, such as `curl url | bash`.
 
-Every denial is also logged to `permission-feedback.log` for audit:
+## Protected Files: Operator Deny Rules
 
-```
-2026-01-23T10:15:30.123Z | deny | Dangerous pattern: rm -rf / | tool=Bash | session=abc123
-```
+The old `pretool/write-edit/file-guard` hook was removed in #3835 (wave 3). Its protected-file patterns are now `Read()` and `Edit()` deny rules in the same operator payload as the Bash rules above, so Claude Code refuses them itself:
 
-## File Guard
+| Rules | Files |
+|-------|-------|
+| `Read(**/.env)`, `Read(**/.env.local)`, `Read(**/.env.production)`, `Edit(**/.env)`, `Edit(**/.env.local)`, `Edit(**/.env.production)` | Environment files |
+| `Edit(**/credentials.json)`, `Edit(**/secrets.json)` | Credential files |
+| `Edit(**/*.pem)`, `Edit(**/private.key)`, `Edit(**/id_rsa)`, `Edit(**/id_ed25519)` | Private keys |
+| `Read(~/.ssh/**)`, `Read(~/.gnupg/**)`, `Read(~/.aws/credentials)`, `Read(~/.netrc)`, `Read(~/.npmrc)` | Home-directory secrets |
+| `Edit(**/.husky/**)` | Git hook scripts |
 
-**Hook:** `pretool/write-edit/file-guard`
-**Event:** PreToolUse (Write|Edit)
-**Behavior:** Blocks writes to sensitive files, warns on config files, enforces file size limits on code files.
+What went with the hook: the config-file warnings (`package.json`, `pyproject.toml`, `tsconfig.json`) and the file size gate. The `ORCHESTKIT_MAX_FILE_LINES` and `ORCHESTKIT_MAX_TEST_FILE_LINES` variables no longer do anything.
 
-### Protected Files (Always Blocked)
+## Git Safety
 
-| Pattern | Files Matched |
-|---------|---------------|
-| `/\.env$/` | `.env` |
-| `/\.env\.local$/` | `.env.local` |
-| `/\.env\.production$/` | `.env.production` |
-| `/credentials\.json$/` | `credentials.json` |
-| `/secrets\.json$/` | `secrets.json` |
-| `/private\.key$/` | `private.key` |
-| `/\.pem$/` | Any `.pem` file |
-| `/id_rsa$/` | SSH private key |
-| `/id_ed25519$/` | SSH private key (Ed25519) |
+The old `pretool/bash/git-validator` hook was removed in #3841. What it protected now lives in two places:
 
-### Config Files (Warning Only)
+- **Force pushes to `main` or `master`** are denied by the operator rules (`Bash(git push --force origin main)` and its `-f` and `master` variants).
+- **Direct pushes to a protected branch** are refused by the branch protection on the remote, not by a local hook.
 
-These files trigger a warning log but are allowed through:
+Its branch-naming and commit-message checks were not carried over: a permission rule cannot read the current branch or a commit message.
 
-| Pattern | Files Matched |
-|---------|---------------|
-| `/package\.json$/` | `package.json` |
-| `/pyproject\.toml$/` | `pyproject.toml` |
-| `/tsconfig\.json$/` | `tsconfig.json` |
-
-### Symlink Resolution (ME-001 Fix)
-
-The file guard resolves symlinks before checking patterns to prevent bypass attacks:
-
-```typescript
-function resolveRealPath(filePath: string, projectDir: string): string {
-  const absolutePath = isAbsolute(filePath)
-    ? filePath
-    : resolve(projectDir, filePath);
-
-  // Follow symlinks if file exists
-  if (existsSync(absolutePath)) {
-    return realpathSync(absolutePath);  // Resolves symlinks
-  }
-
-  return absolutePath;
-}
-```
-
-Without this, an attacker could create `harmless.txt -> .env` and write to the symlink to bypass the guard. The `realpathSync` call resolves the real target before pattern matching.
-
-### Denial Message
-
-When a protected file is blocked:
-
-```
-Cannot modify protected file: .env
-
-Resolved path: /Users/dev/project/.env
-Matched pattern: /\.env$/
-
-Protected files include:
-- Environment files (.env, .env.local, .env.production)
-- Credential files (credentials.json, secrets.json)
-- Private keys (.pem, id_rsa, id_ed25519)
-
-If you need to modify this file, do it manually outside Claude Code.
-```
-
-### File Size Gate (Write Only)
-
-The file guard enforces maximum line counts on code files to prevent bloated single-file modules. This runs on `Write` operations only (Edit doesn't carry full content).
-
-**Defaults:**
-
-| File Type | Limit | Env Var Override |
-|-----------|-------|-----------------|
-| Source files (`.py`, `.ts`, `.tsx`, `.js`, `.jsx`, `.go`, `.rs`, `.java`) | 300 lines | `ORCHESTKIT_MAX_FILE_LINES` |
-| Test files (`.test.*`, `.spec.*`, `test_*`, `*_test.*`, `__tests__/`) | 500 lines | `ORCHESTKIT_MAX_TEST_FILE_LINES` |
-
-Non-code files (`.json`, `.md`, `.yaml`, `.css`, `.html`, etc.) are never gated.
-
-**Bloat pattern detection** -- when a file exceeds the line limit, the denial message includes structural signals if detected:
-
-| Signal | Trigger | Guidance |
-|--------|---------|----------|
-| `god-file` | >15 exports | Split by domain |
-| `mixed-concerns` | Types + logic in file >150 lines | Extract types to `types.ts` |
-| `high-coupling` | >20 imports | File does too much, split by responsibility |
-| `multi-class` | >1 class | One class per file |
-| `multi-component` | >3 components | One component per file |
-
-**Override per-project** by setting env vars:
-
-```bash
-export ORCHESTKIT_MAX_FILE_LINES=500
-export ORCHESTKIT_MAX_TEST_FILE_LINES=800
-```
-
-## Git Validator
-
-**Hook:** `pretool/bash/git-validator`
-**Event:** PreToolUse (Bash)
-**Behavior:** Validates git operations against project conventions — protected branches, commit message format, branch naming, and atomic commit rules.
-
-### What It Validates
-
-| Check | Description | Example Block |
-|-------|-------------|---------------|
-| **Protected branch** | Blocks direct commits/pushes to `main` or `master` | `git commit` while on `main` |
-| **Commit message** | Enforces conventional commit format: `type(scope): description` | `git commit -m "fixed stuff"` |
-| **Branch naming** | Requires valid prefixes: `feat/`, `fix/`, `issue/`, `chore/`, etc. | `git checkout -b my-branch` |
-| **Atomic commits** | Flags commits touching too many files or mixing concerns | Committing 30 unrelated files |
-
-### CLI Proxy Compatibility (RTK)
-
-[RTK (Rust Token Killer)](https://github.com/rtk-ai/rtk) is a high-performance CLI proxy that compresses shell output before it reaches Claude Code's context window, achieving 60-90% token savings. It works by intercepting commands via a PreToolUse hook — `rtk git status` runs `git status` under the hood and compresses the output.
-
-Because RTK prefixes commands with `rtk ` (e.g., `rtk git commit ...` instead of `git commit ...`), the prefixed command would bypass all git validation without normalization — `/^git\s+commit/` wouldn't match `rtk git commit`.
-
-OrchestKit strips proxy prefixes **before any validation**:
-
-```typescript
-/**
- * Strip CLI proxy prefixes (e.g. `rtk git ...` → `git ...`) so pattern
- * matching works regardless of whether a token-optimizing proxy is active.
- */
-function stripProxyPrefix(cmd: string): string {
-  return cmd.replace(/^rtk\s+/, '');
-}
-```
-
-This runs in two locations:
-- **`git-validator`** — strips before commit message, branch name, and protected branch validation
-- **`guardGitCommand()`** — strips before the guard decides whether to activate git-related hooks
-
-The stripping is **always active** with zero configuration. When RTK is not in use, the regex simply doesn't match — zero overhead.
-
-<Callout type="info">
-Tested with RTK v0.33.1 (March 2026). Added in OrchestKit 7.23.0 (CC 2.1.83). If you use a different CLI proxy that prefixes commands, [open an issue](https://github.com/yonatangross/orchestkit/issues) to add its prefix to the strip pattern.
-</Callout>
-
-### Validation Flow
-
-```
-User runs: rtk git commit -m "bad message"
-         ↓
-Hook receives: "rtk git commit -m 'bad message'"
-         ↓
-stripProxyPrefix() → "git commit -m 'bad message'"
-         ↓
-Pattern /git\s+commit/ matches ✓
-         ↓
-Commit message validation runs correctly
-```
-
-### RTK + OrchestKit Coexistence
-
-Both RTK and OrchestKit use the PreToolUse hook system. They coexist without conflicts — RTK rewrites happen at the Bash execution layer (compressing output), while OrchestKit hooks validate the command _before_ execution.
-
-**Recommended setup:**
-
-```bash
-# Install RTK globally
-brew install rtk
-
-# Initialize RTK hooks globally (recommended over per-project)
-rtk init -g
-
-# Use --hook-only to avoid RTK modifying CLAUDE.md (OrchestKit manages it)
-rtk init -g --hook-only
-```
-
-<Callout type="warn">
-RTK v0.33.0+ replaces git status symbols (`*`, `+`, `~`, `?`) with plain-text labels (`modified`, `added`). If you have hooks or scripts that parse raw `git status` output, verify they handle the compressed format.
-</Callout>
 
 ## Permission Auto-Approve Hooks
 
@@ -304,7 +91,7 @@ Auto-approves bash commands that are known to be read-only or safe:
 | **GitHub CLI** | `gh issue list`, `gh pr view`, `gh repo status`, `gh milestone` |
 | **Testing/linting** | `pytest`, `npm run test`, `npm run lint`, `ruff check`, `mypy` |
 
-Commands not matching any safe pattern fall through to manual user approval -- they are not denied, just not auto-approved.
+Commands not matching any safe pattern fall through to manual user approval; they are not denied, just not auto-approved.
 
 ### Auto-Approve Project Writes
 
@@ -340,72 +127,42 @@ Read, Glob, and Grep operations have an empty hooks array in the `PermissionRequ
 **Hook:** `permission/learning-tracker`
 **Event:** PermissionRequest (Bash)
 
-Tracks which commands the user manually approves over time. This data feeds into pattern learning -- if you consistently approve `docker build` commands, the system notes this for potential future auto-approval.
+Tracks which commands the user manually approves over time. This data feeds into pattern learning: if you consistently approve `docker build` commands, the system notes this for potential future auto-approval.
 
 ## Additional PreToolUse Safety Hooks
 
-Beyond the command blocker and file guard, several other hooks provide safety at the PreToolUse stage:
+Beyond the operator deny rules and the sync Bash dispatcher, two dispatchers run more checks at the PreToolUse stage:
 
-### Compound Command Validator
+### Write and Edit
 
-**Hook:** `pretool/bash/compound-command-validator`
+`pretool/write-edit/sync-write-edit-dispatcher` runs `content-secret-scanner`, `context-file-budget-guard`, `dependency-confusion-scanner` and `write-headers`, then `unified-quality-dispatcher`. That dispatcher calls `security-pattern-validator` first: it checks code being written for hardcoded secrets, SQL and command injection, `eval`/`exec`, `shell=True`, `innerHTML`, insecure random numbers and plain HTTP URLs, and adds a warning to Claude's context (it does not block). Then `architecture-change-detector` adds context when a write touches an architecturally significant file, reminding Claude about backwards compatibility and documentation.
 
-Validates compound bash commands (piped, chained with `&&` or `;`) to ensure no individual segment contains dangerous patterns that might be hidden within a longer command.
+### Agent spawns (Task hooks)
 
-### Security Pattern Validator
-
-**Hook:** `pretool/Write/security-pattern-validator`
-
-Checks code being written for common security anti-patterns:
-- Hardcoded secrets or API keys
-- SQL injection vulnerabilities
-- Unsafe deserialization patterns
-
-### Architecture Change Detector
-
-**Hook:** `pretool/Write/architecture-change-detector`
-
-Detects when a write modifies a file that represents a significant architectural component. Injects context reminding Claude to consider backwards compatibility and documentation updates.
-
-### Multi-Instance Lock
-
-**Hook:** `pretool/write-edit/multi-instance-lock`
-
-When multiple Claude instances are running on the same project, this hook acquires a file lock before allowing writes. Uses atomic file operations (write to temp, then `renameSync`) to prevent race conditions.
-
-### Agent-Scoped Safety (Task hooks)
-
-When spawning subagents via the Task tool, 5 additional hooks validate the operation:
-
-| Hook | Purpose |
-|------|---------|
-| `agent/block-writes` | Prevents certain agents from writing outside their scope |
-| `agent/migration-safety-check` | Validates database migrations before execution |
-| `agent/security-command-audit` | Audits commands issued by security-sensitive agents |
-| `agent/ci-safety-check` | Validates CI/CD pipeline modifications |
-| `agent/deployment-safety-check` | Guards against risky deployment operations |
+`pretool/task/sync-task-dispatcher` runs `unified-agent-safety-dispatcher`, which keeps one check: `security-command-audit`, advisory only (it never blocks). The other four agent safety checks (`block-writes`, `migration-safety-check`, `ci-safety-check`, `deployment-safety-check`) were retired in #3835.
 
 ## PostToolUse Safety
 
-### Secret Redactor
+### Secret Handler
 
-**Hook:** `skill/redact-secrets`
-**Event:** PostToolUse (Bash)
+**Hook:** `posttool/secret-handler`
+**Event:** PostToolUse (Read, Bash, Grep, Glob)
 
-After a bash command completes, this hook scans the output for patterns that look like secrets (API keys, tokens, passwords) and redacts them before they appear in the conversation context.
+Scans tool output for secrets. The `ORK_SECRET_HOOK` variable picks the mode: `AUDIT` (the default) logs would-be matches and leaves the output alone, `REDACT` replaces bounded patterns in place and withholds the whole output for critical ones, and `OFF` disables it.
 
-### Unified Error Handler
+### Failure Handler
 
-**Hook:** `posttool/unified-error-handler`
-**Event:** PostToolUse (Bash|Write|Edit|Task|Skill|NotebookEdit)
+**Hook:** `posttool/failure-handler`
+**Event:** PostToolUseFailure
 
-Categorizes tool failures and provides actionable recovery suggestions. Tracks error patterns across the session to detect systemic issues.
+When a tool fails, adds context with likely causes and recovery suggestions.
+
 
 ## Customizing Safety Hooks
 
 ### Hook Overrides
 
-You can disable specific hooks per-project by creating `.claude/hook-overrides.json`:
+You can disable specific hooks only at user scope via `~/.claude/hook-overrides.json` (project-level `.claude/hook-overrides.json` is not read; AF-12 / #4220):
 
 ```json
 {
@@ -419,7 +176,7 @@ You can disable specific hooks per-project by creating `.claude/hook-overrides.j
 ```
 
 <Callout type="warn">
-Never disable security-critical hooks like `dangerous-command-blocker` or `file-guard`. These exist to prevent catastrophic damage and should remain active at all times.
+Never disable security-critical hooks. Entries in `SECURITY_HOOKS` (including the Bash / Write-Edit dispatchers) ignore overrides and warn on stderr instead.
 </Callout>
 
 ### Permission Mode: dontAsk
@@ -438,7 +195,7 @@ export function myQualityGate(input: HookInput): HookResult {
 }
 ```
 
-Security-critical hooks (dangerous command blocker, file guard) always block regardless of permission mode.
+Operator deny rules always block regardless of permission mode, because Claude Code enforces them itself.
 
 ## Audit Trail
 
@@ -446,8 +203,6 @@ All permission decisions are logged to `~/.claude/logs/ork/permission-feedback.l
 
 ```
 2026-01-23T10:15:30.123Z | allow | Matches safe pattern: /^git status/ | tool=Bash | session=abc123
-2026-01-23T10:15:31.456Z | deny  | Protected file blocked: .env | tool=Write | session=abc123
-2026-01-23T10:15:32.789Z | warn  | Config file modification: package.json | tool=Edit | session=abc123
 ```
 
 The log rotates automatically at 100 KB. General hook activity is logged to `hooks.log` with rotation at 200 KB.

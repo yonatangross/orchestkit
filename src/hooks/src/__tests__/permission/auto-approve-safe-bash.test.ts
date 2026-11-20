@@ -3,7 +3,7 @@
  * Tests safe command pattern matching and permission decisions
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 import { autoApproveSafeBash } from '../../permission/auto-approve-safe-bash.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
@@ -31,6 +31,16 @@ function createBashInput(command: string): HookInput {
 }
 
 let testCtx: ReturnType<typeof createTestContext>;
+
+const __ORK_PAA_PREV = process.env.ORK_PERMISSION_AUTO_APPROVE;
+beforeEach(() => {
+  process.env.ORK_PERMISSION_AUTO_APPROVE = '1';
+});
+afterEach(() => {
+  if (__ORK_PAA_PREV === undefined) delete process.env.ORK_PERMISSION_AUTO_APPROVE;
+  else process.env.ORK_PERMISSION_AUTO_APPROVE = __ORK_PAA_PREV;
+});
+
 describe('auto-approve-safe-bash', () => {
   beforeEach(() => {
     testCtx = createTestContext();
@@ -54,7 +64,9 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -68,7 +80,7 @@ describe('auto-approve-safe-bash', () => {
       'npm test',
       'pnpm list',
       'pnpm audit',
-      'pnpm run build',
+      'pnpm run test',
       'yarn list',
       'yarn outdated',
       'yarn test',
@@ -82,7 +94,9 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -103,7 +117,9 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -125,9 +141,6 @@ describe('auto-approve-safe-bash', () => {
       'find . -type f',
       'which node',
       'type python',
-      'env',
-      'printenv',
-      'printenv PATH',
     ];
 
     test.each(safeShellCommands)('auto-approves: %s', (command) => {
@@ -135,7 +148,9 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -157,7 +172,9 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -181,7 +198,9 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -213,6 +232,41 @@ describe('auto-approve-safe-bash', () => {
       'find . -fprint0 /tmp/out',
       'find . -fprintf /tmp/out "%p\\n"',
       'find / -fls /tmp/inventory',
+      // HR-1 (#4216): the five shapes the audit probe auto-approved.
+      // Command substitution — also inside double quotes (bash expands there).
+      'echo $(whoami)',
+      'echo "$(whoami)"',
+      'echo `id`',
+      // Redirect writes a file the prefix allowlist cannot see.
+      'echo hi > /tmp/out.txt',
+      'cat secret.txt >> /tmp/exfil',
+      // Environment dumps exfiltrate exported secrets.
+      'env',
+      'printenv',
+      'printenv ORCHESTKIT_HOOK_TOKEN',
+      // find -exec/-execdir run arbitrary commands per match, no ';' needed.
+      'find . -exec rm {} +',
+      'find . -name "*.log" -execdir rm {} +',
+      // Credential-path reads under a read-only prefix.
+      'cat ~/.ssh/id_rsa',
+      'cat ~/.aws/credentials',
+      'cat .env',
+      'cat .envrc',
+      'cat ~/.netrc',
+      'head -5 ~/.kube/config',
+      'tail ~/.git-credentials',
+      'cat ~/.config/gh/hosts.yml',
+      'cat /etc/master.passwd',
+      // HR-1 followup: the reject keys on the PATH, not the reader. fmt, pr,
+      // comm and tsort all print files and were measured auto-approved.
+      'fmt ~/.ssh/id_rsa',
+      'pr ~/.aws/credentials',
+      'comm ~/.kube/config ~/.bashrc',
+      'tsort ~/.netrc',
+      // Same holds for non-reader commands that name a secret path.
+      'cp ~/.ssh/id_rsa /tmp/staging/',
+      'wc -l .envrc',
+      'test -f ~/.aws/credentials',
     ];
 
     test.each(dangerousCommands)('requires manual approval: %s', (command) => {
@@ -252,7 +306,9 @@ describe('auto-approve-safe-bash', () => {
 
       // Normalization trims whitespace, so pattern now matches (SEC improvement)
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('rejects compound commands (git status && rm -rf /)', () => {
@@ -270,15 +326,18 @@ describe('auto-approve-safe-bash', () => {
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles command with special characters', () => {
+      // HR-1 (#4216): $( ) inside double quotes executes — was auto-approved.
       const input = createBashInput('echo "$(whoami)"');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('rejects multiline commands (compound via newline)', () => {
@@ -310,14 +369,19 @@ describe('auto-approve-safe-bash', () => {
       const input = createBashInput('ls -la /usr/bin');
       const result = autoApproveSafeBash(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('approves echo with complex arguments', () => {
+    test('echo with parameter expansion drops to manual approval', () => {
+      // $VAR and ${...} still expand inside double quotes, so the hook cannot
+      // read the argument literally.
       const input = createBashInput(`echo "test $VAR \${ANOTHER:-default}"`);
       const result = autoApproveSafeBash(input, testCtx);
 
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 
@@ -331,23 +395,24 @@ describe('auto-approve-safe-bash', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('npm run build → auto-approved (npm run <anything> is in SAFE_PATTERNS)', () => {
-      // The SAFE_PATTERNS regex /^npm (list|ls|outdated|audit|run|test)/ matches
-      // "npm run <anything>" — build is an allowed npm run target
+    test('npm run build → manual approval (only test/lint/typecheck/format scripts auto-approve)', () => {
+      // A bare `run <script>` runs whatever package.json defines, so only the
+      // named test/lint/typecheck/format scripts are on the allowlist.
       const input = createBashInput('npm run build');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
-    test('pnpm run build → auto-approved (pnpm run <anything> is in SAFE_PATTERNS)', () => {
-      // Same as npm run — the pattern /^pnpm (list|ls|outdated|audit|run|test)/ allows "pnpm run build"
+    test('pnpm run build → manual approval (only test/lint/typecheck/format scripts auto-approve)', () => {
       const input = createBashInput('pnpm run build');
       const result = autoApproveSafeBash(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('non-Bash tool (Write) → does not crash and returns continue: true', () => {
@@ -386,7 +451,9 @@ describe('auto-approve-safe-bash', () => {
       const input = createBashInput(command);
       const result = autoApproveSafeBash(input, testCtx);
       expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      expect(result.hookSpecificOutput?.hookEventName).toBe('PermissionRequest');
+      expect(result.hookSpecificOutput?.decision?.behavior).toBe('allow');
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
   });
 });

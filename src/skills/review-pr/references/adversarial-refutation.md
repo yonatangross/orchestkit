@@ -7,6 +7,8 @@ Thin adapter. Loads the shared engine, then binds it to review-pr's finding + ve
 UPHELD-default, deterministic-exemption, no-auto-flip, spawn-ceiling, ledger schema, and
 isolated-spawn rules. This file only supplies what's review-pr-specific.
 
+**Default path:** `workflows/review-fanout.js` enforces the effort gate, the scope filter, blindness, the quorum, the deterministic exemption and the section 8 ceiling below, and returns the ledger. The shell still does section 3 (re-open each cited `file:line`) and section 7 (ask before a kill removes a blocker). The rest of this file is the contract the script follows and the procedure for the fallback path.
+
 ## Bindings
 
 | Engine concept | review-pr binding |

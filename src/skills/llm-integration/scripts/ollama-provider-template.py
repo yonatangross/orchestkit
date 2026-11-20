@@ -18,9 +18,10 @@ Issue #606: CI Cost Reduction via Local Models
 
 from __future__ import annotations
 
+import contextlib
 import os
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -36,7 +37,7 @@ if TYPE_CHECKING:
 # =============================================================================
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     """Task types for model selection."""
 
     REASONING = "reasoning"
@@ -324,10 +325,15 @@ def get_llm_provider(task_type: TaskType = TaskType.REASONING) -> OllamaProvider
     # available (Fairwind Program only). Prices live in models.vocab.json.
     model = {
         TaskType.REASONING: "gemini-3.8-flash",
-        TaskType.CODING: "claude-sonnet-4-6",
-        TaskType.GENERAL: "claude-haiku-4-5-20251001",
-    }.get(task_type, "claude-haiku-4-5-20251001")
+        TaskType.CODING: "claude-sonnet-5-5",
+        TaskType.GENERAL: "claude-haiku-5-5",
+    }.get(task_type, "claude-haiku-5-5")
 
+    # Claude 5-series models reject non-default sampling params with a 400; send temperature only to the others.
+    if model.startswith(
+        ("claude-sonnet-5", "claude-opus-5", "claude-fable-5", "claude-mythos-5", "claude-haiku-5")
+    ):
+        return init_chat_model(model)
     return init_chat_model(model, temperature=0.0)
 
 
@@ -377,17 +383,15 @@ async def prewarm_models() -> None:
 
     async with httpx.AsyncClient() as client:
         # Warm embedding model
-        try:
+        with contextlib.suppress(httpx.HTTPError):
             await client.post(
                 f"{config.host}/api/embeddings",
                 json={"model": config.model_embed, "prompt": "warmup"},
                 timeout=60.0,
             )
-        except httpx.HTTPError:
-            pass
 
         # Warm reasoning model (minimal generation)
-        try:
+        with contextlib.suppress(httpx.HTTPError):
             await client.post(
                 f"{config.host}/api/chat",
                 json={
@@ -397,8 +401,6 @@ async def prewarm_models() -> None:
                 },
                 timeout=120.0,
             )
-        except httpx.HTTPError:
-            pass
 
 
 def get_available_models() -> list[str]:

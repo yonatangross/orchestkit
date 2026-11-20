@@ -1,0 +1,8 @@
+{
+  "slug": "opus55-w1a-wording-ids-api",
+  "source": "docs/chore--opus55-w1a-wording-ids-api/index.html",
+  "title": "Opus 5.5 wording, model ids and Claude API tool rules",
+  "description": "Every source and test file this PR changes, before and after.",
+  "tags": ["skills", "opus-5-5", "audit"],
+  "date": "2026-09-25"
+}

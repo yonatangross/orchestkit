@@ -12,20 +12,26 @@ paths:
 - `tools`: array of tool names — e.g. Read, Write, Edit, Bash, Grep, Glob, Agent(sub-name)
 - `skills`: array of skill names the agent can access
 
+## House Keys Live Under `metadata` (m3)
+Ork-only keys are not Claude Code subagent keys, so they sit under `metadata:` as quoted strings (G1, `scripts/check-frontmatter.py`). The shared parsers (`scripts/lib/parse-frontmatter.js`, `scripts/_build-docs-generate.py`) lift them back for the build and tests.
+- `category: "backend"` (required; drives the agent index and docs)
+- `taskTypes: "build, review"`, `keywords: "a, b, c"` (comma-joined lists)
+- `examplePrompts: "first prompt | second prompt"` (exactly 2, joined with ` | ` because prompts hold commas)
+- `critical_system_reminder: "..."` (optional). Informational only: no hook reads it at spawn (the old subagent-context-stager was removed in #2376)
+- `required_mcp_servers: "name1, name2"` (optional). Informational only: nothing checks it at spawn
+- `context:` is gone. There is no Claude Code evidence that a subagent reads it (it is a skill key), so do not add it to agents.
+
 ## Optional Flags
-- `background: true` — agent never needs interactive results (fire-and-forget)
-- `isolation: worktree` — run in isolated git worktree (safe for heavy writes)
-- `context: fork` — isolated subagent context
-- `maxTurns: N` — conversation turn limit
-- `critical_system_reminder: "..."` — persistent guardrail injected at spawn via context-stager
-- `required_mcp_servers: [name1, name2]` — warns if MCP servers unavailable at spawn
+- `background: true`: agent never needs interactive results (fire-and-forget)
+- `isolation: worktree`: allowlist only (`git-operations-engineer`, `release-engineer`, #4557). It is forced on every spawn and breaks spawns from a non-git cwd; writers get `Agent(isolation="worktree")` from the caller instead
+- `maxTurns: N`: conversation turn limit
 - `disallowedTools: [...]` — deny-list. CC 2.1.178 **fixed** MCP server-level specs (`mcp__server`, `mcp__server__*`, `mcp__*`) being silently ignored in subagents; they now enforce at spawn. Use `disallowedTools: [mcp__*]` to scope MCP access for a background/untrusted subagent.
 
 ## Agent-scoped `hooks:` (CC ≥ 2.1.116)
 Hooks declared in agent frontmatter fire in both contexts: spawned-as-subagent (Task tool) AND main-thread (`claude --agent <name>`). Write hooks context-agnostic — validate `tool_input`, apply policy, log with `CLAUDE_AGENT_ID` (defaults to `'unknown'`). Do not branch on "am I a subagent?".
 
 ## Decision Guide
-- Heavy writes (build, refactor)? → `isolation: worktree`
+- Heavy writes (build, refactor)? → caller passes `isolation="worktree"` per spawn
 - Fire-and-forget (research, eval)? → `background: true`
 - Needs user interaction? → neither flag
 - Spawns subagents? → add `Agent(sub-name)` to tools

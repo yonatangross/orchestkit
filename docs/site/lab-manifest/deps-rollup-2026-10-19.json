@@ -1,0 +1,8 @@
+{
+  "slug": "deps-rollup-2026-10-19",
+  "source": "docs/chore--deps-rollup-2026-10-19/index.html",
+  "title": "Dependency rollup, 2026-10-19",
+  "description": "13 patch and minor bot updates in one PR across three npm trees, 4 transitive dev-only moves, and a docker update group.",
+  "tags": ["dependencies", "dependabot", "chore"],
+  "date": "2026-10-21"
+}

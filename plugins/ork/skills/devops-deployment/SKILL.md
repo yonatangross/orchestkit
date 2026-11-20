@@ -1,25 +1,18 @@
 ---
 name: devops-deployment
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.
-tags: [devops, ci-cd, docker, kubernetes, terraform]
-context: fork
-agent: ci-cd-engineer
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "CI/CD, containers and infrastructure as code: GitHub Actions, Docker, Kubernetes, Helm, Terraform. Use when setting up pipelines or deployments."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: guidance
 metadata:
+  owner-agent: "ci-cd-engineer"
   category: workflow-automation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "devops, ci-cd, docker, kubernetes, terraform"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: [".github/workflows/**", "Dockerfile*", "docker-compose*", "**/k8s/**", "**/terraform/**"]
 path_patterns: ["*.tf", "*.tfvars", "**/k8s/**", "**/helm/**", "Dockerfile*", ".github/workflows/*"]
 invocation_hooks:
@@ -186,20 +179,20 @@ threshold, config or ordering decision, not the vendor tutorial.
 | structlog context binding | https://www.structlog.org/en/stable/contextvars.html (the bind-then-call ordering stays in `references/ork-delta.md`) |
 | Trivy severity filtering and scan configuration | https://trivy.dev/latest/docs/configuration/filtering/ (the house image-scan CI wiring stays in `references/docker-patterns.md`, the weekly-scan schedule and severity floor in `references/ork-delta.md`) |
 | CloudFront invalidation semantics and cost | https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html (the sync-then-invalidate order stays in `references/ork-delta.md`) |
-| Pre-launch security, load-testing and monitoring checklists | `ork:security-patterns`, `ork:testing-perf`, `ork:monitoring-observability` (the deploy-day checklist stays in `references/checklists-and-templates.md`) |
+| Pre-launch security, load-testing and monitoring checklists | `ork:security-patterns`, `ork:testing-perf`, `ork-extras:monitoring-observability` (the deploy-day checklist stays in `references/checklists-and-templates.md`) |
 
 ---
 
 ## Deployment Checklist & Templates
 
-Load: `Read("references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, template reference table, and extended thinking triggers.
+Load: `Read("references/checklists-and-templates.md")` for pre/during/post-deployment checklists, Helm chart structure, and template reference table.
 
 ---
 
 ## Related Skills
 
 - `ork:security-patterns` - Security scanning and hardening patterns for CI/CD pipelines
-- `ork:monitoring-observability` - Prometheus, Grafana and alerting for deployed applications
+- `ork-extras:monitoring-observability` - Prometheus, Grafana and alerting for deployed applications
 - `ork:database-patterns` - Python/Alembic migration workflow for backend deployments
 - `portless` (upstream) - Named `.localhost` URLs for multi-service local dev (`portless alias api 8080`)
 

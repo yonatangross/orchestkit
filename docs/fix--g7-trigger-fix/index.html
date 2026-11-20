@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trigger wording for three skills and an open-pr route</title>
+<meta name="description" content="Before and after of the descriptions of fix-issue, review-pr and create-pr, the new open-pr route in ork:auto, and the nine offline fire cases that pin them, with the two recorded gaps.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--status-ok:#4ade80;--status-bad:#f87171;--status-warn:#fbbf24;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--pg-accent);text-transform:uppercase;letter-spacing:.06em}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--pg-dim);font-weight:400}
+  label{display:block;color:var(--pg-dim);font-size:.8rem;margin-top:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.8rem}
+  select{width:100%}
+  button{margin-top:1rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:var(--pg-well);border:1px solid var(--pg-edge);border-radius:6px;font-size:.78rem;min-height:4rem;white-space:pre-wrap;word-break:break-word}
+  .ok{color:var(--status-ok)} .bad{color:var(--status-bad)} .warn{color:var(--status-warn)}
+  table{width:100%;border-collapse:collapse;font-size:.78rem}
+  th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  code{background:var(--pg-well);padding:.05rem .3rem;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+</head>
+<body><main>
+<h1>Trigger wording for three skills and an open-pr route</h1>
+<p class="sub">The model reads each skill's one-line description to decide whether a plain request is a job for that skill. These three lines did not carry the words people type for those jobs, and ork:auto had no route for opening a PR. The texts below are the ones in this branch and on main.</p>
+
+<section><h2>1 / Descriptions, before and after</h2>
+<label for="skill">Skill</label>
+<select id="skill"></select>
+<div class="grid">
+  <div><h3>Before (main)</h3><div class="out bad" id="before"></div></div>
+  <div><h3>After (this branch)</h3><div class="out ok" id="after"></div></div>
+</div>
+<p id="note"></p>
+</section>
+
+<section><h2>2 / Routes in ork:auto</h2>
+<table>
+<tr><th>Route</th><th>Change</th></tr>
+<tr><td><code>open-pr</code></td><td>New row routing to <code>create-pr</code>. Called open-pr, not promote, so it stays apart from the holdout-promotion gate and from promoting a branch to production.</td></tr>
+<tr><td><code>diagnose</code></td><td>Signals add triage, root cause and culprit commit.</td></tr>
+<tr><td><code>review</code></td><td>Signals add the word diff. A PR to read is review, a PR to open is open-pr.</td></tr>
+</table>
+<p>The routing rules also say what each skill cannot take: fix-issue resolves its target from an issue number or URL, review-pr takes a PR, a branch or a <code>base...head</code> range (not pasted diff text), and create-pr opens the PR with gh and has no text-only mode.</p>
+</section>
+
+<section><h2>3 / The offline fire cases</h2>
+<p>Nine natural prompts, none naming a skill. For each, the test checks without a model call that the expected skill is the best lexical match in the listing and leads the runner-up by at least 1.0 point, and that the ork:auto table has a row for the intent that points at it. A pasted diff is dropped before scoring, because its code identifiers are not the request (an <code>expect(...)</code> line once scored as the name of another skill). The minimum is enforced in the test, with planted controls that fail on a tie, on a thin win and on the wrong skill first. Two cases are recorded as gaps the skills do not cover, and they print SKIP, never pass.</p>
+<table>
+<tr><th>Case</th><th>Lead over the runner-up</th></tr>
+<tr><td>40 triage root cause</td><td>6.0</td></tr>
+<tr><td>50 review sql injection</td><td>14.1</td></tr>
+<tr><td>51 review unawaited forEach</td><td>7.4 (it lost by 0.1 when the design-to-code rework was merged, before this change)</td></tr>
+<tr><td>60 promote, PR title and body</td><td>1.5 (10.9 before the create-pr gate sentence was restored: still first, thin)</td></tr>
+<tr><td>70, 71, 72 ci-debug</td><td>3.7, 1.6, 6.6</td></tr>
+</table>
+<label><input type="checkbox" id="gaps" checked> show the two known gaps</label>
+<table id="cases"><tr><th>Case</th><th>Expected skill</th><th>auto intent</th><th>Result</th></tr></table>
+<p id="tally"></p>
+</section>
+
+<section><h2>What this does not show</h2>
+<p class="warn">Whether a model now calls the Skill tool for these prompts. The checks pin the wording; only an eval run shows firing, and none was run. The wording was edited with these prompts in view, so the checks guard against the wording being edited away, not against a wrong choice.</p>
+<div class="out" id="cp"></div>
+<button id="copy" type="button">Copy as prompt</button>
+</section>
+
+<script>
+const SKILLS = {
+  'fix-issue': {
+    before: 'Fixes a GitHub issue: parallel root-cause analysis, a fix with tests, a PR linked back to the issue, and prevention notes. Use when fixing a bug, regression or reported issue.',
+    after: 'Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one.',
+    note: 'Adds the words people type for triage (root cause, culprit) and says what the skill needs: it resolves its target from an issue number or URL and stops with TARGET_UNRESOLVED otherwise, so the listing line now says so instead of inviting pasted bug reports.'
+  },
+  'review-pr': {
+    before: 'PR review by parallel agents (quality, security, tests, architecture, performance) with conventional comments and an approve or request-changes verdict. Use when a pull request needs a reviewer. Not for design scores (use assess).',
+    after: 'Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess).',
+    note: 'Names the three inputs it takes (PR, branch, diff range) and the moment people ask for it (before a merge).'
+  },
+  'create-pr': {
+    before: 'Opens a GitHub PR after pre-flight checks (tests, lint, types, security) with a conventional title and summary. Use only when asked for this skill; an everyday gh pr create stays plain tooling.',
+    after: 'Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling.',
+    note: 'The gate sentence from the earlier description diet is kept as it was: this skill opens a PR with gh, so it is used when asked for. Only the first sentence changed (GitHub PR to PR, summary to body). The ork:auto open-pr route is how a person asks for it by intent.'
+  }
+};
+const CASES = [
+  ['40 triage root cause from a report', 'fix-issue', 'diagnose', null],
+  ['41 triage regression window', 'fix-issue', 'none', 'Asks for exact bisect commands between two tags; fix-issue finds the introducing commit by blame and has no bisect step.'],
+  ['50 review sql injection', 'review-pr', 'review', null],
+  ['51 review unawaited forEach', 'review-pr', 'review', null],
+  ['60 promote: PR title and body', 'create-pr', 'open-pr', null],
+  ['61 promote: hotfix path', 'create-pr', 'none', 'Asks which branch flow gets a hotfix to production; create-pr opens a PR against the default base and has no hotfix flow.'],
+  ['70 ci-debug lockfile drift', 'ci-debug', 'none', null],
+  ['71 ci-debug startup billing', 'ci-debug', 'none', null],
+  ['72 ci-debug vercel pending', 'ci-debug', 'none', null],
+];
+const pick = document.getElementById('skill');
+pick.replaceChildren(...Object.keys(SKILLS).map((k) => new Option(k, k)));
+function renderSkill() {
+  const s = SKILLS[pick.value];
+  document.getElementById('before').textContent = s.before + '\n\n(' + s.before.length + ' characters)';
+  document.getElementById('after').textContent = s.after + '\n\n(' + s.after.length + ' characters)';
+  document.getElementById('note').textContent = s.note;
+}
+pick.addEventListener('change', renderSkill);
+renderSkill();
+
+const gaps = document.getElementById('gaps');
+const table = document.getElementById('cases');
+function renderCases() {
+  const head = document.createElement('tr');
+  for (const h of ['Case', 'Expected skill', 'auto intent', 'Result']) { const th = document.createElement('th'); th.textContent = h; head.append(th); }
+  table.replaceChildren(head);
+  let shown = 0, checked = 0, skipped = 0;
+  for (const [name, skill, intent, gap] of CASES) {
+    if (gap) skipped += 1; else checked += 1;
+    if (gap && !gaps.checked) continue;
+    shown += 1;
+    const tr = document.createElement('tr');
+    const cells = [name, skill, intent, gap ? 'SKIP, known gap: ' + gap : 'checked'];
+    cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 3) td.className = gap ? 'warn' : 'ok'; tr.append(td); });
+    table.append(tr);
+  }
+  document.getElementById('tally').textContent = shown + ' shown: ' + checked + ' checked, ' + skipped + ' recorded as gaps, 0 failed.';
+}
+gaps.addEventListener('change', renderCases);
+renderCases();
+
+const PROMPT = 'Run node tests/skills/triggering/test-fire-cases.mjs in the orchestkit repo and tell me which of the nine fire cases pass, which are recorded gaps, and whether the description of create-pr still starts with "Opens a PR after pre-flight checks".';
+document.getElementById('cp').textContent = PROMPT;
+document.getElementById('copy').addEventListener('click', () => navigator.clipboard.writeText(PROMPT));
+</script>
+</main></body>
+</html>

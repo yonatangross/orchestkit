@@ -6,6 +6,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+# ORK_SKILLS_DIR lets tests/skills/test-description-standard-controls.sh point this
+# check at a planted skills tree and prove it still warns on a bad description.
+SKILLS_DIR="${ORK_SKILLS_DIR:-$PROJECT_ROOT/src/skills}"
+# The description standard is shared with the other description checks (#5043).
+# shellcheck source=../../fixtures/description-standard.sh
+source "$SCRIPT_DIR/../../fixtures/description-standard.sh"
 
 FAILED=0
 CHECKED=0
@@ -48,43 +54,23 @@ while IFS= read -r skill_file; do
         continue
     fi
 
-    desc_lower=$(echo "$description" | tr '[:upper:]' '[:lower:]')
-    name_lower=$(echo "$name" | tr '[:upper:]' '[:lower:]')
-
-    # Heuristic: description should include trigger phrasing
-    has_trigger=0
-    if [[ "$desc_lower" =~ "use when" ]] || \
-       [[ "$desc_lower" =~ "use for" ]] || \
-       [[ "$desc_lower" =~ "triggers on" ]] || \
-       [[ "$desc_lower" =~ "activates for" ]] || \
-       [[ "$desc_lower" =~ "use this" ]]; then
-        has_trigger=1
-    fi
-
-    if [[ $has_trigger -eq 0 ]]; then
+    # The model sees "name: description" in the listing, and #5043 descriptions lead
+    # with what the skill does, not its name. So a description is judged on its
+    # trigger phrase ("Use when|for|before|after|to|only when ...", see
+    # tests/fixtures/description-standard.sh), and the name or a name fragment only
+    # matters when there is no trigger phrase at all.
+    if ! description_has_trigger_phrase "$description"; then
         echo "WARN: $name - Missing trigger phrasing"
         echo "      File: $rel_path"
         WARNINGS=$((WARNINGS + 1))
-    fi
 
-    # Heuristic: description should mention skill name or a keyword fragment
-    if ! [[ "$desc_lower" =~ "$name_lower" ]]; then
-        # Allow partial match by splitting name on '-'
-        found_fragment=0
-        IFS='-' read -r -a parts <<< "$name_lower"
-        for part in "${parts[@]}"; do
-            if [[ ${#part} -ge 4 ]] && [[ "$desc_lower" =~ "$part" ]]; then
-                found_fragment=1
-                break
-            fi
-        done
-        if [[ $found_fragment -eq 0 ]]; then
+        if ! description_mentions_name "$description" "$name"; then
             echo "WARN: $name - Description does not mention skill name or fragments"
             echo "      File: $rel_path"
             WARNINGS=$((WARNINGS + 1))
         fi
     fi
-done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null)
+done < <(find "$SKILLS_DIR" -name "SKILL.md" -type f)
 
 echo
 echo "=========================================="
@@ -93,6 +79,13 @@ echo "=========================================="
 echo "Checked:  $CHECKED skills"
 echo "Failed:   $FAILED"
 echo "Warnings: $WARNINGS"
+
+# A run that looked at nothing must not read as a clean pass.
+if [[ $CHECKED -eq 0 ]]; then
+    echo
+    echo "FAIL: no SKILL.md found under $SKILLS_DIR, nothing was checked."
+    exit 1
+fi
 
 if [[ $FAILED -gt 0 ]]; then
     echo

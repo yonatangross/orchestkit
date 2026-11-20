@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeRabbit config: before and after (orchestkit)</title>
+<style>
+  :root { color-scheme: light dark; --bg:#fbfaf7; --fg:#1d1d1b; --mute:#6b6b66; --line:#e2dfd7; --on:#1f7a4d; --off:#a33b2b; --card:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141413; --fg:#ecebe6; --mute:#a3a29b; --line:#33322e; --on:#5cc191; --off:#e8826f; --card:#1c1c1a; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 48px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .verdict { color:var(--mute); margin:0 0 24px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .tabs button { border:1px solid var(--line); background:var(--card); color:var(--fg); padding:8px 14px; border-radius:8px; cursor:pointer; font:inherit; }
+  .tabs button[aria-pressed="true"] { border-color:var(--fg); font-weight:600; }
+  .row { display:grid; grid-template-columns: 1.3fr 1fr 1fr; gap:12px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--card); }
+  .row.head { font-weight:600; color:var(--mute); background:transparent; }
+  .row.changed .after { font-weight:600; }
+  .why { grid-column: 1 / -1; color:var(--mute); font-size:.9rem; display:none; }
+  .row.open .why { display:block; }
+  code { font-family: ui-monospace, monospace; font-size:.92em; }
+  .tag { font-size:.8rem; padding:1px 8px; border-radius:99px; border:1px solid currentColor; }
+  .tag.on { color:var(--on); } .tag.off { color:var(--off); }
+  .meter { margin:20px 0 8px; height:12px; border-radius:6px; background:var(--line); overflow:hidden; }
+  .meter span { display:block; height:100%; background:var(--on); width:0; transition:width .4s ease; }
+  footer { margin-top:24px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  footer button { border:1px solid var(--fg); background:var(--fg); color:var(--bg); padding:8px 14px; border-radius:8px; cursor:pointer; font:inherit; }
+  #status { color:var(--mute); font-size:.9rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="CodeRabbit config: before and after"><meta property="og:description" content="Which CodeRabbit review settings changed in orchestkit to stretch the free OSS review allowance, with the reason for each, and a copy-as-prompt button."><meta property="og:url" content="https://orchestkit.dev/lab/chore-coderabbit-align-central.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="CodeRabbit config: before and after"><meta name="twitter:description" content="Which CodeRabbit review settings changed in orchestkit to stretch the free OSS review allowance, with the reason for each, and a copy-as-prompt button."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>CodeRabbit config: before and after</h1>
+  <p class="verdict">Fewer review runs per PR and no repeated CI linter output, so the free OSS review allowance lasts longer. Path rules and tone are unchanged.</p>
+
+  <div class="tabs" role="group" aria-label="Filter">
+    <button type="button" data-filter="all" aria-pressed="true">All settings</button>
+    <button type="button" data-filter="changed" aria-pressed="false">Changed only</button>
+  </div>
+
+  <div class="meter" aria-hidden="true"><span id="meter"></span></div>
+  <p id="count" class="verdict"></p>
+
+  <div id="table" role="table" aria-label="Settings before and after"></div>
+
+  <footer>
+    <button type="button" id="copy">Copy as prompt</button>
+    <span id="status" role="status"></span>
+  </footer>
+</main>
+<script>
+const rows = [
+  ["reviews.profile", "chill", "quiet", "Fewer, higher-signal comments."],
+  ["auto_review.auto_pause_after_reviewed_commits", "default (5)", "1", "Fix pushes do not each spend a free review. Ask again with @coderabbitai review."],
+  ["auto_review.labels", "none", "!no-review", "Label a PR no-review to skip it."],
+  ["tools.biome", "on", "off", "Already runs in CI."],
+  ["tools.shellcheck", "on", "off", "Already runs in CI."],
+  ["tools.actionlint", "on", "off", "Already runs in CI."],
+  ["tools.oxc / languagetool / yamllint", "default on", "off", "Style noise; CI linters are authoritative."],
+  ["walkthrough extras", "default on", "off", "Fortune, sequence diagrams, effort estimate, suggested reviewers."],
+  ["chat.auto_reply", "true", "false", "Replies in a review thread do not start a new CodeRabbit turn."],
+  ["knowledge_base.learnings.scope", "auto", "local", "Matches the org central config."],
+  ["path_instructions", "5 rules", "5 rules", "Unchanged."],
+  ["tone_instructions", "221 chars", "221 chars", "Unchanged."],
+  ["security scanners", "default on", "default on", "gitleaks, trufflehog, zizmor, osvScanner stay on."]
+];
+const table = document.getElementById("table");
+const changed = rows.filter(r => r[1] !== r[2]).length;
+function tag(v) {
+  if (/^(on|true|default on)$/.test(v)) return `<span class="tag on">${v}</span>`;
+  if (/^(off|false)$/.test(v)) return `<span class="tag off">${v}</span>`;
+  return `<code>${v}</code>`;
+}
+function render(filter) {
+  const list = filter === "changed" ? rows.filter(r => r[1] !== r[2]) : rows;
+  table.innerHTML = `<div class="row head" role="row"><span>Setting</span><span>Before</span><span>After</span></div>` +
+    list.map(r => `<div class="row ${r[1] !== r[2] ? "changed" : ""}" role="row" tabindex="0">
+      <span><code>${r[0]}</code></span><span>${tag(r[1])}</span><span class="after">${tag(r[2])}</span>
+      <span class="why">${r[3]}</span></div>`).join("");
+  table.querySelectorAll(".row:not(.head)").forEach(el => {
+    const toggle = () => el.classList.toggle("open");
+    el.addEventListener("click", toggle);
+    el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+  });
+}
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  render(b.dataset.filter);
+}));
+document.getElementById("count").textContent = `${changed} of ${rows.length} settings changed. Click a row for the reason.`;
+requestAnimationFrame(() => { document.getElementById("meter").style.width = (changed / rows.length * 100) + "%"; });
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = "Apply these CodeRabbit settings to .coderabbit.yaml:\n" +
+    rows.filter(r => r[1] !== r[2]).map(r => `- ${r[0]}: ${r[1]} -> ${r[2]} (${r[3]})`).join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("status").textContent = "Copied."; }
+  catch { document.getElementById("status").textContent = "Copy failed; select the table instead."; }
+});
+render("all");
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

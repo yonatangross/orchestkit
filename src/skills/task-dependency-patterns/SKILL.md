@@ -1,25 +1,18 @@
 ---
 name: task-dependency-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.
-context: fork
-version: 1.0.0
-author: OrchestKit
-agent: workflow-architect
-tags: [task-management, dependencies, orchestration, workflow, coordination]
 user-invocable: false
 disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  owner-agent: "workflow-architect"
   category: workflow-automation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "task-management, dependencies, orchestration, workflow, coordination"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 # Reference skill: fenced calls below teach a pattern, they are not calls this
 # skill makes. Widening allowed-tools to satisfy the coverage gate would grant real
 # permissions (Agent, CronCreate) to something that never acts.
@@ -31,7 +24,7 @@ tool-coverage: illustrative
 ## Overview
 
 Claude Code 2.1.16 introduces a native Task Management System with four tools:
-> **CC 2.1.233 caveat:** the Task tools are removed for the newest models unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` is set in user or managed settings (or the shell). ork cannot ship that flag (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
+> **CC 2.1.268 caveat:** TaskCreate, TaskGet, TaskUpdate, TaskList, and TodoWrite are offered only on Claude 3.x, Opus 4.0 to 4.7, Sonnet 4.0 to 4.6, and Haiku 4.5. On models outside this allowlist, these tools are absent unless the operator sets `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. CC honours the flag only from user or managed settings (or the shell). ork cannot ship it (CC reads only `permissions` from plugin settings), so treat every Task-tool call in this skill as conditional on the operator's environment.
 
 - **TaskCreate**: Create new tasks with subject, description, and activeForm
 - **TaskUpdate**: Update status (pending → in_progress → completed), set dependencies
@@ -138,9 +131,9 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 
 > **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
 
-### When to Use Teams vs Task Tool
+### When to Use Teams vs Agent Tool
 
-| Criteria | Task Tool (subagents) | Agent Teams |
+| Criteria | Agent Tool (subagents) | Agent Teams |
 |----------|----------------------|-------------|
 | Independent tasks | Yes | Overkill |
 | Cross-cutting changes | Limited | Yes |
@@ -152,9 +145,15 @@ Agent Teams provides multi-agent coordination with shared task lists and peer-to
 ### Team Task Patterns
 
 ```
-# Spawn teammate into shared task list
+# Spawn teammate into shared task list. A teammate that writes files works in
+# a manual worktree the lead creates first (#4557); the lead merges its branch
+# before dependent tasks start. No isolation on the call: a call with name and
+# isolation launches a plain subagent, not a teammate (Claude Code docs).
+Bash("git worktree add .worktrees/backend -b feat/my-feature-backend feat/my-feature")
 Agent(
-  prompt="You are the backend architect...",
+  prompt="You are the backend architect... Work only in .worktrees/backend/ "
+         "(cd there, check pwd and branch first). Commit your work there and "
+         "message the lead your branch name and commit sha.",
   team_name="my-feature",
   name="backend-architect",
   subagent_type="ork:backend-system-architect"
@@ -197,7 +196,7 @@ When using Agent Teams, if context limit is reached mid-workflow:
 - Leaving tasks in_progress when blocked
 - Not marking tasks completed after finishing
 - Using broadcast for messages that only concern one teammate
-- Spawning teams for simple sequential work (use Task tool instead)
+- Spawning teams for simple sequential work (use Agent tool instead)
 
 ## Related Skills
 

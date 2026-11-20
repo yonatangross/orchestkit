@@ -23,7 +23,7 @@ isolated-spawn rules. This file only supplies what's assess-specific.
 A dimension score qualifies only if decision-bearing — ANY of:
 - score **≥8** (praise-inflation: the assessor patting the subject on the back) or **≤4** (over-penalty)
 - **high-weight** dimension (Security 0.20; Correctness/Maintainability/Compliance 0.15)
-- within **±0.5 of a grade boundary** (refutation could flip the letter grade)
+- within **0.5 of a rubric gate**: the composite `min_pass` (5.5) or the dimension's own `min_blocker` (Security 4.0). Grade edges sit at every whole number from 5 to 9, so a 0.5 window around them would select every score from 4.5 to 9.5 and void this filter
 - a Phase 5 **Quick Win** (effort ≤2, impact ≥4) that `/ork:implement` will act on
 
 Skip: mid-band (5-7) scores on low-weight dimensions (Scalability/Simplicity 0.10) not near a
@@ -43,3 +43,18 @@ boundary, and descriptive pros/cons with no score. Bounds spawns to ~2-4 per ass
 Even when Phase 2 ran in Agent Teams mode, Phase 2.5 refuters are ALWAYS standalone
 `Agent(...)` Task spawns with **no `team_name`** — fed only the serialized claim from
 `02-evaluation.json`. Joining the mesh would leak producer reasoning (engine rule 9).
+
+## What the workflow enforces vs the shell
+
+`workflows/assess-fanout.js` (the default Phase 2 and 2.5 path) enforces in code: the scope
+filter above, the effort gate, the ceiling (4 at `high`, 24 at `xhigh`, lowerable by
+`maxRefuters`, never raisable, ranked by weight then distance from a gate, overflow in
+`manualReview`), blindness (the refuter prompt carries the dimension, the scoped files and the
+rubric bands only), independent-score-first (the refuter returns its own band, the script
+compares), citation shape (an in-scope `file:line` plus a command, or the vote is upheld),
+majority of PLANNED votes (a dead or throwing refuter is upheld), and no-auto-flip (a revision
+that raises a score stays out of `chainVerdict` and lands in `confirmationNeeded`).
+
+The shell still owns: re-opening each cited `file:line` (engine section 3, a script has no fs),
+the user confirmation (section 7), writing `02b-refutation.json`, and the cross-model lane
+(section 11, a script cannot shell out), which runs only on the Agent tool fallback.

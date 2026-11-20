@@ -4,7 +4,7 @@
  *
  * Reads shared/cc-adoption-gaps.json (written by cc-release-watch.mjs).
  * For each entry where `features` is empty and `parse_failed` is false, calls
- * `claude -p --bare --model claude-opus-4-7` with a typed prompt to extract
+ * `claude -p --bare --model opus` with a typed prompt to extract
  * structured CCFeature[] from the snapshot file.
  *
  * Soft dependency on CLAUDE_CODE_OAUTH_TOKEN for the LLM extraction pass. If

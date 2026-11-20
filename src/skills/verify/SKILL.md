@@ -1,33 +1,33 @@
 ---
 name: verify
 license: MIT
-compatibility: "Claude Code 2.1.251+. Requires memory MCP server."
-description: "Grade work that already exists and decide whether it can merge. Runs the project's current unit, integration, and E2E suites plus security scanning and type checking, scores every dimension 0-10, and returns a merge verdict with a VERIFIED-vs-CLAIMED evidence manifest. Writes no test files and edits no source. Use when verifying changes are ready to merge. Use /ork:cover instead when the tests still have to be written."
+compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+description: "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover)."
 argument-hint: "[feature-or-scope]"
-context: fork
-# user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
-background: false
-version: 4.7.0
-author: OrchestKit
-tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
-allowed-tools: [SendMessage, AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskStop, mcp__memory__search_nodes, ToolSearch, CronCreate, CronDelete, Monitor, PushNotification]
+allowed-tools: "SendMessage AskUserQuestion Bash Read Write Edit Grep Glob Agent Workflow TaskCreate TaskUpdate TaskList TaskStop mcp__memory__search_nodes ToolSearch CronCreate CronDelete Monitor PushNotification"
 skills: [code-review-playbook, testing-unit, testing-e2e, testing-llm, testing-integration, testing-perf, memory, quality-gates, chain-patterns, browser-tools]
-complexity: high
-persuasion-type: discipline
 effort: high
 model: sonnet
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-framework-detector"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-framework-detector"
+          once: true
     - matcher: "Agent"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/verify-scoring-rubric-loader"
-      once: true
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/verify-scoring-rubric-loader"
+          once: true
 metadata:
   category: workflow-automation
   mcp-server: memory
+  version: "4.7.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "verification, testing, quality, validation, parallel-agents, grading"
 triggers:
   keywords: [verify, verifiy, validate, verification, "ready for merge", "check everything", "security scan", "give me a score", "full verification", "grade my", "verified vs claimed", "what did you actually verify", "prove it"]
   examples:
@@ -53,6 +53,8 @@ verify --scope=backend database migrations
 
 ## Argument Resolution
 
+A pronoun target (`this`, `them`, `the above`) is read back from the conversation, announced in one line, and used: `Read("../../shared/rules/target-resolution.md")`, inline half.
+
 ```python
 SCOPE = "$ARGUMENTS"       # Full argument string, e.g., "authentication flow"
 SCOPE_TOKEN = "$ARGUMENTS[0]"  # First token for flag detection (e.g., "--scope=backend")
@@ -74,22 +76,22 @@ for token in "$ARGUMENTS".split():
 # When set, apply the Streak Gate (see below). Full protocol: references/streak-gate.md
 ```
 
-Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5`) per CC 2.1.74.
+Pass `MODEL_OVERRIDE` to all Agent() calls via `model=MODEL_OVERRIDE` when set. Accepts symbolic names (`opus`, `sonnet`, `haiku`, `fable` on harnesses whose Agent tool lists it; note fable is premium API spend after 2026-07-12) or full IDs (`claude-opus-5-5`) per CC 2.1.74.
 
-> **Opus 5**: Agents use native adaptive thinking (no MCP sequential-thinking needed); defaults to `high` effort (CC 2.1.154+). Extended 128K output supports comprehensive verification reports.
+> **Opus 5.5**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Opus 5.5's own effort default is `medium`, one level below Opus 5's `high`, and CC 2.1.280+ starts a newly released model at its default, so pass `high` or `xhigh` for verification. Extended 128K output supports comprehensive verification reports.
 
 ---
 
-## STEP 0: Effort-Aware Verification Scaling (CC 2.1.76)
+## STEP 0: Effort-Aware Verification Scaling
 
 Scale verification depth based on `/effort` level:
 
 | Effort Level | Phases Run | Agents | Output |
 |-------------|------------|--------|--------|
 | **low** | Run tests only → pass/fail | 0 agents | Quick check |
-| **medium** | Tests + code quality + security | 3 agents | Score + top issues |
-| **high** (default) | All 8 phases + visual capture | 6-7 agents | Full report + grades |
-| **xhigh** (Opus 5, CC 2.1.111+) | All 8 phases + additional cross-file pattern sweep + self-verification pass | 6-7 agents | Full report with uncertainty annotations |
+| **medium** | Tests + code quality + security + API compliance | 4 agents | Score + top issues |
+| **high** (default) | All 8 phases + 2.5 visual capture | 6 agents | Full report + grades |
+| **xhigh** | All 8 phases + 2.5 visual capture + cross-file pattern sweep + self-verification pass | 6 agents | Full report with uncertainty annotations |
 
 > **Override:** Explicit user selection (e.g., "Full verification") overrides `/effort` downscaling.
 
@@ -115,25 +117,29 @@ AskUserQuestion(
 ```
 
 **Based on answer, adjust workflow:**
-- **Full verification**: All 9 phases (8 + 2.5), 7 parallel agents including visual capture
-- **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
+- **Full verification**: All 8 phases plus 2.5 (visual capture), 6 parallel Phase 2 agents
+- **Tests only**: Skip Phase 2 (agent dispatch) and 2.5 (visual capture)
 - **Security & code quality**: Run security-auditor + code-quality-reviewer agents
-- **Quick check**: Run tests only, skip grading and suggestions
+- **Quick check**: Run tests only, skip grading and suggestions (skips Phase 2, outside the Fan-out rule)
 
 ---
 
 ## STEP 0b: Select Orchestration Mode
 
-Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Task Tool comparison, and mode selection rules.
+Load details: `Read("references/orchestration-mode.md")` for env var check logic, Agent Teams vs Agent Tool comparison, and mode selection rules.
 
-Choose **Agent Teams** (mesh -- verifiers share findings) or **Task tool** (star -- all report to lead) based on the orchestration mode reference.
+Default: **Workflow** (star, `workflows/verify-dispatch.js` runs Phase 2). Choose **Agent Teams** (mesh, verifiers share findings) when findings need debate, or the plain **Agent tool** (star) when the Workflow tool is unavailable, per the orchestration mode reference.
+
+**Fan-out rule:** a single pass is never a fallback when the selected scope runs Phase 2. Phase 2 runs through the Workflow call, Agent Teams, or the Agent tool; if none of them spawns a verifier, end the run as BLOCKED and say why. A scope that skips Phase 2 (effort low, Tests only, Quick check) is not a violation.
+
+**Refused workflow rule:** if the Workflow call is refused, errors or is unavailable, the report's first Phase 2 line reads `Phase 2: verify-dispatch workflow not run (<refused|error|unavailable>: <reason>), fell back to <Agent Teams|Agent tool>`, and the verdict is IMPROVEMENTS RECOMMENDED at most, because the refuter majority and evidence gate in verify-dispatch.js did not run. Headless (`claude -p`) needs Workflow allowed (`Workflow(ork:verify-dispatch)` allow rule, auto or bypass); it does not need `--add-dir`.
 
 ---
 
 ### MCP Probe + Resume
 
 ```python
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 Write(".claude/chain/capabilities.json", { memory, timestamp })
 
@@ -155,7 +161,7 @@ Write(".claude/chain/verify-results.json", JSON.stringify({
 }))
 ```
 
-### Regression Monitor (CC 2.1.71)
+### Regression Monitor
 
 Optionally schedule post-verification monitoring:
 
@@ -172,35 +178,11 @@ CronCreate(
 
 ---
 
-## Task Management (CC 2.1.16)
+**Finish line.** Done means: every selected dimension has a score backed by a command you ran this session, and the report separates VERIFIED from CLAIMED. Follow `Read("../../shared/rules/long-run-protocol.md")`: keep going when a step needs no input from the user, stop and ask only when you can't continue without them or before anything destructive, check each subagent's evidence before accepting it, and mark anything you couldn't confirm with where you looked.
 
-```python
-# 1. Create main verification task
-TaskCreate(
-  subject="Verify [feature-name] implementation",
-  description="Comprehensive verification with nuanced grading",
-  activeForm="Verifying [feature-name] implementation"
-)
+## Task Management
 
-# 2. Create subtasks for 8-phase process
-TaskCreate(subject="Run code quality checks", activeForm="Running quality checks")    # id=2
-TaskCreate(subject="Execute security audit", activeForm="Running security audit")     # id=3
-TaskCreate(subject="Verify test coverage", activeForm="Verifying test coverage")      # id=4
-TaskCreate(subject="Validate API", activeForm="Validating API")                       # id=5
-TaskCreate(subject="Check UI/UX", activeForm="Checking UI/UX")                       # id=6
-TaskCreate(subject="Calculate grades", activeForm="Calculating grades")               # id=7
-TaskCreate(subject="Generate suggestions", activeForm="Generating suggestions")       # id=8
-TaskCreate(subject="Compile report", activeForm="Compiling report")                   # id=9
-
-# 3. Set dependencies — phases 2-6 run in parallel, 7-9 are sequential
-TaskUpdate(taskId="7", addBlockedBy=["2", "3", "4", "5", "6"])  # Grading needs all checks
-TaskUpdate(taskId="8", addBlockedBy=["7"])  # Suggestions need grades
-TaskUpdate(taskId="9", addBlockedBy=["8"])  # Report needs suggestions
-
-# 4. Update status as you progress
-TaskUpdate(taskId="2", status="in_progress")  # When starting
-TaskUpdate(taskId="2", status="completed")    # When done — repeat for each subtask
-```
+Create the main verification task and one subtask per phase, with grading blocked on the checks: `Read("references/task-management.md")`.
 
 ---
 
@@ -231,23 +213,21 @@ Load details: `Read("references/verification-phases.md")` for complete phase det
 | frontend-ui-developer | React 19, Zod, a11y | UI 0-10 |
 | python-performance-engineer | Latency, resources, scaling | Performance 0-10 |
 
-Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
+Do NOT hand-roll the dispatch. Start Phase 3's test run (below) in the background, then run the executor:
 
-### Progressive Output (CC 2.1.76+)
-
-Output each agent's score **as soon as it completes** — don't wait for all 6-7 agents.
-
-> **Focus mode (CC 2.1.101):** In focus mode, include the full composite score, all dimension scores, and the verdict in your final message — the user didn't see the incremental outputs.
-
-```
-Security:     8.2/10 — No critical vulnerabilities found
-Code Quality: 7.5/10 — 3 complexity hotspots identified
-[...remaining agents still running...]
+```python
+Workflow(
+  name="ork:verify-dispatch",
+  args={"effort": EFFORT, "scope": "<diff summary from Phase 1>", "rubric": <rubric.json>,
+        "dimensions": DIMS, "modelOverride": MODEL_OVERRIDE}
+)   # add "testEvidence": {"outcome", "exitCode", "summaryLine"} if assert-evidence.sh already ran
+# DIMS from STEP 0a: Full -> all six ["security","quality","coverage","api","performance","ui"] (overrides effort);
+#   "Security & code quality" -> ["security", "quality"]; Tests only / Quick check -> skip Phase 2
 ```
 
-This gives users real-time visibility into multi-agent verification. If any dimension scores below the `security_minimum` threshold (default 5.0), flag it as a **blocker immediately** — the user can terminate early without waiting for remaining agents.
+**The script owns the mechanics, not the prose.** It spawns the effort-scaled verifiers (security first) with an evidence schema, sends critical blockers and low scores to refuters (1 vote at high, 3 at xhigh, majority of planned votes, each refutation backed by a command), enforces a 12-agent ceiling, and returns `verdictCap` with `reasons`. Anything it cannot establish lowers the cap: an unknown dimension, a missing rubric, a score with no command-backed evidence, a CLAIMED item, a dead verifier. Without `testEvidence` it returns `PENDING-TESTS` plus `capIfTestsPass`: after the gate below, the cap is `capIfTestsPass` only for EVIDENCE with exit 0 and a summary showing at least one passing test and no failures, otherwise BLOCKED. Security below 9.0 is BLOCKED for every project (operator decision 2026-09-25); a policy may tighten other thresholds, never loosen any. Phase 4 grades within the cap, never above it.
 
-### Monitor + Partial Results (CC 2.1.98)
+### Monitor + Partial Results
 
 Use `Monitor` for streaming test output. **A `run_in_background` request may not be honoured, so never wait unconditionally on the result.**
 
@@ -259,7 +239,7 @@ if not task.id:                 # request ignored → the command ran inline and
 else:
     Monitor(pid=task.id)        # bounded: see the contract reference below; progress via `tail -n 5 {LOG}`
 # The verdict gate is EXECUTABLE, not prose (#3263). Only outcome=EVIDENCE may be graded:
-Bash(command=f"bash scripts/assert-evidence.sh {LOG} --task-id '{task.id or 'none'}'")
+Bash(command=f"bash \"${{CLAUDE_SKILL_DIR}}/scripts/assert-evidence.sh\" {LOG} --task-id '{task.id or 'none'}'")
 # exit 0 EVIDENCE   → grade from LOG's runner summary line
 # exit 4 STILL-RUNNING → keep the bounded wait, re-run the gate
 # exit 3 COULD-NOT-OBSERVE (0 bytes, no live process) or exit 1 NO-BANNER →
@@ -271,21 +251,7 @@ Measured (#3263): three backgrounded suites wrote **0 bytes**, npm's own banner 
 
 Full pattern reference (when to use vs. `TaskOutput`, until-condition gates, anti-patterns): `Read("../chain-patterns/references/monitor-patterns.md")`.
 
-**Partial results (CC 2.1.98):** If a verification agent fails mid-analysis, synthesize partial scores rather than re-spawning:
-
-```python
-for agent_result in verification_results:
-    if "[PARTIAL RESULT]" in agent_result.output: A `maxTurns` stop is also partial since CC 2.1.246 (summary: "stopped at its N-turn limit (partial result; continue it with SendMessage to the task-id)"); continue that agent with `SendMessage` instead of re-spawning it.
-        # Extract whatever scores the agent produced before crashing
-        partial_score = parse_score(agent_result.output)  # May be incomplete
-        scores[agent_result.dimension] = {
-            "score": partial_score, "partial": True,
-            "note": "Agent crashed — score based on partial analysis"
-        }
-        # A 4-dimension score is better than no score. Do NOT re-spawn.
-```
-
-> **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
+Progressive output and partial results in Agent Teams or plain Agent mode: `Read("references/progressive-and-partial-results.md")`.
 
 ### Phase 2.5: Visual Capture (NEW — runs in parallel with Phase 2)
 
@@ -305,10 +271,10 @@ Load `Read("../quality-gates/references/unified-scoring-framework.md")` for dime
 
 ### Dimension-Level Blockers (ork-rubric/1.0)
 
-Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 4.0, compliance `min_pass` 6.0.
+Composite is necessary but not sufficient — a strong composite can average away a critical dimension. In Phase 4 (Nuanced Grading), read per-dimension thresholds from `rubric.json` (schema: `../../shared/rubric.schema.json`): security `min_blocker` 9.0 (fixed, hard), every other dimension `min_blocker` 3.0, compliance `min_pass` 6.0, compliance `min_pass` 6.0.
 
 - **A dimension whose evidence outcome is `COULD-NOT-OBSERVE` or `NO-BANNER` (per `scripts/assert-evidence.sh`) has NO score.** Report it verbatim, e.g. `Tests: COULD-NOT-OBSERVE (assert-evidence exit 3, 0 bytes, no live pid)`, and the verdict is BLOCKED. Never average a missing dimension into the composite.
-- **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 4.0)`.
+- **ANY dimension below its `min_blocker` → verdict is BLOCKED regardless of composite.** Report it explicitly: `Security 3.2/10 (CRITICAL BLOCKER — below min_blocker 9.0)`.
 - A dimension below its `min_pass` (but at/above `min_blocker`) caps the verdict at IMPROVEMENTS RECOMMENDED — it cannot grade READY FOR MERGE.
 - Blocked verdicts list every tripped dimension first, each with the fix needed to clear it.
 - A project `.claude/policies/verification-policy.json` (see Policy-as-Code) may tighten these thresholds, never loosen them below the rubric defaults.
@@ -324,7 +290,7 @@ A single green is not proof — flaky and order-dependent suites pass once and f
 - `--streak=N` (N ≥ 2; 3 is the sensible default). Absent ⇒ today's single pass/fail behavior, unchanged. Target may also come from `.claude/policies/verification-policy.json` (`"streak_target"`); the flag wins.
 - The gate sits **above** the verdict — it never loosens a blocker, it only withholds "done" until the streak is met. Each run re-executes the *actual* tests (no cached passes — that independence is the whole point).
 - Reset rule: **any** non-`READY FOR MERGE` verdict (tripped blocker, failing test, or IMPROVEMENTS RECOMMENDED) zeroes the count. No partial credit.
-- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 4.0)`.
+- The verdict surfaces the count: `STREAK 2/3 — one more green to merge`, or `streak reset to 0/3 (security 3.2 < 9.0)`.
 - This is the native mechanism the `prd-to-goal` quality-streak recipe (#2539) leans on. Pair it with a `/goal` loop, but **`rm` the ledger first** — `/goal` reads `until` before the turn's verify, so a stale `met:true` exits with zero runs (see streak-gate.md "Stale-ledger guard").
 
 Full protocol — ledger schema, run loop, `/goal` wiring, and `cover` reuse: `Read("references/streak-gate.md")`.
@@ -347,11 +313,11 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 {
   "thresholds": {
     "composite_minimum": 6.0,
-    "security_minimum": 7.0,
+    "security_minimum": 9.0,
     "coverage_minimum": 70
   },
   "blocking_rules": [
-    {"dimension": "security", "below": 5.0, "action": "block"}
+    {"dimension": "security", "below": 9.0, "action": "block"}
   ]
 }
 ```
@@ -408,7 +374,9 @@ Load details: `Read("references/report-template.md")` for full format. Summary:
 | # | Load-bearing claim | Asserted by | Provenance | Reached | Evidence (cmd · exit · key line) |
 ```
 
-> **Push notifications (CC 2.1.110+):** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
+**Done sign-off (last step).** After the report, the verdict is not "done" until the user accepts it. Load `Read("../../shared/rules/done-signoff.md")` and ask its one question with the three labels unchanged: "Accept done", "Show me the evidence", "Not satisfied". Lead with any BLOCKED dimension or FAIL. On "Show me the evidence", re-run the named check live and ask again. Skip the question in non-interactive runs (`claude -p`, a Workflow phase) and return the verdict as data instead.
+
+> **Push notifications:** Verify runs for >5 min are common on complex changes. When the final verdict is ready, call `PushNotification` to alert the user — they likely walked away from the terminal. Requires Remote Control with "Push when Claude decides" config; fails silently for users without it.
 >
 > ```python
 > PushNotification(
@@ -433,7 +401,7 @@ Load on demand with `Read("references/<file>")`:
 | `verification-manifest.md` | VERIFIED‑vs‑CLAIMED provenance ledger: states, verdict rule, claim sources, template, anti‑patterns |
 | `reachability-proof.md` | REACHED‑vs‑UNREACHED: the mutate→red→restore→green proof, commit-first and call-site rules, verdict cap, anti‑patterns |
 | `alternative-comparison.md` | Approach comparison template |
-| `orchestration-mode.md` | Agent Teams vs Task Tool |
+| `orchestration-mode.md` | Agent Teams vs Agent Tool |
 | `policy-as-code.md` | Verification policy configuration |
 | `verification-checklist.md` | Pre-flight checklist |
 | `streak-gate.md` | `--streak=N` consecutive-pass gate: ledger schema, reset rule, `/goal` wiring, cover reuse |
@@ -467,6 +435,8 @@ All verification agents MUST report using the standardized protocol: `Read("../.
 
 ### SendMessage (Cross-Agent Findings)
 
+> **Cross-session replies land in the parent (CC 2.1.248):** when a subagent sends `SendMessage` to another session, the reply is delivered to the parent session's conversation, never to the subagent; a subagent sends and moves on, the parent reads the answer. Cross-session `SendMessage` / `ListAgents` also work on Bedrock, Vertex and Foundry and with telemetry disabled (CC 2.1.248).
+
 When a security agent finds a critical issue, share it with other verification agents:
 
 ```python
@@ -484,7 +454,7 @@ TaskUpdate(taskId=commit_id, addBlockedBy=[verify_task_id])
 # Then: commit
 ```
 
-> **Session recovery (CC 2.1.108+):** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
+> **Session recovery:** After idle periods or interruptions, use `/recap` to restore conversational context alongside checkpoint-resume state. Enabled by default since CC 2.1.110 (even with telemetry disabled).
 
 ## Quality Bar
 

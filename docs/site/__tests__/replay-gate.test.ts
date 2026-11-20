@@ -35,14 +35,14 @@ describe("isReplayPath", () => {
 });
 
 describe("pathnameOf", () => {
-	const base = "https://orchestkit.yonyon.ai/docs/foundations/overview";
+	const base = "https://orchestkit.dev/docs/foundations/overview";
 
 	it("resolves relative and absolute hrefs, dropping query and hash", () => {
 		expect(pathnameOf("/docs/reference/skills/x?q=1#h", base)).toBe(
 			"/docs/reference/skills/x",
 		);
 		expect(
-			pathnameOf("https://orchestkit.yonyon.ai/docs/reference/hooks/y", base),
+			pathnameOf("https://orchestkit.dev/docs/reference/hooks/y", base),
 		).toBe("/docs/reference/hooks/y");
 	});
 
@@ -61,6 +61,20 @@ describe("createReplayGate", () => {
 		};
 		return { controls, gate: createReplayGate(controls) };
 	};
+
+	it("a start canStart refuses leaves no request behind, so a later sync starts (#5106)", () => {
+		const controls = { startSessionRecording: vi.fn(), stopSessionRecording: vi.fn() };
+		let allowed = false;
+		const gate = createReplayGate(controls, () => allowed);
+		gate.sync("/docs/reference/skills/a");
+		expect(controls.startSessionRecording).not.toHaveBeenCalled();
+		// Nothing was requested, so leaving owes no stop.
+		gate.stop();
+		expect(controls.stopSessionRecording).not.toHaveBeenCalled();
+		allowed = true;
+		gate.sync("/docs/reference/skills/a");
+		expect(controls.startSessionRecording).toHaveBeenCalledTimes(1);
+	});
 
 	it("never starts on a non-reference path", () => {
 		const { controls, gate } = make();
@@ -100,7 +114,7 @@ describe("createReplayGate", () => {
 describe("maskNetworkRequest", () => {
 	it("drops headers and bodies and strips query and hash from the URL", () => {
 		const req = {
-			name: "https://orchestkit.yonyon.ai/api/search?query=secret+term#frag",
+			name: "https://orchestkit.dev/api/search?query=secret+term#frag",
 			entryType: "resource",
 			startTime: 1,
 			duration: 2,
@@ -114,7 +128,7 @@ describe("maskNetworkRequest", () => {
 
 		const masked = maskNetworkRequest(req);
 
-		expect(masked.name).toBe("https://orchestkit.yonyon.ai/api/search");
+		expect(masked.name).toBe("https://orchestkit.dev/api/search");
 		expect(masked.requestHeaders).toBeUndefined();
 		expect(masked.requestBody).toBeNull();
 		expect(masked.responseHeaders).toBeUndefined();

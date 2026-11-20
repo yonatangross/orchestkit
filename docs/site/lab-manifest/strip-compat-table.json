@@ -1,0 +1,13 @@
+{
+  "slug": "strip-compat-table",
+  "source": "docs/feat--strip-compat-table/index.html",
+  "title": "Where OrchestKit runs: the generated compatibility table",
+  "description": "One table generated from the pack manifests replaces two typed ones: skills, agents, hooks and install route per host, with ? where not measured. Filter the hosts and copy a prompt.",
+  "tags": [
+    "hosts",
+    "compatibility",
+    "docs",
+    "explainer"
+  ],
+  "date": "2026-11-16"
+}

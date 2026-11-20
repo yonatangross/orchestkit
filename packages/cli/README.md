@@ -1,7 +1,8 @@
 # orchestkit
 
-Official CLI for [OrchestKit](https://orchestkit.yonyon.ai), the free,
-MIT-licensed Claude Code plugin published by the Yonyon software studio.
+Official CLI for [OrchestKit](https://orchestkit.dev), free and MIT-licensed
+skills and agents for Claude Code, Cursor, Codex and five more coding agents,
+published by the Yonyon software studio.
 
 ```bash
 npx orchestkit --help     # no install
@@ -13,13 +14,16 @@ Also aliased as `ork`.
 
 ## What it does
 
-OrchestKit itself installs into Claude Code, not into your shell. This CLI is
-the *scripting* surface around it: it prints the install command, emits MCP
+OrchestKit itself installs into your coding agent, not into your shell. This
+CLI is the *scripting* surface around it: it finds the coding agents on this
+machine and prints the install command for each, emits MCP
 client config, and queries the public read-only docs API from a terminal or a
 CI job without writing a fetch wrapper first.
 
 ```
-orchestkit install            # print the Claude Code install command
+orchestkit install            # install commands for the coding agents found here
+orchestkit install codex      # one host: claude, cursor, codex, devin, opencode, muse, pi, agy
+orchestkit install --all      # every host
 orchestkit search <query>     # search the documentation
 orchestkit ask <question>     # natural-language query (NLWeb /ask)
 orchestkit read <page>        # print a docs page as Markdown
@@ -58,7 +62,7 @@ The docs API is public, read-only and unauthenticated.
   after each call so scripts can pace themselves instead of probing.
 - **Errors**, RFC 9457 Problem Details. `ApiError.problem` exposes the parsed
   object, including the `links` recovery hops a 404 carries.
-- **Versioning and deprecation**, <https://orchestkit.yonyon.ai/api-policy>.
+- **Versioning and deprecation**, <https://orchestkit.dev/api-policy>.
 
 ## Requirements
 

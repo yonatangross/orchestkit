@@ -36,17 +36,152 @@ Three layers, checked on every tool result:
    paths and identifiers measured 2.9 to 4.0. Masked output never reveals
    length beyond an 8-bullet floor.
 
+   Tokens this layer skips (the named-value and prefix layers still run on
+   them): a Subresource Integrity value (`sha512-...`), and since 0.0.8 a
+   token that is exactly an Anthropic API id: `toolu_01`, `srvtoolu_01`,
+   `msg_01` or `req_011C` followed by 18 to 26 letters and digits. These ids
+   are public request handles; 890 of 1000 generated `toolu_` ids crossed
+   the bar, so tool ids showed as bullets in transcripts and logs.
+
+   Since 0.0.11, an image URL on a named media host (`MEDIA_HOSTS`, today
+   `d8j0ntlcm91z4.cloudfront.net`) is also skipped, when the whole token
+   between ASCII space, tab, LF, CR or the ends of the text is exactly
+   `https://<host>/<path>.<png|jpg|jpeg|webp|gif>` with a path of letters,
+   digits and `-` `.` `_` `/`. A query, fragment, quote, bracket, other
+   punctuation or non-ASCII white space in the token keeps it masked.
+   The exemption judges lexical tokens and does not promise that a URL
+   parser reads the same URL: a parser that strips tab, LF or CR can join
+   two tokens the veil shows separately. It skips only this layer, so
+   named values and vendor prefixes still mask inside such a URL; it aims
+   at accidental secrets in tool output, not at text an adversary crafted.
+
+   One exception: an image payload passes byte-equal. An image payload is
+   one long high-entropy run, so masking it made the API reject every image
+   Read. It passes only when all of these hold:
+   - it sits in a real image block at the top of the tool's output: the
+     Read tool's own shape `{ type: "image", file: { base64, type, ... } }`
+     (what `tool.call` sees on Claude Code 2.1.304) or the API block
+     `{ type: "image", source: { type: "base64", media_type, data } }`,
+     as the output itself, an element of an output array, or an element of
+     the output's `content` array. A look-alike deeper in a result is masked;
+   - its media type is PNG, JPEG or GIF (an exact allowlist);
+   - it is strict base64 under 16 million characters, and the WHOLE decoded
+     file is a real image of its type, not only its framing: PNG with a
+     valid IHDR, at least one IDAT, right CRCs and IEND at the end; JPEG
+     with a quantization table, a frame header of nonzero size, a scan with
+     data and EOI at the end; GIF with at least one image block of nonzero
+     size and the trailer at the end. PNG pixel data must also inflate
+     (bounded, 64 MiB) to exactly its expected rows, each with a legal
+     filter byte. WebP is not on the list: its bitstream cannot be proven
+     without a full decoder, so a WebP Read stays masked while the veil is on;
+   - its metadata can be read: a PNG with compressed text (zTXt, or iTXt
+     with compression on) is not exempt;
+   - no named value appears in the decoded bytes (as Latin-1, UTF-8 or
+     UTF-16LE) or in the base64 text, and no vendor shape (`sk-ant-`,
+     `AKIA`, a PEM header, ...) appears in the decoded bytes. If one does,
+     the whole result is withheld, never shown with corrupted image bytes.
+   Every other field of the block is masked as usual.
+
+   What this exemption does not cover, in plain words:
+   - **The veil does not see inside the pixels.** A secret drawn in the
+     image reaches the model; text kept in metadata is checked for named
+     values and vendor shapes only.
+   - **PDF reads stay masked.** The API reads the text of a PDF, and the
+     veil cannot, so a PDF payload is masked and a PDF Read fails while the
+     veil is on.
+   - **Any producer of the same shape gets the same pass.** The veil cannot
+     tell a Read from another tool at this layer, so an image block of the
+     same shape at the top of another tool's output passes under the same
+     checks.
+
 If zero named values resolve at `session.start`, the mod emits one
 `$.ui.notice` saying the veil is running on value patterns and entropy only.
 Silence is not allowed: an operator must know the named layer is empty.
 
+**It fails closed.** A tool result is never returned unmasked. If a
+`tool.call` arrives before `session.start` has armed the veil (a mod enabled
+or hot-reloaded mid-session; on CC 2.1.282 a reload re-dispatches
+`session.start` about a second after "reloaded"), the mod arms itself on the
+spot with the same named reads. If those reads fail it falls back to value
+shapes and entropy alone, and if a result cannot be masked at all it is
+withheld with `{ deny }` rather than shown. The same holds for a result, or a
+single value in it, that is larger than a fixed size cap, a value the veil cannot
+rebuild faithfully (a Buffer, a Map), and any failure the runtime sees in
+the hook: each is withheld, none is passed through.
+
+## Seeing it work
+
+When a tool result had at least one value covered, the mod says so where
+you can see it (Claude Code shows each line with the plugin name in front):
+
+- a toast: `masked 1 value in Bash`;
+- a status line under the prompt: `3 masked this session`;
+- the byte counts in the debug log only, via `$.ui.log(text, { to: "debug" })`:
+  `40 bytes in, 24 bytes out` (UTF-8 bytes of the covered values, then of the
+  bullets that replaced them; a bullet is 3 bytes, at most 8 per value), plus
+  the whole result's byte size before and after masking. Without `to: "debug"`
+  a `$.ui.log` line lands in the transcript, and a per-secret byte length is a
+  hint about the secret, so it stays out of anything a human or the
+  transcript sees.
+
+These lines carry counts only, never a value. Nothing is shown when nothing
+was masked. A refused toast or status never unmasks a result. Every awaited UI
+call has a deadline through `$.clock.after` (a mod has no ambient timers): 3 s
+for engine calls, 120 s for the copy question, so a stuck call never holds the
+masked result.
+
+## Copy to your clipboard (opt-in)
+
+Opt in with `SECRETS_VEIL_OFFER_COPY=1`, and only when **no other installed
+mod hooks `ui.copy`, `ui.*` or `*`**. Claude Code dispatches `ui.copy` as a
+hookable event (wildcard hooks included) before the clipboard write, so any
+other installed mod on that event receives the raw value and could log it or
+send it on. This mod never passes the value to Claude; whether anything
+else sees it depends on the other mods you run.
+
+With the flag set, a masked result also opens the Claude Code question dialog
+(`$.ui.ask`): "Copy the masked value to your clipboard? This mod sends it to
+the clipboard only, never to Claude; another installed mod that hooks
+clipboard events could still receive it. This question expires after 2
+minutes." The answers are `Copy to clipboard`
+and `Keep hidden`. `Copy to clipboard` hands the first covered value to
+`$.ui.copy` (OSC 52 in the terminal) and nothing else: the tool result the
+model reads stays masked, and the question, the toast, the status line and
+this mod's log carry counts only. A missing dialog, a refused or timed-out
+copy, a question nobody answers within 120 s, or `Keep hidden` all leave the
+value covered. Claude Code gives a mod no way to close a dialog it opened, so
+an expired question stays on screen; answering it after the deadline shows
+"that copy question had expired; nothing was copied" and copies nothing. The
+option is off by default because a dialog on every masked
+result would be noise.
+
+What a copy leaves behind, outside this mod:
+
+- Claude Code's own debug log records the copied value's **length** (for
+  example `$.ui.copy (secrets-veil): 40 chars, ... copied`), never the value.
+- The clipboard keeps the value until something replaces it, and clipboard
+  managers, `pbcopy`/`pbpaste` history tools and terminal multiplexer buffers
+  (tmux, screen) may keep their own copies. Clear them if that matters.
+
+Measured on CC 2.1.282 (2026-09-25): the model read 8 bullets, the debug log
+said `$.ui.copy (secrets-veil): 40 chars, path native, OSC 52 written; copied`,
+and the clipboard held 40 bytes.
+
 ## What this mod deliberately does not do
 
-- **No reveal UI.** There is no hover reveal, no `/veil` command, no
-  `ui.render`, no `ui.press`, no `command.register`. A reveal path re-arms
-  the secret one interaction away from the model and the transcript.
+- **No reveal to the model.** There is no hover reveal, no `/veil` command,
+  no `ui.render`, no `ui.press`, no `command.register`. A reveal path re-arms
+  the secret one interaction away from the model and the transcript. The
+  opt-in copy above goes to the human's clipboard only.
 - **No network, no process, no storage.** Negative pins: `process.run`,
-  `http.fetch`, `store.*`, and `ui.log` are absent from the module.
+  `http.fetch` and `store.*` are absent from the module. Its `$.ui` calls are
+  `notice`, `toast`, `status` and `log`, each carrying counts, never a value,
+  plus `ask` and `copy` when the copy offer is opted in; only `copy` ever
+  receives a value. `$.clock.after` arms the UI deadlines.
+- **No reuse of the unmasked run.** Core 2.1.282 reuses a run's own messages
+  when a `tool.call` answer names it by `ref` and its `result` is undefined or
+  deep-equal. A masked answer always carries a changed `result`; one without a
+  `result` has its `ref` dropped.
 - **No names beyond the 21.** The mod reads only the names listed above.
 
 ## Why your own variable names are not listed

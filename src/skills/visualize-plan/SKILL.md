@@ -1,30 +1,24 @@
 ---
 name: visualize-plan
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Renders planned changes — architecture and before/after comparisons, risk heat maps, execution order, dependency graphs, impact metrics — in your chosen output format (ASCII + emojis, an interactive HTML playground, or a NotebookLM infographic). Stores visualizations in memory for cross-session reference. Use when reviewing implementation plans, comparing approaches, assessing risk, or analyzing change propagation."
+compatibility: "Claude Code 2.1.277+."
+description: "Renders planned changes as before/after architecture, risk heat maps, execution order and dependency graphs in ASCII, HTML or NotebookLM. Use when reviewing a plan. Not for an inline chart (use glyph)."
 argument-hint: "[plan-or-issue]"
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
 agent: workflow-architect
 model: sonnet
-version: 2.1.0
-author: OrchestKit
-tags: [visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format]
 user-invocable: true
-allowed-tools: [Read, Grep, Glob, Agent, TaskCreate, TaskUpdate, AskUserQuestion, Bash, Write, mcp__memory__search_nodes, mcp__memory__create_entities, ToolSearch]
-skills: [glyph, explore, architecture-decision-record, memory, remember, page-serve]
-complexity: medium
-persuasion-type: guidance
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/plan-context-loader"
-      once: true
+allowed-tools: "Read Grep Glob Agent TaskCreate TaskUpdate AskUserQuestion Bash Write mcp__memory__search_nodes mcp__memory__create_entities ToolSearch mcp__notebooklm-mcp__studio_create"
+skills: [glyph, explore, architecture-decision-record, memory, page-serve]
 metadata:
   category: document-asset-creation
   mcp-server: memory
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "visualization, planning, before-after, architecture, diff, risk, impact, migration, playground, infographic, multi-format"
 triggers:
   keywords: [visualize, "visualize plan", "visualize the plan", "visualize the", "show diagram", "before and after", "execution order", "risk and impact", swimlane, "what files will change"]
   examples:
@@ -83,6 +77,8 @@ round-trip. The rule now:
 
 `--quick` skips even that one.
 
+Budget: at most 1 Explore agent and one post-render question (STEP 5); stop and report at the finish line or the first cap, whichever comes first.
+
 ---
 
 ## CRITICAL: Task Tracking
@@ -122,13 +118,9 @@ mcp__memory__search_nodes(query="plan visualization {PLAN_INPUT}")
 
 ## STEP 0: Detect or Clarify Plan Context
 
-**First**, attempt auto-detection by running `scripts/detect-plan-context.sh`:
+**Plan context, already detected.** Claude Code ran `scripts/detect-plan-context.sh` when it opened this skill (a body step can be skipped, #4683). Its output, the branch name, issue number (if any), commit count and file change summary, is below (first 60 lines; the file list can run to thousands of lines); there is nothing to run. A blank result means the script had nothing to report. If you see `[shell command execution disabled by policy]` instead, run it yourself: `bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh" | head -n 60`.
 
-```bash
-bash "$SKILL_DIR/scripts/detect-plan-context.sh"
-```
-
-This outputs branch name, issue number (if any), commit count, and file change summary.
+!`bash "${CLAUDE_SKILL_DIR}/scripts/detect-plan-context.sh" 2>/dev/null | head -n 60 2>/dev/null || true`
 
 **If auto-detection finds a clear plan** (branch with commits diverging from main, or issue number in args), proceed to Step 1.
 
@@ -168,7 +160,7 @@ ToolSearch(query="select:mcp__notebooklm-mcp__studio_create")
 ```
 
 Record what is available as `AVAILABLE`: **ascii** always (the floor); **playground** if the
-`playground` skill is installed (ships with ork); **infographic** if `studio_create` resolved above
+`playground` skill is installed (the separate playground plugin, not part of ork); **infographic** if `studio_create` resolved above
 (server reachable + `nlm login` done). Orthogonally, if the **`/dataviz`** skill resolved, upgrade
 the chart *marks* in the non-ASCII formats via its form-heuristic + validated palette; if it did not
 resolve, charts stay ASCII-card — dataviz is never required.
@@ -194,7 +186,7 @@ NotebookLM job.
 Run `scripts/analyze-impact.sh` for precise counts:
 
 ```bash
-bash "$SKILL_DIR/scripts/analyze-impact.sh"
+bash "${CLAUDE_SKILL_DIR}/scripts/analyze-impact.sh"
 ```
 
 This produces: files by action (add/modify/delete), line counts, test files affected, and dependency changes.
@@ -207,8 +199,9 @@ For architecture-level understanding **and the default before/after section [0]*
 ```python
 Agent(
   subagent_type="Explore",
-  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree — avoids conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the glyph skill for diagrams.",
-  model="haiku"
+  prompt="Map component architecture of {affected_directories} at TWO points: (a) base = each file as returned by `git show origin/main:<path>` (NOT the working tree, to avoid conflating uncommitted edits), (b) head = current working tree. Return per point: components, dependencies, data flows; mark what is added [+], removed [-], or changed [~] between them. Use the glyph skill for diagrams.",
+  model="haiku",
+  max_turns=15
 )
 ```
 
@@ -305,7 +298,7 @@ and the artifact gallery work at all.
 > BEFORE authoring:
 >
 > ```bash
-> bash "$SKILL_DIR/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
+> bash "${CLAUDE_SKILL_DIR}/scripts/find-living-plan.sh" "$SLUG"   # 0=update it · 1=author new · 2=already forked, STOP
 > ```
 >
 > On exit 0, MERGE into the file it printed (flip statuses, append changelog, move removed items to
@@ -386,7 +379,7 @@ Available when user selects "Drill deeper". Load `Read("references/deep-dives.md
 
 | Principle | Application |
 |-----------|-------------|
-| **Progressive disclosure** | Tier 1 header always, sections on request |
+| **Progressive disclosure** | Tier 1 header always, then all six sections |
 | **Judgment over decoration** | Every section answers a reviewer question |
 | **Precise over estimated** | Use scripts for file/line counts |
 | **Honest uncertainty** | Confidence levels, pre-mortems, tradeoff costs |
@@ -447,7 +440,8 @@ Done means all of these hold:
 - The plan summary is stored to the memory knowledge graph for cross-session comparison (skipped under `--quick`).
 - **Zero blocking questions before the first render.** Source is auto-detected (asked only when
   genuinely ambiguous), sections default to all, and format is chosen after the ASCII floor is
-  already on screen — at most one question per run, none under `--quick`.
+  already on screen: at most one question before the first render (the source, only when
+  genuinely ambiguous) and one after it (the next step), none under `--quick`.
 - A playground output started from `plan-dashboard.template.html` (or the living-plan / player /
   board exemplar the §0 routing rule selected) — never hand-rolled CSS — and passed the §10
   self-audit including the DASHBOARD rows.
@@ -460,4 +454,4 @@ Done means all of these hold:
 - `ork:explore` - Understand current architecture
 - `ork:assess` - Evaluate complexity and risks
 - `ork:memory` - Search prior plan visualizations
-- `ork:remember` - Store plan decisions for future reference
+- `ork:memory remember` - Store plan decisions for future reference

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>memory-lens 0.1.1: recall on your own prompts only</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style></head><body><main>
+<h1>memory-lens 0.1.1: recall on your own prompts only</h1>
+<p>Measured 2026-10-23: about 9 of 10 recalls on file tool calls were off-topic, and recalls on automated turns put client memories into unrelated sessions. 0.1.1 queries only on a prompt a person sent (<code>origin.kind</code> composer, bridge or sdk) and never on a file tool call.</p>
+<div class="card">
+<fieldset>event
+<label><input type="radio" name="k" value="composer"> you typed a prompt</label>
+<label><input type="radio" name="k" value="sdk"> desktop app prompt</label>
+<label><input type="radio" name="k" value="task-notification" checked> task notification</label>
+<label><input type="radio" name="k" value="peer-send-message"> peer message</label>
+<label><input type="radio" name="k" value="read"> a Read of a file</label>
+</fieldset>
+<fieldset>version
+<label><input type="radio" name="v" value="010"> 0.1.0</label>
+<label><input type="radio" name="v" value="011" checked> 0.1.1</label>
+</fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+function run(){
+  const k=pick('k'), v=pick('v');
+  const person=['composer','bridge','sdk'].includes(k);
+  let lines;
+  if(v==='010') lines=[k==='read'?'tool.call: path query, 1 memory added as tool context':'prompt.submit: up to 3 memories added', 'screen: memory-lens: 1/3 ... (file.md)'];
+  else if(k==='read') lines=['tool.call: not a query, the result passes through untouched'];
+  else if(person) lines=['prompt.submit: up to 3 memories added as context Claude reads','screen: memory-lens: 1/3 title \u00b7 match words'];
+  else lines=['prompt.submit: not your own words, nothing recalled, nothing drawn'];
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+</body></html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow PRs open unarmed</title>
+<meta name="description" content="Workflows stop merging or arming their own PRs, and a YAML-parsing lint fails if one is ever re-added by mistake.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --warn:#9a6a12; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --warn:#e0b25a; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.85rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:24px; }
+  .kpi { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .kpi b { display:block; font-size:1.6rem; }
+  .kpi span { color:var(--muted); font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color:var(--accent); font-weight:600; }
+  .bad { color:var(--bad); font-weight:600; }
+  .scope { background:var(--card); border:1px solid var(--rule); border-left:4px solid var(--warn); border-radius:8px; padding:12px 14px; margin-top:20px; }
+  ul { padding-left:20px; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Workflow PRs open unarmed</h1>
+      <p class="lead">Two workflows armed auto-merge on the PR they had just opened. The required checks are CI only, so the v10.2.0 stable pin (#4913) merged before anyone reviewed it. Now workflows only open PRs, and a lint fails if a merge or arm comes back.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><b>2</b><span>self-arms removed (release.yml, claude-release-watch.yml)</span></div>
+    <div class="kpi"><b>19 / 13</b><span>fixtures that must be flagged / must pass</span></div>
+    <div class="kpi"><b>58</b><span>workflow and action files scanned, no allowlist</span></div>
+  </div>
+
+  <div class="scope"><b>Scope.</b> lint against accidental re-adds; not exhaustive against deliberate evasion; the real control is review + branch protection.</div>
+
+  <h2>Before and after</h2>
+  <table>
+    <tr><th>Path</th><th>Before</th><th>After</th></tr>
+    <tr><td><code>release.yml</code> bump-stable-pin</td><td class="bad"><code>gh pr create</code> then <code>gh pr merge --squash --auto</code></td><td class="ok">opens the PR only; the merge desk merges it after a review approves the head</td></tr>
+    <tr><td><code>claude-release-watch.yml</code></td><td class="bad">"Enable auto-merge on snapshot PR" step</td><td class="ok">step removed; the data-only PR goes through review like any other</td></tr>
+    <tr><td>Regression lint</td><td class="bad">none</td><td class="ok"><code>scripts/ci/check-workflow-self-merge.py</code>, run by a unit test</td></tr>
+  </table>
+
+  <h2>How the lint reads a workflow</h2>
+  <ul>
+    <li>Parses the YAML, so folded and literal <code>run:</code> values are judged after folding. A file it cannot parse is a finding.</li>
+    <li>Joins backslash-newlines the way the shell does (nothing in their place), then splits each <code>run:</code> value with shell quoting rules and also scans it with quotes removed. A hit from either counts.</li>
+    <li>Flags any <code>gh pr merge</code> (global flags before <code>pr</code> included), a variable <code>gh pr</code> subcommand, the REST <code>pulls/&lt;n&gt;/merge</code> endpoint, the GraphQL merge, auto-merge and enqueue mutations, <code>pulls.merge</code> or <code>pulls["merge"]</code> in github-script, and automerge actions.</li>
+  </ul>
+
+  <h2>Caveats</h2>
+  <ul>
+    <li>A GET of <code>pulls/&lt;n&gt;/merge</code> (is it merged?) is flagged too, on purpose. Read <code>pulls/&lt;n&gt;</code> and its <code>merged</code> field instead.</li>
+    <li>The skill docs that teach <code>gh pr merge --auto</code> are guidance for a user's own repo and are not scanned.</li>
+    <li>A spelling found later that this misses goes to a follow-up issue, not a bigger rule in this PR.</li>
+  </ul>
+
+  <footer>Issues #4914 and #4931. Made by lane ork-4914 (Claude via Claude Code), 2026-10-26.</footer>
+</main>
+<script>
+  (function () {
+    var btn = document.getElementById("theme");
+    var root = document.documentElement;
+    function set(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light" : "Dark"; }
+    set(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    btn.addEventListener("click", function () { set(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  })();
+</script>
+</body>
+</html>

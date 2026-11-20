@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Test: Validates agent YAML frontmatter (format introduced CC 2.1.6)
-# All agents must have: name, description, model, tools, skills, taskTypes, keywords, examplePrompts
+# All agents must have: name, description, model, tools, skills, plus
+# metadata taskTypes, keywords, examplePrompts (read through the shared parser)
 
 set -euo pipefail
 
@@ -8,15 +9,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/src/agents"
 
+# Top-level keys, checked with a raw grep. taskTypes, keywords and
+# examplePrompts live under metadata (m3), so they are checked through the
+# parser in the taxonomy block below, never by a `^key:` grep.
 REQUIRED_FIELDS=(
   "name:"
   "description:"
   "model:"
   "tools:"
   "skills:"
-  "taskTypes:"
-  "keywords:"
-  "examplePrompts:"
 )
 
 # Model vocabulary comes from the single source of truth (#2338):

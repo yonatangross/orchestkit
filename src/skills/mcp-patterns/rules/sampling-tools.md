@@ -109,6 +109,6 @@ capabilities = {
 - Every `tool_use` block (by `id`) must have a matching `tool_result` (by `toolUseId`) before the next assistant turn
 - Clients MUST declare `sampling.tools` capability; servers MUST NOT send tool-enabled requests without it
 - Human-in-the-loop: clients SHOULD present sampling requests and tool calls for user review before execution
-- Use `toolChoice` modes: `auto` (LLM decides), `required` (must call a tool), `none` (text only)
+- Use `toolChoice` modes: `auto` (LLM decides), `required` (must call a tool), `none` (text only). A client backed by Sonnet 5.5, Opus 5.5, Fable 5.1 or Mythos 5.1 cannot force a call (the Claude API returns a 400), so prefer `auto` with a prompt that names the tool
 - Parallel tool calls are supported -- handle arrays of `tool_use` blocks in a single assistant message
 - Implement rate limiting on the client side to prevent runaway sampling loops

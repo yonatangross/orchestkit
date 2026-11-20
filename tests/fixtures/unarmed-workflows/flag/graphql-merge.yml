@@ -1,0 +1,19 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: the GraphQL mergePullRequest mutation (#4931).
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Merge over GraphQL
+        env:
+          PR_ID: PR_x
+        run: |
+          gh api graphql -f id="$PR_ID" -f query='
+            mutation($id: ID!) {
+              mergePullRequest(input: {pullRequestId: $id}) { clientMutationId }
+            }'

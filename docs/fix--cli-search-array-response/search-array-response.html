@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLI search: the array was already there</title>
+<meta name="description" content="A real search hit became no matches because the CLI read an object property from an array. Compare the consumers and the captured CLI output.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(2rem,5vw,3.4rem); line-height:1.1; max-width:750px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:760px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  .columns { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  article { min-width:0; padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .before { border-top:4px solid var(--bad); }
+  .after { border-top:4px solid var(--good); }
+  pre { padding:16px; border-radius:8px; background:#eaf0ed; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.86rem; }
+  code { font-family:ui-monospace,monospace; }
+  label { display:inline-flex; align-items:center; gap:8px; min-height:44px; margin-bottom:12px; cursor:pointer; }
+  input { width:20px; height:20px; accent-color:var(--good); }
+  .controls { display:flex; gap:12px; flex-wrap:wrap; }
+  button { min-height:44px; padding:8px 16px; border:1px solid var(--ink); border-radius:6px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
+  button[aria-pressed="true"] { background:var(--ink); color:#fff; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+  #verdict { font-weight:650; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  @media(max-width:680px) { .columns { grid-template-columns:1fr; } main { padding:28px 18px 48px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">CLI search / response contract</div>
+    <h1>The array was already there.</h1>
+    <p>The public <code>/api/search</code> endpoint returned a hit. The CLI looked for <code>.results</code> on that array and silently replaced it with <code>[]</code>. The fix changes the consumer, not the public API.</p>
+  </header>
+  <section aria-labelledby="demo-title">
+    <h2 id="demo-title">Try the response shape</h2>
+    <p class="muted">Offline model of the two consumers, using the captured hit. No live requests are sent.</p>
+    <label><input id="has-hit" type="checkbox" checked> API returns one hit (uncheck for an empty array)</label>
+    <pre id="payload" aria-label="API JSON response"></pre>
+    <div class="controls" aria-label="Choose consumer">
+      <button id="old" type="button" aria-pressed="true">Before: data.results ?? []</button>
+      <button id="fixed" type="button" aria-pressed="false">After: data</button>
+    </div>
+    <div aria-live="polite" role="status">
+      <p id="verdict"></p>
+      <pre id="computed" aria-label="Consumed results"></pre>
+    </div>
+  </section>
+  <section aria-labelledby="evidence-title">
+    <h2 id="evidence-title">Real CLI evidence</h2>
+    <p>Captured against the public API for <code>overview</code>, before and after the fix. These are recorded outputs, not results of the demo above.</p>
+    <pre aria-label="Reproduction command">env -u DISPLAY node packages/cli/dist/cli.js search overview --limit 1</pre>
+    <div class="columns">
+      <article class="before">
+        <h2>Before: hit discarded</h2>
+        <pre>No matches. Try a broader query, or browse https://orchestkit.dev/llms.txt</pre>
+      </article>
+      <article class="after">
+        <h2>After: hit displayed</h2>
+        <pre>  1. /docs/reference/skills/architecture-decision-record
+     https://orchestkit.dev/docs/reference/skills/architecture-decision-record
+
+119/120 requests left in this window (resets in 60s).</pre>
+      </article>
+    </div>
+  </section>
+  <section aria-labelledby="fix-title">
+    <h2 id="fix-title">Two lines in the consumer. Same API.</h2>
+    <p><code>packages/cli/src/api.ts</code> now parses <code>SearchHit[]</code> and returns <code>{ results: data, rateLimit }</code>. The server still returns its array. Both unit and built-binary fetch fixtures now return arrays too, so the tests exercise the real contract.</p>
+    <p class="muted">Corrected fixtures failed on the old code: 2 failed, 17 passed. After the fix and an empty-array test: 49 CLI tests passed across 4 files. Existing API error handling remains covered.</p>
+  </section>
+  <footer>Recorded evidence from the CLI search array response fix. Query ranking and quota values can change on later live requests.</footer>
+</main>
+<script>
+  const hit = { id: '/docs/reference/skills/architecture-decision-record', type: 'page', content: 'Architecture Decision Record', url: '/docs/reference/skills/architecture-decision-record' };
+  const hasHit = document.getElementById('has-hit');
+  const oldButton = document.getElementById('old');
+  const fixedButton = document.getElementById('fixed');
+  let fixed = false;
+  function render() {
+    const data = hasHit.checked ? [hit] : [];
+    const results = fixed ? data : (data.results ?? []);
+    document.getElementById('payload').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('computed').textContent = JSON.stringify(results, null, 2);
+    document.getElementById('verdict').textContent = results.length
+      ? '1 match preserved. The CLI can display the hit.'
+      : hasHit.checked ? '0 matches consumed. The hit was silently discarded.' : '0 matches consumed. The API really returned an empty array.';
+    oldButton.setAttribute('aria-pressed', String(!fixed));
+    fixedButton.setAttribute('aria-pressed', String(fixed));
+  }
+  oldButton.addEventListener('click', () => { fixed = false; render(); });
+  fixedButton.addEventListener('click', () => { fixed = true; render(); });
+  hasHit.addEventListener('change', render);
+  render();
+</script>
+</body>
+</html>

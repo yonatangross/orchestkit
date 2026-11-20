@@ -1,0 +1,15 @@
+2026-10-24T04:23:19.908Z [DEBUG] MCP server "l6elicit": Elicitation request received in print mode: {"method":"elicitation/create","params":{"mode":"form","message":"Please give your color","requestedSchema":{"type":"object","properties":{"color":{"type":"string","description":"Your color"}},"required":["color"]}}}
+2026-10-24T04:23:19.911Z [DEBUG] Hooks: Registering async hook async_hook_1492 (Elicitation:l6elicit) with timeout 15000ms
+2026-10-24T04:23:19.911Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2026-10-24T04:23:19.919Z [DEBUG] Elicitation:l6elicit [cat > ~/coding/yonatangross/orchestkit/.worktrees/l6-artifact-pairs/.ork/tasks/l6-artifact-pairs/elicitation/r2/payload-r2-Elicitation-$$.json] completed with status 0
+2026-10-24T04:23:20.161Z [DEBUG] "Hook Elicitation:l6elicit (Elicitation) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2026-10-24T04:23:20.167Z [DEBUG] Elicitation:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-guard] completed with status 0
+2026-10-24T04:23:20.167Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.Elicitation settled in 258.2ms (native link, next() included)
+2026-10-24T04:23:20.171Z [DEBUG] Hooks: Registering async hook async_hook_1540 (ElicitationResult:l6elicit) with timeout 15000ms
+2026-10-24T04:23:20.171Z [DEBUG] ElicitationResult:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/webhook-forwarder] completed with status 0
+2026-10-24T04:23:20.179Z [DEBUG] ElicitationResult:l6elicit [cat > ~/coding/yonatangross/orchestkit/.worktrees/l6-artifact-pairs/.ork/tasks/l6-artifact-pairs/elicitation/r2/payload-r2-ElicitationResult-$$.json] completed with status 0
+2026-10-24T04:23:20.347Z [DEBUG] "Hook ElicitationResult:l6elicit (ElicitationResult) success:\n{\"continue\":true,\"suppressOutput\":true}"
+2026-10-24T04:23:20.349Z [DEBUG] ElicitationResult:l6elicit [node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs elicitation/elicitation-result-logger] completed with status 0
+2026-10-24T04:23:20.349Z [DEBUG] hooks module cc-plugin-sec-default@builtin classic.ElicitationResult settled in 181.3ms (native link, next() included)
+2026-10-24T04:23:20.816Z [DEBUG] Hooks: Creating attachment for async_hook_1492 (Elicitation:l6elicit): {"continue":true,"suppressOutput":true}
+2026-10-24T04:23:20.816Z [DEBUG] Hooks: Creating attachment for async_hook_1540 (ElicitationResult:l6elicit): {"continue":true,"suppressOutput":true}

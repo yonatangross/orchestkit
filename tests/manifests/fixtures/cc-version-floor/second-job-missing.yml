@@ -1,0 +1,13 @@
+# Fixture for check 6 of tests/manifests/test-cc-version-floor.sh (#4686).
+# Shape (c) of HOLD 6108025314: the CC_FLOOR assignment is removed from the
+# second install step only, so that step installs an empty version while the
+# first step's read stays correct. The scan must flag the second step's pin.
+steps:
+  - name: Install Claude Code CLI
+    run: |
+      CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"
+
+  - name: Install Claude Code CLI
+    run: |
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"

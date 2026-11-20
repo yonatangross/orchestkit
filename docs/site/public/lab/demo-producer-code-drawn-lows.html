@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>code-drawn compare.py: the five review notes, closed</title>
+<style>
+  :root { --bg: #0f1117; --panel: #181b24; --border: #2a2f3d; --text: #e6e8ee; --dim: #8b91a3; --accent: #7aa2f7; --red: #f7768e; --green: #9ece6a; --amber: #e0af68; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: .3rem; }
+  .sub { color: var(--dim); margin-bottom: 1.6rem; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1.1rem; }
+  h2 { font-size: 1.02rem; margin-bottom: .7rem; color: var(--accent); }
+  p { margin-bottom: .5rem; }
+  code { background: #10131b; border: 1px solid var(--border); border-radius: 4px; padding: .1rem .35rem; font-size: .85em; }
+  label { display: block; color: var(--dim); font-size: .85rem; margin: .3rem 0; }
+  textarea, input[type=text] { width: 100%; background: #10131b; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .5rem; font: .85rem ui-monospace, monospace; }
+  textarea { min-height: 90px; }
+  .out { font: .88rem ui-monospace, monospace; margin-top: .6rem; white-space: pre-wrap; }
+  .ok { color: var(--green); } .bad { color: var(--red); } .warn { color: var(--amber); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); }
+  button { background: #10131b; color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; cursor: pointer; font: inherit; min-height: 40px; margin-top: .6rem; }
+  button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="compare.py: the five review notes, closed"><meta property="og:description" content="Follow-up to the demo-producer code-drawn mode: still names are refused by name, still holds trip the control on purpose, a Pillow fallback, Node 22, and the frame 0 guess tested."><meta property="og:url" content="https://orchestkit.dev/lab/demo-producer-code-drawn-lows.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="compare.py: the five review notes, closed"><meta name="twitter:description" content="Follow-up to the demo-producer code-drawn mode: still names are refused by name, still holds trip the control on purpose, a Pillow fallback, Node 22, and the frame 0 guess tested."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>compare.py: the five review notes, closed</h1>
+<p class="sub">Follow-up to #5185 (demo-producer code-drawn mode). Each LOW note from the review, what changed, and how it was tested on the verify reel.</p>
+
+<section>
+<h2>1. Name check: try a folder</h2>
+<p>Every still in the approved folder must be named by its time in seconds. Anything else is now refused by name before a single image is measured, instead of crashing the sort.</p>
+<label for="names">file names, one per line</label>
+<textarea id="names">0.0.png
+2.8.png
+12.5.png
+cover.png</textarea>
+<div class="out" id="verdict" role="status"></div>
+</section>
+
+<section>
+<h2>2. Still holds trip the control, on purpose</h2>
+<p>The control pairs each approved still with the next moment's frame and must see a difference. If the storyboard holds still between two sampled moments, the two frames match and the run fails as BLIND. Move the slider: when the next moment shows nothing new, the control cannot tell them apart. (Simplified to the mean limit alone; compare.py also needs under 1 % of pixels off to call two frames a match.)</p>
+<label for="change">change between the two moments: <span id="cv"></span></label>
+<input type="range" id="change" min="0" max="20" step="0.5" value="6" style="width:100%">
+<div class="out" id="ctl" role="status"></div>
+</section>
+
+<section>
+<h2>3. All five notes</h2>
+<table>
+<thead><tr><th>note</th><th>change</th><th>tested</th></tr></thead>
+<tbody>
+<tr><td>Pillow method name</td><td><code>get_flattened_data</code> where present, else <code>getdata</code></td><td class="ok">method deleted at runtime: PASS, 11 of 11 controls</td></tr>
+<tr><td>Node version</td><td>reference names Node 22+ (global <code>WebSocket</code>)</td><td class="ok">docs</td></tr>
+<tr><td>non-numeric png</td><td>refused by name, exit 1</td><td class="ok">cover.png: REFUSE, exit 1</td></tr>
+<tr><td>still holds</td><td>reference and docstring say BLIND is on purpose</td><td class="ok">docs</td></tr>
+<tr><td>frame 0 strip</td><td>guess tested: t=0 cold and warm identical in one tab</td><td class="ok">generic path has no first-frame fallback</td></tr>
+</tbody>
+</table>
+<button id="copy">Copy as prompt</button>
+<textarea id="out" readonly aria-label="Prompt text" style="margin-top:.6rem"></textarea>
+</section>
+</main>
+<script>
+const ta = document.getElementById('names'), v = document.getElementById('verdict');
+function check() {
+  const names = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+  const bad = names.filter(n => !/\.png$/.test(n) || isNaN(parseFloat(n.slice(0, -4))) || !/^-?\d+(\.\d+)?$/.test(n.slice(0, -4)));
+  v.className = 'out ' + (bad.length ? 'bad' : 'ok');
+  v.textContent = bad.length ? 'REFUSE: approved stills must be named by time in seconds (12.5.png); got ' + JSON.stringify(bad) + '\nexit 1'
+    : 'names ok: ' + names.length + ' moments, sorted by time';
+  out();
+}
+const sl = document.getElementById('change'), ctl = document.getElementById('ctl');
+function control() {
+  const c = +sl.value;
+  document.getElementById('cv').textContent = c.toFixed(1) + ' of 255 mean';
+  const caught = c >= 4;
+  ctl.className = 'out ' + (caught ? 'ok' : 'warn');
+  ctl.textContent = caught ? 'control caught: the next moment differs, the measure can see change'
+    : 'BLIND: the two moments look the same, so the run fails on purpose. Sample a moment where something changes.';
+  out();
+}
+function out() {
+  document.getElementById('out').value = 'code-drawn compare.py follow-up: names ' + (v.classList.contains('bad') ? 'refused' : 'accepted')
+    + ', control at mean change ' + (+sl.value).toFixed(1) + ' reads ' + ((+sl.value) >= 4 ? 'caught' : 'BLIND') + ' (limit 4 of 255).';
+}
+ta.oninput = check; sl.oninput = control; check(); control();
+document.getElementById('copy').onclick = async () => { const o = document.getElementById('out');
+  try { await navigator.clipboard.writeText(o.value); } catch (e) { o.select(); document.execCommand('copy'); } };
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

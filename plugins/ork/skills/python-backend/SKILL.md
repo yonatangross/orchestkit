@@ -1,30 +1,23 @@
 ---
 name: python-backend
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Production Python async patterns including asyncio TaskGroup, FastAPI dependency injection and middleware, SQLAlchemy 2.0 async sessions, and database connection pool tuning. Python 3.11+ runtime concerns such as ExceptionGroup, cancellation semantics, and session rollback. Use when building async services, wiring FastAPI dependencies, or tuning database connection pools. Runtime implementation layer, not the API wire contract."
-tags: [python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql]
-context: fork
-agent: backend-system-architect
-version: 2.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "Async Python: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Not for the API contract (use api-design)."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: fastapi
-    version: ">=0.100.0"
+    version: ">=0.142.2"
   - library: sqlalchemy
-    version: ">=2.0.0"
+    version: ">=2.1.1"
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "python, asyncio, fastapi, sqlalchemy, connection-pooling, async, postgresql"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["*.py", "**/requirements*.txt", "**/pyproject.toml", "**/Pipfile"]
 ---
 
@@ -204,7 +197,7 @@ Topics removed in the 2026-07-31 wrap-plus-delta thinning. Consult the first-par
 ## Related Skills
 
 - `ork:architecture-patterns` - Clean architecture and layer separation
-- `ork:async-jobs` - Celery/ARQ for background processing
+- `ork-extras:async-jobs` - Celery/ARQ for background processing
 - `ork:api-design` - Wire contract, RFC 9457 errors, SSE/WebSocket streaming
 - `ork:database-patterns` - Database schema design
 - `ork:security-patterns` - Auth, password hashing, token policy

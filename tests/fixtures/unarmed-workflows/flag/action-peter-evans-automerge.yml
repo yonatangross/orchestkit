@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: a third-party action that arms auto-merge (#4931).
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Arm the PR
+        uses: peter-evans/enable-pull-request-automerge@0000000000000000000000000000000000000000  # fixture pin
+        with:
+          pull-request-number: 1
+          merge-method: squash

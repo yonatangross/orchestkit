@@ -31,7 +31,7 @@
   button:hover { border-color:var(--accent); }
   label { color:var(--dim); font-size:.87em; }
 </style>
-<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Two defects the watcher found on its first run"><meta property="og:description" content="The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier."><meta property="og:url" content="https://orchestkit.yonyon.ai/lab/watcher-first-harvest.html"><meta property="og:image" content="https://orchestkit.yonyon.ai/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Two defects the watcher found on its first run"><meta name="twitter:description" content="The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier."><meta name="twitter:image" content="https://orchestkit.yonyon.ai/opengraph-image"><!-- ork-lab-head:end --></head>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Two defects the watcher found on its first run"><meta property="og:description" content="The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier."><meta property="og:url" content="https://orchestkit.dev/lab/watcher-first-harvest.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Two defects the watcher found on its first run"><meta name="twitter:description" content="The platform release-notes watcher's first live harvest caught a Sonnet 5 price that made every cost report read 50 percent high, and a model-ID gate that waved through a model the API had already retired. Interactive cost-delta slider and a pin checker showing the new RETIRED tier."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
 <body>
 
 <h1>Two defects the watcher found on its first run</h1>
@@ -103,10 +103,12 @@ That is precisely the hole #3627 was built to close, and it paid for itself on t
 // Output is assembled from nodes; user text never reaches innerHTML.
 const RETIRED = { "claude-opus-4-1": "RETIRED 2026-08-05: use claude-opus-5",
                   "claude-opus-4-1-20250805": "RETIRED 2026-08-05: use claude-opus-5",
-                  "claude-3-haiku-20240307": "RETIRED 2026-04-19: use claude-haiku-4-5" };
-const DEPRECATED = { "claude-opus-4-0": "retirement TBD", "claude-opus-4-20250514": "retirement TBD",
-                     "claude-sonnet-4-0": "retirement TBD", "claude-sonnet-4-20250514": "retirement TBD" };
-const KNOWN = ["claude-fable-5","claude-opus-5","claude-opus-4-8","claude-sonnet-5","claude-sonnet-4-6","claude-haiku-4-5"];
+                  "claude-3-haiku-20240307": "RETIRED 2026-04-19: use claude-haiku-4-5",
+                  "claude-opus-4-20250514": "RETIRED 2026-06-15: use claude-opus-5-5",
+                  "claude-sonnet-4-20250514": "RETIRED 2026-06-15: use claude-sonnet-5-5" };
+const DEPRECATED = { "claude-opus-4-0": "retirement TBD",
+                     "claude-sonnet-4-0": "retirement TBD" };
+const KNOWN = ["claude-fable-5","claude-opus-5-5","claude-opus-5","claude-opus-4-8","claude-sonnet-5-5","claude-sonnet-5","claude-sonnet-4-6","claude-haiku-4-5","claude-haiku-4-5-20251001"];
 
 const fmt = n => "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 const tok = document.getElementById("tok");

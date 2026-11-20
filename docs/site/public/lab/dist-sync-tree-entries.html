@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why the dist sync died at ten seconds</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; font-weight: 600; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Why the dist sync died at ten seconds"><meta property="og:description" content="The sync split requests by bytes, and a known file costs none, so one request carried almost every entry and timed out. Move the slider to see why a cap fixes it."><meta property="og:url" content="https://orchestkit.dev/lab/dist-sync-tree-entries.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Why the dist sync died at ten seconds"><meta name="twitter:description" content="The sync split requests by bytes, and a known file costs none, so one request carried almost every entry and timed out. Move the slider to see why a cap fixes it."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>Why the dist sync died at ten seconds</h1>
+<p>The sync builds a tree in the dist repo through <code>POST /git/trees</code>. It split requests by bytes only, and a file the repo already has costs no bytes. So almost every entry went in one request, which timed out with a 502. Move the slider to see the requests a release makes. The timing here is illustrative, scaled from four measured failures at about 10.8 seconds for 1,879 entries.</p>
+
+<fieldset>
+<legend>Entries per request</legend>
+<label><input type="range" id="cap" min="100" max="1879" step="1" value="1879"> <span id="capValue"></span></label>
+</fieldset>
+
+<output id="result" aria-live="polite"></output>
+</main>
+<script>
+const total = 1879;
+const secondsPerEntry = 10.8 / total;
+const cap = document.getElementById("cap");
+const capValue = document.getElementById("capValue");
+const result = document.getElementById("result");
+function render() {
+  const n = Number(cap.value);
+  const requests = Math.ceil(total / n);
+  const seconds = n * secondsPerEntry;
+  capValue.textContent = n + " entries";
+  const slow = seconds >= 10;
+  result.dataset.state = slow ? "red" : "green";
+  const each = requests + (requests === 1 ? " request" : " requests") + ", about " + seconds.toFixed(1) + " seconds each";
+  result.textContent = each + (slow ? ": over the limit, the sync fails." : ": under the limit.");
+}
+cap.addEventListener("input", render);
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

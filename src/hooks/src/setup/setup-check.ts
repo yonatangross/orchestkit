@@ -194,7 +194,7 @@ export function setupCheck(input: HookInput, hookCtx: HookContext = NOOP_CTX): H
     } else {
       // SessionStart - inform user but don't block
       const ctx = "OrchestKit setup not complete. Run 'claude --init' to configure the plugin.";
-      return outputWithContext(ctx);
+      return outputWithContext(ctx, input);
     }
   }
 
@@ -233,7 +233,7 @@ export function setupCheck(input: HookInput, hookCtx: HookContext = NOOP_CTX): H
         });
         child.unref();
       }
-      return outputWithContext('OrchestKit setup validation failed. Repair running in background.');
+      return outputWithContext('OrchestKit setup validation failed. Repair running in background.', input);
     }
 
     case 2: {
@@ -249,7 +249,7 @@ export function setupCheck(input: HookInput, hookCtx: HookContext = NOOP_CTX): H
       }
 
       updateMarker(markerFile, 'version', CURRENT_VERSION);
-      return outputWithContext(`OrchestKit upgraded to v${CURRENT_VERSION}.`);
+      return outputWithContext(`OrchestKit upgraded to v${CURRENT_VERSION}.`, input);
     }
 
     default:

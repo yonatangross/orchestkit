@@ -142,6 +142,10 @@ FILES_WITH_EXT=$(echo "$TRACKED_LIST" | grep -E '\.[^/]+$' || true)
 # 2026.09.02). Scoped like .sql above instead of widened into ALLOWED_REGEX, so a
 # stray .mdc anywhere else in plugins/ still fails. #4003
 UNEXPECTED=$(echo "$FILES_WITH_EXT" | grep -v -E "$ALLOWED_REGEX" | grep -v -E '/hooks/dist/[^/]+\.sql$' | grep -v -E '/\.cursor-plugin/rules/[^/]+\.mdc$' | sed '/^$/d' || true)
+# .png is allowed ONLY as the exact file .claude-plugin/icon.png: the Claude
+# plugin directory listing icon, named by `icon` in plugin.json and copied from
+# design/plugin-icon/ by build-plugins.sh. Any other image in plugins/ still fails.
+UNEXPECTED=$(printf '%s\n' "$UNEXPECTED" | sed -E '/^plugins\/[^/]+\/\.claude-plugin\/icon\.png$/d; /^$/d')
 
 if [[ -z "$UNEXPECTED" ]]; then
     log_pass "All files have allowlisted extensions"

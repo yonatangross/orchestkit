@@ -26,7 +26,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LEVEL="${NPM_AUDIT_LEVEL:-moderate}"
 ALLOWLIST="$PROJECT_ROOT/.claude/audit-allowlist.json"
-AUDIT_WRAPPER="$PROJECT_ROOT/.github/scripts/npm-audit-with-retry.sh"
+AUDIT_WRAPPER="${ORK_AUDIT_WRAPPER:-$PROJECT_ROOT/.github/scripts/npm-audit-with-retry.sh}"
+CHANGE_GATE="$PROJECT_ROOT/.github/scripts/audit-gate.sh"
+
+# expect_classification lives here. Sourcing it puts this file on the mutation protocol
+# tests/security/mutation-gate.sh reads, so the gate can prove the canary below can fail. The helper
+# turns on `set -e` and sets its own SCRIPT_DIR; this file never relied on either, so -e goes back
+# off (the walk below reads exit statuses on purpose).
+# shellcheck source=../fixtures/test-helpers.sh
+source "$PROJECT_ROOT/tests/fixtures/test-helpers.sh"
+set +e
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
@@ -145,7 +154,19 @@ audit_project() {
   local total
   total=$(echo "$report" | jq -r '.metadata.vulnerabilities | to_entries | map(select(.key == "moderate" or .key == "high" or .key == "critical")) | map(.value) | add // 0' 2>/dev/null || echo "0")
 
-  if [[ "$total" -eq 0 ]]; then
+  # npm's counts cover only the five severity words it knows, and only moderate and up are summed
+  # above. An advisory whose severity is missing, not a string, or a word npm does not use is in
+  # none of those counts, so a count of 0 must never end the audit on its own: the advisories are
+  # read too, and each one with a severity outside the known set is a failure (never counted as
+  # zero, never skipped). A jq failure here is a failure of the audit, not a pass.
+  local unknown
+  if ! unknown=$(echo "$report" | jq -r '[.vulnerabilities // {} | to_entries[] | .value.via[]? | select(type == "object") | (.severity | if type == "string" then . else "" end) as $s | select((["info", "low", "moderate", "high", "critical"] | index($s)) == null)] | length'); then
+    fail "$label: cannot read the advisory severities from the npm audit report"
+    echo ""
+    return 1
+  fi
+
+  if [[ "$total" -eq 0 && "$unknown" -eq 0 ]]; then
     pass "$label: 0 findings ≥ $LEVEL"
     echo ""
     return 0
@@ -158,6 +179,10 @@ audit_project() {
     local id sev title
     id=$(echo "$advisory" | jq -r '.id // .source // "unknown"')
     sev=$(echo "$advisory" | jq -r '.severity // "?"')
+    case "$sev" in
+      info|low|moderate|high|critical) ;;
+      *) sev="unknown severity" ;;
+    esac
     title=$(echo "$advisory" | jq -r '.title // "(no title)"')
     if is_allowlisted "$id"; then
       warn "$label: $id [$sev] $title — allowlisted"
@@ -173,6 +198,57 @@ audit_project() {
   echo ""
   [[ "$unlisted" -eq 0 ]]
 }
+
+# ─── canary: can this audit still see a known advisory? ─────────────────────
+# A gate that reports 0 findings is only evidence if it could have reported one. This runs the real
+# audit_project against a stubbed advisory source (the ORK_AUDIT_WRAPPER seam's shape, a script that
+# prints a canned npm report) and an empty allowlist, and expects the audit to FAIL. It is the file's
+# first assertion, so the mutation gate inverts it and must see it detected, and it runs in every mode
+# (before the change-mode dispatch below). Exit 1 from audit_project is the decision (yes), exit 0 is no,
+# anything else is ERROR, which is never a pass.
+canary_audit_fails_on_known_advisory() {
+  local dir rc=0
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-canary.XXXXXX")"
+  printf '{}\n' > "$dir/package.json"
+  printf '{}\n' > "$dir/package-lock.json"
+  jq -n '{vulnerabilities: {"canary-pkg": {name: "canary-pkg", severity: "moderate",
+            via: [{source: "canary-0", name: "canary-pkg", title: "canary advisory", severity: "moderate"}]}},
+          metadata: {vulnerabilities: {info: 0, low: 0, moderate: 1, high: 0, critical: 0, total: 1}}}' > "$dir/report.json"
+  printf '#!/usr/bin/env bash\ncat "%s/report.json"\nexit 1\n' "$dir" > "$dir/stub.sh"
+  # A subshell: the canary must not move this run's counters, its audited-directory list, or its wrapper.
+  ( AUDIT_WRAPPER="$dir/stub.sh"; ACTIVE_IDS=(); audit_project "canary" "$dir" ) > "$dir/out.txt" 2>&1 || rc=$?
+  rm -rf "$dir"
+  case "$rc" in
+    1) return 0 ;;
+    0) return 1 ;;
+    *) return 2 ;;
+  esac
+}
+expect_classification yes canary_audit_fails_on_known_advisory "canary: the audit fails on a known moderate advisory"
+
+# ─── which rule: the whole tree, or the change (orchestkit row 10, part 2) ──
+# The mode is decided in ONE place, .github/scripts/audit-gate.sh, from the event: a pull_request
+# run (and the pre-push hook, which asks for it) judges the CHANGE through that script, which is
+# the same script the "Dependency Audit" row calls, so the rule cannot drift. Every other run
+# (push to main, a manual run with no event) falls through to the whole-tree walk below, unchanged.
+# A gate that cannot be read or cannot say its mode is a failure, never a skip.
+if ! AUDIT_MODE="$(bash "$CHANGE_GATE" --print-mode)"; then
+  echo "  npm audit gate: cannot decide the audit mode (is $CHANGE_GATE readable?), failing closed" >&2
+  exit 2
+fi
+if [[ "$AUDIT_MODE" == "change" ]]; then
+  # Not `exec`: that replaced this process, so a canary that had already failed (FAIL, or the
+  # sourced helper's TESTS_FAILED) was thrown away and the file exited on the gate's status alone.
+  # Under the mutation gate, which runs this file on pull_request with the canary inverted, that
+  # read as SWALLOWED. The gate's own status passes through unless the canary failed.
+  change_gate_rc=0
+  bash "$CHANGE_GATE" || change_gate_rc=$?
+  if [[ "$FAIL" -gt 0 || "${TESTS_FAILED:-0}" -gt 0 ]]; then
+    echo "  npm audit gate: the canary failed, so this run cannot vouch for the change audit above" >&2
+    exit 1
+  fi
+  exit "$change_gate_rc"
+fi
 
 AUDIT_LOG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ork-audit-projects.XXXXXX")"
 trap 'rm -rf "$AUDIT_LOG_DIR"' EXIT
@@ -208,7 +284,9 @@ start_audit "orchestkit-demos" "$PROJECT_ROOT/orchestkit-demos"
 start_audit "hook-contract/examples/generic-client" \
               "$PROJECT_ROOT/packages/hook-contract/examples/generic-client"
 start_audit "mods/lesson-cards" "$PROJECT_ROOT/mods/lesson-cards"
+start_audit "mods/memory-lens" "$PROJECT_ROOT/mods/memory-lens"
 start_audit "mods/promote-lights" "$PROJECT_ROOT/mods/promote-lights"
+start_audit "mods/prompt-enhancer" "$PROJECT_ROOT/mods/prompt-enhancer"
 start_audit "mods/secrets-veil" "$PROJECT_ROOT/mods/secrets-veil"
 
 for index in "${!AUDIT_PIDS[@]}"; do
@@ -261,5 +339,5 @@ echo "════════════════════════�
 echo "  Total: $((PASS + FAIL))  |  Passed: ${GREEN}${PASS}${NC}  |  Failed: ${RED}${FAIL}${NC}"
 echo "════════════════════════════════════════════════════════════════"
 
-[[ $FAIL -eq 0 ]] || exit 1
+[[ $FAIL -eq 0 && "${TESTS_FAILED:-0}" -eq 0 ]] || exit 1
 exit 0

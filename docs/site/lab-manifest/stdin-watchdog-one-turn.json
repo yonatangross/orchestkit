@@ -1,0 +1,8 @@
+{
+  "slug": "stdin-watchdog-one-turn",
+  "source": "docs/fix--4825-watchdog-defer-one-turn/stdin-watchdog-one-turn.html",
+  "title": "The watchdog that fired with the payload in the pipe",
+  "description": "Under load, piped hooks ran on an empty payload although the whole payload was already in the pipe; one deferred loop turn fixes it without raising the 100ms window.",
+  "tags": ["hooks", "runner", "flaky"],
+  "date": "2026-10-22"
+}

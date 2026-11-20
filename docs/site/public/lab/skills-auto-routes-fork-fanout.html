@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork:auto routes setup and swarm-migrate</title>
+<meta name="description" content="setup and swarm-migrate were reachable only by description or a typed command. ork:auto now routes to both. Pick a benchmark goal to see its route and the edge rule that decides it, including the look-alikes that must stay build.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  .flow{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;font-size:.85rem;margin:.6rem 0}
+  .box{border:1px solid var(--edge);border-radius:6px;padding:.3rem .6rem;background:#0b0d13}
+  .box.setup{border-color:var(--ok);color:var(--ok)}
+  .box.migrate{border-color:var(--accent);color:var(--accent)}
+  .box.build{border-color:var(--warn);color:var(--warn)}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:start}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="ork:auto routes setup and swarm-migrate"><meta property="og:description" content="setup and swarm-migrate were reachable only by description or a typed command. ork:auto now routes to both. Pick a benchmark goal to see its route and the edge rule that decides it, including the look-alikes that must stay build."><meta property="og:url" content="https://orchestkit.dev/lab/skills-auto-routes-fork-fanout.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ork:auto routes setup and swarm-migrate"><meta name="twitter:description" content="setup and swarm-migrate were reachable only by description or a typed command. ork:auto now routes to both. Pick a benchmark goal to see its route and the edge rule that decides it, including the look-alikes that must stay build."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>ork:auto routes setup and swarm-migrate</h1>
+<p class="sub">Branch feat/skills-auto-routes-fork-fanout (#4981, refs #4672). <code>setup</code> and <code>swarm-migrate</code> were reachable only by description or a typed command, kept alive by a standalone allowlist entry. <code>src/skills/auto/SKILL.md</code> now has <strong>setup</strong> and <strong>migrate</strong> intents, <code>references/routing-rules.md</code> gives their signals and edges (rule 6b), and <code>routing-benchmark.json</code> gains setup-01..04 and mig-01..05, look-alikes that must route to build included. <code>tests/structure/test-auto-routing-benchmark.mjs</code> checks every case statically, with no paid bare-eval run.</p>
+
+<section><h2>1. Pick a benchmark goal</h2>
+<div class="controls">
+  <select id="case" aria-label="benchmark case"></select>
+  <select id="filter" aria-label="filter">
+    <option value="all">all new cases</option>
+    <option value="setup">routes to setup</option>
+    <option value="migrate">routes to migrate</option>
+    <option value="build">look-alikes that stay build</option>
+  </select>
+</div>
+<div class="flow" id="flow"></div>
+<div class="out" id="out"></div>
+<p class="note"><strong>Rule 6b.</strong> Many repos named or implied ("every repo", "all consumers", "org-wide") with a change to make is <code>migrate</code>; one repo is <code>build</code>. OrchestKit itself as the object of "set up" or "onboard" is <code>setup</code>; any other object of "set up" is <code>build</code>.</p>
+</section>
+
+<section><h2>2. The two new routes</h2>
+<table><thead><tr><th>intent</th><th>signals</th><th>route</th></tr></thead><tbody>
+<tr><td>setup</td><td>set up OrchestKit, onboard this repo, which skills fit this project, rescan the stack</td><td><code>/ork:setup</code></td></tr>
+<tr><td>migrate</td><td>across all repos, every repo, org-wide, roll out to N repos, bump in each consumer</td><td><code>/ork:swarm-migrate</code></td></tr>
+</tbody></table>
+<div class="controls" style="margin-top:1rem"><button id="copy" type="button">copy the shown cases as JSON</button><span id="copied" class="sub" style="margin:0"></span></div>
+</section>
+
+<script>
+const CASES = [
+  { id: 'setup-01', goal: 'set up orchestkit for this repo', category: 'setup', route: '/ork:setup', why: 'OrchestKit is the object of "set up".' },
+  { id: 'setup-02', goal: 'which ork skills and MCP servers fit this project', category: 'setup', route: '/ork:setup', why: "A recommendation for this stack is setup's scan, not a help listing." },
+  { id: 'setup-03', goal: 'we moved to a monorepo, rescan the stack and update the ork config', category: 'setup', route: '/ork:setup', why: 'A rescan after a major change.' },
+  { id: 'setup-04', goal: 'set up CI for this repo', category: 'build', route: '/ork:implement', why: 'Set up X where X is not OrchestKit is build.' },
+  { id: 'mig-01', goal: 'bump zod to v4 in every repo that uses it', category: 'migrate', route: '/ork:swarm-migrate', why: '"every repo" with a change to make.' },
+  { id: 'mig-02', goal: 'roll out the new lint workflow to all 12 repos and open a PR in each', category: 'migrate', route: '/ork:swarm-migrate', why: 'Roll out to N repos.' },
+  { id: 'mig-03', goal: 'apply the vitest codemod org-wide', category: 'migrate', route: '/ork:swarm-migrate', why: '"org-wide" with a change to make.' },
+  { id: 'mig-04', goal: 'migrate this repo from jest to vitest', category: 'build', route: '/ork:implement', why: 'One repo is build, even when the verb is migrate.' },
+  { id: 'mig-05', goal: 'write the alembic migration for the orders table', category: 'build', route: '/ork:implement', why: 'A schema migration is build, never the cross-repo swarm.' }
+];
+function shown() {
+  const f = document.getElementById('filter').value;
+  return CASES.filter((c) => f === 'all' || c.category === f);
+}
+function fill() {
+  const sel = document.getElementById('case');
+  sel.textContent = '';
+  for (const c of shown()) {
+    const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.id}: ${c.goal}`; sel.append(o);
+  }
+  render();
+}
+function render() {
+  const c = CASES.find((x) => x.id === document.getElementById('case').value);
+  const flow = document.getElementById('flow');
+  flow.textContent = '';
+  if (!c) return;
+  const parts = [['goal', `"${c.goal}"`, ''], ['to', '/ork:auto', ''], ['intent', c.category, c.category], ['to', c.route, c.category]];
+  parts.forEach(([kind, text, cls], i) => {
+    if (i) { const a = document.createElement('span'); a.textContent = '->'; flow.append(a); }
+    const b = document.createElement('span'); b.className = 'box ' + cls; b.textContent = text; flow.append(b);
+  });
+  document.getElementById('out').textContent = `${c.id}: ${c.why}`;
+}
+document.getElementById('filter').addEventListener('change', fill);
+document.getElementById('case').addEventListener('change', render);
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = JSON.stringify(shown().map(({ why, ...rest }) => rest), null, 2);
+  try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'copied'; }
+  catch { document.getElementById('copied').textContent = 'clipboard blocked'; }
+});
+fill();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

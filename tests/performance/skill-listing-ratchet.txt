@@ -1,0 +1,25 @@
+13533
+# Ceiling, in bytes, for the CORE skill listing total: name + description + when_to_use
+# of every model-facing skill (disable-model-invocation not true) that core ork ships,
+# which is src/skills minus manifests/ork.json skillsExclude (#4936). The skills in
+# skillsExclude ship in the opt-in ork-extras plugin and have their own ceiling in
+# skill-listing-ratchet-extras.txt.
+# Read by tests/performance/test-token-overhead.sh (Test 4b). The number only moves
+# DOWN: lower it to the measured total when a trim lands; the test fails when the
+# total falls more than 256 bytes under it. Never raise it to make a red run green.
+# Test 4d also fails a PR that raises this number versus its base branch.
+# History: 2026-11-04 orchestkit#4936 W1, 29171 on main before the diet, 16008 after it.
+# 2026-11-04 orchestkit#5044: explore and create-research got NOT-for boundaries, -2 bytes net, 16006.
+# 2026-11-12 orchestkit#4936 (ork-extras split): the test measures what core ships. LOWERED 16006 -> 15588:
+# portless (no longer in core) and design-stylecards left the core listing (-414 bytes, 83 skills).
+# Not raised. The 23 skills made model-invocable in ork-extras do not count here.
+# 2026-11-17 trim stage 1c (7 operator skills to ork-extras, slash-only): LOWERED 15588 -> 14583 (-1005 bytes).
+# audit-activation, audit-full, bare-eval, prompt-focus and swarm-migrate left the core listing; careful and
+# freeze were already hidden. Measured over src/skills minus manifests/ork.json skillsExclude (83 skills).
+# Not raised. The ork-extras ceiling does not move: all 7 are slash-only there.
+# 2026-11-17 catalog trim stage 1a: remember, dream and ci-sentinel left the model's list (their typed-only
+# aliases are hidden from it). LOWERED 15588 -> 15028 (-560 bytes). Not raised.
+# 2026-11-17 design-to-code merge: storybook-mcp-integration left the listing and design-import
+# and design-ship became typed-only aliases (hidden from the model). LOWERED 15588 -> 15099 (-489 bytes, 80 skills).
+# 2026-11-18 stage 1c, stage 1a and the design-to-code merge together: 15588 - 1005 - 489 - 560 = 13534, and Test 4b measured 13534 bytes on the merged tree (extras 6254, unchanged). Not raised.
+# 2026-11-18 G7 trigger fix on top of stage 1c, 1a and the proven tier: the create-pr, fix-issue and review-pr descriptions; Test 4b replica measured 13533 bytes over 82 skills (extras 6254). LOWERED 13534 -> 13533 (-1 byte). Not raised.

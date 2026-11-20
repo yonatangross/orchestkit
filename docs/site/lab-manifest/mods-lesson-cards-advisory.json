@@ -1,0 +1,8 @@
+{
+  "slug": "mods-lesson-cards-advisory",
+  "source": "docs/fix--lesson-cards-advisory/advisory.html",
+  "title": "lesson-cards 1.2.0: lessons are advisory, never blocking",
+  "description": "A lesson never blocks a tool call: no Proceed anyway dialog, no deny, in any session. Every match draws the card and adds the lesson to the model context, marked advisory for block severity. Compare 1.1.x and 1.2.0.",
+  "tags": ["mods", "lesson-cards", "advisory"],
+  "date": "2026-10-22"
+}

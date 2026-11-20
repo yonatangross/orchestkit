@@ -1,0 +1,12 @@
+{
+  "slug": "docs-replay-consent",
+  "source": "docs/fix--docs-replay-consent/index.html",
+  "title": "Docs site: session replay never starts without consent",
+  "description": "Pick accept or decline and whether the visitor then opens a reference page, and see whether a session recording starts before and after the fix.",
+  "tags": [
+    "privacy",
+    "posthog",
+    "docs-site"
+  ],
+  "date": "2026-11-07"
+}

@@ -1,0 +1,6 @@
+{
+  "serves": "orchestkit-ork10-g1",
+  "page": "docs/fix--ork10-g1-hooks-bugs/index.html",
+  "lab_slug": "ork10-g1-hooks-bugs",
+  "purpose": "PR playground: GA bugs, hooks: 4 red-first fixes"
+}

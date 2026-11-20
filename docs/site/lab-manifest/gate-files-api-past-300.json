@@ -1,0 +1,12 @@
+{
+  "slug": "gate-files-api-past-300",
+  "source": "docs/fix--playground-gate-files-api/index.html",
+  "title": "The Gate That Could Not Count Past 300",
+  "description": "The PR Playground gate read a pull request's changed files from the PR diff, and GitHub refuses a diff past 300 files, so every large PR failed closed. It now reads the paginated files API. Slide the file count to compare both gates.",
+  "tags": [
+    "ci",
+    "false-signals",
+    "playground"
+  ],
+  "date": "2026-11-01"
+}

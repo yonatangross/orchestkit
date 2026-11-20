@@ -72,7 +72,7 @@ export function resolveHead(projectDir: string): string | null {
     const out = execFileSync('git', ['rev-parse', 'HEAD'], {
       cwd: projectDir,
       encoding: 'utf8',
-      timeout: 2000,
+      killSignal: 'SIGKILL', timeout: 2000,
       stdio: ['ignore', 'pipe', 'ignore'],
       windowsHide: true,
     }).trim();
@@ -239,6 +239,8 @@ export function updateLedgerForFile(projectDir: string, filePath: string, text: 
   try {
     const ledger = readLedger();
     if (!ledger) return;
+    const currentHead = resolveHead(projectDir);
+    if (currentHead !== null && ledger.head !== currentHead) return;
     const abs = isAbsolute(filePath) ? filePath : resolve(projectDir, filePath);
     const file = relative(projectDir, abs) || abs;
     const fresh: LedgerEntry[] = [];

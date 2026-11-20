@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill fitness round 6: the loop stops at 10</title>
+<meta name="description" content="Round 6 of the OrchestKit quality loop kept the deterministic checklist at 10 for the second round running, so the loop's stop rule is met. Pick a skill to see the claim it made and what is actually true.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{color:var(--dim);font-size:.8rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.9rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap;min-height:5rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+  table{border-collapse:collapse;width:100%;font-size:.78rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Skill fitness round 6: the loop stops at 10"><meta property="og:description" content="Round 6 of the OrchestKit quality loop kept the deterministic checklist at 10 for the second round running, so the loop's stop rule is met. Pick a skill to see the claim it made and what is actually true."><meta property="og:url" content="https://orchestkit.dev/lab/skill-fitness-round-6.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Skill fitness round 6: the loop stops at 10"><meta name="twitter:description" content="Round 6 of the OrchestKit quality loop kept the deterministic checklist at 10 for the second round running, so the loop's stop rule is met. Pick a skill to see the claim it made and what is actually true."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Skill fitness round 6: the loop stops at 10</h1>
+<p class="sub">Branch feat/skill-quality-r6, 2026-11-07. The stop rule is the scripted checklist at 9.5 or more, two rounds in a row. Round 5 reached 10.0 and round 6 held it, so the loop ends. Round 6 fixed claims the fresh graders found that a checklist cannot see: statements that were simply false.</p>
+
+<section><h2>Pick a skill</h2>
+<label for="skill">fixed this round</label>
+<select id="skill">
+  <option value="ci-debug">ci-debug</option>
+  <option value="brainstorm">brainstorm</option>
+  <option value="visualize-plan">visualize-plan</option>
+</select>
+<div class="grid">
+  <div><div class="dim">what the skill said</div><div class="out bad" id="said" aria-live="polite"></div></div>
+  <div><div class="dim">what is true</div><div class="out ok" id="true" aria-live="polite"></div></div>
+</div>
+</section>
+
+<section><h2>Checklist by round (stop measure)</h2>
+<table>
+<thead><tr><th>round</th><th class="num">mean of 10 skills</th><th>at 9.5 or more</th></tr></thead>
+<tbody>
+<tr><td>3</td><td class="num">8.7</td><td class="bad">no</td></tr>
+<tr><td>4</td><td class="num">9.3</td><td class="bad">no</td></tr>
+<tr><td>5</td><td class="num">10.0</td><td class="ok">yes (1 of 2)</td></tr>
+<tr><td>6</td><td class="num">10.0</td><td class="ok">yes (2 of 2): stop</td></tr>
+</tbody>
+</table>
+</section>
+
+<script>
+const CASES = {
+  'ci-debug': [
+    'For org-wide sweeps "use status", and ci-sentinel is "the autonomous hourly trigger".',
+    'ork ships no status skill; ci-sentinel is the ork skill that runs ci-debug across every red PR, and it runs on a daily cron.'],
+  brainstorm: [
+    'Agent Teams works because ork.settings.json sets CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS, and each spawn passes team_name.',
+    'ork.settings.json holds only permissions; the variable must be in the user\'s environment. The Agent tool ignores team_name: there is one implicit team per session.'],
+  'visualize-plan': [
+    'The playground skill "ships with ork"; sections render "on request"; "at most one question per run".',
+    'playground is a separate plugin; all six sections render by default; up to one question before the first render (only when the source is ambiguous) and one after it.'],
+};
+function render() {
+  const [said, truth] = CASES[document.getElementById('skill').value];
+  document.getElementById('said').textContent = said;
+  document.getElementById('true').textContent = truth;
+}
+document.getElementById('skill').addEventListener('change', render);
+render();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

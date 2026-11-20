@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-exact-proceed",
+  "source": "docs/test--lesson-cards-exact-proceed/index.html",
+  "title": "lesson-cards: only the exact \"Proceed anyway\" runs a block lesson",
+  "description": "Test rows that pin the exact Proceed anyway match: lowercase, uppercase, cut short, trailing space, padded and both labels must not run. A lowercase or trimmed comparison now fails 2 tests.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-09-26"
+}

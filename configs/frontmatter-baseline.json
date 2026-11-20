@@ -1,0 +1,220 @@
+{
+  "_comment": "Ratchet baseline for scripts/check-frontmatter.py: the frontmatter violations each file carried when it was recorded. Only codes NOT listed here are reported. Counts may only fall; regenerate with python3 scripts/check-frontmatter.py --write-baseline after fixing debt (it refuses to add codes).",
+  "total_violations": 101,
+  "files_with_violations": 61,
+  "files": {
+    "src/skills/animation-motion-design/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/api-design/SKILL.md": [
+      "house-key:path_patterns"
+    ],
+    "src/skills/architecture-patterns/SKILL.md": [
+      "unknown-key:skills"
+    ],
+    "src/skills/assess/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/audit-full/SKILL.md": [
+      "unknown-key:skills"
+    ],
+    "src/skills/auto/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/brainstorm/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/chain-patterns/SKILL.md": [
+      "house-key:tool-coverage"
+    ],
+    "src/skills/ci-debug/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/commit/SKILL.md": [
+      "house-key:invocation_hooks",
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/component-search/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/cover/SKILL.md": [
+      "house-key:invocation_hooks",
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/create-pr/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/database-patterns/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/demo-producer/SKILL.md": [
+      "house-key:targets"
+    ],
+    "src/skills/design-context-extract/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/design-stylecards/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/design-system-tokens/SKILL.md": [
+      "house-key:targets"
+    ],
+    "src/skills/design-to-code/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/dev/SKILL.md": [
+      "metadata-not-string-map:upstream-packages"
+    ],
+    "src/skills/devops-deployment/SKILL.md": [
+      "house-key:invocation_hooks",
+      "house-key:path_patterns"
+    ],
+    "src/skills/doctor/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/error-analysis/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/expect/SKILL.md": [
+      "house-key:invocation_hooks",
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/explore/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/figma-design-handoff/SKILL.md": [
+      "house-key:targets",
+      "metadata-not-string-map:figma-mcp-tool-count"
+    ],
+    "src/skills/fix-issue/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/help/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/i18n-date-patterns/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/implement/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/json-render-catalog/SKILL.md": [
+      "metadata-not-string-map:shadcn-component-count"
+    ],
+    "src/skills/langgraph/SKILL.md": [
+      "house-key:targets",
+      "house-key:upstream-version-tested"
+    ],
+    "src/skills/mcp-patterns/SKILL.md": [
+      "house-key:targets"
+    ],
+    "src/skills/memory/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/monitoring-observability/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets",
+      "house-key:upstream-version-tested"
+    ],
+    "src/skills/page-serve/SKILL.md": [
+      "metadata-not-string-map:upstream-packages"
+    ],
+    "src/skills/prd-to-goal/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/python-backend/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/quality-gates/SKILL.md": [
+      "unknown-key:skills"
+    ],
+    "src/skills/rag-retrieval/SKILL.md": [
+      "house-key:path_patterns"
+    ],
+    "src/skills/react-server-components-framework/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/release-sync/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/review-pr/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/security-patterns/SKILL.md": [
+      "house-key:path_patterns"
+    ],
+    "src/skills/setup/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/storybook-testing/SKILL.md": [
+      "house-key:targets",
+      "house-key:tool-coverage"
+    ],
+    "src/skills/swarm-migrate/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/task-dependency-patterns/SKILL.md": [
+      "house-key:tool-coverage"
+    ],
+    "src/skills/testing-e2e/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/testing-integration/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/testing-llm/SKILL.md": [
+      "house-key:targets"
+    ],
+    "src/skills/testing-perf/SKILL.md": [
+      "house-key:targets"
+    ],
+    "src/skills/testing-unit/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/verify/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/visualize-plan/SKILL.md": [
+      "house-key:triggers",
+      "unknown-key:skills"
+    ],
+    "src/skills/vite-advanced/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ],
+    "src/skills/write-prd/SKILL.md": [
+      "house-key:triggers"
+    ],
+    "src/skills/zustand-patterns/SKILL.md": [
+      "house-key:path_patterns",
+      "house-key:targets"
+    ]
+  }
+}

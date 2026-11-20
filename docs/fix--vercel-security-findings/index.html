@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five Vercel Security Review findings, fixed</title>
+<meta name="description" content="Three bypasses of the npm ci symlink guard (a closing brace in a directory name, a quoted parenthesis in a substitution, an earlier install hiding a later one) and two temp-file races in test scripts, each with the command shape that got through and what the guard says now.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --warn:#9a6a12; --bad:#a23b2a; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --warn:#e0b25a; --bad:#e08a7a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button, select { font:inherit; font-size:.9rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; }
+  button { cursor:pointer; }
+  label { display:block; font-size:.85rem; color:var(--muted); margin:0 0 4px; }
+  .result { background:var(--card); border:1px solid var(--rule); border-left:5px solid var(--muted); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .result[data-verdict="allowed"] { border-left-color:var(--bad); }
+  .result[data-verdict="denied"] { border-left-color:var(--accent); }
+  .result b { display:block; margin-bottom:4px; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; word-break:break-all; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  td[data-verdict="allowed"] { color:var(--bad); font-weight:600; }
+  td[data-verdict="denied"] { color:var(--accent); font-weight:600; }
+  .scope { background:var(--card); border:1px solid var(--rule); border-left:4px solid var(--warn); border-radius:8px; padding:12px 14px; margin-top:20px; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Five Vercel Security Review findings, fixed</h1>
+      <p class="lead">The npm ci symlink guard stops a clean install that would follow a linked node_modules and empty the shared tree. Vercel's review found three command shapes the guard let through, plus two temp-file races in test scripts. Pick a shape to see what the guard did before and does now.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <div class="scope"><b>Scope.</b> The guard reads command text, so this is a lint against accidental and common bypasses, not a sandbox. When it cannot place an install it asks. Findings 1 and 2 are test scripts, not shipped code.</div>
+
+  <h2>Try a command shape</h2>
+  <label for="shape">Starting in a directory whose node_modules is real, with a linked worktree elsewhere:</label>
+  <select id="shape"></select>
+  <div class="result" id="result" aria-live="polite"></div>
+
+  <h2>All five findings</h2>
+  <table id="table"></table>
+
+  <footer>Row 16. Findings 3, 4 and 5 are in src/hooks/src/pretool/bash/npm-ci-symlink-guard.ts; 1 and 2 in tests/evals and tests/unit. Made by lane ork-rows-10 (Claude via Claude Code), 2026-11-14.</footer>
+</main>
+<script>
+  (function () {
+    var SHAPES = [
+      { id: "brace", finding: "3", label: "npm ci --prefix wt}   (a directory whose name ends in a closing brace)",
+        before: "allowed", after: "denied",
+        why: "The grammar stripper cut the trailing brace off the argument, so the guard probed the sibling wt instead of wt} and found no link." },
+      { id: "paren", finding: "4", label: "( cd parent; x=$(printf \")\"); cd lw; npm ci )   (a quoted parenthesis inside a substitution)",
+        before: "allowed", after: "denied",
+        why: "Blanking was not quote-aware, so the quoted parenthesis ended the substitution early and the subshell exit restored the wrong directory. The relative cd then resolved against the wrong base." },
+      { id: "later", finding: "5", label: "env npm ci && cd wt && npm ci   (a safe install first, a linked one later)",
+        before: "allowed", after: "denied",
+        why: "The scan returned at the first clean install it recognised, so the later install in the linked worktree was never probed." },
+      { id: "ctl-brace", finding: "control", label: "npm ci --prefix real   (no linked directory)",
+        before: "allowed", after: "allowed", why: "A legitimate install in a real directory is still allowed." },
+      { id: "ctl-paren", finding: "control", label: "( cd parent; x=$(printf \")\"); cd rl; npm ci )   (the directory it reaches is real)",
+        before: "allowed", after: "allowed", why: "The quoted parenthesis is read correctly now, and the install lands in a real directory, so nothing is blocked." },
+      { id: "ctl-later", finding: "control", label: "env npm ci && cd real && npm ci   (every install in a real directory)",
+        before: "allowed", after: "allowed", why: "Scanning the whole command adds nothing to deny when every target is a real directory." }
+    ];
+    var TEMP = [
+      { finding: "1", where: "tests/evals/scripts/optimize-description.sh", before: "a reserved file renamed to name.yaml in a shared TMPDIR, the rename unchecked", after: "a private mktemp -d directory holds both split files; every step is checked" },
+      { finding: "2", where: "tests/unit/test-image-paste-guard.sh", before: "a .mjs runner derived next to a shared temp file", after: "the runner and its stderr capture live in a private mktemp -d directory" }
+    ];
+
+    function el(tag, dataset, text) {
+      var node = document.createElement(tag);
+      if (dataset) { Object.keys(dataset).forEach(function (k) { node.dataset[k] = dataset[k]; }); }
+      if (text !== undefined) { node.textContent = text; }
+      return node;
+    }
+
+    var sel = document.getElementById("shape");
+    SHAPES.forEach(function (s) {
+      var o = el("option", { id: s.id }, "Finding " + s.finding + ": " + s.label);
+      o.value = s.id;
+      sel.appendChild(o);
+    });
+    var result = document.getElementById("result");
+    function render() {
+      var s = SHAPES.filter(function (x) { return x.id === sel.value; })[0];
+      while (result.firstChild) { result.removeChild(result.firstChild); }
+      result.dataset.verdict = s.after;
+      result.appendChild(el("b", null, "Before: " + s.before + ". Now: " + s.after + "."));
+      result.appendChild(el("span", null, s.why));
+      result.appendChild(el("code", null, s.label));
+    }
+    sel.addEventListener("change", render);
+    render();
+
+    var table = document.getElementById("table");
+    var head = el("tr");
+    ["Finding", "Where", "Before", "Now"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+    table.appendChild(head);
+    SHAPES.filter(function (s) { return s.finding !== "control"; }).forEach(function (s) {
+      var row = el("tr");
+      row.appendChild(el("td", null, s.finding));
+      row.appendChild(el("td", null, "src/hooks/src/pretool/bash/npm-ci-symlink-guard.ts"));
+      row.appendChild(el("td", { verdict: s.before }, s.before));
+      row.appendChild(el("td", { verdict: s.after }, s.after));
+      table.appendChild(row);
+    });
+    TEMP.forEach(function (t) {
+      var row = el("tr");
+      row.appendChild(el("td", null, t.finding));
+      row.appendChild(el("td", null, t.where));
+      row.appendChild(el("td", null, t.before));
+      row.appendChild(el("td", null, t.after));
+      table.appendChild(row);
+    });
+
+    var btn = document.getElementById("theme");
+    var root = document.documentElement;
+    function setTheme(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light" : "Dark"; }
+    setTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    btn.addEventListener("click", function () { setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "slug": "prompt-focus-demo",
+  "source": "docs/feat--prompt-focus-skill/index.html",
+  "title": "prompt-focus: where your attention went (demo data)",
+  "description": "The prompt-focus report from synthetic data: projects, hours and re-typed asks over 20 weeks, counts only.",
+  "tags": [
+    "skills",
+    "analytics",
+    "demo"
+  ],
+  "date": "2026-10-07"
+}

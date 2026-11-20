@@ -1,25 +1,21 @@
 ---
 name: ai-ui-generation
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: AI-assisted UI generation patterns for json-render, v0.app, Google Stitch, Bolt Cloud, and Cursor workflows. Covers prompt engineering for component and full-stack app generation, review checklists for AI-generated code, design token injection, refactoring for design system conformance, and CI gates for quality assurance. Use when generating UI components with AI tools, rendering multi-surface MCP visual output, reviewing AI-generated code, or integrating AI output into design systems.
-tags: [ai-ui, json-render, v0, v0-app, stitch, bolt, bolt-cloud, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui]
-context: fork
-agent: frontend-ui-developer
-version: 1.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "AI UI generation with json-render, v0.app, Stitch, Bolt, and Cursor: prompt engineering, review checklists, design system conformance, CI gates. Use when generating UI components with AI tools, reviewing AI-generated code, or rendering MCP visual output."
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ai-ui, json-render, v0, v0-app, stitch, bolt, bolt-cloud, cursor, prompt-engineering, code-generation, design-tokens, component-generation, ai-review, shadcn-ui"
+allowed-tools: "Read Glob Grep WebFetch WebSearch mcp__stitch__generate_screen_from_text mcp__plugin_hq-ext_stitch__generate_screen_from_text mcp__stitch__get_screen mcp__plugin_hq-ext_stitch__get_screen"
+  # Stitch: body names generate_screen_from_text and get_screen.
+  # Grant BOTH prefixes: standalone stitch (mcp__stitch__*) and hq-ext plugin
+  # (mcp__plugin_hq-ext_stitch__*). See https://code.claude.com/docs/en/mcp-servers
 ---
 
 # AI UI Generation
@@ -53,7 +49,7 @@ Patterns for generating, reviewing, and integrating UI components produced by AI
 | Streaming UI from AI agents | json-render | Structured JSON specs render progressively |
 | New component from scratch | v0.app | Full scaffold with shadcn/ui, Tailwind, a11y. Pair with `shadcn apply <style>` for style consistency |
 | Full-stack app with deploy | v0.app | Jan 2026 expansion — routes, DB, auth, Vercel/Cloudflare deploy in one generation |
-| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `build_site` + `get_screen_code` / `get_screen_image`, up to 5 screens |
+| Design-driven (screenshot/URL/DESIGN.md) | Google Stitch | `generate_screen_from_text` (once; no retry) + `get_screen(name="projects/{project}/screens/{screen}")` |
 | Multi-screen flow from a visual source | Google Stitch | Strongest when grounded in an existing design |
 | Full-stack prototype with persistent backend | Bolt Cloud | Cloud dev env, GitHub integration, databases |
 | Incremental change in existing codebase | Cursor | Understands project context, imports, tokens |
@@ -165,8 +161,8 @@ Choosing the right AI tool and iterating effectively.
 - `ork:json-render-catalog` — json-render catalog authoring, schema validation, and registry patterns
 - `ork:mcp-visual-output` — MCP visual output rendering with json-render specs
 - `ork:multi-surface-render` — Cross-platform rendering from a single component catalog
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
-- `ork:animation-motion-design` — Motion library animation patterns
-- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork-extras:animation-motion-design` — Motion library animation patterns
+- `ork-extras:responsive-patterns` — Responsive layout and container query patterns
 - `ork:design-system-tokens` — Design token architecture and theming

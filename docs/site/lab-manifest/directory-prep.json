@@ -1,0 +1,12 @@
+{
+  "slug": "directory-prep",
+  "source": "docs/chore--directory-prep/index.html",
+  "title": "Plugin directory prep: validate --strict passes, README discloses every outbound call",
+  "description": "Before submitting ork to the Claude plugin directory, validate --strict failed on a generated CLAUDE.md that Claude Code never loads, and the README said no hook runs telemetry-sync. Both fixed at the source; the remaining directory findings are listed with their severity.",
+  "tags": [
+    "plugin",
+    "directory",
+    "privacy"
+  ],
+  "date": "2026-11-04"
+}

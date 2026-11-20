@@ -1,0 +1,12 @@
+{
+  "slug": "error-analysis-flow",
+  "source": "docs/chore--dsp-43935-error-analysis-yes-no/error-analysis-flow.html",
+  "title": "error-analysis: from 100 traces to named failure modes",
+  "description": "Interactive walkthrough of the error-analysis skill: sample real Langfuse traces, open-code each failure with human-owned notes, axial-code into named modes, write failure-taxonomy.md with counts, and decide prompt-versus-code by replaying tool output before recommending any binary eval.",
+  "tags": [
+    "evals",
+    "llm",
+    "skills"
+  ],
+  "date": "2026-09-24"
+}

@@ -9,15 +9,13 @@ Copy and adapt for OrchestKit workflows.
 
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TypeVar
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
 
-# Type variable for schema
 T = TypeVar("T", bound=BaseModel)
-
 
 # ============================================================
 # PLACEHOLDER DEFINITIONS (Replace in your implementation)
@@ -170,7 +168,7 @@ async def prepare_for_llm(
     source_refs = SourceReference(
         document_ids=[r.id for r in results],
         chunk_ids=[r.chunk_id for r in results],
-        retrieval_timestamp=datetime.now(timezone.utc),
+        retrieval_timestamp=datetime.now(UTC),
     )
 
     # Build content payload
@@ -267,7 +265,7 @@ async def attribute_and_save(
         user_id=ctx.user_id,  # From context
         tenant_id=ctx.tenant_id,  # From context
         source_document_ids=source_refs.document_ids,  # From pre-LLM
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
     # Save to database

@@ -51,6 +51,8 @@ export type HookEvent =
  * Hook input envelope from Claude Code (sent via stdin as JSON)
  */
 export interface HookInput {
+  /** CC shared base: same UUID from UserPromptSubmit through subsequent tool events. */
+  prompt_id?: string;
   /** The hook event type */
   hook_event?: HookEvent;
   /** The tool being invoked */
@@ -102,6 +104,8 @@ export interface HookInput {
   prompt?: string;
   /** Project directory */
   project_dir?: string;
+  /** Shell working directory when the hook fires (CC sends it on every event) */
+  cwd?: string;
   /** Path to the session transcript jsonl (sent on all hook events) */
   transcript_path?: string;
   /** Resolved absolute path to the plugin root (injected by run-hook.mjs) */
@@ -231,19 +235,31 @@ export interface HookInput {
   /** NOT sent — the #1264 invented name */
   form_schema?: Record<string, unknown>;
 
-  // ElicitationResult event: fires after the user responds.
-  /** The user's response — action + submitted field values */
+  // ElicitationResult event: fires after the user responds. Captured on 2.1.310
+  // (#4884) as {mcp_server_name, mode, action}: the action is top level and
+  // there is no user_response.
+  /** The user's answer to the elicitation (verified 2.1.310) */
+  action?: 'accept' | 'decline' | 'cancel';
+  /** NOT sent by 2.1.310: the old guess at the ElicitationResult shape, kept only so old readers typecheck */
   user_response?: {
     action?: 'accept' | 'decline' | 'cancel';
     content?: Record<string, unknown>;
   };
 
   // ConfigChange event (CC documented payload).
-  /** Which settings layer changed */
+  // Docs (CC ≥2.1.280): https://docs.claude.com/en/docs/claude-code/hooks#configchange-input
+  // Payload shape verified 2.1.227+: {hook_event_name:"ConfigChange", source, file_path}.
+  /**
+   * Which configuration layer changed (ConfigChange). CC field name is `source`.
+   * Also used by SessionStart (`startup` | `resume` | …) and other events.
+   */
+  source?: string;
+  /**
+   * NOT sent. Invented alias for ConfigChange `source`. Kept so older readers
+   * and tests typecheck; prefer `source`.
+   */
   config_source?: 'user_settings' | 'project_settings' | 'local_settings' | 'policy_settings' | 'skills';
-  /** NOT sent — ConfigChange delivers the path as `file_path` (verified
-   *  2.1.227: {hook_event_name:"ConfigChange", source, file_path}). Use the
-   *  shared `file_path` field declared in the FileChanged block. */
+  /** NOT sent. ConfigChange delivers the path as `file_path`. */
   config_file_path?: string;
   /** The changed fields (hooks, permissions, …) */
   changes?: Record<string, unknown>;
@@ -361,15 +377,39 @@ export interface ToolInput {
 }
 
 /**
+ * PermissionRequest decision object (CC hook reference, "PermissionRequest
+ * decision control").
+ *
+ * PermissionRequest does NOT answer with `permissionDecision`; that key is
+ * PreToolUse/PreModelSwitch only. The documented shape is a nested `decision`
+ * object whose `behavior` grants or refuses the request, and CC states plainly
+ * that "Only the `decision` object can grant or deny the request."
+ */
+export interface PermissionRequestDecision {
+  /** 'allow' grants the permission, 'deny' refuses it */
+  behavior: 'allow' | 'deny';
+  /** allow only: replaces the ENTIRE tool input object before execution */
+  updatedInput?: Record<string, unknown>;
+  /** allow only: permission update entries to apply (addRules, setMode, ...) */
+  updatedPermissions?: Array<Record<string, unknown>>;
+  /** deny only: tells Claude why the permission was refused */
+  message?: string;
+  /** deny only: stops Claude when true */
+  interrupt?: boolean;
+}
+
+/**
  * Hook-specific output for CC 2.1.9
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'PermissionDenied' | 'UserPromptSubmit' | 'SubagentStart' | 'SubagentStop' | 'SessionStart' | 'PostCompact' | 'PreModelSwitch';
-  /** Permission decision (PermissionRequest/PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way) */
+  hookEventName?: HookEvent;
+  /** Permission decision (PreToolUse hooks, CC 2.1.69: added 'ask', CC 2.1.89: added 'defer'; CC 2.1.251: PreModelSwitch answers allow/deny/ask the same way). NOT read on PermissionRequest; use `decision` there. */
   permissionDecision?: 'allow' | 'deny' | 'ask' | 'defer';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
+  /** Allow/deny verdict for PermissionRequest hooks (see PermissionRequestDecision) */
+  decision?: PermissionRequestDecision;
   /** Additional context injected before tool execution (CC 2.1.9) */
   additionalContext?: string;
   /** Modified tool input (CC 2.1.25: canonical way to modify tool inputs) */
@@ -455,8 +495,9 @@ export interface HookMeta {
 }
 
 /**
- * Hook overrides configuration for per-project toggle/customization
- * Stored at .claude/hook-overrides.json (gitignored)
+ * Hook overrides configuration for user-scope toggle/customization.
+ * Honored only at ~/.claude/hook-overrides.json (AF-12 / #4220); a project
+ * .claude/hook-overrides.json is ignored. Security hooks cannot be disabled.
  */
 export interface HookOverrides {
   /** Hook names to disable entirely */

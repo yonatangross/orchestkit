@@ -1,19 +1,53 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { StarLink } from "./star-link";
-import { SITE, COUNTS } from "@/lib/constants";
+import type { Metadata } from "next";
+import { HeroStrip } from "@/components/hero-strip";
+import { COUNTS, HOME_TITLE, PAGE_SUMMARY, SITE, SITE_TITLE } from "@/lib/constants";
 import { AgentReadinessSection } from "@/components/agent-readiness-section";
 import { HomepageStructuredData } from "@/components/structured-data";
 import { GeorgeMark } from "@/components/world/george";
 import { LibraryCatalog } from "@/components/library-catalog";
-import { CopyInstallButton } from "./copy-button";
 import { WhatsNewStrip } from "@/components/whats-new-strip";
 import { HomeSearchTrigger } from "@/components/home-search-trigger";
 import { HostInstallPicker } from "@/components/host-install";
 import { WhatsAppCommunityLink } from "@/components/whatsapp-community-link";
 import { WebMcpSearchForm } from "@/components/webmcp-search-form";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
+import { HomeHeroArt } from "@/components/home-hero-art";
+import { HomeFaq } from "@/components/home-faq";
+import { HostAnswer } from "@/components/host-answer";
+
+// Homepage-only social fields. Kept off the root layout so marketing pages that
+// only set `title` do not inherit this og/twitter title and description.
+// og:type and og:image live here too (not in app/layout.tsx): Next merges
+// openGraph shallowly, and a child object without those keys dropped them from
+// the built homepage even when the file-based opengraph-image route returned 200.
+export const metadata: Metadata = {
+	title: {
+		absolute: HOME_TITLE,
+	},
+	description: PAGE_SUMMARY.site,
+	openGraph: {
+		title: HOME_TITLE,
+		description: PAGE_SUMMARY.site,
+		url: SITE.domain,
+		type: "website",
+		images: [
+			{
+				url: "/opengraph-image",
+				width: 1200,
+				height: 630,
+				alt: SITE_TITLE,
+			},
+		],
+	},
+	twitter: {
+		title: HOME_TITLE,
+		description: PAGE_SUMMARY.site,
+		images: ["/opengraph-image"],
+	},
+};
 
 async function getStarCount(): Promise<number | null> {
   try {
@@ -45,7 +79,7 @@ const RECIPES: Recipe[] = [
   { title: "Task management", tag: "Multi-agent TaskCreate / TaskList / dependency chains.", cmd: "TaskCreate", href: "/docs/cookbook/task-management" },
   { title: "Set up memory", tag: "3-tier knowledge graph that persists across sessions.", cmd: "/ork:memory", href: "/docs/cookbook/setup-memory" },
   { title: "Create a demo video", tag: "VHS + Remotion pipeline, auto-generated voiceover.", cmd: "/ork:demo-producer", href: "/docs/cookbook/create-demo-video" },
-  { title: "Security audit", tag: "Parallel scan across auth, secrets, OWASP, dependencies.", cmd: "/ork:audit-full", href: "/docs/cookbook/security-audit" },
+  { title: "Security audit", tag: "Parallel scan across auth, secrets, OWASP, dependencies.", cmd: "/ork-extras:audit-full", href: "/docs/cookbook/security-audit" },
 ];
 
 // No `searchParams` prop on purpose: reading it renders `/` per request
@@ -59,10 +93,13 @@ export default async function HomePage() {
   return (
     <main>
       <HomepageStructuredData starCount={stars} />
+      {/* Shown from 1320px only: the page sections are 1200px wide with 28px
+          padding, so below ~1290 the fixed badge sat on the third library
+          card column (QA at 1024). From 1320 it clears the content by 16px. */}
       <a
         href={SITE.github}
         aria-label="OrchestKit on GitHub"
-        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 md:block"
+        className="fixed bottom-5 right-5 z-40 hidden rounded-full ring-2 ring-[var(--yy-george-warm)]/60 transition-transform hover:scale-105 min-[1320px]:block"
       >
         <Image
           src="/brand/george-badge.png"
@@ -73,128 +110,120 @@ export default async function HomePage() {
         />
       </a>
 
-      <section aria-labelledby="hero-heading" className="border-b border-fd-border">
-        <div className="mx-auto max-w-[880px] px-7 py-12 text-center sm:py-20">
-          {latest ? (
-            <Link
-              href="/changelog"
-              className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-[var(--color-fd-surface-raised)] p-1 pr-3 text-sm text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-foreground"
-            >
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-2.5 py-0.5 font-mono text-[11px] font-medium text-fd-primary">
-                <GeorgeMark />
-                What&apos;s new
-              </span>
-              <span className="font-mono text-[12px]">{latest.version}</span>
-              <ArrowRight className="h-3 w-3" aria-hidden="true" />
-            </Link>
-          ) : (
-            <span className="inline-flex items-center gap-2 rounded-full border border-fd-border px-2.5 py-1.5 font-mono text-[12px] font-medium text-fd-muted-foreground">
-              <GeorgeMark />
-              The complete AI development toolkit for Claude Code
-            </span>
-          )}
+      {/* Hero A: left copy + right conductor bleed (approved-design/hero-a-2026-09-22.html).
+          Row 1 is the mockup (copy beside the art); the host picker, search and
+          links sit in a full-width row 2 so the art never faces an empty column. */}
+      <section
+        aria-labelledby="hero-heading"
+        className="home-hero relative overflow-x-hidden border-b border-fd-border"
+      >
+        <div className="home-hero-inner relative mx-auto w-full max-w-[var(--hero-max)] px-[var(--hero-pad)] pt-12 pb-10 sm:pt-[72px] sm:pb-12">
+          <div className="home-hero-copy relative z-[2] max-w-[520px] text-left max-[900px]:max-w-none">
+            <div className="home-hero-copy-top" data-grid-quiet>
+              {latest ? (
+                <Link
+                  href="/changelog"
+                  className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-[var(--color-fd-surface-raised)] p-1 pr-3 text-sm text-fd-muted-foreground transition-colors hover:border-fd-primary/40 hover:text-fd-foreground"
+                >
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-fd-primary-20)] bg-[var(--color-fd-primary-10)] px-2.5 py-0.5 font-mono text-[11px] font-medium text-fd-primary">
+                    <GeorgeMark />
+                    What&apos;s new
+                  </span>
+                  <span className="font-mono text-[12px]">{latest.version}</span>
+                  <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full border border-fd-border px-2.5 py-1.5 font-mono text-[12px] font-medium text-fd-muted-foreground">
+                  <GeorgeMark />
+                  The complete AI development toolkit for Claude Code
+                </span>
+              )}
 
-          <h1
-            id="hero-heading"
-            data-speakable-headline
-            className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground"
-          >
-            <span className="sr-only">OrchestKit. </span>
-            Stop explaining your stack.
-            <br />
-            Start shipping.
-          </h1>
+              <h1
+                id="hero-heading"
+                data-speakable-headline
+                className="mt-5 text-fluid-h1 font-semibold leading-[1.02] tracking-[-0.025em] text-fd-foreground [text-wrap:balance]"
+              >
+                <span className="sr-only">OrchestKit, the skill and agent library for coding agents. </span>
+                Stop explaining your stack.
+                <br />
+                Start shipping.
+              </h1>
 
-          <p
-            data-speakable-summary
-            className="mx-auto mt-4 max-w-[620px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground [text-wrap:balance]"
-          >
-            <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
-              {COUNTS.skills} skills
-            </span>
-            <span className="mx-1.5 opacity-40">·</span>
-            <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
-              {COUNTS.agents} agents
-            </span>
-            <span className="mx-1.5 opacity-40">·</span>
-            <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
-              {COUNTS.hooks} hooks
-            </span>
-            <span className="mt-1 block text-[0.9em]">
-              A Claude Code plugin library. Search it, install it, ship.
-            </span>
-          </p>
+              <p
+                data-speakable-summary
+                className="mt-4 max-w-[520px] text-[clamp(0.95rem,0.3vw+0.9rem,1.125rem)] leading-[1.55] text-fd-muted-foreground [text-wrap:balance]"
+              >
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
+                  {COUNTS.skills} skills
+                </span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
+                  {COUNTS.agents} agents
+                </span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="whitespace-nowrap font-mono text-[0.92em] font-medium text-fd-foreground">
+                  {COUNTS.hooks} hooks
+                </span>
+                <span className="mt-1 block text-[0.9em]">
+                  Skills and agents for Claude Code, Cursor, Codex and more. Search it, install it, ship.
+                </span>
+              </p>
+            </div>
 
-          {/* Primary action: the install command itself, above the fold on
-              375x812 and 1024x768. Other hosts stay in the picker below. */}
-          <div
-            data-hero-install
-            className="mt-6 flex flex-wrap items-center justify-center gap-2.5"
-          >
-            <CopyInstallButton
-              surface="hero"
-              className="border-fd-primary/50 bg-[var(--color-fd-surface-raised)] text-fd-foreground hover:border-fd-primary"
-            />
-            <Link
-              href="/docs/getting-started/first-10-minutes"
-              className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-fd-primary underline-offset-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring motion-reduce:transition-none"
-            >
-              Get started{" "}
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
+            <div className="home-hero-copy-actions" data-grid-quiet>
+              {/* Host first, then that host's one command (operator, 2026-09-25):
+                  76% of host picks were not Claude Code, but the hero printed the
+                  Claude Code command before the picker. */}
+              <HostInstallPicker />
+            </div>
           </div>
-          <p className="mt-2 text-[12.5px] text-fd-muted-foreground">
-            For Claude Code. On Cursor, Codex, Muse Code, Pi, OpenCode, Devin or Antigravity? Pick your host below.
-          </p>
-          <HostInstallPicker />
-          <HomeSearchTrigger />
-          <WebMcpSearchForm />
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[13px] text-fd-muted-foreground">
-            <WhatsAppCommunityLink />
-            <Link
-              href="/docs/cookbook/implement-feature"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              See the cookbook
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/docs/getting-started/configuration"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              Configure your project
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/openapi"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              OrchestKit OpenAPI specification
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/mcp-server"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              OrchestKit MCP server
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/sdk"
-              className="text-fd-primary underline-offset-2 hover:underline"
-            >
-              OrchestKit SDK packages
-            </Link>
-          </div>
+          <HomeHeroArt />
 
-          <div className="mt-7 flex flex-wrap items-center justify-center font-mono text-[12px] text-fd-muted-foreground">
-            <StarLink stars={stars} />
-            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-            <span className="inline-flex items-center gap-1.5 px-3.5">MIT license</span>
-            <span aria-hidden="true" className="h-3 w-px bg-fd-border" />
-            <span className="inline-flex items-center gap-1.5 px-3.5">
-              Claude Code ≥ {SITE.ccVersion}
-            </span>
+          <div className="home-hero-more" data-grid-quiet>
+            <HomeSearchTrigger />
+            <WebMcpSearchForm />
+            <div className="mt-4 flex flex-wrap items-center justify-start gap-x-5 gap-y-2 text-[13px] text-fd-muted-foreground min-[901px]:justify-center">
+              <WhatsAppCommunityLink />
+              <Link
+                href="/docs/cookbook/implement-feature"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                See the cookbook
+              </Link>
+              <Link
+                href="/docs/getting-started/configuration"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                Configure your project
+              </Link>
+              <Link
+                href="/openapi"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit OpenAPI specification
+              </Link>
+              <Link
+                href="/docs/mcp"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit MCP server
+              </Link>
+              <Link
+                href="/docs/sdk"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit SDK packages
+              </Link>
+              <Link
+                href="/cli"
+                className="text-fd-primary underline-offset-2 hover:underline"
+              >
+                OrchestKit CLI
+              </Link>
+            </div>
+
+            <HeroStrip stars={stars} />
           </div>
         </div>
       </section>
@@ -225,14 +254,14 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
             {RECIPES.map((r, idx) => (
               <Link
                 key={r.href}
                 href={r.href}
                 className="group relative flex min-h-[148px] flex-col rounded-[10px] border border-fd-border bg-[var(--color-fd-surface-raised)] p-5 transition-all duration-150 hover:-translate-y-px hover:border-[color-mix(in_oklch,var(--color-fd-primary)_40%,var(--color-fd-border))] hover:shadow-[0_0_0_4px_var(--color-fd-glow)]"
               >
-                <div className="mb-3 flex items-center justify-between font-mono text-[11px] tracking-[0.05em] text-fd-muted-foreground">
+                <div className="mb-3 flex h-5 items-center justify-between font-mono text-[11px] tracking-[0.05em] text-fd-muted-foreground">
                   <span className="tabular-nums">
                     {String(idx + 1).padStart(2, "0")} / {String(RECIPES.length).padStart(2, "0")}
                   </span>
@@ -265,17 +294,18 @@ export default async function HomePage() {
             What is OrchestKit?
           </h2>
           <p className="mt-3 leading-7 text-fd-muted-foreground">
-            OrchestKit is a free, open-source (MIT) plugin for{" "}
+            OrchestKit is a free, open-source (MIT) library of{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.skills} skills</span> and{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.agents} agents</span> for AI
+            coding agents: Claude Code, Cursor, Codex and five more hosts. On{" "}
             <a href="https://www.anthropic.com/claude-code" className="text-fd-primary underline underline-offset-2">
               Claude Code
-            </a>
-            , Anthropic&apos;s agentic command-line coding tool. It packages{" "}
-            <span className="font-mono text-fd-foreground">{COUNTS.skills} skills</span>,{" "}
-            <span className="font-mono text-fd-foreground">{COUNTS.agents} agents</span>, and{" "}
-            <span className="font-mono text-fd-foreground">{COUNTS.hooks} lifecycle hooks</span>{" "}
-            into a single install, encoding security patterns and quality gates so the agent
-            works to your standards out of the box. It runs locally inside Claude Code; it is
-            not a hosted service and not an editor autocomplete. See the{" "}
+            </a>{" "}
+            it is one plugin that adds{" "}
+            <span className="font-mono text-fd-foreground">{COUNTS.hooks} lifecycle hooks</span>,
+            encoding security patterns and quality gates so the agent works to your standards
+            out of the box. It runs locally inside the agent you use; it is not a hosted service
+            and not an editor autocomplete. See the{" "}
             <Link href="/compare" className="text-fd-primary underline underline-offset-2">
               full comparison
             </Link>
@@ -284,59 +314,30 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <HostAnswer />
+
+      <HomeFaq />
+
       <AgentReadinessSection />
 
-      <footer>
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-8 gap-y-3 px-7 py-5 text-[13px] text-fd-muted-foreground">
-          <span>
-            OrchestKit is built by Yonyon{" · "}
-            Built with{" "}
+      <section aria-labelledby="family-heading" className="border-b border-fd-border">
+        <div className="mx-auto max-w-[820px] px-7 py-14">
+          <h2 id="family-heading" className="text-2xl font-semibold tracking-tight text-fd-foreground">
+            OrchestKit family
+          </h2>
+          <p className="mt-3 leading-7 text-fd-muted-foreground">
             <a
-              href="https://fumadocs.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline decoration-fd-border underline-offset-4 hover:text-fd-primary"
+              href="https://github.com/yonatangross/tower"
+              className="font-semibold text-fd-foreground underline underline-offset-2"
             >
-              Fumadocs
+              Tower
             </a>
-          </span>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
-            <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="hover:text-fd-foreground">
-              GitHub
-            </a>
-            <Link href="/docs/getting-started/installation" className="hover:text-fd-foreground">
-              Docs
-            </Link>
-            <Link href="/changelog" className="hover:text-fd-foreground">
-              Changelog
-            </Link>
-            <Link href="/community" className="hover:text-fd-foreground">
-              Community
-            </Link>
-            <Link href="/factory-ride" className="hover:text-fd-foreground">
-              Factory ride
-            </Link>
-            <Link href="/developers" className="hover:text-fd-foreground">
-              Developers
-            </Link>
-            <Link href="/compare" className="hover:text-fd-foreground">
-              Compare
-            </Link>
-            <Link href="/pricing" className="hover:text-fd-foreground">
-              Pricing
-            </Link>
-            <Link href="/about" className="hover:text-fd-foreground">
-              About
-            </Link>
-            <Link href="/privacy" className="hover:text-fd-foreground">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-fd-foreground">
-              Terms
-            </Link>
-          </nav>
+            : a macOS menu bar app for people who run several AI coding subscriptions: usage
+            per account, room left, when to switch. Also an MCP server (<code>tower mcp</code>).
+          </p>
         </div>
-      </footer>
+      </section>
+
     </main>
   );
 }

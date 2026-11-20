@@ -13,8 +13,8 @@ Confirmation screen: "Plugin submitted for review. Your plugin submission has be
 received. The review team will evaluate it and may reach out for additional information."
 
 Submitted values: slug `orchestkit`, display name OrchestKit, category development,
-repo yonatangross/orchestkit, plugin path `plugins/ork`, homepage orchestkit.yonyon.ai,
-license MIT, privacy policy https://orchestkit.yonyon.ai/privacy (verified live, HTTP 200),
+repo yonatangross/orchestkit, plugin path `plugins/ork`, homepage orchestkit.dev,
+license MIT, privacy policy https://orchestkit.dev/privacy (verified live, HTTP 200),
 contact yonaigross@gmail.com, supported platform **Claude Code only**.
 
 Two corrections this submission surfaced:
@@ -88,7 +88,7 @@ a subdirectory):
     "ref": "main",
     "sha": "<40-char commit sha>"
   },
-  "homepage": "https://orchestkit.yonyon.ai/"
+  "homepage": "https://orchestkit.dev/"
 }
 ```
 
@@ -317,7 +317,7 @@ Before opening the form:
 - [ ] Merge this branch so the disclosure text is on `main` before a reviewer clones it.
 - [ ] Re-run `claude plugin validate ./plugins/ork` on `main` and keep the output.
 - [ ] Note the exact `main` commit SHA to hand to reviewers.
-- [ ] Confirm <https://orchestkit.yonyon.ai/> is up, since it is the homepage a reviewer visits.
+- [ ] Confirm <https://orchestkit.dev/> is up, since it is the homepage a reviewer visits.
 
 - [ ] Clear the two Dependabot alerts (M6). Neither reaches the plugin, but the
       repo Security tab is the first thing a reviewer sees.
@@ -342,7 +342,7 @@ is behind a login; map them to whatever it asks.
 
 **Plugin path within repo:** `plugins/ork`
 
-**Homepage:** <https://orchestkit.yonyon.ai/>
+**Homepage:** <https://orchestkit.dev/>
 
 **License:** MIT
 

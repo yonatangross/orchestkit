@@ -3,7 +3,7 @@
 # Memory Commands Unit Tests
 # ============================================================================
 # Tests for memory slash commands (CC 2.1.3 merged with skills):
-# - /remember (skills/remember/SKILL.md)
+# - /remember (skills/memory/SKILL.md)
 # - /ork:memory search (skills/memory/SKILL.md)
 # Plus the memory and feedback JSON schemas under .claude/schemas/.
 # ============================================================================
@@ -12,6 +12,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
+# The description standard (#5043) is shared with the other description checks.
+source "$SCRIPT_DIR/../fixtures/description-standard.sh"
+
+# skill_description_has_trigger <SKILL.md path>: first description line carries a trigger phrase.
+skill_description_has_trigger() {
+    local desc
+    desc="$(sed -n 's/^description:[[:space:]]*//p' "$1" | head -n 1)"
+    description_has_trigger_phrase "$desc"
+}
 
 # CC 2.1.3: Commands merged with skills
 SKILLS_DIR="$PROJECT_ROOT/src/skills"
@@ -23,15 +32,15 @@ SKILLS_DIR="$PROJECT_ROOT/src/skills"
 describe "Command: /remember"
 
 test_remember_command_exists() {
-    assert_file_exists "$SKILLS_DIR/remember/SKILL.md"
+    assert_file_exists "$SKILLS_DIR/memory/SKILL.md"
 }
 
 test_remember_has_usage_section() {
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Usage"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "## Usage"
 }
 
 test_remember_has_categories() {
-    local file="$SKILLS_DIR/remember/SKILL.md"
+    local file="$SKILLS_DIR/memory/SKILL.md"
 
     assert_file_contains "$file" "decision"
     assert_file_contains "$file" "architecture"
@@ -42,20 +51,20 @@ test_remember_has_categories() {
 
 test_remember_references_memory_tool() {
     # Check for graph memory MCP reference
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "memory"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "memory"
 }
 
 test_remember_has_workflow() {
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Workflow"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "## Workflow"
 }
 
 test_remember_has_when_to_use() {
     # Overview is optional if description has trigger phrases (standardized in #179)
-    local file="$SKILLS_DIR/remember/SKILL.md"
+    local file="$SKILLS_DIR/memory/SKILL.md"
     if grep -q "## Overview" "$file"; then
         # Has Overview - OK
         return 0
-    elif grep -qiE "description:.*use\s+(when|for|this)" "$file"; then
+    elif skill_description_has_trigger "$file"; then
         # Description has triggers - Overview optional
         return 0
     else
@@ -64,12 +73,12 @@ test_remember_has_when_to_use() {
 }
 
 test_remember_has_auto_detect_logic() {
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "Auto-Detect"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "Auto-Detect"
 }
 
 test_remember_specifies_user_id_format() {
     # Should specify the user_id format for mem0
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "user_id"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "user_id"
 }
 
 # ============================================================================
@@ -108,7 +117,7 @@ test_memory_has_when_to_use() {
     if grep -q "## Overview" "$file"; then
         # Has Overview - OK
         return 0
-    elif grep -qiE "description:.*use\s+(when|for|this)" "$file"; then
+    elif skill_description_has_trigger "$file"; then
         # Description has triggers - Overview optional
         return 0
     else

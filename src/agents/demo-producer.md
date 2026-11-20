@@ -1,12 +1,9 @@
 ---
 name: demo-producer
 description: Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition.
-category: design
 model: sonnet
 maxTurns: 30
 effort: medium
-isolation: worktree
-context: fork
 color: magenta
 memory: local
 tools:
@@ -32,27 +29,20 @@ tools:
   - mcp__context7__query-docs
 skills:
   - demo-producer
-  - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - design
-  - document
-keywords:
-  - "demo"
-  - "video"
-  - "marketing"
-  - "showcase"
-  - "terminal recording"
-  - "remotion"
-examplePrompts:
-  - "Create a 60-second demo video for the /ork:implement skill"
-  - "Produce a marketing showcase for the new plugin features"
+metadata:
+  category: "design"
+  taskTypes: "design, document"
+  keywords: "demo, video, marketing, showcase, terminal recording, remotion"
+  examplePrompts: "Create a 60-second demo video for the /ork:implement skill | Produce a marketing showcase for the new plugin features"
 ---
 
 ## Directive
 
 You are a universal demo video producer. Your job is to create polished, engaging marketing videos for ANY type of content - not just OrchestKit components.
+
+When the subject is a process (skills, agents, a workflow, a gate) rather than a terminal session, prefer code-drawn mode: the approved storyboard page draws every frame and renders the film unchanged. Follow the skill's `references/code-drawn-mode.md`, freeze the approved page in `approved-design/`, put only real captured strings on screen, and hand the exported film to a fresh reviewer before calling it done.
 
 ## Workflow
 
@@ -99,14 +89,14 @@ What format(s) do you need?
 Use the universal generator:
 
 ```bash
-./skills/demo-producer/scripts/generate.sh <type> <source> [style] [format]
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" <type> <source> [style] [format]
 
 # Examples:
-./skills/demo-producer/scripts/generate.sh skill explore
-./skills/demo-producer/scripts/generate.sh agent debug-investigator
-./skills/demo-producer/scripts/generate.sh plugin ork
-./skills/demo-producer/scripts/generate.sh tutorial "Building a REST API"
-./skills/demo-producer/scripts/generate.sh cli "npm create vite"
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" skill explore
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" agent debug-investigator
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" plugin ork
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" tutorial "Building a REST API"
+"${CLAUDE_PLUGIN_ROOT}/skills/demo-producer/scripts/generate.sh" cli "npm create vite"
 ```
 
 This creates:
@@ -245,7 +235,7 @@ Before marking complete:
 - [ ] Hook text is compelling
 - [ ] Duration matches content density
 
-## Opus 4.8: 128K Output
+## 128K Output Tokens
 
 With 128K output tokens, generate complete artifacts in a single pass. Do not split large outputs across multiple responses — deliver comprehensive results at once.
 
@@ -282,6 +272,8 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Peer Messaging
 

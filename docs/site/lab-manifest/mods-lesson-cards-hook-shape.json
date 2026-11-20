@@ -1,0 +1,13 @@
+{
+  "slug": "mods-lesson-cards-hook-shape",
+  "source": "docs/fix--lesson-cards-hook-shape/index.html",
+  "title": "lesson-cards: keep tool.call context and stop glob-only matches",
+  "description": "lesson-cards replaced the context a hook below attached, so Claude Code skipped it as the wrong shape; and file entries with a glob and a content regex fired on every matching file. Both are fixed, test first.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "lesson-cards"
+  ],
+  "date": "2026-10-12"
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "posthog-cookieless-pageviews",
+  "source": "docs/feat--posthog-cookieless-pageviews/index.html",
+  "title": "Count docs page views before consent, with nothing stored",
+  "description": "Pick a visitor state and compare what PostHog did on orchestkit.dev before and after the cookieless page count.",
+  "tags": [
+    "analytics",
+    "privacy"
+  ],
+  "date": "2026-11-09"
+}

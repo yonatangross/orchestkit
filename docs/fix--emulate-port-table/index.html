@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>emulate ports: one table, from one source</title>
+<meta name="description" content="The emulate-seed skill and the emulate-engineer agent gave different default ports for 8 of 14 emulated services. Pick a service to see what each said and what emulate 0.12.0 actually uses.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{color:var(--dim);font-size:.8rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  table{border-collapse:collapse;width:100%;font-size:.8rem;margin-top:.8rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+</style>
+</head>
+<body><main>
+<h1>emulate ports: one table, from one source</h1>
+<p class="sub">Branch fix/emulate-port-table, 2026-11-07. emulate gives each service port 4000 plus its position in its service list. The skill and the agent each kept their own table, and they disagreed on 8 of 14 services. Now the skill holds the one table, the agent points at it, and a test checks both against emulate 0.12.0.</p>
+
+<section><h2>Pick a service</h2>
+<label for="svc">service</label>
+<select id="svc"></select>
+<table>
+<thead><tr><th>source</th><th>port it gave</th><th></th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</section>
+
+<section><h2>How many were wrong</h2>
+<p id="summary" class="dim"></p>
+</section>
+
+<script>
+// Before this change; "on-demand" means the skill gave no port.
+const SERVICES = [
+  ['Vercel', 4000, 4000, 4000], ['GitHub', 4001, 4001, 4001], ['Google', 4002, 4002, 4002],
+  ['Slack', 4003, 4003, 4003], ['Apple', 4004, 4004, 4004], ['Microsoft', 4005, 4005, 4005],
+  ['Okta', 4006, 4008, 4006], ['AWS', 4007, 4006, 4007], ['Resend', 4008, 4009, 4008],
+  ['Stripe', 4009, 4010, 4009], ['MongoDB Atlas', 4010, 4007, 4010], ['Clerk', 4011, 'on-demand', 4011],
+  ['Linear', 4012, 'on-demand', 4012], ['Twilio', 4013, 'on-demand', 'missing'],
+];
+const sel = document.getElementById('svc');
+for (const [name] of SERVICES) {
+  const o = document.createElement('option');
+  o.value = name;
+  o.textContent = name;
+  sel.append(o);
+}
+function render() {
+  const [name, upstream, skill, agent] = SERVICES.find((s) => s[0] === sel.value);
+  const tbody = document.getElementById('rows');
+  tbody.replaceChildren();
+  for (const [src, val] of [['emulate 0.12.0 (truth)', upstream], ['skill, before', skill], ['agent, before', agent], ['skill table, now', upstream]]) {
+    const tr = document.createElement('tr');
+    const ok = val === upstream;
+    for (const text of [src, String(val), ok ? 'matches' : 'wrong']) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      tr.append(td);
+    }
+    tr.lastChild.className = ok ? 'ok' : 'bad';
+    tbody.append(tr);
+  }
+}
+const wrongSkill = SERVICES.filter((s) => s[2] !== s[1]).length;
+const wrongAgent = SERVICES.filter((s) => s[3] !== s[1]).length;
+document.getElementById('summary').textContent =
+  `Skill: ${wrongSkill} of ${SERVICES.length} wrong. Agent: ${wrongAgent} of ${SERVICES.length} wrong (Twilio missing). Now: one table, 0 wrong.`;
+sel.addEventListener('change', render);
+render();
+</script>
+</main></body>
+</html>

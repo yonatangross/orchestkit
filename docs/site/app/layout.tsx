@@ -5,12 +5,16 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { AnalyticsConsentBanner } from "@/components/analytics-consent-banner";
+import { BannerOffset } from "@/components/banner-offset";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
 import { GitHubClickTracker } from "@/components/github-click-tracker";
 import CustomSearchDialog from "@/components/search-dialog";
+import { ThemeRevealOrigin } from "@/components/theme-reveal-origin";
+import { WebMcpInlineScript } from "@/components/webmcp-inline-script";
 import { WebMcpProvider } from "@/components/webmcp-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
-import { BANNER_TEXT, PAGE_SUMMARY, SITE } from "@/lib/constants";
+import { BANNER_TEXT, HOME_TITLE, PAGE_SUMMARY, SITE } from "@/lib/constants";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({
@@ -21,12 +25,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: {
 		template: `%s | ${SITE.name}`,
-		// "by Yonyon" ties the studio brand to the product for name-based search
-		// queries — the word appeared nowhere as text on the site before this.
-		default: `${SITE.name} by Yonyon — AI Development Toolkit for Claude Code`,
+		// Same as the homepage <title>, og:title and twitter:title.
+		default: HOME_TITLE,
 	},
 	description: PAGE_SUMMARY.site,
-	icons: { icon: "/favicon.svg" },
+	icons: {
+		icon: [
+			{ url: "/favicon.ico", sizes: "32x32" },
+			{ url: "/favicon.svg", type: "image/svg+xml" },
+		],
+		apple: "/apple-touch-icon.png",
+	},
 	// Default canonical = site root. Per-page metadata overrides this with its own
 	// `alternates.canonical` (docs pages and the trust/pricing pages already do).
 	alternates: {
@@ -46,6 +55,11 @@ export const metadata: Metadata = {
 		// worse for an agent than no link at all.
 		types: { "text/markdown": `${SITE.domain}/index.md` },
 	},
+	// Do not set openGraph/twitter title or description here. Next merges those
+	// objects shallowly, so a fixed root title would override every child page
+	// that only sets `title` (about, pricing, community, ...). Homepage social
+	// copy is set on app/(home)/page.tsx; other pages inherit from their own
+	// title + description.
 	openGraph: {
 		siteName: SITE.name,
 		type: "website",
@@ -57,12 +71,23 @@ export const metadata: Metadata = {
 	metadataBase: new URL(SITE.domain),
 };
 
+// Dot-free: fumadocs hides a dismissed banner before hydration with the rule
+// `.nd-banner-<key> #<id> { display: none }`, and a version id with dots
+// ("#v10.0.0-beta.96") is an invalid selector the browser drops, so the
+// banner flashed and left a stale offset for returning visitors (review,
+// 2026-09-25). Dismissals keyed on the old dotted id reset once.
+const BANNER_ID = `v${SITE.version.replace(/\./g, "-")}`;
+
 export default function Layout({ children }: { children: ReactNode }) {
 	return (
 		<html
 			lang="en"
 			suppressHydrationWarning
-			className={`${geist.variable} ${geistMono.variable}`}
+			// "dark" is the site's default theme (RootProvider defaultTheme below). The
+			// theme script only runs with JS, so without it the page drew light under a
+			// dark section. next-themes swaps this class before paint when the visitor
+			// chose another theme.
+			className={`dark ${geist.variable} ${geistMono.variable}`}
 		>
 			<body className="flex min-h-screen flex-col font-[family-name:var(--font-geist)]">
 				<a
@@ -71,18 +96,41 @@ export default function Layout({ children }: { children: ReactNode }) {
 				>
 					Skip to main content
 				</a>
-				<Banner id={`v${SITE.version}`}>{BANNER_TEXT}</Banner>
+				{/* Own row, not sticky (operator, 2026-09-25). Fumadocs pins the banner
+				    sticky top-0 while the nav also sticks at top 0, so after any scroll
+				    the banner text showed through the nav (48px overlap). It now scrolls
+				    away; BannerOffset feeds docs layouts its visible height, and the
+				    side padding keeps the close X off the text on phones. */}
+				<Banner
+					id={BANNER_ID}
+					className="relative ps-10 pe-10"
+					changeLayout={false}
+					// A named region, so the announcement sits in a landmark (axe
+					// "region" fired on every route, QA 2026-09-25).
+					role="region"
+					aria-label="Release announcement"
+				>
+					{BANNER_TEXT}
+				</Banner>
+				<BannerOffset bannerId={BANNER_ID} />
 				<RootProvider
 					theme={{ defaultTheme: "dark" }}
 					search={{ SearchDialog: CustomSearchDialog }}
 				>
 					<div id="main-content">{children}</div>
 				</RootProvider>
+				{/* Inline WebMCP registration, readable in the served HTML. After the
+				    page content so a <form toolname> is parsed first; before the
+				    provider, whose chunk path skips the names this one claims. */}
+				<WebMcpInlineScript />
 				<HQAnalytics projectId="orchestkit" />
 				<WebVitalsReporter />
 				<ClientErrorReporter />
 				<GitHubClickTracker />
+				<ThemeRevealOrigin />
 				<WebMcpProvider />
+				{/* Before an answer PostHog only counts page views cookieless; Allow upgrades it. */}
+				<AnalyticsConsentBanner />
 			</body>
 		</html>
 	);

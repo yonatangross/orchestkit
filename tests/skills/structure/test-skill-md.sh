@@ -8,6 +8,7 @@
 # 1. All skills have SKILL.md (file existence)
 # 2. SKILL.md starts with YAML frontmatter (--- delimiter)
 # 3. Frontmatter has required fields: name, description, version
+# 3b. agent: requires context: fork (dead binding otherwise; F26)
 # 4. H1 title exists (# heading)
 # 5. "When to Use" or "Overview" section exists
 # 6. At least one code example (``` block)
@@ -24,7 +25,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
-SKILLS_DIR="$PROJECT_ROOT/src/skills"
+# ORK_SKILLS_DIR lets tests/skills/test-description-standard-controls.sh point Test 5
+# at a planted skills tree and prove it still warns on a bad description.
+SKILLS_DIR="${ORK_SKILLS_DIR:-$PROJECT_ROOT/src/skills}"
+# The description standard is shared with the other description checks (#5043).
+# shellcheck source=../../fixtures/description-standard.sh
+source "$SCRIPT_DIR/../../fixtures/description-standard.sh"
 
 VERBOSE="${1:-}"
 
@@ -136,9 +142,10 @@ has_overview_section() {
 }
 
 has_trigger_in_description() {
-    local file="$1"
-    # Check if description field has trigger phrases
-    grep -qiE "description:.*use\s+(when|for|this)" "$file"
+    local file="$1" desc
+    # The description standard (#5043) is shared: "Use when|for|before|after|to|only when ..."
+    desc="$(sed -n 's/^description:[[:space:]]*//p' "$file" | head -n 1)"
+    description_has_trigger_phrase "$desc"
 }
 
 has_code_block() {
@@ -311,6 +318,37 @@ done
 
 if [[ ${#missing_fields[@]} -eq 0 ]]; then
     pass "All SKILL.md files have required frontmatter fields"
+fi
+echo ""
+
+# ============================================================================
+# Test 3b: agent: requires context: fork
+# ============================================================================
+# Claude Code only binds skill frontmatter `agent:` when `context: fork`.
+# `agent:` + `context: inherit` (or missing context) is a dead binding.
+# CONTRIBUTING-SKILLS.md: "agent: ... (requires context: fork)".
+echo -e "${CYAN}Test 3b: agent: requires context: fork${NC}"
+echo "────────────────────────────────────────────────────────────────────────────"
+
+dead_agent_bindings=()
+for skill_dir in "$SKILLS_DIR"/*/; do
+    if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
+        skill_name=$(basename "$skill_dir")
+        skill_file="$skill_dir/SKILL.md"
+        frontmatter=$(extract_frontmatter "$skill_file")
+        # Missing keys make grep exit 1 under pipefail. Tolerate empty.
+        agent_field=$(get_frontmatter_field "$frontmatter" "agent" || true)
+        context_field=$(get_frontmatter_field "$frontmatter" "context" || true)
+
+        if [[ -n "$agent_field" && "$context_field" != "fork" ]]; then
+            dead_agent_bindings+=("$skill_name")
+            fail "$skill_name: agent: '$agent_field' requires context: fork (got '${context_field:-<missing>}')"
+        fi
+    fi
+done
+
+if [[ ${#dead_agent_bindings[@]} -eq 0 ]]; then
+    pass "All skills with agent: use context: fork"
 fi
 echo ""
 
@@ -509,8 +547,8 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=36  # page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
-EXPECTED_INTERNAL=71  # +1: paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types)
+EXPECTED_USER_INVOCABLE=47  # remember, dream and ci-sentinel (2026-11-17) are typed-only aliases of memory and ci-debug, still user-invocable; +3 2026-11-17 (trim stage 1 ruling): audit-full, bare-eval, prompt-focus move to ork-extras as slash-only (user-invocable true, disable-model-invocation true), so they leave the core /ork: menu and the model listing; +1 2026-11-11: disk-cleanup, an operator types it when the disk fills (dry run first, --apply after a yes); +5 2026-10-24: create-plan, iterate-plan, create-research, iterate-research, review-artifact-comments, the artifact-pair commands an operator types with an argument (L6); prompt-focus (2026-10-07) is model-invocable but NOT slash-invocable, like paired-probe, to hold the slash-sprawl budget; careful + freeze added 2026-10-01 (skill-scoped guard hooks, disable-model-invocation, zero index tokens); page-serve added 2026-09-07 (#3899); paired-probe is model-invocable but NOT slash-invocable: it is a gate applied before reporting a verdict, not a command an operator types, so it stays out of the /ork: menu and off this count
+EXPECTED_INTERNAL=68  # -1: storybook-mcp-integration merged into design-to-code (Storybook mode) 2026-11-17; -3 2026-11-17: audit-full, bare-eval, prompt-focus are now slash-only (see EXPECTED_USER_INVOCABLE); +1: prompt-focus 2026-10-07, model-invocable local report kept off the slash menu; +1: error-analysis, model-invocable workflow kept off the /ork: menu cap (36) 2026-09-24; paired-probe, model-invocable but not slash-invocable (a gate applied before reporting a verdict, not a command an operator types); -1: testing-patterns redirect stub retired 2026-09-25
 
 missing_user_invocable=()
 user_invocable_true=()
@@ -613,6 +651,36 @@ done
 
 if [[ ${#rp_missing_experimental[@]} -eq 0 ]] && [[ ${#experimental_missing_exit_criteria[@]} -eq 0 ]]; then
     pass "RP feature flag policy satisfied for all skills"
+fi
+echo ""
+
+# ============================================================================
+# Test 14: routing boundary in the description for the most-used skills
+# Quality loop round 1 (skill-fitness): a router that reads only the description
+# cannot tell assess from verify or review-pr unless the description says what
+# the skill is NOT for. The anti-triggers frontmatter block is not read by the
+# router. Ratchet: add a skill here when its description gains the clause.
+# ============================================================================
+echo -e "${CYAN}Test 14: Routing boundary (\"Not for\") in descriptions of ratcheted skills${NC}"
+echo "----------------------------------------"
+
+BOUNDARY_SKILLS=(brainstorm expect assess review-pr verify auto)
+boundary_missing=()
+for skill_name in "${BOUNDARY_SKILLS[@]}"; do
+    skill_file="$SKILLS_DIR/$skill_name/SKILL.md"
+    if [[ ! -f "$skill_file" ]]; then
+        boundary_missing+=("$skill_name")
+        fail "$skill_name: SKILL.md not found for the routing boundary check"
+    elif grep -qE '^description:.*\. Not for ' "$skill_file"; then
+        info "$skill_name: description carries a 'Not for' boundary (OK)"
+    else
+        boundary_missing+=("$skill_name")
+        fail "$skill_name: description has no 'Not for ...' routing boundary"
+    fi
+done
+
+if [[ ${#boundary_missing[@]} -eq 0 ]]; then
+    pass "Routing boundary present in all ${#BOUNDARY_SKILLS[@]} ratcheted descriptions"
 fi
 echo ""
 

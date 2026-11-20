@@ -1,25 +1,19 @@
 ---
 name: scope-appropriate-architecture
 license: MIT
-compatibility: "Claude Code 2.1.251+"
-description: Right-sizes architecture to project scope, classifying projects into 6 tiers to prevent over-engineering. Use when designing architecture, selecting patterns, or detecting a project tier.
-tags: [architecture, yagni, over-engineering, scope, patterns]
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+"
+description: "Classifies a project into 6 tiers to right-size its architecture and prevent over-engineering. Use when choosing patterns for a project's scope."
 user-invocable: false
 context: inherit
-complexity: low
-persuasion-type: guidance
 effort: low
 model: haiku
 metadata:
   category: architecture
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "architecture, yagni, over-engineering, scope, patterns"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Scope-Appropriate Architecture

@@ -1,27 +1,20 @@
 ---
 name: architecture-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
-tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering, context-aware]
+compatibility: "Claude Code 2.1.277+."
+description: "Clean and layered architecture patterns, project structure and test-standard validation. Use when designing system boundaries or enforcing structure. For tier sizing, use scope-appropriate-architecture."
 skills: [scope-appropriate-architecture]
-context: fork
-agent: backend-system-architect
-version: 2.1.0
-author: OrchestKit
 user-invocable: false
 disable-model-invocation: false
-complexity: high
-persuasion-type: reference
 effort: high
 metadata:
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering, context-aware"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 paths: ["src/**", "package.json", "tsconfig.json"]
 ---
 
@@ -259,7 +252,7 @@ Long-form tutorials on these topics were removed from this skill (2026-07-31 wra
 
 - `ork:scope-appropriate-architecture` - Project tier detection that drives right-sizing enforcement
 - `ork:quality-gates` - YAGNI gate uses tier context to validate complexity
-- `ork:distributed-systems` - Distributed locking, resilience, idempotency patterns
+- `ork-extras:distributed-systems` - Distributed locking, resilience, idempotency patterns
 - `ork:api-design` - REST API design, versioning, error handling
 - `ork:testing-unit` - Unit testing: AAA pattern, fixtures, mocking, factories
 - `ork:testing-e2e` - E2E testing: Playwright, page objects, visual regression

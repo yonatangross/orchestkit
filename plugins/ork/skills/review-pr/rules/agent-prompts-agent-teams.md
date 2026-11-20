@@ -142,4 +142,4 @@ turn-end too (CC 2.1.183), so a long check can outlive the teammate and still be
 collected at synthesis. To force-stop a teammate left spinning on a background
 task, press `Ctrl+F` twice (foreground/Stop).
 
-> **Fallback:** If team formation fails, use standard Task tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).
+> **Fallback:** If team formation fails, use standard Agent tool spawns from [agent-prompts-task-tool.md](agent-prompts-task-tool.md).

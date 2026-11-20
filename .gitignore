@@ -278,3 +278,6 @@ evals/results/
 
 # worktree-local scratch
 .scratch/
+
+# scripts/export-gemini-skills.mjs output (zips for a manual Gemini app upload)
+/dist/gemini-skills/

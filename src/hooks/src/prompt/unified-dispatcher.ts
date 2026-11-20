@@ -9,7 +9,7 @@
  * handoff injector plus every-turn silent analytics, with a single
  * additionalContext output.
  *
- * 5 hooks managed by this dispatcher:
+ * 7 hooks managed by this dispatcher:
  *
  * Once-per-session (file-based flag tracking):
  * - handoff-injector (producesContext: true)
@@ -68,6 +68,14 @@ import { handoffInjector } from './handoff-injector.js';
 import { executorRouteNudge } from './executor-route-nudge.js';
 import { visualStyleNudge } from './visual-style-nudge.js';
 import { multiStepTaskNudge } from './multi-step-task-nudge.js';
+// M140 G3 (#1790) — synchronous /goal tracking and budget brake
+import { goalTracker } from './goal-tracker.js';
+// M119 PR-2 (#1794 follow-up) — deferred worktree advisory delivery
+import {
+  acknowledgeWorktreeAdvisoryDelivery,
+  fitWorktreeAdvisoryDelivery,
+  worktreeAdvisoryConsumerForDispatcher,
+} from './worktree-advisory-consumer.js';
 import { NOOP_CTX } from '../lib/context.js';
 
 // -----------------------------------------------------------------------------
@@ -92,14 +100,35 @@ interface PromptHookConfig {
   producesContext: boolean;
   /** If true, this hook runs only once per session (file-based flag tracking) */
   runOnce?: boolean;
+  /** If true, a continue:false result must stop the prompt immediately. */
+  blocksPrompt?: boolean;
+  /** If true, budget/noise filters cannot omit this context from the response. */
+  mustDeliverContext?: boolean;
+  /** Called only after the final dispatcher response contains this context. */
+  onContextDelivered?: (result: HookResult) => void;
+  /**
+   * Shrink this hook's context to the given room, or return null to drop it
+   * this turn (#4922). Only hooks that can keep the undelivered part for a
+   * later prompt implement it.
+   */
+  fitContext?: (result: HookResult, maxChars: number, maxLines: number) => string | null;
 }
+
+// #4922: CC cuts additionalContext at 8,000 characters or 200 lines without
+// reporting it (.claude/rules/hooks-development.md, "Output caps are real and
+// silent").
+const ADDITIONAL_CONTEXT_MAX_CHARS = 8000;
+const ADDITIONAL_CONTEXT_MAX_LINES = 200;
+const CONTEXT_JOIN = '\n\n---\n\n';
+/** Lines a CONTEXT_JOIN adds between two parts: the blank, the rule, the blank. */
+const CONTEXT_JOIN_LINES = 3;
 
 // -----------------------------------------------------------------------------
 // Hook Registry
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of 5 UserPromptSubmit hooks managed by this dispatcher.
+ * Registry of 7 UserPromptSubmit hooks managed by this dispatcher.
  *
  * Order matters for context producers — higher priority first.
  * runOnce hooks execute only on the first turn (file-based session flag).
@@ -108,6 +137,22 @@ interface PromptHookConfig {
  * where they materialize rules files BEFORE CC loads instructions.
  */
 const HOOKS: PromptHookConfig[] = [
+  // Must stay synchronous: the budget brake has to intercept /goal before the
+  // model sees it. A block is returned directly instead of being treated as
+  // context or silently discarded.
+  { name: 'goal-tracker', fn: goalTracker, producesContext: false, blocksPrompt: true },
+
+  // Deferred WorktreeCreate advisories are consumed here so they share the
+  // dispatcher's single Node process and consolidated UserPromptSubmit output.
+  {
+    name: 'worktree-advisory-consumer',
+    fn: worktreeAdvisoryConsumerForDispatcher,
+    producesContext: true,
+    mustDeliverContext: true,
+    onContextDelivered: acknowledgeWorktreeAdvisoryDelivery,
+    fitContext: fitWorktreeAdvisoryDelivery,
+  },
+
   // --- Once-per-session hooks (run on first turn only, file-flag gated) ---
   { name: 'handoff-injector', fn: handoffInjector, producesContext: true, runOnce: true },
 
@@ -402,15 +447,14 @@ function isNoisyOutput(context: string): boolean {
  * and consolidates their output into a single additionalContext response.
  */
 export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  // Guard: skip all processing for oversized or binary prompts (image paste, base64 data)
   const prompt = input.prompt || '';
-  if (prompt.length > MAX_PROMPT_LENGTH) {
-    ctx.log(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping — likely image/binary data`);
-    return outputSilentSuccess();
-  }
-  if (prompt.length > 500 && isImageOrBinaryPrompt(prompt)) {
+  const oversizedPrompt = prompt.length > MAX_PROMPT_LENGTH;
+  const binaryPrompt = !oversizedPrompt && prompt.length > 500 && isImageOrBinaryPrompt(prompt);
+  const skipTextAnalysis = oversizedPrompt || binaryPrompt;
+  if (oversizedPrompt) {
+    ctx.log(HOOK_NAME, `Prompt too large (${prompt.length} chars > ${MAX_PROMPT_LENGTH}), skipping text analysis hooks`);
+  } else if (binaryPrompt) {
     ctx.log(HOOK_NAME, `Image/binary content detected in prompt (${prompt.length} chars), skipping text analysis hooks`);
-    return outputSilentSuccess();
   }
 
   const contextParts: string[] = [];
@@ -420,6 +464,51 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   // CC 2.1.94 changed default effort from 'medium' → 'high' for most user tiers.
   const effort = detectEffortLevel(input);
   const tokenBudget = effortTokenBudget(effort, MAX_OUTPUT_TOKENS);
+  const deliveredContexts: Array<{ hook: PromptHookConfig; result: HookResult; partIndex: number }> = [];
+  const acknowledgeDeliveredContexts = (): void => {
+    for (const { hook, result } of deliveredContexts) {
+      try {
+        hook.onContextDelivered?.(result);
+      } catch (error) {
+        ctx.log(HOOK_NAME, `${hook.name}: failed to acknowledge delivered context: ${error}`, 'warn');
+      }
+    }
+  };
+  // #4922: a must-deliver part can push the joined context past CC's cap,
+  // and the cut part would be acknowledged (deleted) anyway. Shrink each part
+  // that can keep a remainder to the room the other parts leave, or hold it
+  // back whole this turn, before anything is joined or acknowledged.
+  const joinContextPartsWithinCap = (): string => {
+    const fits = (text: string): boolean =>
+      text.length <= ADDITIONAL_CONTEXT_MAX_CHARS && text.split('\n').length <= ADDITIONAL_CONTEXT_MAX_LINES;
+    if (!fits(contextParts.join(CONTEXT_JOIN))) {
+      for (let i = deliveredContexts.length - 1; i >= 0; i--) {
+        const { hook, result, partIndex } = deliveredContexts[i];
+        if (!hook.fitContext) continue;
+        const others = contextParts.filter((part, idx) => idx !== partIndex && part.length > 0);
+        const othersText = others.join(CONTEXT_JOIN);
+        const roomChars = ADDITIONAL_CONTEXT_MAX_CHARS - othersText.length - (others.length > 0 ? CONTEXT_JOIN.length : 0);
+        const roomLines = ADDITIONAL_CONTEXT_MAX_LINES
+          - (others.length > 0 ? othersText.split('\n').length + CONTEXT_JOIN_LINES : 0);
+        let fitted: string | null = null;
+        try {
+          fitted = roomChars > 0 && roomLines > 0 ? hook.fitContext(result, roomChars, roomLines) : null;
+        } catch (error) {
+          ctx.log(HOOK_NAME, `${hook.name}: failed to fit context to the cap: ${error}`, 'warn');
+        }
+        if (fitted) {
+          ctx.log(HOOK_NAME, `${hook.name}: shrunk to ${fitted.length} chars to stay under the additionalContext cap`);
+          contextParts[partIndex] = fitted;
+        } else {
+          ctx.log(HOOK_NAME, `${hook.name}: held back this turn, no room under the additionalContext cap`);
+          contextParts[partIndex] = '';
+          deliveredContexts.splice(i, 1);
+        }
+        if (fits(contextParts.filter((part) => part.length > 0).join(CONTEXT_JOIN))) break;
+      }
+    }
+    return contextParts.filter((part) => part.length > 0).join(CONTEXT_JOIN);
+  };
   if (effort !== DEFAULT_EFFORT_LEVEL) {
     ctx.log(HOOK_NAME, `Effort level: ${effort} → token budget: ${tokenBudget}t`);
   }
@@ -429,6 +518,10 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   const projectDir = input.project_dir || (ctx.projectDir);
 
   for (const hook of HOOKS) {
+    // Blocking safety and pending-delivery hooks run before text-analysis
+    // guards; all other hooks retain protection from oversized/binary prompts.
+    if (skipTextAnalysis && !hook.blocksPrompt && !hook.mustDeliverContext) break;
+
     try {
       // Low effort: skip once-per-session context hooks (handoffs, etc.) — they're heavy
       if (effort === 'low' && hook.runOnce && hook.producesContext) {
@@ -448,6 +541,13 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       }
 
       const result = hook.fn(input, ctx);
+
+      // goal-tracker owns the synchronous /goal budget brake. Preserve the
+      // top-level block envelope exactly; it must reach Claude Code before the
+      // prompt is processed and must not be folded into additionalContext.
+      if (hook.blocksPrompt && !result.continue) {
+        return result;
+      }
 
       // Mark once-per-session hook as done after successful execution
       if (hook.runOnce && sessionId) {
@@ -470,26 +570,39 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       }
 
       // Filter noisy/low-value context before consuming budget
-      if (isNoisyOutput(context)) {
+      if (isNoisyOutput(context) && !hook.mustDeliverContext) {
         ctx.log(HOOK_NAME, `${hook.name}: noisy output filtered`);
         continue;
       }
 
       // Budget check: don't exceed effort-adjusted token budget
       const contextTokens = estimateTokenCount(context);
-      if (totalTokens + contextTokens > tokenBudget) {
+      if (totalTokens + contextTokens > tokenBudget && !hook.mustDeliverContext) {
         ctx.log(HOOK_NAME, `Budget limit: skipping ${hook.name} (${contextTokens}t would exceed ${tokenBudget}t cap, effort=${effort})`);
         continue;
       }
 
+      if (hook.mustDeliverContext && totalTokens + contextTokens > tokenBudget) {
+        ctx.log(HOOK_NAME, `Delivering ${hook.name} above the shared context budget (${contextTokens}t, cap=${tokenBudget}t)`);
+      }
+
       contextParts.push(context);
       totalTokens += contextTokens;
+      if (hook.onContextDelivered) deliveredContexts.push({ hook, result, partIndex: contextParts.length - 1 });
 
       ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       ctx.log(HOOK_NAME, `${hook.name} failed: ${message}`, 'warn');
     }
+  }
+
+  if (skipTextAnalysis) {
+    const joined = joinContextPartsWithinCap();
+    if (!joined) return outputSilentSuccess();
+    const output = outputPromptContext(joined);
+    acknowledgeDeliveredContexts();
+    return output;
   }
 
   // Build the session title (CC 2.1.94) and decide whether to emit it.
@@ -522,16 +635,16 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     titleBranch,
   );
 
+  // Single consolidated output, held under CC's additionalContext cap (#4922)
+  const consolidated = joinContextPartsWithinCap();
+
   // No context produced — still try to set the title if we have one
-  if (contextParts.length === 0) {
+  if (!consolidated) {
     if (emitTitle) {
       return outputPromptContextWithTitle('', sessionTitle);
     }
     return outputSilentSuccess();
   }
-
-  // Single consolidated output
-  const consolidated = contextParts.join('\n\n---\n\n');
 
   // Delta detection: skip injection if consolidated output is unchanged from last turn (#token-reduction)
   // Note: the title is still emitted on delta-skip turns because it's cheap
@@ -543,7 +656,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   try {
     if (existsSync(hashFile)) {
       const lastHash = readFileSync(hashFile, 'utf8').trim();
-      if (lastHash === consolidatedHash) {
+      if (lastHash === consolidatedHash && deliveredContexts.length === 0) {
         ctx.log(HOOK_NAME, `Delta skip: consolidated output unchanged (hash=${consolidatedHash})`);
         if (emitTitle) {
           return outputPromptContextWithTitle('', sessionTitle);
@@ -568,8 +681,9 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
     trackTokenUsage(HOOK_NAME, 'prompt', totalTokens);
   }
 
-  if (emitTitle) {
-    return outputPromptContextWithTitle(consolidated, sessionTitle);
-  }
-  return outputPromptContext(consolidated);
+  const output = emitTitle
+    ? outputPromptContextWithTitle(consolidated, sessionTitle)
+    : outputPromptContext(consolidated);
+  acknowledgeDeliveredContexts();
+  return output;
 }

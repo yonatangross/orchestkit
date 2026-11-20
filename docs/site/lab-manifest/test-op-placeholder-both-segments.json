@@ -1,0 +1,8 @@
+{
+  "slug": "test-op-placeholder-both-segments",
+  "source": "docs/test--op-placeholder-both-segments/index.html",
+  "title": "Both op:// segments must now be placeholders",
+  "description": "Issue #4224: the public-surface names guard now requires a placeholder vault AND a placeholder or generic item, so a real item name behind <vault> fails. Real item names in tracked docs were genericized and the negative fixture is scannable.",
+  "tags": ["security", "tests", "guard", "secrets"],
+  "date": "2026-09-19"
+}

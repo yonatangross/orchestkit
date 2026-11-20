@@ -3,7 +3,7 @@
  * OrchestKit Docs MCP Server — stdio transport
  *
  * Standalone stdio variant of the remote Docs MCP server hosted at
- * https://orchestkit.yonyon.ai/api/mcp. Exposes the same two read-only tools
+ * https://orchestkit.dev/api/mcp. Exposes the same two read-only tools
  * (documentation search + Markdown page fetch) by proxying the public docs
  * API, so it can run anywhere a Node process can — including registry checks
  * (Glama) and local MCP clients that prefer stdio over Streamable HTTP.

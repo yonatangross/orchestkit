@@ -8,11 +8,8 @@ experimental:
   # CI wait, long review), so every resume after that paid a full cache write.
   # Ignored while a subscription is in usage overage. CLAUDE.md owns the floor.
   cacheTtl: 1h
-category: devops
-maxTurns: 30
+maxTurns: 60
 effort: medium
-context: fork
-isolation: worktree
 color: orange
 memory: project
 tools:
@@ -42,23 +39,13 @@ skills:
   - security-patterns
   - github-operations
   - code-review-playbook
-  - remember
   - memory
 mcpServers: [context7]
-taskTypes:
-  - deploy
-  - build
-keywords:
-  - "ci/cd"
-  - "pipeline"
-  - "github actions"
-  - "workflow"
-  - "build"
-  - "artifact"
-  - "cache"
-examplePrompts:
-  - "Set up a GitHub Actions CI pipeline with test matrix and caching"
-  - "Add security scanning and artifact publishing to the pipeline"
+metadata:
+  category: "devops"
+  taskTypes: "deploy, build"
+  keywords: "ci/cd, pipeline, github actions, workflow, build, artifact, cache"
+  examplePrompts: "Set up a GitHub Actions CI pipeline with test matrix and caching | Add security scanning and artifact publishing to the pipeline"
 ---
 ## Directive
 Design and implement CI/CD pipelines with GitHub Actions and GitLab CI, focusing on build optimization, security scanning, and reliable deployments.
@@ -242,7 +229,9 @@ Keep delegated sub-problems bounded and synthesize the results yourself. Prefer 
 
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
-Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about. Use DONE_WITH_CONCERNS when the commit landed but something is worth flagging (list each concern); `committed_sha` is the full 40-hex or 64-hex id. A commit or push that a hook, guard or check refuses is BLOCKED: report `committed_sha: null` and name the refusing hook in `blocked_reason`, never an empty or placeholder sha (`shared/build-result.schema.json`).
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Peer Messaging
 
@@ -263,7 +252,6 @@ Read the specific file before advising. Do NOT rely on training data.
 |devops-deployment:{SKILL.md,references/{capability-details.md,checklists-and-templates.md,deployment-strategies.md,docker-patterns.md,multi-service-setup.md,nixpacks-customization.md,ork-delta.md,railway-json-config.md}}|devops,ci-cd,docker,kubernetes,terraform
 |security-patterns:{SKILL.md,references/{audit-logging.md,cc-permission-model.md,context-separation.md,langfuse-mask-callback.md,ork-delta.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,ork-delta.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
-|code-review-playbook:{SKILL.md,references/{conventional-comments.md,ork-delta.md}}|code-review,quality,collaboration,best-practices
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|code-review-playbook:{SKILL.md,references/{conventional-comments.md,ork-delta.md}}|code-review,quality,collaboration,best-practices,testing
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

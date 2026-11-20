@@ -1,51 +1,28 @@
 ---
 name: component-search
 license: MIT
-compatibility: "Claude Code 2.1.251+. Optional: 21st-dev-magic MCP server."
-description: "Search 21st.dev component registry for production-ready React components. Finds components by natural language description, filters by framework and style system, returns ranked results with install instructions. Use when looking for UI components, finding alternatives to existing components, or sourcing design system building blocks."
+compatibility: "Claude Code 2.1.277+. Optional: 21st-dev-magic MCP server."
+description: "Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI component or an alternative to one."
 argument-hint: "[component description]"
-tags: [components, 21st-dev, react, ui, search, registry, tailwind, shadcn]
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)
 background: false
-version: 1.1.0
-author: OrchestKit
 user-invocable: true
-complexity: simple
-persuasion-type: collaborative
 effort: low
 model: sonnet
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
+allowed-tools: "Read Glob Grep WebFetch WebSearch AskUserQuestion TaskCreate TaskUpdate mcp__21st-dev-magic__search_picker mcp__21st-dev-magic__search mcp__21st-dev-magic__get_component mcp__21st-dev-magic__get_theme mcp__21st-dev-magic__search_logo mcp__21st-dev-magic__get_usage TaskList"
   # 21st-dev-magic MCP. Without these the skill CANNOT reach the server it is
   # named after and silently degrades to the WebSearch/WebFetch scrape below.
   # Read-only surface by design: the catalog-mutating tools (submit_component,
   # edit_component, delete_*, bookmark writes) are deliberately NOT granted —
   # a search skill has no business publishing to or deleting from the registry.
-  - mcp__21st-dev-magic__search_picker
-  - mcp__21st-dev-magic__search
-  - mcp__21st-dev-magic__get_component
-  - mcp__21st-dev-magic__get_theme
-  - mcp__21st-dev-magic__search_logo
-  - mcp__21st-dev-magic__get_usage
-  - TaskList
 metadata:
   category: workflow-automation
   mcp-server: 21st-dev-magic
-triggers:
-  keywords: ["component search", "find component", "search components", "ui component", "react component", "21st.dev"]
-  examples:
-    - "search for a date picker component"
-    - "find a modal component for React"
-    - "are there any good table components on 21st.dev"
-  anti-triggers: [implement, build, design, explore, brainstorm]
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "simple"
+  tags: "components, 21st-dev, react, ui, search, registry, tailwind, shadcn"
 ---
 
 # Component Search
@@ -229,4 +206,4 @@ For the selected component:
 
 - `ork:design-to-code` — Full mockup-to-component pipeline (uses this skill)
 - `ork:design-system-tokens` — Adapt components to project tokens
-- `ork:ui-components` — Component library patterns
+- `ork-extras:ui-components` — Component library patterns

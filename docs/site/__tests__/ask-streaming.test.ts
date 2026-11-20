@@ -16,7 +16,7 @@ vi.mock("@/lib/doc-search", () => ({
 import { GET, POST } from "@/app/api/ask/route";
 
 function askReq(headers: Record<string, string>): Request {
-	return new Request("https://orchestkit.yonyon.ai/ask", {
+	return new Request("https://orchestkit.dev/ask", {
 		method: "POST",
 		headers: { "content-type": "application/json", ...headers },
 		body: JSON.stringify({ query: "what is orchestkit" }),
@@ -47,7 +47,7 @@ describe("/ask streaming triggers", () => {
 // reads to agent-readiness scanners as "no NLWeb endpoint here".
 describe("/ask no-query probe → 200 NLWeb envelope", () => {
 	it("GET /ask with no query → 200, empty results, usage hint", async () => {
-		const res = await GET(new Request("https://orchestkit.yonyon.ai/ask"));
+		const res = await GET(new Request("https://orchestkit.dev/ask"));
 		expect(res.status).toBe(200);
 		expect(res.headers.get("Content-Type")).toContain("application/json");
 		const body = await res.json();
@@ -61,7 +61,7 @@ describe("/ask no-query probe → 200 NLWeb envelope", () => {
 
 	it("POST /ask with empty query → 200, empty results", async () => {
 		const res = await POST(
-			new Request("https://orchestkit.yonyon.ai/ask", {
+			new Request("https://orchestkit.dev/ask", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
 				body: JSON.stringify({ query: "   " }),
@@ -76,7 +76,7 @@ describe("/ask no-query probe → 200 NLWeb envelope", () => {
 
 	it("POST /ask with an unreadable body → 200 envelope, not 400", async () => {
 		const res = await POST(
-			new Request("https://orchestkit.yonyon.ai/ask", {
+			new Request("https://orchestkit.dev/ask", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
 				body: "{ not json",
@@ -94,7 +94,7 @@ describe("/ask no-query probe → 200 NLWeb envelope", () => {
 // as "no /ask endpoint found".
 describe("/ask NLWeb canonical body { query: { text } }", () => {
 	function nlwebReq(headers: Record<string, string> = {}): Request {
-		return new Request("https://orchestkit.yonyon.ai/ask", {
+		return new Request("https://orchestkit.dev/ask", {
 			method: "POST",
 			headers: { "content-type": "application/json", ...headers },
 			body: JSON.stringify({ query: { text: "what is orchestkit" } }),

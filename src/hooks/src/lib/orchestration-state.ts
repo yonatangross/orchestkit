@@ -12,6 +12,7 @@
 import { existsSync, readFileSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
 import { atomicWriteSync } from './atomic-write.js';
 import { getProjectDir, getSessionId, logHook } from './common.js';
+import { isHttpsUrl, warnRefusedUrlOnce } from './sink-url-policy.js';
 import type {
   OrchestrationState,
   DispatchedAgent,
@@ -130,9 +131,12 @@ export function trackDispatchedAgent(
     maxRetries: 3,
   };
 
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
     // Remove any existing entry for same agent
-    state.activeAgents = state.activeAgents.filter(a => a.agent !== agent);
+    state.activeAgents = state.activeAgents.filter(
+      a => a.agent.replace(/^ork:/, '') !== normalizedAgent
+    );
     state.activeAgents.push(dispatched);
   });
 
@@ -148,12 +152,27 @@ export function updateAgentStatus(
   status: DispatchedAgent['status'],
   taskId?: string
 ): void {
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
-    const entry = state.activeAgents.find(a => a.agent === agent);
+    const entry = state.activeAgents.find(
+      a => a.agent === agent || a.agent.replace(/^ork:/, '') === normalizedAgent
+    );
     if (entry) {
       entry.status = status;
       if (taskId) entry.taskId = taskId;
       if (status === 'retrying') entry.retryCount++;
+      // A chain that ended leaves no budget to carry into the next task of this agent type.
+      else if (status === 'completed' || status === 'failed') entry.retryCount = 0;
+    } else {
+      state.activeAgents.push({
+        agent,
+        taskId,
+        confidence: 0,
+        dispatchedAt: new Date().toISOString(),
+        status,
+        retryCount: status === 'retrying' ? 1 : 0,
+        maxRetries: 3,
+      });
     }
   });
 
@@ -164,8 +183,11 @@ export function updateAgentStatus(
  * Remove completed/failed agent from tracking
  */
 export function removeAgent(agent: string): void {
+  const normalizedAgent = agent.replace(/^ork:/, '');
   updateState(state => {
-    state.activeAgents = state.activeAgents.filter(a => a.agent !== agent);
+    state.activeAgents = state.activeAgents.filter(
+      a => a.agent.replace(/^ork:/, '') !== normalizedAgent
+    );
   });
 }
 
@@ -311,12 +333,36 @@ export function saveConfig(config: Partial<OrchestrationConfig>): void {
 }
 
 /**
- * Resolve webhook URL: config.webhookUrl first, ORCHESTKIT_HOOK_URL env var fallback.
- * Returns undefined if neither is set.
+ * Resolve webhook URL from user-scope sources only (#4218):
+ * manifest userConfig (CLAUDE_PLUGIN_OPTION_WEBHOOKURL) then ORCHESTKIT_HOOK_URL.
+ * Never reads webhookUrl from project-tree orchestration/config.json.
+ * Requires https:; anything else is refused with a one-shot stderr warning.
  */
 export function getWebhookUrl(): string | undefined {
-  const config = loadConfig();
-  return config.webhookUrl || process.env.ORCHESTKIT_HOOK_URL || undefined;
+  const raw =
+    process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL ||
+    process.env.ORCHESTKIT_HOOK_URL ||
+    undefined;
+  if (!raw) return undefined;
+  if (!isHttpsUrl(raw)) {
+    warnRefusedUrlOnce(raw, 'orchestration webhook');
+    return undefined;
+  }
+  return raw;
+}
+
+/**
+ * Resolve the webhook auth token: manifest userConfig `hookToken`
+ * (keychain-backed, surfaced as CLAUDE_PLUGIN_OPTION_HOOKTOKEN) first, then
+ * the ORCHESTKIT_HOOK_TOKEN env var for existing installs.
+ * Returns undefined if neither is set.
+ */
+export function getHookToken(): string | undefined {
+  return (
+    process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN ||
+    process.env.ORCHESTKIT_HOOK_TOKEN ||
+    undefined
+  );
 }
 
 // -----------------------------------------------------------------------------

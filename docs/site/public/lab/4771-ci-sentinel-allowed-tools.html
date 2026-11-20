@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ci-sentinel: the model runs with no tools</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:28px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06)}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.panel{border:1px solid var(--edge);border-radius:12px;background:var(--glass);padding:16px 18px;margin-top:10px}
+input[type=text]{width:100%;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:hsl(232 20% 14%);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:8px 10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chips button{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);color:var(--ink);border:1px solid var(--edge);border-radius:999px;padding:4px 10px;cursor:pointer}
+.out{font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:12px;white-space:pre-wrap}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#4771 ci-sentinel: the model runs with no tools"><meta property="og:description" content="ci-sentinel ran claude -p with acceptEdits while reading untrusted CI logs with a comment-writing token. Text rules on commands did not hold (quoted flags, quote-split env reads, gojq transforms of a secret). Now the step fetches the CI data with plain gh, the model reads it with no tools in a read-only job, and a model-free job sanitises and posts the verdict."><meta property="og:url" content="https://orchestkit.dev/lab/4771-ci-sentinel-allowed-tools.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#4771 ci-sentinel: the model runs with no tools"><meta name="twitter:description" content="ci-sentinel ran claude -p with acceptEdits while reading untrusted CI logs with a comment-writing token. Text rules on commands did not hold (quoted flags, quote-split env reads, gojq transforms of a secret). Now the step fetches the CI data with plain gh, the model reads it with no tools in a read-only job, and a model-free job sanitises and posts the verdict."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body><div class="wrap">
+<div class="eyebrow">CI-SENTINEL &middot; #4771 &middot; #5014</div>
+<h1>The sentinel model runs <span>with no tools</span></h1>
+<p class="lede">ci-sentinel runs <code>claude -p</code> on every red PR, and the model reads <b>untrusted</b> CI logs
+(fork PRs included) whose verdict is posted as a public comment. Text rules on commands did not hold: a quoted flag,
+a quote-split <code>$E''NV</code> read, or a gojq <code>@base64</code> of a secret all passed them. Now the step fetches
+the checks and failed logs itself with plain <code>gh</code>, and the model only reads that text, with <b>no tools</b>.</p>
+
+<h2>Try a command the model might be steered into</h2>
+<div class="panel">
+<input id="cmd" type="text" value="gh api repos/o/r --jq '$E''NV.CLAUDE_CODE_OAUTH_TOKEN | @base64'" spellcheck="false">
+<div class="chips" id="chips"></div>
+<div class="out" id="out"></div>
+</div>
+
+<h2>The dispatch envelope</h2>
+<table>
+<tr><th>Flag</th><th>Effect</th></tr>
+<tr><td><code>--tools ""</code></td><td>no built-in tool at all, Bash included</td></tr>
+<tr><td><code>--disallowedTools "*" "Bash"</code></td><td>belts: every tool, and Bash by name</td></tr>
+<tr><td><code>--permission-mode dontAsk</code></td><td>refuses anything no allow rule names; there is no allow rule</td></tr>
+<tr><td><code>--strict-mcp-config</code>, <code>--safe-mode</code></td><td>no MCP server, no hooks or plugins from the checkout</td></tr>
+<tr><td><code>env -u GH_TOKEN</code></td><td>the model process holds no GitHub token</td></tr>
+<tr><td>CC at least <code>2.1.295</code></td><td>the release that made <code>--tools</code> apply to built-ins that register after launch</td></tr>
+</table>
+
+<h2>Two jobs, two tokens</h2>
+<table>
+<tr><th>Job</th><th>Runs</th><th>Token</th></tr>
+<tr><td><code>sweep</code></td><td>fetches CI data with gh, then <code>claude -p</code> with no tools; drops a verdict holding a secret value</td><td class="ok">read only</td></tr>
+<tr><td><code>post</code></td><td>no model: re-reads the failing PRs itself, refuses token shapes, strips HTML, images, links and @mentions, posts</td><td>pull-requests and issues write</td></tr>
+</table>
+
+<div class="foot">When <code>claude -p</code> fails, the public log gets a fixed line and the exit code, never the raw output.
+Test: <code>tests/ci/test-ci-sentinel-tool-scope.sh</code>. This page simulates the envelope: with no tools, every command is refused.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function render(){
+  const c=$('cmd').value.trim();const out=$('out');out.replaceChildren();
+  const s=document.createElement('span');s.className='bad';s.textContent='refused';out.appendChild(s);
+  const why=c?': the model has no tool to run "'+c.split(' ')[0]+'" in (--tools "", deny "*")':': empty command';
+  out.appendChild(document.createTextNode(why));
+}
+["gh api repos/o/r --jq '$E''NV.CLAUDE_CODE_OAUTH_TOKEN | @base64'","gh pr checks 12","gh api repos/o/r/issues/1/comments -\"X\" POST","cat /proc/self/environ","gh pr merge 12 --squash"]
+ .forEach(t=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{$('cmd').value=t;render();};$('chips').appendChild(b);});
+$('cmd').addEventListener('input',render);render();
+</script><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

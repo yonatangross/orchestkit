@@ -1,13 +1,13 @@
 /**
  * Docs tools — read-only documentation search + Markdown fetch, proxying the
  * public OrchestKit docs API (no auth). Mirrors the tool surface of the remote
- * Streamable HTTP server at https://orchestkit.yonyon.ai/api/mcp.
+ * Streamable HTTP server at https://orchestkit.dev/api/mcp.
  */
 
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
-const DOCS_ORIGIN = process.env.ORCHESTKIT_DOCS_ORIGIN ?? 'https://orchestkit.yonyon.ai';
+const DOCS_ORIGIN = process.env.ORCHESTKIT_DOCS_ORIGIN ?? 'https://orchestkit.dev';
 
 type ToolText = { content: Array<{ type: 'text'; text: string }> };
 
@@ -26,7 +26,7 @@ async function fetchText(url: string, accept: string): Promise<string> {
 export function registerDocsTools(mcpServer: McpServer): void {
   mcpServer.tool(
     'orchestkit_docs_search',
-    'Search the OrchestKit documentation; returns ranked pages with titles and URLs. Read-only.',
+    'Search the OrchestKit documentation site (guides plus skill, agent, hook and composition pages) and return the ranked JSON rows from its /api/search endpoint: one row per matching page, heading or text snippet. Set `limit` for a bounded result: without it every match is returned, and a broad query can return thousands of rows. Only the first page is returned; the next-page cursor is not exposed. On failure the tool returns a text line starting "Search failed:" rather than an MCP error. Use orchestkit_docs_get to read a whole page. Read-only.',
     {
       query: z.string().min(1).describe("Search term, e.g. 'install' or 'memory'"),
       tag: z

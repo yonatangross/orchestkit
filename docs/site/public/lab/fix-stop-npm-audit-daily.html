@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>npm audit runs once a day from the stop hook | OrchestKit Lab</title>
+<style>
+  :root { color-scheme: light; font: 17px/1.6 system-ui, sans-serif; background: #faf8f3; color: #1d232a; }
+  body { max-width: 900px; margin: auto; padding: 44px 24px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.15; }
+  .eyebrow { color: #2a6f97; letter-spacing: .08em; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 12px; }
+  td, th { border: 1px solid #d9d3c7; padding: 6px 10px; text-align: left; }
+  code { font-size: 15px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="npm audit runs once a day from the stop hook"><meta property="og:description" content="The stop hook ran npm audit, a registry round trip, on every Stop of a dirty tree; it now runs at most once per project per 24 hours while the other scans stay per-Stop."><meta property="og:url" content="https://orchestkit.dev/lab/fix-stop-npm-audit-daily.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="npm audit runs once a day from the stop hook"><meta name="twitter:description" content="The stop hook ran npm audit, a registry round trip, on every Stop of a dirty tree; it now runs at most once per project per 24 hours while the other scans stay per-Stop."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<p class="eyebrow">ORCHESTKIT LAB · HOOKS · PERFORMANCE</p>
+<h1>npm audit runs once a day, not on every Stop</h1>
+<p>The stop hook <code>security-scan-aggregator</code> ran <code>npm audit --json</code> every time a session stopped with a dirty working tree. Each run is a round trip to the npm registry, so with many sessions open it added steady CPU and network load. Now the npm audit runs at most once per project per 24 hours. The other scans (pip-audit, semgrep, bandit and the secret scan) still run on every Stop.</p>
+<table>
+  <tr><th>Situation</th><th>Before</th><th>After</th></tr>
+  <tr><td>First Stop in a project</td><td>npm audit runs</td><td>npm audit runs, stamp written</td></tr>
+  <tr><td>Another Stop within 24 hours</td><td>npm audit runs again</td><td>skipped, reported as "not run"</td></tr>
+  <tr><td>Stop after the stamp is 24 hours old</td><td>npm audit runs</td><td>npm audit runs, stamp refreshed</td></tr>
+  <tr><td>Audit times out or fails</td><td>retried on the next Stop</td><td>held off for 24 hours (stamp is written first)</td></tr>
+  <tr><td>Temp directory not writable</td><td>npm audit runs</td><td>npm audit runs, as before</td></tr>
+</table>
+<p>The stamp is a file in the temp directory named from a hash of the project path, so each project keeps its own clock. Two new tests put a fake <code>npm</code> first on <code>PATH</code> and count real invocations: a second Stop inside 24 hours runs nothing, and an old stamp lets the audit run again.</p>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

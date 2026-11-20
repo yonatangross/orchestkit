@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>orank gaps, lane A: Actions MCP card, sandbox, discoverability</title>
+<meta name="description" content="Three orank gaps closed on the docs site: a draft-shape server card for the Actions MCP, a linked sandbox page, and product-named developer resources.">
+<style>
+  :root { --paper:#faf8f3; --ink:#1d1b17; --muted:#6b665c; --rule:#e2ddd2; --accent:#2f6f4f; --warn:#9a6a12; --card:#ffffff; }
+  [data-theme="dark"] { --paper:#16150f; --ink:#ece8de; --muted:#a39d90; --rule:#34312a; --accent:#7cc39c; --warn:#e0b25a; --card:#1f1d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:40px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  h1 { font-size:1.9rem; line-height:1.15; margin:0 0 8px; }
+  h2 { font-size:1.15rem; margin:36px 0 10px; padding-top:14px; border-top:1px solid var(--rule); }
+  p.lead { color:var(--muted); margin:0; }
+  button { font:inherit; font-size:.85rem; background:var(--card); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:24px; }
+  .kpi { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px; }
+  .kpi b { display:block; font-size:1.6rem; }
+  .kpi span { color:var(--muted); font-size:.85rem; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font:0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color:var(--accent); font-weight:600; }
+  .wait { color:var(--warn); font-weight:600; }
+  ul { padding-left:20px; }
+  footer { margin-top:40px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>orank gaps, lane A</h1>
+      <p class="lead">orank (2026-10-21) still named three gaps after the server card fix. This change closes them on the docs site. No new tool executes anything: the product MCP stays read-only.</p>
+    </div>
+    <button id="theme" type="button" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><b>2</b><span>draft-shape MCP server cards (docs + actions)</span></div>
+    <div class="kpi"><b>1</b><span>new route: <code>/api/mcp/actions/server-card</code></span></div>
+    <div class="kpi"><b>9</b><span>files changed, all additions on top of main</span></div>
+  </div>
+
+  <h2>Before and after</h2>
+  <table>
+    <tr><th>Gap</th><th>Before</th><th>After</th></tr>
+    <tr>
+      <td>Actions MCP card</td>
+      <td>The product MCP at <code>/api/mcp/actions</code> had only the older card with <code>tools[]</code>. No card in the draft server-card shape.</td>
+      <td class="ok">New card at <code>/api/mcp/actions/server-card</code>: name <code>dev.orchestkit/actions</code>, description under 100 characters, <code>remotes[].url</code> is the exact server URL, no <code>tools[]</code>. Listed in <code>ai-catalog.json</code> as <code>urn:air:&lt;host&gt;:mcp:actions</code>.</td>
+    </tr>
+    <tr>
+      <td>Sandbox / test mode</td>
+      <td>The "try safely" page existed, but nothing linked to it.</td>
+      <td class="ok">It is a named developer resource, so <code>/developers</code>, <code>/developers.md</code> and the llms.txt "Developer resources" section list it. llms.txt has a "sandbox / test mode" line. The page says production is the test mode: every hosted tool is read-only, so each call is a dry run.</td>
+    </tr>
+    <tr>
+      <td>Discoverability</td>
+      <td>Developer resource titles were generic ("CLI (npm)", "llms.txt").</td>
+      <td class="ok">Every title carries the product name, and llms.txt links both draft cards.</td>
+    </tr>
+  </table>
+
+  <h2>One schema, two cards</h2>
+  <p>Both cards read the same <code>SERVER_CARD_SCHEMA</code> constant in <code>docs/site/lib/server-card.ts</code>. The published-schema fix that already landed on main applies to the new actions card with no extra code.</p>
+
+  <h2>Caveats</h2>
+  <ul>
+    <li>The older <code>/.well-known/mcp/actions-server-card.json</code>, with its tools list, stays served for checkers that already read it.</li>
+    <li>The orank score after this change is unknown until it deploys. It will be read from the orank scan, not estimated here.</li>
+    <li>This branch replaces PR #4831. Lane A's one commit was cherry-picked onto current main, so the BRAND block and the server-card schema fixes on main are kept as they are.</li>
+  </ul>
+
+  <footer>Card orank-gaps-2026-10-21, lane A. Made by lane ork-4831 (Claude via Claude Code), 2026-10-25.</footer>
+</main>
+<script>
+  (function () {
+    var btn = document.getElementById("theme");
+    var root = document.documentElement;
+    function set(t) { root.setAttribute("data-theme", t); btn.textContent = t === "dark" ? "Light" : "Dark"; }
+    set(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    btn.addEventListener("click", function () { set(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# Advisory-warning baselines, one "<category>=<number>" line per category of tests/run-all-tests.sh.
+# The label is the run_dir / run_script label the runner prints. tests/run-all-tests.sh compares each
+# category's "Warnings: N" total with its line and FAILS the run when a category is above its line,
+# has no line here, or cannot be read. The required "Agents & Skills" CI row runs that script.
+#
+# Measured on main 67ee50237 (Quality Report run 43381692373, and a local full run on 2026-11-13,
+# both give the same split): 108 + 266 + 1 = 375 in total. 267 of those are the skills block
+# (Skills 266, Plugins 1), the number the old single baseline in the runner (WARNINGS_BASELINE) covers.
+#
+# Rules: lines only go DOWN. Never raise a line to quiet a red run: fix the warnings. A category BELOW
+# its line fails the run too (strict, row 12 ruling): the message prints the exact line to write, and
+# the change that removes warnings lowers the line in the same commit. A new category needs its own line.
+#
+# E2E 108 is the largest unowned block and has no owner yet (follow-up), as are Skills and Plugins.
+#
+# 2026-11-17 design-to-code merge: storybook-mcp-integration is gone and design-import and
+# design-ship are short aliases now. LOWERED E2E 108 -> 105 (three fewer oversized SKILL.md)
+# and Skills 266 -> 256; the runner's WARNINGS_BASELINE goes 267 -> 257 with them.
+# 2026-11-17 catalog trim stage 1a merged with the line above: measured on the merged head,
+# Skills 256 -> 254 and the runner's WARNINGS_BASELINE 257 -> 255. E2E 105 held.
+Static Analysis Suite=0
+CI Meta=0
+Indexes=0
+Unit=0
+Build=0
+Config=0
+Compliance=0
+Hook Structure=0
+Worktree=0
+Evals (deterministic)=0
+Security=0
+Integration=0
+External Installation=0
+Feedback System=0
+E2E=102
+Skills=254
+Agents=0
+Subagents=0
+Manifests=0
+Schemas=0
+Plugins=1
+Quality=0
+Orphans=0
+Skill Efficiency Scorecard (advisory)=0
+Performance=0

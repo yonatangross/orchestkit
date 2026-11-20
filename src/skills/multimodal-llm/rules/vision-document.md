@@ -27,7 +27,7 @@ Read(file_path="/path/to/document.pdf", pages="80-90")   # Appendix
 ```python
 response = client.chat.completions.create(
     model="gpt-5.5",
-    max_tokens=4096,
+    max_completion_tokens=4096,
     messages=[{
         "role": "user",
         "content": [

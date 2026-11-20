@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שלושה סקילים מתקפלים לשניים: memory ו-ci-debug</title>
+<meta name="description" content="שלב 1a של גיזום הקטלוג: remember ו-dream הופכים לפעלים של memory, ו-ci-sentinel הופך למצב sweep של ci-debug. לפני ואחרי, שלושת הכינויים, בתים ב-preload לכל סוכן, ספירות ובדיקות.">
+<style>
+  html{scroll-behavior:smooth}
+  body{margin:0;background:#0f1117;color:#e8eaf2;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.65}
+  .shell{display:flex;gap:1.5rem;max-width:74rem;margin-inline:auto;padding:1.5rem 1.25rem 4rem;align-items:flex-start}
+  nav.rail{position:sticky;top:1.25rem;flex:0 0 12.5rem;background:#161922;border:1px solid #272b38;border-radius:10px;padding:.8rem .6rem;font-size:.82rem}
+  nav.rail .rt{color:#9aa3b8;font-size:.72rem;margin:0 .5rem .4rem}
+  nav.rail a{display:block;color:#c3cae0;text-decoration:none;padding:.3rem .5rem;border-radius:6px;border-inline-start:3px solid transparent}
+  nav.rail a.on{background:#1f2433;color:#7dd3fc;border-inline-start-color:#7dd3fc}
+  #railBtn{display:none;position:fixed;top:.7rem;inset-inline-start:.7rem;z-index:20;background:#161922;color:#e8eaf2;border:1px solid #272b38;border-radius:8px;padding:.4rem .8rem;font:inherit;font-size:.85rem;cursor:pointer}
+  main{flex:1;min-width:0}
+  h1{font-size:1.55rem;margin:0 0 .4rem}
+  .sub{color:#9aa3b8;margin:0 0 1.4rem;font-size:.9rem}
+  section{background:#161922;border:1px solid #272b38;border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem;scroll-margin-top:1rem}
+  h2{font-size:.95rem;margin:0 0 .9rem;color:#7dd3fc}
+  h2 .n{color:#9aa3b8;margin-inline-end:.5rem;font-weight:400}
+  code,.ltr{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  code{background:#0b0d13;border:1px solid #272b38;border-radius:5px;padding:0 5px;font-size:.85em}
+  .verdict{border:1px solid #2f6f4a;background:#12261c;border-radius:10px;padding:1rem 1.2rem;font-size:1.05rem}
+  .verdict b{color:#4ade80}
+  .wait li{margin-block:.5rem}
+  .wait label{cursor:pointer;display:flex;gap:.6rem;align-items:flex-start}
+  .wait input{margin-top:.45rem}
+  ul.plain{list-style:none;padding:0;margin:0}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.8rem;margin-top:.4rem}
+  .kpi{border:1px solid #272b38;border-radius:8px;padding:.7rem .9rem;background:#0f1117}
+  .kpi .v{font-size:1.35rem;direction:ltr;text-align:start}
+  .kpi .l{color:#9aa3b8;font-size:.78rem}
+  .kpi.same .v{color:#9aa3b8}
+  .kpi.chg .v{color:#fbbf24}
+  svg text{font-family:inherit}
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th,td{text-align:start;padding:.45rem .6rem;border-bottom:1px solid #272b38;vertical-align:top}
+  th{color:#9aa3b8;font-weight:500}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem;font-size:.85rem}
+  select,button.act,input[type=search]{background:#0b0d13;color:#e8eaf2;border:1px solid #272b38;border-radius:6px;padding:.3rem .6rem;font:inherit;font-size:.85rem}
+  button.act{cursor:pointer}
+  button.act.primary{background:#1d4e66;border-color:#2d7ea3}
+  .row{display:grid;grid-template-columns:13rem 1fr 4.5rem;gap:.6rem;align-items:center;font-size:.78rem;padding:.1rem 0}
+  .row .name{direction:ltr;text-align:start;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,Menlo,monospace}
+  .track{position:relative;height:.85rem;background:#0b0d13;border:1px solid #272b38;border-radius:4px}
+  .bar{position:absolute;top:0;bottom:0;inset-inline-start:0;border-radius:3px;background:#7dd3fc}
+  .bar.lo{background:#4ade80}
+  .row .num{direction:ltr;text-align:start;color:#9aa3b8;font-family:ui-monospace,Menlo,monospace}
+  .legend{display:flex;gap:1.2rem;font-size:.78rem;color:#9aa3b8;margin-bottom:.5rem;flex-wrap:wrap}
+  .sw{display:inline-block;width:.8rem;height:.6rem;margin-inline-end:.3rem;vertical-align:middle;border-radius:2px}
+  .out{padding:.7rem .9rem;background:#0b0d13;border:1px solid #272b38;border-radius:6px;font-size:.82rem;white-space:pre-wrap;margin-top:.7rem}
+  .note{border-inline-start:3px solid #fbbf24;padding-inline-start:.9rem;color:#9aa3b8;font-size:.84rem;margin-top:.9rem}
+  .fail td:first-child{color:#fbbf24}
+  @media (max-width:1000px){
+    nav.rail{display:none;position:fixed;top:3rem;inset-inline-start:.7rem;z-index:19;width:14rem}
+    nav.rail.open{display:block}
+    #railBtn{display:block}
+    .shell{padding-top:3.2rem}
+    .row{grid-template-columns:8rem 1fr 4rem}
+  }
+</style>
+</head>
+<body>
+<button id="railBtn" type="button" aria-expanded="false">מקטעים</button>
+<div class="shell">
+<main>
+<h1>שלושה סקילים מתקפלים לשניים</h1>
+<p class="sub">ענף <code>feat/trim-s1a-memory-ci-debug</code>, שלב 1a של גיזום הקטלוג. <code>remember</code> ו-<code>dream</code> נכנסים ל-<code>memory</code>. <code>ci-sentinel</code> נכנס ל-<code>ci-debug</code>. שום טקסט לא נמחק.</p>
+
+<section id="s1"><h2><span class="n">01</span>מה מחכה לבודק</h2>
+<div class="verdict" id="verdict"></div>
+<p>חמש החלטות שרק בודק יכול לסגור. סמנו כל אחת כשהוכרעה, והכפתור בסוף יעתיק את המצב כהנחיה.</p>
+<ul class="plain wait" id="wait"></ul>
+</section>
+
+<section id="s2"><h2><span class="n">02</span>לפני ואחרי: שלושה הופכים לשניים</h2>
+<div id="fold"></div>
+<p class="note">הכינויים נשארים כקבצים קצרים שמריצים את הסקיל הממוזג. המודל אף פעם לא טוען אותם, ולכן הם לא עולים בבייטים של הרשימה.</p>
+</section>
+
+<section id="s3"><h2><span class="n">03</span>לאן כל פועל עבר</h2>
+<table id="verbs"><thead><tr><th>היה</th><th>הפך ל</th><th>איפה הטקסט גר</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section id="s4"><h2><span class="n">04</span>שלושת הכינויים (הקלדה בלבד)</h2>
+<table id="aliases"><thead><tr><th>פקודה שמוקלדת</th><th>מריצה</th><th>המודל רואה אותה</th><th>יוסר</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section id="s5"><h2><span class="n">05</span>בייטים ב-preload לכל סוכן</h2>
+<p>השדה <code>skills:</code> של סוכן טוען רק SKILL.md, לא קבצי reference. 33 סוכנים רשמו <code>remember</code> ו-<code>memory</code> ורושמים עכשיו רק <code>memory</code>. המדידה היא על הקבצים הבנויים בשני הצדדים (הבנייה מסירה את בלוק <code>triggers:</code>), לכן ההשוואה ישרה. הפסים מראים את התוספת, בבייטים.</p>
+<div class="kpis" id="pkpis"></div>
+<div class="controls" style="margin-top:1rem">
+  <label>מיון <select id="sort">
+    <option value="d">תוספת, מהגדולה</option>
+    <option value="ds">תוספת, מהקטנה</option>
+    <option value="b">גודל לפני</option>
+    <option value="n">שם</option>
+  </select></label>
+  <label>סינון <input id="q" type="search" placeholder="שם סוכן" dir="ltr"></label>
+</div>
+<div class="legend"><span><span class="sw" style="background:#7dd3fc"></span>תוספת של 291 ומעלה</span><span><span class="sw" style="background:#4ade80"></span>תוספת קטנה מ-291</span></div>
+<div id="rows"></div>
+<p class="note">הסכום גדל קצת ולא קטן: כותרת הסקיל הממוזג גדולה מכותרת <code>memory</code> הישן. הטקסט עצמו אותו טקסט. סוכנים שהרשימה שלהם לא השתנתה טוענים בדיוק אותם בייטים.</p>
+</section>
+
+<section id="s6"><h2><span class="n">06</span>ספירות</h2>
+<div class="kpis" id="counts"></div>
+</section>
+
+<section id="s7"><h2><span class="n">07</span>בדיקות שרצו וכשלים שלא קשורים</h2>
+<table id="checks"><thead><tr><th>בדיקה</th><th>תוצאה</th></tr></thead><tbody></tbody></table>
+<p style="margin-top:1.1rem;color:#9aa3b8">כשלים ידועים בסוויטת <code>npm test</code> במצב quick שלא תלויים בשינוי הזה:</p>
+<table id="fails"><thead><tr><th>בדיקה</th><th>למה היא נופלת</th></tr></thead><tbody class="fail"></tbody></table>
+</section>
+
+<section id="s8"><h2><span class="n">08</span>להעתיק כהנחיה</h2>
+<p>הכפתור מעתיק את מצב ההחלטות מסעיף 01 יחד עם המספרים, כטקסט שסשן יכול לפעול לפיו.</p>
+<button class="act primary" id="copy" type="button">העתק כהנחיה</button>
+<div class="out ltr" id="out" dir="ltr"></div>
+</section>
+</main>
+<nav class="rail" id="rail" aria-label="מקטעים בעמוד"><div class="rt">בעמוד הזה</div></nav>
+</div>
+
+<script>
+var PRE = [["accessibility-specialist",27843,28134],["ai-safety-auditor",38285,38576],["backend-system-architect",112669,112960],["ci-cd-engineer",70708,70999],["claude-design-orchestrator",80057,80270],["code-quality-reviewer",92264,92555],["component-curator",40698,40989],["data-pipeline-engineer",64852,65143],["database-engineer",50938,51229],["debug-investigator",45779,46067],["demo-producer",27373,27664],["deployment-manager",39681,39972],["design-context-extractor",39632,39910],["design-system-architect",89171,89449],["eval-runner",50938,51229],["event-driven-architect",38520,38811],["frontend-performance-engineer",29855,30146],["frontend-ui-developer",140286,140551],["git-operations-engineer",36921,37212],["infrastructure-architect",49175,49466],["llm-integrator",63279,63570],["market-intelligence",28791,29082],["monitoring-engineer",57796,58087],["multimodal-specialist",27471,27762],["product-strategist",47655,47953],["python-performance-engineer",66688,66979],["release-engineer",33913,34204],["security-auditor",38285,38576],["security-layer-auditor",38285,38576],["system-design-reviewer",84750,85038],["test-generator",101907,102198],["web-research-analyst",40273,40564],["workflow-architect",16166,16457]].map(function (r) { return { n: r[0], b: r[1], a: r[2], d: r[2] - r[1] }; });
+
+var WAIT = [
+  ["model", "מודל: remember ו-search רצו על haiku, dream רץ על sonnet. סקיל נושא מודל אחד, ו-dream עורך קבצים, לכן memory רץ על sonnet. הקלדה או הפעלה של remember או search עולה עכשיו ברמת מחיר גבוהה יותר (לא נמדד). סוכנים שטוענים את memory לא מושפעים."],
+  ["tools", "כלים: ל-memory יש עכשיו Write, Edit וכלי כתיבה לגרף (איחוד שלוש הרשימות הישנות), כך שגם memory search מחזיק כלי כתיבה."],
+  ["cidebug", "ci-debug נשאר לקריאה בלבד (Bash Read Grep Glob). ci-sentinel הישן אישר גם Write ו-Edit. התקנת ה-sweep משתמשת רק ב-Bash."],
+  ["skillskey", "המפתח skills: בתוך SKILL.md (לא בסוכן) אינו שדה preload מתועד. תשעה סקילים שינו אותו, ולסקיל setup הקובץ הנקוב גדל ב-6,813 בייטים. לא אומת אם Claude Code קורא את המפתח הזה."],
+  ["site", "בדיקות vitest של אתר התיעוד לא רצו, כי התלויות של docs/site לא מותקנות במכונה שבה הורצו הבדיקות."]
+];
+
+var CHECKS = [
+  ["npm run build", "יצא 0"],
+  ["npm run validate:pre-push", "יצא 0 (ספירות, אורך סקיל, תקורת טוקנים ורצועת הרשימה)"],
+  ["npm run test:skills", "יצא 0"],
+  ["npm run test:manifests", "יצא 0"],
+  ["npm run test:agents", "יצא 0 (בקומיט אחד קודם)"],
+  ["npm run test:hooks", "363 קבצים, 8604 בדיקות עברו, 2 דולגו (בקומיט אחד קודם)"]
+];
+
+var FAILS = [
+  ["test-build-drift.sh", "משווה קבצי מקור לעותק הבנוי בבייטים ורושם 65 קבצים בכל העץ, כי הבנייה מסירה את triggers:. לא הורץ על קומיט הבסיס."],
+  ["test-codex-plugin.sh", "צריך את מטמון npm או /tmp, והסביבה חוסמת אותם."],
+  ["test-fault-arms.sh", "צריך /tmp, והסביבה חוסמת אותו."],
+  ["test-migrations-shipped.sh", "צריך את חבילת ה-hooks הבנויה, שבבעלות תהליך השחרור ואינה מוגשת בקומיט."],
+  ["test-mdx-compile, שורת audit אחת", "ב-test-audit-gate.sh שורה אחת צריכה רשת ולא קיבלה פלט. ל-test-mdx-compile אין תלות בשינוי."]
+];
+
+var MAP = [
+  ["remember", "memory remember (אחסון)", "בגוף memory/SKILL.md. לא זז, כי סוכנים טוענים אותו"],
+  ["dream", "memory dream (איחוד)", "references/verb-dream.md"],
+  ["search (קיים ב-memory)", "memory search", "תתי-פקודות קיימות, ללא שינוי"],
+  ["ci-sentinel", "ci-debug, מצב sweep", "references/sweep-mode.md. ה-workflow ci-sentinel.yml ושם סמן התגובה נשארים"]
+];
+
+var ALIASES = [
+  ["/ork:remember", 'Skill(skill="ork:memory", args="remember $ARGUMENTS")'],
+  ["/ork:dream", 'Skill(skill="ork:memory", args="dream $ARGUMENTS")'],
+  ["/ork:ci-sentinel", 'Skill(skill="ork:ci-debug", args="sweep $ARGUMENTS")']
+];
+
+var COUNTS = [
+  ["116", "סקילים בסך הכול (כולל 3 כינויים)", "same"],
+  ["44", "פקודות להקלדה", "same"],
+  ["72", "סקילי reference", "same"],
+  ["108 ל-105", "סקילים שהמודל יכול להפעיל", "chg"]
+];
+
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function svgEl(tag, attrs) {
+  var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function svgText(x, y, s, size, fill) {
+  var t = svgEl("text", { x: x, y: y, "font-size": size, fill: fill, "text-anchor": "middle" });
+  t.textContent = s;
+  return t;
+}
+function fillRows(id, rows, ltrCols) {
+  var body = document.querySelector("#" + id + " tbody");
+  rows.forEach(function (r) {
+    var tr = el("tr");
+    r.forEach(function (c, i) {
+      var td = el("td");
+      if (ltrCols.indexOf(i) >= 0) td.appendChild(el("code", "", c)); else td.textContent = c;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+var state = {};
+
+function drawVerdict() {
+  var v = document.getElementById("verdict");
+  v.appendChild(el("b", "", "מוכן לסקירה. "));
+  v.appendChild(document.createTextNode("שלושה סקילים הופכים לשניים, הטקסט נשמר, ו-33 סוכנים טוענים את אותו טקסט עם תוספת של 213 עד 298 בייטים בכותרת. חמש החלטות מחכות לך."));
+}
+
+function drawWait() {
+  var ul = document.getElementById("wait");
+  WAIT.forEach(function (w) {
+    var li = el("li");
+    var lab = el("label");
+    var cb = el("input");
+    cb.type = "checkbox";
+    cb.addEventListener("change", function () { state[w[0]] = cb.checked; renderOut(); });
+    lab.appendChild(cb);
+    lab.appendChild(el("span", "", w[1]));
+    li.appendChild(lab);
+    ul.appendChild(li);
+    state[w[0]] = false;
+  });
+}
+
+function drawFold() {
+  var box = document.getElementById("fold");
+  var W = 760, H = 300;
+  var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": "remember, dream ו-ci-sentinel מתקפלים ל-memory ול-ci-debug" });
+  var xb = 640, xa = 120;
+  svg.appendChild(svgText(xb, 20, "לפני (3 סקילים)", 13, "#9aa3b8"));
+  svg.appendChild(svgText(xa, 20, "אחרי (2 סקילים)", 13, "#9aa3b8"));
+  var before = [["remember", 60], ["dream", 130], ["ci-sentinel", 230]];
+  var after = [["memory", 95], ["ci-debug", 230]];
+  var ys = {};
+  before.forEach(function (b) {
+    svg.appendChild(svgEl("rect", { x: xb - 80, y: b[1] - 22, width: 160, height: 44, rx: 8, fill: "#0b0d13", stroke: "#f87171" }));
+    svg.appendChild(svgText(xb, b[1] + 5, b[0], 15, "#e8eaf2"));
+    ys[b[0]] = b[1];
+  });
+  after.forEach(function (a) {
+    svg.appendChild(svgEl("rect", { x: xa - 80, y: a[1] - 28, width: 160, height: 56, rx: 8, fill: "#0b0d13", stroke: "#4ade80" }));
+    svg.appendChild(svgText(xa, a[1] + 5, a[0], 16, "#e8eaf2"));
+    ys[a[0]] = a[1];
+  });
+  var links = [["remember", "memory", "פועל remember", -8], ["dream", "memory", "פועל dream", 20], ["ci-sentinel", "ci-debug", "מצב sweep", -8]];
+  links.forEach(function (l) {
+    var y1 = ys[l[0]], y2 = ys[l[1]];
+    var x1 = xb - 80, x2 = xa + 80;
+    svg.appendChild(svgEl("path", { d: "M" + x1 + " " + y1 + " C " + (x1 - 140) + " " + y1 + " " + (x2 + 140) + " " + y2 + " " + x2 + " " + y2, fill: "none", stroke: "#7dd3fc", "stroke-width": 2 }));
+    svg.appendChild(svgText((x1 + x2) / 2, (y1 + y2) / 2 + l[3], l[2], 12, "#7dd3fc"));
+  });
+  svg.appendChild(svgText(380, 288, "הכינויים להקלדה נשארים: /ork:remember, /ork:dream, /ork:ci-sentinel", 12, "#9aa3b8"));
+  box.appendChild(svg);
+}
+
+function drawPreloadKpis() {
+  var box = document.getElementById("pkpis");
+  var ds = PRE.map(function (r) { return r.d; });
+  var items = [
+    [String(PRE.length), "סוכנים שהרשימה שלהם השתנתה"],
+    ["+" + Math.min.apply(null, ds) + " עד +" + Math.max.apply(null, ds), "בייטים לסוכן"],
+    [String(PRE.filter(function (r) { return r.d === 291; }).length), "סוכנים עם +291 בדיוק"]
+  ];
+  items.forEach(function (it) {
+    var k = el("div", "kpi");
+    k.appendChild(el("div", "v", it[0]));
+    k.appendChild(el("div", "l", it[1]));
+    box.appendChild(k);
+  });
+}
+
+function renderRows() {
+  var sort = document.getElementById("sort").value;
+  var q = document.getElementById("q").value.trim().toLowerCase();
+  var list = PRE.filter(function (r) { return r.n.indexOf(q) >= 0; });
+  var key = {
+    d: function (r) { return -r.d; },
+    ds: function (r) { return r.d; },
+    b: function (r) { return -r.b; },
+    n: function (r) { return r.n; }
+  }[sort];
+  list.sort(function (x, y) { var a = key(x), b = key(y); return a < b ? -1 : a > b ? 1 : 0; });
+  var box = document.getElementById("rows");
+  box.replaceChildren();
+  var MAXD = 300;
+  list.forEach(function (r) {
+    var row = el("div", "row");
+    var name = el("div", "name", r.n);
+    name.title = r.n + ": " + r.b + " to " + r.a + " bytes";
+    row.appendChild(name);
+    var track = el("div", "track");
+    var bar = el("div", r.d < 291 ? "bar lo" : "bar");
+    bar.style.width = (100 * r.d / MAXD) + "%";
+    track.appendChild(bar);
+    row.appendChild(track);
+    row.appendChild(el("div", "num", "+" + r.d));
+    box.appendChild(row);
+  });
+}
+
+function renderOut() {
+  var open = WAIT.filter(function (w) { return !state[w[0]]; }).map(function (w) { return w[0]; });
+  var done = WAIT.filter(function (w) { return state[w[0]]; }).map(function (w) { return w[0]; });
+  document.getElementById("out").textContent =
+    "Review of branch feat/trim-s1a-memory-ci-debug (stage 1a: remember and dream fold into memory, ci-sentinel folds into ci-debug sweep).\n" +
+    "Counts: 116 skills total, 44 typed, 72 reference, model-invocable 108 to 105. Preload delta per agent: +213 to +298 bytes across 33 agents.\n" +
+    "Decided: " + (done.length ? done.join(", ") : "none") + ".\n" +
+    "Still open: " + (open.length ? open.join(", ") : "none") + ".\n" +
+    "Next: act on the open items (model tier of memory, memory write tools, ci-debug tool list, skills: key, docs-site vitest).";
+}
+
+function buildRail() {
+  var rail = document.getElementById("rail");
+  var btn = document.getElementById("railBtn");
+  var secs = Array.prototype.slice.call(document.querySelectorAll("main section"));
+  var links = {};
+  secs.forEach(function (s) {
+    var a = el("a", "", s.querySelector("h2").textContent);
+    a.href = "#" + s.id;
+    a.addEventListener("click", function () { rail.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); });
+    rail.appendChild(a);
+    links[s.id] = a;
+  });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        for (var k in links) links[k].classList.remove("on");
+        links[e.target.id].classList.add("on");
+      }
+    });
+  }, { rootMargin: "-10% 0px -70% 0px" });
+  secs.forEach(function (s) { io.observe(s); });
+  links[secs[0].id].classList.add("on");
+  btn.addEventListener("click", function () {
+    var o = rail.classList.toggle("open");
+    btn.setAttribute("aria-expanded", o ? "true" : "false");
+  });
+}
+
+drawVerdict();
+drawWait();
+drawFold();
+fillRows("verbs", MAP, [1, 2]);
+fillRows("aliases", ALIASES.map(function (a) { return [a[0], a[1], "לא", "2027-01-31"]; }), [0, 1]);
+drawPreloadKpis();
+renderRows();
+COUNTS.forEach(function (c) {
+  var k = el("div", "kpi " + c[2]);
+  k.appendChild(el("div", "v", c[0]));
+  k.appendChild(el("div", "l", c[1] + (c[2] === "same" ? " (ללא שינוי)" : "")));
+  document.getElementById("counts").appendChild(k);
+});
+fillRows("checks", CHECKS, [0]);
+fillRows("fails", FAILS, [0]);
+renderOut();
+["sort", "q"].forEach(function (id) { document.getElementById(id).addEventListener("input", renderRows); });
+document.getElementById("copy").addEventListener("click", function () {
+  if (navigator.clipboard) navigator.clipboard.writeText(document.getElementById("out").textContent);
+  document.getElementById("copy").textContent = "הועתק";
+});
+buildRail();
+</script>
+</body>
+</html>

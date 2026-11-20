@@ -124,7 +124,7 @@ export function errorPatternWarner(input: HookInput, ctx: HookContext = NOOP_CTX
       contextMsg = `${contextMsg.slice(0, 197)}...`;
     }
 
-    return outputWithContext(contextMsg);
+    return outputWithContext(contextMsg, input);
   }
 
   // No relevant patterns found

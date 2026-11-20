@@ -2,6 +2,8 @@
 // Created: 2026-06-07
 
 import { COUNTS, SITE } from "@/lib/constants";
+import { developerResourceLines } from "@/lib/developer-resources";
+import { PRODUCT_LINE } from "@/lib/host-support";
 import { orderedPages, readDocBody } from "@/lib/docs-content";
 
 // /llms-full.txt — the entire documentation as one Markdown file so an agent can
@@ -16,27 +18,33 @@ const MAX_CHARS = 190_000;
 
 function header(): string {
 	return [
-		`# ${SITE.name} — Full Documentation`,
+		`# ${SITE.name}: Full Documentation`,
 		"",
-		`> ${SITE.name} is a free, open-source plugin for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`,
+		`> ${SITE.name} is ${PRODUCT_LINE}. On Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`,
 		"",
-		"## Quickstart",
+		"## Quickstart (Claude Code)",
 		"",
 		`1. Install Claude Code ${SITE.ccVersion}.`,
 		`2. Run \`${SITE.installCommand}\`.`,
 		"3. Invoke any skill with `/ork:<skill>` (e.g. `/ork:implement`, `/ork:review-pr`).",
+		`Other hosts (Cursor, Codex, Devin, OpenCode, Muse Code, Pi, Antigravity): ${SITE.domain}/docs/getting-started/hosts`,
+		"",
+		"## Developer resources",
+		"",
+		...developerResourceLines(SITE.domain),
 		"",
 		"## API",
 		"",
-		`- **Search** — \`GET ${SITE.domain}/api/search?query=...\` returns JSON results. OpenAPI: ${SITE.domain}/api/openapi`,
-		`- **Ask** (natural language) — \`POST ${SITE.domain}/ask\` returns JSON (NLWeb); send \`Accept: text/event-stream\` for SSE streaming.`,
-		`- **MCP server** (Streamable HTTP) — ${SITE.domain}/api/mcp · card: ${SITE.domain}/.well-known/mcp/server-card.json`,
-		`- **Markdown** — append \`.md\` to any page URL, or send \`Accept: text/markdown\`.`,
-		`- **API catalog** (RFC 9727) — ${SITE.domain}/.well-known/api-catalog`,
+		`- **Search**: \`GET ${SITE.domain}/api/search?query=...\` returns JSON results. OpenAPI: ${SITE.domain}/api/openapi`,
+		`- **Ask** (natural language): \`POST ${SITE.domain}/ask\` returns JSON (NLWeb); send \`Accept: text/event-stream\` for SSE streaming.`,
+		`- **MCP server** (Streamable HTTP): ${SITE.domain}/api/mcp · card: ${SITE.domain}/.well-known/mcp/server-card.json`,
+		`- **Actions MCP** (Streamable HTTP, read-only product tools): ${SITE.domain}/api/mcp/actions · card: ${SITE.domain}/.well-known/mcp/actions-server-card.json`,
+		`- **Markdown**: append \`.md\` to any page URL, or send \`Accept: text/markdown\`.`,
+		`- **API catalog** (RFC 9727): ${SITE.domain}/.well-known/api-catalog`,
 		"",
 		"## Authentication",
 		"",
-		`The public documentation and search API require no authentication — agents call the endpoints directly. Details: ${SITE.domain}/auth.md`,
+		`The public documentation and search API require no authentication; agents call the endpoints directly. Details: ${SITE.domain}/auth.md`,
 		"",
 		"---",
 		"",

@@ -108,3 +108,38 @@ export const HOOK_LIFECYCLE_CHART = `flowchart LR
   Tools --> Tasks
   Tools --> Model
 `;
+
+export type HookLifecycleFlow = {
+	/** The single-successor chain from the root: Session, Prompt, Tools. */
+	spine: string[];
+	/** Where the last spine node fans out: Files, Agents, Tasks, Model. */
+	branches: string[];
+};
+
+/**
+ * HOOK_LIFECYCLE_CHART as a spine plus a fan-out, for the phone rendition.
+ * The mermaid SVG scales to its box, so at 390 its labels drew at about 8px;
+ * below md the catalog renders this as HTML text instead. Read from the chart
+ * so the two renditions cannot drift.
+ */
+export function hookLifecycleFlow(chart: string = HOOK_LIFECYCLE_CHART): HookLifecycleFlow {
+	const next = new Map<string, string[]>();
+	const targets = new Set<string>();
+	for (const line of chart.split("\n")) {
+		const m = line.match(/^\s*(\w+)\s*-->\s*(\w+)\s*$/);
+		if (!m) continue;
+		const [, from, to] = m;
+		next.set(from, [...(next.get(from) ?? []), to]);
+		targets.add(to);
+	}
+	const root = [...next.keys()].find((node) => !targets.has(node));
+	const spine: string[] = [];
+	let node = root;
+	while (node && !spine.includes(node)) {
+		spine.push(node);
+		const out = next.get(node) ?? [];
+		if (out.length !== 1) return { spine, branches: out };
+		node = out[0];
+	}
+	return { spine, branches: [] };
+}

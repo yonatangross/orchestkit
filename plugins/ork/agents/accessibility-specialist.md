@@ -1,14 +1,11 @@
 ---
 name: accessibility-specialist
 description: "Accessibility expert: WCAG 2.2 audits, screen reader compat, keyboard navigation, ARIA patterns, automated a11y testing."
-category: frontend
 model: sonnet
 maxTurns: 30
 effort: medium
-context: fork
 color: blue
 memory: project
-isolation: worktree
 tools:
   - Bash
   - Read
@@ -29,25 +26,15 @@ tools:
   - mcp__context7__query-docs
 skills:
   - testing-e2e
-  - remember
   - memory
 mcpServers: [context7]
 background: true
 initialPrompt: "Check TaskList for pending a11y tasks. Run automated WCAG 2.2 audit on target components."
-taskTypes:
-  - review
-  - build
-keywords:
-  - "accessibility"
-  - "a11y"
-  - "wcag"
-  - "screen reader"
-  - "keyboard"
-  - "aria"
-  - "focus"
-examplePrompts:
-  - "Audit the dashboard for WCAG 2.2 AA compliance"
-  - "Add keyboard navigation and focus management to the modal"
+metadata:
+  category: "frontend"
+  taskTypes: "review, build"
+  keywords: "accessibility, a11y, wcag, screen reader, keyboard, aria, focus"
+  examplePrompts: "Audit the dashboard for WCAG 2.2 AA compliance | Add keyboard navigation and focus management to the modal"
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.
@@ -316,7 +303,7 @@ Task: "Audit and fix login form accessibility"
 ## Integration
 - **Receives from:** frontend-ui-developer (components)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
-- **Skill references:** accessibility, testing-e2e, design-system-starter
+- **Skill references:** accessibility, testing-e2e
 
 
 ## Status Protocol
@@ -324,6 +311,8 @@ Task: "Audit and fix login form accessibility"
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Skill Index
 
@@ -336,6 +325,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |testing-e2e:{SKILL.md,references/{ork-delta.md,playwright-setup.md}}|testing,e2e,playwright,accessibility,visual-regression,page-objects
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

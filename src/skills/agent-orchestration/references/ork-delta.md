@@ -11,14 +11,14 @@ Upstream: OpenAI function calling guide (https://platform.openai.com/docs/guides
 
 ## Cap multi-agent fan-out at 8 parallel workers, 30s per-worker timeout, one retry
 Why: House defaults from the v2.0.0 consolidation of multi-agent-orchestration (Feb 2026), rescued from the retired coordination-patterns reference. One hung specialist must never stall the whole fan-out, and beyond 8 parallel specialists synthesis quality degraded in ork demo runs.
-Upstream: asyncio.gather with return_exceptions (https://docs.python.org/3/library/asyncio-task.html); supervisor routing in ork:langgraph.
+Upstream: asyncio.gather with return_exceptions (https://docs.python.org/3/library/asyncio-task.html); supervisor routing in ork-extras:langgraph.
 
 ## End every multi-agent run with a synthesis step, never return raw gathered output
 Why: v2.0.0 house rule (Feb 2026), rescued from the retired multi-synthesis rule: asyncio.gather output is a list of disconnected findings, so every ork multi-agent flow closes with category grouping, an executive summary, and a confidence score.
 Upstream: SKILL.md Quick Start (synthesize_findings example); LangGraph multi-agent tutorials (context7: /langchain-ai/langgraph).
 
 ## Default new multi-agent work to LangGraph and never mix frameworks in one project
-Why: House recommendation from the retired frameworks-comparison rule (v2.0.0, Feb 2026): LangGraph is the only framework ork ships a dedicated skill for (ork:langgraph), and framework mixing is a recorded complexity explosion in SKILL.md Common Mistakes.
+Why: House recommendation from the retired frameworks-comparison rule (v2.0.0, Feb 2026): LangGraph is the only framework ork ships a dedicated skill for (ork-extras:langgraph), and framework mixing is a recorded complexity explosion in SKILL.md Common Mistakes.
 Upstream: references/framework-comparison.md (in-skill decision matrix); per-framework docs listed in SKILL.md Upstream coverage.
 
 ## Scale multi-scenario demos 1x/3x/8x with 30s/90s/300s budgets, always exactly 3 scenarios

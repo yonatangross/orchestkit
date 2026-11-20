@@ -47,7 +47,7 @@ Anthropic uses `input_schema` instead of `function.parameters` and has no
 |----------|----------------|
 | Schema mode | `strict: true` |
 | Description length | 1-2 sentences |
-| Tool count | 5-15 max (more = confusion) |
+| Tool count | Load roughly 5-15 up front; defer the rest behind a non-deferred tool search tool |
 | Output format | Structured Outputs > JSON mode |
 | Parameter validation | Use Pydantic/Zod |
 | Model ids in examples | Plain defaults only, never a hardcoded price |
@@ -57,7 +57,7 @@ Anthropic uses `input_schema` instead of `function.parameters` and has no
 - Vague tool descriptions (LLM will not know when to use the tool)
 - Missing `additionalProperties: false` in strict mode
 - Using `default` values with strict mode (not supported)
-- Too many tools (LLM gets confused beyond 15)
+- Loading every tool up front past about 15 (defer the rest with `defer_loading: true` behind a non-deferred tool search tool)
 
 **Incorrect, invalid strict mode schema with optional parameters:**
 ```python

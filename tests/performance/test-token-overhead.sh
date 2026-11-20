@@ -79,7 +79,7 @@ CLAUDE_MD_MAX_BYTES=4800       # ~1,200 tokens — project instructions
 MEMORY_MD_MAX_BYTES=5000       # ~1,250 tokens — auto-memory (trim the bloat)
 AGENT_DESC_TOTAL_MAX_BYTES=6000  # ~1,500 tokens — all 38 agent descriptions combined
 AGENT_DESC_SINGLE_MAX_BYTES=250  # ~62 tokens — no single agent description > 250 bytes
-MAX_USER_INVOCABLE_SKILLS=36   # Slash-command sprawl cap ONLY (size of the /ork:<name> menu). This is NOT an index-token budget: `user-invocable` controls whether a slash command exists, and 10 of these 35 skills are also `disable-model-invocation: true`, so they cost ZERO always-loaded tokens. Real index cost is measured separately by SKILL_INDEX_MAX_BYTES below. History (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865; 33→34: +audit-activation made user-invocable, P3-A2 activation unbolting; 34→35: glyph — the repurposed ascii-visualizer, flipped from inert to invocable so there is a CHEAP inline viz on-ramp next to visualize-plan's full pipeline. Paid from the ~325t of real headroom under TOTAL_SESSION_MAX_TOKENS, not by demoting a skill: 18 of the 34 invocable skills show zero use across a 5-month window, so demotion candidates exist and should be spent deliberately via analytics, not opportunistically to fund one flip; 35->36: +page-serve, milestone 166 #3899, the hand-a-human-a-URL primitive that glyph and visualize-plan now chain through; the same 18 zero-use candidates are still the right place to buy this back.)
+MAX_USER_INVOCABLE_SKILLS=39   # Slash-command sprawl cap ONLY (size of the /ork:<name> menu). This is NOT an index-token budget: `user-invocable` controls whether a slash command exists, and 10 of these 35 skills are also `disable-model-invocation: true`, so they cost ZERO always-loaded tokens. Real index cost is measured separately by SKILL_INDEX_MAX_BYTES below. History (23→25: +design-import, +design-ship, Bet A #113; 25→26: +telemetry-inspect, M121 #1491; 26→27: +dev, M125 Lane B #1525; 27→28: +agents-view, M137 #1768; 28→29: +prd-to-goal, M140 #1792; 29→33: reconciling cap with reality — current count is 32 from pre-existing #1855 drift, +1 headroom; #1865; 33→34: +audit-activation made user-invocable, P3-A2 activation unbolting; 34→35: glyph — the repurposed ascii-visualizer, flipped from inert to invocable so there is a CHEAP inline viz on-ramp next to visualize-plan's full pipeline. Paid from the ~325t of real headroom under TOTAL_SESSION_MAX_TOKENS, not by demoting a skill: 18 of the 34 invocable skills show zero use across a 5-month window, so demotion candidates exist and should be spent deliberately via analytics, not opportunistically to fund one flip; 35->36: +page-serve, milestone 166 #3899, the hand-a-human-a-URL primitive that glyph and visualize-plan now chain through; the same 18 zero-use candidates are still the right place to buy this back.; 36->38: +careful, +freeze, skill-scoped guard hooks (claude.dev skills-10), both disable-model-invocation so they add zero always-loaded index tokens, slash menu only; 38->43: +create-plan, +iterate-plan, +create-research, +iterate-research, +review-artifact-comments, the L6 artifact-pair commands, each typed with a task or file argument; their index bytes are charged by SKILL_INDEX_MAX_BYTES, not here; 43->44: +disk-cleanup, 2026-11-11, an operator types it when the disk fills (dry run first, --apply after a yes); matches EXPECTED_USER_INVOCABLE in tests/skills/structure/test-skill-md.sh, no other skill demoted to fund it; 44->39 on 2026-11-17: the cap counts CORE skills only (ork-extras is opt-in and not on the default menu) and is set to the measured core count; s1c moved audit-activation, careful, freeze and swarm-migrate to ork-extras; Test 4f is the control.)
 HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
 
 # Always-loaded skill index. The set that costs tokens is every skill whose
@@ -87,7 +87,7 @@ HOOK_BUDGET_MAX_TOKENS=800     # Per-turn dispatcher cap
 # the `name` + `description` frontmatter fields.
 # Measured 2026-07-27 on this branch: 59 model-facing skills, 23275 bytes
 # (~5819t). Budget set at 24500 bytes, about 5% headroom over measured.
-SKILL_INDEX_MAX_BYTES=27200  # ratcheted 27300->27200 (#3235 train, 2026-08-02): trimmed the 8 fattest model-facing descriptions (-1093 B); measured 25923, ~5% slack. Prior history: RAISED 22500->27300 (#3194, operator-approved 2026-08-02): the 10 user-invocable skills that carried `disable-model-invocation: true` were flipped to false, because that flag ALSO blocked USER-typed mid-turn invocations (the model must call the Skill tool for a slash command in a steering message; the flag denied it). Flipping moves their name+description into the always-loaded index: measured 22466 -> 27016 bytes. This is a deliberate purchase, NOT a red-run-made-green: the cost buys "a user-typed command is never refused". Ratchet DOWN again as description trimming lands
+SKILL_INDEX_MAX_BYTES=16800  # ratcheted 29300->16800 (orchestkit#4936 W1, 2026-11-04): every listed description trimmed to <= 260 bytes, measured 16008, ~5% slack; Test 4b's skill-listing-ratchet.txt now holds the exact down-only ceiling. Before that: RAISED 27200->29300 (L6 artifact pairs, operator-approved 2026-10-24): create-plan, iterate-plan, create-research, iterate-research and review-artifact-comments stay model-invocable so a mid-turn typed command and the L2 auto-advance can call them; their name+description add ~1957 B, measured 29061. A deliberate purchase, not a red-run-made-green. ratcheted 27300->27200 (#3235 train, 2026-08-02): trimmed the 8 fattest model-facing descriptions (-1093 B); measured 25923, ~5% slack. Prior history: RAISED 22500->27300 (#3194, operator-approved 2026-08-02): the 10 user-invocable skills that carried `disable-model-invocation: true` were flipped to false, because that flag ALSO blocked USER-typed mid-turn invocations (the model must call the Skill tool for a slash command in a steering message; the flag denied it). Flipping moves their name+description into the always-loaded index: measured 22466 -> 27016 bytes. This is a deliberate purchase, NOT a red-run-made-green: the cost buys "a user-typed command is never refused". Ratchet DOWN again as description trimming lands
 
 # Combined session overhead budget.
 # Re-baselined 2026-07-27. The old value (5500) was arithmetic on a wrong
@@ -105,7 +105,7 @@ SKILL_INDEX_MAX_BYTES=27200  # ratcheted 27300->27200 (#3235 train, 2026-08-02):
 # headroom. In CI MEMORY.md is absent, so CI measures ~8304t against the same
 # ceiling. Ratchet this DOWN as description trimming lands. Do not raise it to
 # make a red run green.
-TOTAL_SESSION_MAX_TOKENS=10400  # held at 10400 after the #3235 trim: measured dropped 10216->9943 (4.6% slack incl. local MEMORY.md; CI measures ~1k lower). Prior history: RAISED 9300->10400 (#3194, operator-approved 2026-08-02): consequence of the SKILL_INDEX raise above (+1137t of newly model-facing descriptions); measured 10216 locally, ~9266 in CI where MEMORY.md is absent. Same standing rule applies: ratchet DOWN as trimming lands, never raise to clear a regression
+TOTAL_SESSION_MAX_TOKENS=7900  # ratcheted 10900->7900 with the W1 description diet (orchestkit#4936, 2026-11-04): measured 7545 incl. local MEMORY.md (979t); a MEMORY.md at its own 5000-byte cap still fits. Before that: RAISED 10400->10900 with the L6 index purchase above (measured 10809 incl. local MEMORY.md, operator-approved 2026-10-24). Before that: held at 10400 after the #3235 trim: measured dropped 10216->9943 (4.6% slack incl. local MEMORY.md; CI measures ~1k lower). Prior history: RAISED 9300->10400 (#3194, operator-approved 2026-08-02): consequence of the SKILL_INDEX raise above (+1137t of newly model-facing descriptions); measured 10216 locally, ~9266 in CI where MEMORY.md is absent. Same standing rule applies: ratchet DOWN as trimming lands, never raise to clear a regression
 
 echo "  Budgets:"
 echo "  ├─ CLAUDE.md:           < ${CLAUDE_MD_MAX_BYTES} bytes (~$(estimate_tokens $CLAUDE_MD_MAX_BYTES)t)"
@@ -213,6 +213,52 @@ fi
 echo ""
 
 # ============================================================================
+# Split population (#4936): what core ships vs what only ork-extras lists
+# ============================================================================
+# Skills named in manifests/ork.json skillsExclude ship in the opt-in ork-extras
+# plugin, so a core install never lists them. The always-loaded budgets below
+# measure what CORE ships (src/skills minus skillsExclude); ork-extras has its own
+# down-only ceiling. The list is read from the manifest, never typed here.
+# SKILL_EXCLUDE_MANIFEST and MOVED_MANIFEST let the controls (and a reviewer)
+# point the same code at a planted copy; the defaults are the real manifests.
+EXCLUDE_MANIFEST="${SKILL_EXCLUDE_MANIFEST:-$PROJECT_ROOT/manifests/ork.json}"
+MOVED_MANIFEST="${MOVED_MANIFEST:-$PROJECT_ROOT/manifests/ork-extras.json}"
+
+# names_of FILE KEY: the sorted string array at .KEY of a JSON file, one per line
+names_of() { jq -r --arg k "$2" '.[$k][]?' "$1" | LC_ALL=C sort; }
+
+EXCLUDED_NAMES="$(names_of "$EXCLUDE_MANIFEST" skillsExclude)"
+MOVED_NAMES="$(names_of "$MOVED_MANIFEST" skills)"
+if [[ -z "$EXCLUDED_NAMES" || -z "$MOVED_NAMES" ]]; then
+    # An unreadable or empty list would put every skill in core and still pass.
+    fail "Split lists unreadable: skillsExclude in ${EXCLUDE_MANIFEST##*/} has '${EXCLUDED_NAMES:+ok}', skills in ${MOVED_MANIFEST##*/} has '${MOVED_NAMES:+ok}' (both must be non-empty)"
+    echo "  Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+    exit 1
+fi
+
+# names_spaced NAMES: " a b c " so a membership test is a single glob match
+names_spaced() { printf ' %s ' "$(printf '%s' "$1" | tr '\n' ' ')"; }
+
+# split_population NAMES: fills CORE_FILES and EXTRAS_FILES from SKILLS_DIR
+split_population() {
+    local excluded f d
+    excluded="$(names_spaced "$1")"
+    CORE_FILES=()
+    EXTRAS_FILES=()
+    for f in "$SKILLS_DIR"/*/SKILL.md; do
+        [[ -f "$f" ]] || continue
+        d="$(basename "$(dirname "$f")")"
+        if [[ "$excluded" == *" $d "* ]]; then
+            EXTRAS_FILES+=("$f")
+        else
+            CORE_FILES+=("$f")
+        fi
+    done
+}
+split_population "$EXCLUDED_NAMES"
+EXCLUDED_SPACED="$(names_spaced "$EXCLUDED_NAMES")"
+
+# ============================================================================
 # Test 4: Skill Index Overhead (model-facing) + slash-command sprawl
 # ============================================================================
 echo "▶ Test 4: Skill Index Overhead"
@@ -227,16 +273,27 @@ echo "────────────────────────�
 # `name` + `description` frontmatter fields, not a per-skill guess.
 # One awk pass over every SKILL.md emits:
 #   <model-facing count> <index bytes> <user-invocable count> <slash-only count> <slash-only AND user-invocable>
-read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocable <<<"$(
-  awk '
-    function emit() {
+# The slash cap counts CORE only (ork-extras is opt-in, as Test 4b splits the
+# listing), so a skill whose directory is in the excluded list is not counted in
+# <user-invocable count> or <slash-only AND user-invocable>. <slash-only count>
+# stays a count of every slash-only skill.
+# scan_skills EXCLUDED_SPACED FILE...: the awk pass, a function so Test 4f runs
+# the very same logic on a planted directory.
+scan_skills() {
+  local excluded_spaced="$1"
+  shift
+  awk -v excl="$excluded_spaced" '
+    function emit(   p, n, d, isx) {
       if (!seen) return
-      if (ui) invocable++
-      if (dmi) { slash_only++; if (ui) slash_ui++; return }
+      n = split(cur, p, "/"); d = p[n-1]
+      isx = index(excl, " " d " ")
+      if (ui && !isx) invocable++
+      if (dmi) { slash_only++; if (ui && !isx) slash_ui++; return }
+      if (isx) { xmf++; xbytes += length(nm) + length(ds); return }
       mf++
       bytes += length(nm) + length(ds)
     }
-    FNR==1 { emit(); seen=1; infm=0; closed=0; dmi=0; ui=0; nm=""; ds=""; inds=0 }
+    FNR==1 { emit(); seen=1; cur=FILENAME; infm=0; closed=0; dmi=0; ui=0; nm=""; ds=""; inds=0 }
     closed { next }
     /^---[[:space:]]*$/ { if (infm) closed=1; else infm=1; inds=0; next }
     !infm { next }
@@ -252,27 +309,372 @@ read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocab
     # folded / block-scalar continuation lines still belong to the description
     inds && /^[[:space:]]+[^[:space:]]/ { s=$0; sub(/^[[:space:]]+/,"",s); ds = ds " " s; next }
     { inds=0 }
-    END { emit(); printf "%d %d %d %d %d\n", mf, bytes, invocable, slash_only, slash_ui }
-  ' "$SKILLS_DIR"/*/SKILL.md
-)"
+    END { emit(); printf "%d %d %d %d %d %d %d\n", mf, bytes, invocable, slash_only, slash_ui, xmf, xbytes }
+  ' "$@"
+}
+
+read -r mf_count index_bytes invocable_count slash_only_count slash_only_invocable extras_mf_count extras_index_bytes < <(
+  scan_skills "$EXCLUDED_SPACED" "$SKILLS_DIR"/*/SKILL.md
+)
 
 skill_index_t=$(estimate_tokens "$index_bytes")
 
-info "Model-facing skills: ${mf_count} · slash-only (zero index cost): ${slash_only_count}"
-info "user-invocable: ${invocable_count}, of which ${slash_only_invocable} are slash-only and cost 0 index tokens"
+info "Population: core ${#CORE_FILES[@]} skills (${mf_count} model-facing, ${index_bytes} B) · excluded names $(printf '%s\n' "$EXCLUDED_NAMES" | wc -l | tr -d ' ') · extras ${#EXTRAS_FILES[@]} skills (${extras_mf_count:-0} model-facing, ${extras_index_bytes:-0} B)"
+info "Model-facing core skills: ${mf_count} · slash-only (zero index cost): ${slash_only_count}"
+info "user-invocable (core): ${invocable_count}, of which ${slash_only_invocable} are slash-only and cost 0 index tokens"
 
 if [[ "$index_bytes" -le "$SKILL_INDEX_MAX_BYTES" ]]; then
-    pass "Skill index (name+description of ${mf_count} model-facing skills): ${index_bytes} bytes (~${skill_index_t}t) ≤ ${SKILL_INDEX_MAX_BYTES}"
+    pass "Skill index (name+description of ${mf_count} model-facing CORE skills): ${index_bytes} bytes (~${skill_index_t}t) ≤ ${SKILL_INDEX_MAX_BYTES}"
 else
-    fail "Skill index (name+description of ${mf_count} model-facing skills): ${index_bytes} bytes (~${skill_index_t}t) exceeds ${SKILL_INDEX_MAX_BYTES} limit"
+    fail "Skill index (name+description of ${mf_count} model-facing CORE skills): ${index_bytes} bytes (~${skill_index_t}t) exceeds ${SKILL_INDEX_MAX_BYTES} limit"
     info "Shorten skill descriptions, or set disable-model-invocation: true on skills that are genuinely slash-only"
 fi
 
 if [[ "$invocable_count" -le "$MAX_USER_INVOCABLE_SKILLS" ]]; then
-    pass "User-invocable skills (slash sprawl): ${invocable_count} ≤ ${MAX_USER_INVOCABLE_SKILLS}"
+    pass "User-invocable CORE skills (slash sprawl): ${invocable_count} ≤ ${MAX_USER_INVOCABLE_SKILLS}"
 else
-    fail "User-invocable skills (slash sprawl): ${invocable_count} exceeds ${MAX_USER_INVOCABLE_SKILLS} limit"
-    info "This caps the /ork: menu size. It is NOT the index-token budget (that is the check above)."
+    fail "User-invocable CORE skills (slash sprawl): ${invocable_count} exceeds ${MAX_USER_INVOCABLE_SKILLS} limit"
+    info "This caps the core /ork: menu size (ork-extras is opt-in and not counted). It is NOT the index-token budget (that is the check above)."
+fi
+echo ""
+
+# ============================================================================
+# Test 4b: Per-skill listing cap + down-only ratchet on the listing total
+# ============================================================================
+# Claude Code lists every model-facing skill's description (+ when_to_use) in
+# every session and drops the least-invoked descriptions first when the
+# listing budget overflows. So one long description costs every session and
+# can push a used skill out. Two gates:
+#   1. each model-facing skill: description + when_to_use <= SKILL_DESC_MAX_BYTES
+#   2. the listing total (name + description + when_to_use of every
+#      model-facing skill) <= the ceiling in skill-listing-ratchet.txt. The
+#      ceiling only moves down: when the total falls more than
+#      RATCHET_SLACK_BYTES under it, the test fails until the file is lowered.
+# Frontmatter is parsed with PyYAML (skill-listing-measure.py), not matched as
+# text, so quoted or spaced keys, aliases, block scalars and single quotes are
+# all measured (orchestkit#5044). Bytes are UTF-8 bytes of the parsed value.
+echo "▶ Test 4b: Per-skill Listing Cap + Ratchet"
+echo "────────────────────────────────────────"
+
+SKILL_DESC_MAX_BYTES=260
+RATCHET_SLACK_BYTES=256
+RATCHET_FILE="$SCRIPT_DIR/skill-listing-ratchet.txt"
+listing_report_file="$(mktemp "${TMPDIR:-/tmp}/ork-listing.XXXXXX")"
+trap 'rm -f "$listing_report_file"' EXIT
+
+# measure_listing FILE...: prints "OVER <bytes> <name>" per skill over the cap
+# and one final "TOTAL <listing bytes> <over count>" line.
+measure_listing() {
+    # No -I: CI may install PyYAML with `pip --user`, and -I hides user site-packages.
+    python3 "$SCRIPT_DIR/skill-listing-measure.py" --cap "$SKILL_DESC_MAX_BYTES" "$@"
+}
+
+if [[ "${#CORE_FILES[@]}" -eq 0 || "${#EXTRAS_FILES[@]}" -eq 0 ]]; then
+    fail "Split population is empty: core ${#CORE_FILES[@]} skills, extras ${#EXTRAS_FILES[@]} skills (both must be non-empty)"
+    echo "  Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+    exit 1
+fi
+
+# CORE listing: the per-skill cap and the core ceiling apply to what core ships.
+if ! measure_listing "${CORE_FILES[@]}" > "$listing_report_file"; then
+    fail "Could not measure the skill listing (PyYAML missing or a SKILL.md frontmatter failed to parse, see stderr above)"
+    echo "  Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+    exit 1
+fi
+
+listing_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
+listing_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+
+# EXTRAS listing: the same hard per-skill cap as core, plus its own down-only ceiling.
+extras_report_file="$(mktemp "${TMPDIR:-/tmp}/ork-listing-extras.XXXXXX")"
+trap 'rm -f "$listing_report_file" "$extras_report_file"' EXIT
+if ! measure_listing "${EXTRAS_FILES[@]}" > "$extras_report_file"; then
+    fail "Could not measure the ork-extras skill listing (PyYAML missing or a SKILL.md frontmatter failed to parse, see stderr above)"
+    echo "  Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed"
+    exit 1
+fi
+extras_total=$(awk '$1=="TOTAL"{print $2}' "$extras_report_file")
+extras_over=$(awk '$1=="TOTAL"{print $3}' "$extras_report_file")
+
+RATCHET_FILE_EXTRAS="$SCRIPT_DIR/skill-listing-ratchet-extras.txt"
+info "Listing: core ${#CORE_FILES[@]} skills ${listing_total} B (ceiling $(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE" || echo '?') B) · extras ${#EXTRAS_FILES[@]} skills ${extras_total} B (ceiling $(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE_EXTRAS" || echo '?') B, ${extras_over} over the ${SKILL_DESC_MAX_BYTES} B cap)"
+
+if [[ "$listing_over" -eq 0 ]]; then
+    pass "Every model-facing core skill: description + when_to_use ≤ ${SKILL_DESC_MAX_BYTES} bytes"
+else
+    fail "${listing_over} model-facing core skill(s) over the ${SKILL_DESC_MAX_BYTES}-byte description + when_to_use cap"
+    awk '$1=="OVER"{print $2, $3}' "$listing_report_file" | sort -k1,1nr | head -10 | while read -r b n; do
+        info "  ${n}: ${b} bytes"
+    done
+fi
+
+if [[ ! -f "$RATCHET_FILE" ]]; then
+    fail "Ratchet file missing: ${RATCHET_FILE}"
+else
+    ratchet_ceiling=$(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE")
+    if [[ -z "$ratchet_ceiling" ]]; then
+        fail "Ratchet file has no ceiling number on its first line"
+    elif [[ "$listing_total" -gt "$ratchet_ceiling" ]]; then
+        fail "Skill listing total: ${listing_total} bytes exceeds ratchet ceiling ${ratchet_ceiling} (ceiling only moves down)"
+    elif [[ $((ratchet_ceiling - listing_total)) -gt "$RATCHET_SLACK_BYTES" ]]; then
+        fail "Skill listing total: ${listing_total} bytes is more than ${RATCHET_SLACK_BYTES} under the ratchet ceiling ${ratchet_ceiling}: lower ${RATCHET_FILE##*/} to ${listing_total}"
+    else
+        pass "Skill listing total: ${listing_total} bytes ≤ ratchet ceiling ${ratchet_ceiling}"
+    fi
+fi
+
+if [[ "$extras_over" -eq 0 ]]; then
+    pass "Every model-facing ork-extras skill: description + when_to_use ≤ ${SKILL_DESC_MAX_BYTES} bytes"
+else
+    fail "${extras_over} model-facing ork-extras skill(s) over the ${SKILL_DESC_MAX_BYTES}-byte description + when_to_use cap"
+    awk '$1=="OVER"{print $2, $3}' "$extras_report_file" | sort -k1,1nr | while read -r b n; do
+        info "  ${n}: ${b} bytes"
+    done
+fi
+
+# ork-extras ceiling: same down-only rule and slack as the core ceiling, own file.
+if [[ ! -f "$RATCHET_FILE_EXTRAS" ]]; then
+    fail "Extras ratchet file missing: ${RATCHET_FILE_EXTRAS}"
+else
+    extras_ceiling=$(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$RATCHET_FILE_EXTRAS")
+    if [[ -z "$extras_ceiling" ]]; then
+        fail "Extras ratchet file has no ceiling number on its first line"
+    elif [[ "$extras_total" -gt "$extras_ceiling" ]]; then
+        fail "ork-extras listing total: ${extras_total} bytes exceeds ratchet ceiling ${extras_ceiling} (ceiling only moves down)"
+    elif [[ $((extras_ceiling - extras_total)) -gt "$RATCHET_SLACK_BYTES" ]]; then
+        fail "ork-extras listing total: ${extras_total} bytes is more than ${RATCHET_SLACK_BYTES} under the ratchet ceiling ${extras_ceiling}: lower ${RATCHET_FILE_EXTRAS##*/} to ${extras_total}"
+    else
+        pass "ork-extras listing total: ${extras_total} bytes ≤ ratchet ceiling ${extras_ceiling}"
+    fi
+fi
+echo ""
+
+# ============================================================================
+# Test 4c: Planted fixtures (the gate must not go vacuously green)
+# ============================================================================
+# Every file under fixtures/skill-gate/fail MUST be reported over the cap and
+# every file under fixtures/skill-gate/pass MUST NOT. If a must-fail fixture
+# passes, the measurement is blind to that spelling and this test fails.
+echo "▶ Test 4c: Planted Fixtures"
+echo "────────────────────────────────────────"
+
+FIXTURE_DIR="$SCRIPT_DIR/fixtures/skill-gate"
+fixture_fail_n=0
+fixture_pass_n=0
+
+for fx in "$FIXTURE_DIR"/fail/*.md; do
+    [[ -f "$fx" ]] || continue
+    fixture_fail_n=$((fixture_fail_n + 1))
+    measure_listing "$fx" > "$listing_report_file"
+    fx_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+    if [[ "${fx_over:-0}" -ge 1 ]]; then
+        pass "must-fail fixture caught: ${fx##*/}"
+    else
+        fail "must-fail fixture PASSED the gate (gate is blind to it): ${fx##*/}"
+    fi
+done
+
+for fx in "$FIXTURE_DIR"/pass/*.md; do
+    [[ -f "$fx" ]] || continue
+    fixture_pass_n=$((fixture_pass_n + 1))
+    measure_listing "$fx" > "$listing_report_file"
+    fx_over=$(awk '$1=="TOTAL"{print $3}' "$listing_report_file")
+    fx_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
+    if [[ "${fx_over:-1}" -eq 0 && "${fx_total:-0}" -gt 0 ]]; then
+        pass "must-pass fixture accepted: ${fx##*/}"
+    else
+        fail "must-pass fixture was REJECTED or measured as empty: ${fx##*/} (total ${fx_total:-?}, over ${fx_over:-?})"
+    fi
+done
+
+if [[ "$fixture_fail_n" -lt 9 || "$fixture_pass_n" -lt 4 ]]; then
+    fail "Fixture set incomplete: ${fixture_fail_n} must-fail (need >= 9), ${fixture_pass_n} must-pass (need >= 4)"
+fi
+echo ""
+
+# ============================================================================
+# Test 4d: The ratchet ceiling can only go down versus the base branch
+# ============================================================================
+# Test 4b stops the listing from growing past the ceiling, but nothing else
+# stopped a PR from simply raising the ceiling in skill-listing-ratchet.txt.
+# On a PR the base is origin/$GITHUB_BASE_REF (CI fetches it); locally it is
+# origin/main, or RATCHET_BASE_REF if set. A missing base ref fails closed on a
+# CI pull_request run and is skipped locally.
+echo "▶ Test 4d: Ratchet Down-Only Versus Base"
+echo "────────────────────────────────────────"
+
+RATCHET_REL="tests/performance/skill-listing-ratchet.txt"
+
+# ratchet_raised CURRENT BASE: succeeds when CURRENT is higher than BASE.
+ratchet_raised() { [[ "$1" -gt "$2" ]]; }
+
+if ratchet_raised 16009 16008 && ! ratchet_raised 16008 16008 && ! ratchet_raised 16000 16008; then
+    pass "Ratchet comparison self-test: a raise is caught, equal and lower pass"
+else
+    fail "Ratchet comparison self-test failed: ratchet_raised does not separate raise / equal / lower"
+fi
+
+if [[ -n "${RATCHET_BASE_REF:-}" ]]; then
+    ratchet_base_ref="$RATCHET_BASE_REF"
+elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
+    ratchet_base_ref="origin/${GITHUB_BASE_REF}"
+else
+    ratchet_base_ref="origin/main"
+fi
+
+# check_down_only REL FILE: the ceiling in FILE (path REL in the repo) may not be
+# higher than the same file on the base ref. A file that is new there passes.
+check_down_only() {
+    local rel="$1" file="$2" ratchet_now ratchet_base
+    ratchet_now=$(awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}' "$file")
+
+    if ! git -C "$PROJECT_ROOT" rev-parse --verify --quiet "${ratchet_base_ref}^{commit}" >/dev/null; then
+        if [[ "${GITHUB_ACTIONS:-}" == "true" && "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+            fail "Ratchet base ref ${ratchet_base_ref} is not available in this PR checkout: the down-only check cannot run (fetch the base branch)"
+        else
+            info "Base ref ${ratchet_base_ref} not found: down-only ratchet check skipped (runs on PRs in CI)"
+            pass "Ratchet down-only check: skipped (no base ref)"
+        fi
+    elif ! git -C "$PROJECT_ROOT" cat-file -e "${ratchet_base_ref}:${rel}"; then
+        pass "Ratchet down-only check: ${rel} is new versus ${ratchet_base_ref}"
+    else
+        ratchet_base=$(git -C "$PROJECT_ROOT" show "${ratchet_base_ref}:${rel}" | awk 'NR==1 && $1 ~ /^[0-9]+$/ {print $1}')
+        if [[ -z "$ratchet_base" || -z "$ratchet_now" ]]; then
+            fail "Could not read the ratchet ceiling (base: '${ratchet_base:-}', this branch: '${ratchet_now:-}')"
+        elif ratchet_raised "$ratchet_now" "$ratchet_base"; then
+            fail "Ratchet RAISED: ${rel} went ${ratchet_base} -> ${ratchet_now} versus ${ratchet_base_ref}. The ceiling only moves down; trim descriptions instead of raising it."
+        else
+            pass "Ratchet ${rel##*/} ${ratchet_now} ≤ ${ratchet_base} on ${ratchet_base_ref} (down-only holds)"
+        fi
+    fi
+}
+
+check_down_only "$RATCHET_REL" "$RATCHET_FILE"
+check_down_only "tests/performance/skill-listing-ratchet-extras.txt" "$RATCHET_FILE_EXTRAS"
+echo ""
+
+# ============================================================================
+# Test 4e: Split controls (the exclusion can neither hide core growth nor drift)
+# ============================================================================
+# Both controls are planted: they run on in-memory copies of the exclusion list,
+# never on the real manifest, and they must come out RED. A control that comes
+# back clean means the gate is blind and this test fails.
+#   1. A skill taken out of skillsExclude counts toward core again, so core
+#      grows past its ceiling. The exclusion cannot hide core growth.
+#   2. The excluded set equals exactly the list the split moves (the "skills"
+#      array of manifests/ork-extras.json, the same source the split test reads).
+#      Compared as SETS, and the failure names the offending skill.
+echo "▶ Test 4e: Split Controls"
+echo "────────────────────────────────────────"
+
+# set_diff EXCLUDED MOVED: sets SET_DIFF_MSG to the offending names, empty when equal
+set_diff() {
+    local only_excluded only_moved
+    only_excluded="$(comm -23 <(printf '%s\n' "$1") <(printf '%s\n' "$2") | tr '\n' ' ')"
+    only_moved="$(comm -13 <(printf '%s\n' "$1") <(printf '%s\n' "$2") | tr '\n' ' ')"
+    # Kept apart as " name name " so a control can test one name as a whole word.
+    SET_ONLY_EXCLUDED=" ${only_excluded}"
+    SET_ONLY_MOVED=" ${only_moved}"
+    SET_DIFF_MSG=""
+    [[ -z "$only_excluded" ]] || SET_DIFF_MSG="in skillsExclude but not moved: ${only_excluded}"
+    [[ -z "$only_moved" ]] || SET_DIFF_MSG="${SET_DIFF_MSG:+${SET_DIFF_MSG}; }moved but not in skillsExclude: ${only_moved}"
+}
+
+# Positive control: the real lists are the same set.
+set_diff "$EXCLUDED_NAMES" "$MOVED_NAMES"
+if [[ -z "$SET_DIFF_MSG" ]]; then
+    pass "Control 2 (real tree): skillsExclude equals the ork-extras move list ($(printf '%s\n' "$EXCLUDED_NAMES" | wc -l | tr -d ' ') names, set compare)"
+else
+    fail "Control 2 (real tree): skillsExclude differs from the ork-extras move list: ${SET_DIFF_MSG}"
+fi
+
+# Planted: a name with no matching move, and a move with no exclusion.
+# Pick the planted names so they stay valid even when the lists already disagree:
+# a core skill that is not in the move list, and a name that is in both lists.
+moved_spaced="$(names_spaced "$MOVED_NAMES")"
+first_core_name=""
+for f in "${CORE_FILES[@]}"; do
+    n="$(basename "$(dirname "$f")")"
+    if [[ "$moved_spaced" != *" $n "* ]]; then
+        first_core_name="$n"
+        break
+    fi
+done
+first_excluded_name="$(comm -12 <(printf '%s\n' "$EXCLUDED_NAMES") <(printf '%s\n' "$MOVED_NAMES") | head -1)"
+if [[ -z "$first_core_name" || -z "$first_excluded_name" ]]; then
+    fail "Control 2 cannot plant: no core skill outside the move list ('${first_core_name}') or no name in both lists ('${first_excluded_name}')"
+fi
+set_diff "$(printf '%s\n%s\n' "$EXCLUDED_NAMES" "$first_core_name" | LC_ALL=C sort)" "$MOVED_NAMES"
+if [[ "$SET_ONLY_EXCLUDED" == *" ${first_core_name} "* ]]; then
+    pass "Control 2 (planted extra name) caught and named: ${SET_DIFF_MSG}"
+else
+    fail "Control 2 (planted extra name '${first_core_name}') was NOT caught; message: '${SET_DIFF_MSG}'"
+fi
+set_diff "$(printf '%s\n' "$EXCLUDED_NAMES" | grep -vx "$first_excluded_name")" "$MOVED_NAMES"
+if [[ "$SET_ONLY_MOVED" == *" ${first_excluded_name} "* ]]; then
+    pass "Control 2 (planted missing name) caught and named: ${SET_DIFF_MSG}"
+else
+    fail "Control 2 (planted missing name '${first_excluded_name}') was NOT caught; message: '${SET_DIFF_MSG}'"
+fi
+
+# Control 1: take one MODEL-FACING excluded skill out of the list (a copy, not
+# the manifest) and measure core again. It must grow past the core ceiling.
+victim=""
+for name in $EXCLUDED_NAMES; do
+    if ! grep -Eq '^disable-model-invocation:[[:space:]]*true' "$SKILLS_DIR/$name/SKILL.md"; then
+        victim="$name"
+        break
+    fi
+done
+if [[ -z "$victim" ]]; then
+    fail "Control 1 cannot run: no model-facing skill in skillsExclude to plant"
+else
+    split_population "$(printf '%s\n' "$EXCLUDED_NAMES" | grep -vx "$victim")"
+    measure_listing "${CORE_FILES[@]}" > "$listing_report_file"
+    planted_core_total=$(awk '$1=="TOTAL"{print $2}' "$listing_report_file")
+    split_population "$EXCLUDED_NAMES"
+    if [[ "$planted_core_total" -gt "$listing_total" && "$planted_core_total" -gt "${ratchet_ceiling:-0}" ]]; then
+        pass "Control 1 caught: with ${victim} back in core the core listing is ${planted_core_total} B > ${ratchet_ceiling} B ceiling (real core ${listing_total} B)"
+    else
+        fail "Control 1 NOT caught: with ${victim} back in core the core listing is ${planted_core_total} B, real core ${listing_total} B, ceiling ${ratchet_ceiling:-?} B; the exclusion could hide core growth"
+    fi
+fi
+echo ""
+
+# ============================================================================
+# Test 4f: Slash cap control (core counts, ork-extras does not)
+# ============================================================================
+# The slash cap in Test 4 counts user-invocable CORE skills only. This control
+# runs the same scan_skills awk on a planted directory in TMPDIR (never the real
+# tree): MAX_USER_INVOCABLE_SKILLS + 1 core skills and one excluded skill, all
+# user-invocable. The count must come out exactly cap + 1: over the cap (so a
+# core skill pushing past the cap turns Test 4 red, and the gate cannot go blind to
+# core) and without the extras skill (so the exclusion cannot stop applying).
+echo "▶ Test 4f: Slash Cap Control"
+echo "────────────────────────────────────────"
+
+slash_dir="$(mktemp -d "${TMPDIR:-/tmp}/ork-slash-cap.XXXXXX")"
+trap 'rm -rf "$slash_dir"; rm -f "$listing_report_file" "$extras_report_file"' EXIT
+planted_core_n=$((MAX_USER_INVOCABLE_SKILLS + 1))
+for i in $(seq 1 "$planted_core_n"); do
+    mkdir "$slash_dir/planted-core-$i"
+    printf -- '---\nname: planted-core-%s\ndescription: planted core skill\nuser-invocable: true\n---\n' "$i" > "$slash_dir/planted-core-$i/SKILL.md"
+done
+mkdir "$slash_dir/planted-extras"
+printf -- '---\nname: planted-extras\ndescription: planted extras skill\nuser-invocable: true\n---\n' > "$slash_dir/planted-extras/SKILL.md"
+
+read -r _ _ planted_invocable _ _ _ _ < <(scan_skills " planted-extras " "$slash_dir"/*/SKILL.md)
+rm -rf "$slash_dir"
+
+if [[ "$planted_invocable" -gt "$MAX_USER_INVOCABLE_SKILLS" ]]; then
+    pass "Control (planted ${planted_core_n} core skills): slash cap would fail, counted ${planted_invocable} > ${MAX_USER_INVOCABLE_SKILLS}"
+else
+    fail "Control NOT caught: ${planted_core_n} planted core user-invocable skills counted ${planted_invocable}, not over ${MAX_USER_INVOCABLE_SKILLS}; the slash cap is blind to core"
+fi
+if [[ "$planted_invocable" -eq "$planted_core_n" ]]; then
+    pass "Control (planted extras skill): not counted, total ${planted_invocable} = ${planted_core_n} core only"
+else
+    fail "Control FAILED: counted ${planted_invocable} for ${planted_core_n} core + 1 extras user-invocable skills; the extras skill must not be counted"
 fi
 echo ""
 
@@ -318,7 +720,7 @@ echo "  Breakdown:"
 echo "  ├─ CLAUDE.md:           ~${claude_md_t}t"
 echo "  ├─ MEMORY.md:           ~${memory_md_t}t"
 echo "  ├─ Agent descriptions:  ~${agent_desc_t}t"
-echo "  ├─ Skill index:         ~${skill_index_t}t (${mf_count} model-facing, ${index_bytes} measured bytes)"
+echo "  ├─ Skill index (core):  ~${skill_index_t}t (${mf_count} model-facing core skills, ${index_bytes} measured bytes)"
 echo "  └─ Total:               ~${total_session_t}t"
 echo ""
 

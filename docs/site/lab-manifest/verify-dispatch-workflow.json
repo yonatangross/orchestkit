@@ -1,0 +1,8 @@
+{
+  "slug": "verify-dispatch-workflow",
+  "source": "docs/feat--verify-dispatch-workflow/index.html",
+  "title": "verify Phase 2 as a Workflow script",
+  "description": "Every source and test file this PR changes, before and after.",
+  "tags": ["skills", "opus-5-5", "workflow"],
+  "date": "2026-09-25"
+}

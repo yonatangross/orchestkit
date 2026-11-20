@@ -252,7 +252,7 @@ export function context7Tracker(input: HookInput, ctx: HookContext = NOOP_CTX): 
     const queryCount = cacheContext.match(/(\d+) queries/);
     const totalQueries = queryCount ? parseInt(queryCount[1], 10) : 0;
     if (totalQueries >= 3) {
-      return outputWithContext(cacheContext);
+      return outputWithContext(cacheContext, input);
     }
   }
 

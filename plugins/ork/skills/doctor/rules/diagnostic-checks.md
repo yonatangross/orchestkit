@@ -19,7 +19,7 @@ Detailed procedures for each health check category in `/ork:doctor`.
 **Correct:**
 ```
 ✓ Skills: 69/69 valid (frontmatter, token budget, links)
-✗ Hooks: dist/memory-writer.mjs missing — run: cd src/hooks && npm run build
+✗ Hooks: dist/pretool.mjs missing - run: cd src/hooks && npm run build
 ✓ Agents: 38/38 CC 2.1.6 compliant
 ```
 
@@ -98,6 +98,17 @@ Read `.claude/memory/decisions.jsonl` directly to validate JSONL integrity (each
 
 See [Memory Health](../references/memory-health.md) for details.
 
+Per-agent `memory:` dirs are a separate check. Load `references/agent-memory-dir.md` and run:
+
+```bash
+bash src/skills/doctor/scripts/check-agent-memory.sh \
+  --memory-root .claude/agent-memory \
+  --agents-dir src/agents
+```
+
+Pass `--activity-file` (name, tab, unix epoch) only when you know the agent ran. Without it, staleness is skipped so an idle agent is not reported stale.
+
+
 ---
 
 ## 5. Build System
@@ -151,23 +162,34 @@ Checks optional tool availability:
 # agent-browser (vercel-labs/agent-browser)
 # Prefer the structured `agent-browser doctor --json` from 0.26.0+ (CC 2.1.121+).
 # Falls back to the fuzzy "is the binary on PATH + symlink present?" probe on older versions.
+#
+# Version floor (#5289): an old build on PATH is flagged WARN with the upgrade command.
+# The minimum lives in ONE place, MIN_VERSION in scripts/check-agent-browser-version.sh
+# (the expect skill's prose floor must say the same number; a unit test checks it).
+# Exit 1 = outdated; doctor reports WARN and continues.
+bash "${CLAUDE_PLUGIN_ROOT}/skills/doctor/scripts/check-agent-browser-version.sh" || true
 if command -v agent-browser >/dev/null 2>&1; then
-  if agent-browser doctor --json >/tmp/ab-doctor.json 2>/dev/null; then
+  # Redirect to a file with stdin closed, never a pipe: a command that may start the
+  # daemon hands it the pipe's write end on native Windows (Git Bash) and the reader
+  # never sees EOF. mktemp, not a hardcoded /tmp path.
+  ab_json="$(mktemp)"
+  if agent-browser doctor --json >"$ab_json" 2>/dev/null </dev/null; then
     # Structured snapshot: surface only high-severity issues + a one-line health summary.
     jq -r '
       "agent-browser: " +
       (if (.daemon.status // "unknown") == "running" then "OK" else "DEGRADED" end) +
       " (chrome=" + (.chrome.version // "?") +
       ", net=" + (if .network.reachable then "✓" else "✗" end) + ")"
-    ' /tmp/ab-doctor.json
+    ' "$ab_json"
     # Promote any high-severity issue into doctor's findings stream.
-    jq -r '.issues[]? | select(.severity == "high") | "  ↳ HIGH: " + .message' /tmp/ab-doctor.json
+    jq -r '.issues[]? | select(.severity == "high") | "  ↳ HIGH: " + .message' "$ab_json"
   else
     # Fallback for agent-browser < 0.26 (no `doctor` subcommand)
     test -L "$HOME/.claude/skills/agent-browser" \
       && echo "agent-browser: installed (legacy probe — upgrade to 0.26+ for structured doctor)" \
       || echo "agent-browser: SYMLINK MISSING at ~/.claude/skills/agent-browser"
   fi
+  rm -f "$ab_json"
 else
   echo "agent-browser: NOT INSTALLED (optional — install via vercel-labs/agent-browser ≥ 0.26)"
 fi

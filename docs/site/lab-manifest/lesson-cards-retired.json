@@ -1,0 +1,12 @@
+{
+  "slug": "lesson-cards-retired",
+  "source": "docs/chore--retire-lesson-cards/retired.html",
+  "title": "lesson-cards: retired from the marketplace",
+  "description": "The marketplace before and after: lesson-cards duplicated the hq-ext lesson guard and was disabled, so it leaves the marketplace while its source stays as a probe fixture.",
+  "tags": [
+    "mods",
+    "lesson-cards",
+    "marketplace"
+  ],
+  "date": "2026-10-23"
+}

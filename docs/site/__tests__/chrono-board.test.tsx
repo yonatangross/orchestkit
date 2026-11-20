@@ -20,7 +20,7 @@ const CARDS: ChronoBoardCardModel[] = [
     title: "relative paths",
     description: "A skill you invoke with /ork: changed.",
     date: "Sep 8, 2026",
-    status: "Shipped",
+    status: "Added",
     tone: "added",
     notesHref: "/changelog#10.0.0-beta.11",
   },

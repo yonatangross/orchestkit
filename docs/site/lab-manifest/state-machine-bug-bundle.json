@@ -1,0 +1,12 @@
+{
+  "slug": "state-machine-bug-bundle",
+  "source": "docs/fix--sm-state-machine-bundle/index.html",
+  "title": "Four state machine bugs in the OrchestKit hooks",
+  "description": "Pick a bug the hook state machine audit confirmed and compare what the state did before the fix with what it does now.",
+  "tags": [
+    "hooks",
+    "state",
+    "audit"
+  ],
+  "date": "2026-11-08"
+}

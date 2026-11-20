@@ -1,0 +1,16 @@
+{
+  "_brand": "Indigo Ledger (docs/site/app/global.css): dark indigo-slate #05070f to #0d1020, indigo #457cfd, violet terminus #9982f8, amber accent #ddb049 at marker scale only, ice #86bbcc for secondary glints. Font on the card is Geist, composited later.",
+  "_shared": "Wide 16:9 editorial key art. Palette strictly: deep indigo-slate background (#05070f to #0d1020), luminous indigo #457cfd as the dominant light, violet #9982f8 as the gradient terminus, tiny amber #ddb049 highlights used sparingly as focal markers, faint ice-blue #86bbcc glints. The LEFT 45 percent of the frame is calm, dark, low-detail negative space (reserved for a headline added later). The BOTTOM 15 percent is dark and empty. All subject detail sits in the right 55 percent and the upper-middle band. Absolutely no text, no letters, no numbers, no logos, no UI labels, no watermarks anywhere in the image. Premium, restrained, cinematic lighting, subtle film grain, not stock, not cartoon, not neon cyberpunk clutter.",
+  "A": {
+    "concept": "Orchestra conductor",
+    "prompt": "A lone conductor seen from behind, silhouetted, baton raised, standing on a small podium at the right third of a vast dark concert hall. Instead of musicians, the orchestra is made of dozens of small glowing indigo and violet light-forms arranged in the classic curved orchestra sections (strings arc, winds, brass, percussion), each light-form a simple abstract geometric agent shape, all turned toward the conductor. Thin luminous threads of indigo light run from the baton tip to every agent, like a score being played in sync. One amber spark at the baton tip. Volumetric haze, soft rim light on the conductor."
+  },
+  "B": {
+    "concept": "Machine room control deck",
+    "prompt": "A dark, precise control deck seen at a low three-quarter angle, occupying the right half of the frame: a long brushed-graphite console with rows of physical toggles, rotary knobs and small square indicator lamps glowing indigo, a few lamps glowing amber as the active step, and a row of vertical meters rising in a violet-to-indigo gradient like a build pipeline progressing left to right. Behind the console, a softly out-of-focus wall of racked modules with tiny ice-blue status LEDs. Shallow depth of field, machined metal texture, quiet studio lighting, feels like a high-end synthesizer or mission control, instrument panel running a build."
+  },
+  "C": {
+    "concept": "Abstract routing graph",
+    "prompt": "An abstract luminous network graph floating in deep space-like darkness, concentrated in the right 55 percent of the frame. Three kinds of nodes: many small indigo points (skills), a ring of larger violet orbs (agents), and a few amber hexagonal gate nodes (hooks) placed at junctions where routes pass through them. Curved glowing routing lines connect them, with bright pulses of light travelling along a few routes toward one central indigo hub. Depth of field so far nodes blur into soft bokeh. Elegant, mathematical, like a data-flow diagram rendered as light, fine detail, calm composition."
+  }
+}

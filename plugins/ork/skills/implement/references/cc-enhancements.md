@@ -2,7 +2,7 @@
 
 ## Task Metrics
 
-Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
+Agent tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
 
 ```markdown
 ## Phase 5 Metrics (Implementation)
@@ -34,7 +34,7 @@ Use the right tools for each operation:
 Before ending implementation sessions, capture context:
 
 ```bash
-/ork:remember Implementation of {feature}:
+/ork:memory remember Implementation of {feature}:
   Completed: phases 1-6
   Remaining: verification, docs
   Key decisions: [list]

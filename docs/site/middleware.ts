@@ -28,6 +28,7 @@ import { MARKDOWN_VARY } from "@/lib/md-frontmatter";
 import { notFoundExtensions, notFoundMarkdown } from "@/lib/not-found-body";
 import { problemResponse } from "@/lib/problem";
 import { hasMarkdownTwin } from "@/lib/page-markdown";
+import { legacyRedirectTarget } from "@/lib/legacy-host";
 import {
 	checkRateLimit,
 	canonicalRoute,
@@ -95,6 +96,17 @@ export function middleware(
 	req: NextRequest,
 ): NextResponse | Response | Promise<NextResponse | Response> {
 	const { pathname } = req.nextUrl;
+
+	// Pre-GA host: pages answer one 301 to orchestkit.dev; the MCP and agent
+	// surface keeps serving (lib/legacy-host.ts says which paths and why).
+	const legacyTarget = legacyRedirectTarget(
+		// The Host header, or the request URL's host where a runtime strips it.
+		req.headers.get("host") ?? req.nextUrl.host,
+		pathname,
+		req.nextUrl.search,
+	);
+	if (legacyTarget) return NextResponse.redirect(legacyTarget, 301);
+
 	const accept = req.headers.get("accept") ?? "";
 	// Bounded property values shared by every branch below. See lib/agent-surface.
 	const audience = {

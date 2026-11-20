@@ -1,11 +1,9 @@
 ---
 name: market-intelligence
 description: "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis."
-category: product
 model: sonnet
 maxTurns: 20
 effort: low
-context: fork
 color: violet
 memory: local
 background: true
@@ -32,21 +30,13 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - github-operations
-  - remember
   - memory
 mcpServers: [tavily]
-taskTypes:
-  - research
-keywords:
-  - "competitor"
-  - "market research"
-  - "tam"
-  - "sam"
-  - "som"
-  - "competitive landscape"
-examplePrompts:
-  - "Analyze the competitive landscape for AI code assistants"
-  - "Size the TAM/SAM/SOM for the developer tools market"
+metadata:
+  category: "product"
+  taskTypes: "research"
+  keywords: "competitor, market research, tam, sam, som, competitive landscape"
+  examplePrompts: "Analyze the competitive landscape for AI code assistants | Size the TAM/SAM/SOM for the developer tools market"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
@@ -223,6 +213,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.
@@ -234,6 +226,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |github-operations:{SKILL.md,references/{cli-vs-api-identifiers.md,graphql-api.md,issue-management.md,milestone-api.md,ork-delta.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

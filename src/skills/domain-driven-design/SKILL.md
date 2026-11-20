@@ -1,25 +1,18 @@
 ---
 name: domain-driven-design
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "DDD tactical patterns for complex business modeling including entities, value objects, aggregates, domain services, repositories, specifications, and bounded contexts. Python dataclass implementations with TypeScript alternatives. Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
-context: fork
-agent: backend-system-architect
-version: 1.0.0
-tags: [ddd, domain-modeling, entities, value-objects, bounded-contexts, python]
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "DDD tactical patterns: entities, value objects, aggregates, domain services, repositories, specifications, bounded contexts (Python, TypeScript). Use when building rich domain models, enforcing invariants, or separating domain logic from infrastructure."
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "backend-system-architect"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "ddd, domain-modeling, entities, value-objects, bounded-contexts, python"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Domain-Driven Design Tactical Patterns
@@ -178,7 +171,7 @@ boundaries, invariants, and sizing, which live in full in `rules/`.
 
 - `rules/aggregate-boundaries.md`, `rules/aggregate-invariants.md`, `rules/aggregate-sizing.md` - aggregate design, in this skill
 - `ork:architecture-patterns` - Layer boundaries and project structure validation
-- `ork:distributed-systems` - Cross-aggregate coordination
+- `ork-extras:distributed-systems` - Cross-aggregate coordination
 - `ork:database-patterns` - Schema design for DDD
 
 ## References

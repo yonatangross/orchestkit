@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill fitness round 5: the checklist reaches 10</title>
+<meta name="description" content="Round 5 of the OrchestKit quality loop, scored by the deterministic checklist that is now the loop's stop measure. Pick a round to see the checklist per skill, or pick a fixed skill to see what was wrong.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:58rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{color:var(--dim);font-size:.8rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  table{border-collapse:collapse;width:100%;font-size:.78rem;margin-top:.8rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;margin-top:.8rem;min-height:4rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+</style>
+</head>
+<body><main>
+<h1>Skill fitness round 5: the checklist reaches 10</h1>
+<p class="sub">Branch feat/skill-quality-r5, 2026-11-07. After round 4 the loop's stop rule moved to scripts/eval/skill-checklist.mjs, which gives the same answer every run; fresh LLM graders now only feed the next round's fix list. Stop rule: 9.5 or more, two rounds in a row.</p>
+
+<section><h2>Checklist by round</h2>
+<label for="round">round</label>
+<select id="round">
+  <option value="r3">after round 3</option>
+  <option value="r4">after round 4</option>
+  <option value="r5" selected>after round 5</option>
+</select>
+<table>
+<thead><tr><th>skill</th><th class="num">checklist</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p class="dim" id="mean" aria-live="polite"></p>
+</section>
+
+<section><h2>What round 5 fixed</h2>
+<label for="skill">skill</label>
+<select id="skill">
+  <option value="auto">auto</option>
+  <option value="page-serve">page-serve</option>
+  <option value="glyph">glyph</option>
+</select>
+<div class="out" id="fix" aria-live="polite"></div>
+</section>
+
+<script>
+const SKILLS = ['auto', 'page-serve', 'glyph', 'review-pr', 'verify', 'expect', 'visualize-plan', 'ci-debug', 'brainstorm', 'assess'];
+const SCORES = {
+  r3: { auto: 7, 'page-serve': 8, glyph: 8, 'review-pr': 9, verify: 7, expect: 8, 'visualize-plan': 10, 'ci-debug': 10, brainstorm: 10, assess: 10 },
+  r4: { auto: 7, 'page-serve': 8, glyph: 8, 'review-pr': 10, verify: 10, expect: 10, 'visualize-plan': 10, 'ci-debug': 10, brainstorm: 10, assess: 10 },
+  r5: { auto: 10, 'page-serve': 10, glyph: 10, 'review-pr': 10, verify: 10, expect: 10, 'visualize-plan': 10, 'ci-debug': 10, brainstorm: 10, assess: 10 },
+};
+const FIXES = {
+  auto: 'Described a spawn cap (team-size-gate, ORK_TEAM_OPUS_MAX) that was removed in #3839, so it told the model a safety net existed that does not. Routed improve-skill to an "evolution-engine" that never existed. Now it says routing is the only cost control.',
+  'page-serve': 'Its usage showed a page-serve command that does not exist; the skill is three scripts, now called by ${CLAUDE_SKILL_DIR} path. The description gains "Not for app dev servers (use dev)" and is 15 bytes shorter.',
+  glyph: 'Told the model to run scripts/render-ascii.sh, which only exists in the repo, not in the installed plugin. A table row broke the numbered list, and the arrow rule contradicted the arrow the rest of the skill uses.',
+};
+function renderTable() {
+  const r = document.getElementById('round').value;
+  const tbody = document.getElementById('rows');
+  tbody.replaceChildren();
+  let sum = 0;
+  for (const s of SKILLS) {
+    const v = SCORES[r][s];
+    sum += v;
+    const tr = document.createElement('tr');
+    const a = document.createElement('td');
+    a.textContent = s;
+    const b = document.createElement('td');
+    b.textContent = String(v);
+    b.className = 'num ' + (v === 10 ? 'ok' : 'bad');
+    tr.append(a, b);
+    tbody.append(tr);
+  }
+  document.getElementById('mean').textContent = `Mean ${(sum / SKILLS.length).toFixed(1)} of 10.`;
+}
+function renderFix() {
+  document.getElementById('fix').textContent = FIXES[document.getElementById('skill').value];
+}
+document.getElementById('round').addEventListener('change', renderTable);
+document.getElementById('skill').addEventListener('change', renderFix);
+renderTable();
+renderFix();
+</script>
+</main></body>
+</html>

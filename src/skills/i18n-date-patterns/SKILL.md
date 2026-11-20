@@ -1,32 +1,25 @@
 ---
 name: i18n-date-patterns
 license: MIT
-compatibility: "Claude Code 2.1.251+."
+compatibility: "Claude Code 2.1.277+."
 description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: inherit
-agent: frontend-ui-developer
-version: 1.2.0
-author: Yonatan Gross
-tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans]
 user-invocable: false
-disable-model-invocation: true
-complexity: low
-persuasion-type: reference
 effort: low
 targets:
   - library: react-i18next
-    version: ">=13.0.0"
+    version: ">=17.0.15"
   - library: dayjs
     version: ">=1.11.0"
 model: haiku
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.2.0"
+  author: "Yonatan Gross"
+  complexity: "low"
+  tags: "i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans, react"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/i18n/**", "**/locales/**", "**/translations/**", "*.locale.*"]
 ---
 
@@ -248,7 +241,7 @@ Load `Read("checklists/i18n-checklist.md")` for complete implementation and revi
 
 - `ork:testing-e2e` - E2E testing patterns including accessibility testing for i18n
 - `ork:react-server-components-framework` - Server-side locale detection and RSC i18n patterns
-- `ork:accessibility` - RTL-aware focus management for bidirectional UI navigation
+- `ork-extras:accessibility` - RTL-aware focus management for bidirectional UI navigation
 
 ## Key Decisions
 

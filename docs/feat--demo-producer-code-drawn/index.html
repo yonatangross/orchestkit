@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>demo-producer code-drawn mode: the storyboard renders the film</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #181b24; --border: #2a2f3d;
+    --text: #e6e8ee; --dim: #8b91a3; --accent: #7aa2f7;
+    --red: #f7768e; --green: #9ece6a; --amber: #e0af68;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "Segoe UI", sans-serif; padding: 2rem 1rem; }
+  main { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin-bottom: .3rem; }
+  .sub { color: var(--dim); margin-bottom: 2rem; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; }
+  h2 { font-size: 1.05rem; margin-bottom: .8rem; color: var(--accent); }
+  p { margin-bottom: .6rem; }
+  code { background: #10131b; border: 1px solid var(--border); border-radius: 4px; padding: .1rem .35rem; font-size: .85em; }
+  pre { background: #10131b; border: 1px solid var(--border); border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .82rem; line-height: 1.5; }
+  .row { display: grid; grid-template-columns: 200px 1fr; gap: 1.2rem; align-items: start; }
+  canvas { width: 200px; aspect-ratio: 9 / 16; border-radius: 8px; border: 1px solid var(--border); display: block; }
+  label { display: block; color: var(--dim); font-size: .85rem; margin: .4rem 0 .2rem; }
+  input[type=range] { width: 100%; min-height: 32px; accent-color: var(--accent); }
+  .val { color: var(--text); font-family: ui-monospace, monospace; }
+  table { width: 100%; border-collapse: collapse; font-size: .84rem; font-family: ui-monospace, monospace; }
+  th, td { text-align: left; padding: .3rem .5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--dim); font-weight: 600; font-family: -apple-system, "Segoe UI", sans-serif; }
+  .ok { color: var(--green); } .bad { color: var(--red); } .warn { color: var(--amber); }
+  .verdict { font-weight: 700; margin: .6rem 0; }
+  button { background: #10131b; color: var(--text); border: 1px solid var(--accent); border-radius: 6px; padding: .5rem 1rem; cursor: pointer; font: inherit; min-height: 40px; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  textarea { width: 100%; min-height: 110px; margin-top: .6rem; background: #10131b; color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .6rem; font: .8rem ui-monospace, monospace; }
+  @media (max-width: 640px) { .row { grid-template-columns: 1fr; } canvas { width: 160px; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Code-drawn mode: the storyboard page renders the film</h1>
+<p class="sub">PR for <code>demo-producer</code>. One page draws every frame with <code>drawFrame(g, t)</code>. The owner approves that page, and the same code, unchanged, renders the film. First used for the OrchestKit verify reel: 32 s, 1080x1920, 960 frames.</p>
+
+<section>
+<h2>1. The contract: any frame from t alone</h2>
+<div class="row">
+  <canvas id="c" width="270" height="480" aria-label="A tiny drawFrame demo"></canvas>
+  <div>
+    <p>This box is a miniature storyboard page. Every frame is a pure function of <code>t</code>: no state between frames, no clock, no unseeded random. So frame 600 renders alone, in any order, in parallel, and the render matches the approved page.</p>
+    <label for="t">t = <span class="val" id="tv">0.0</span> s</label>
+    <input id="t" type="range" min="0" max="8" step="0.033" value="0">
+    <p style="color:var(--dim);font-size:.85rem">A podium, a spark that climbs, six threads to six lanes. The real reel draws the skill, its workflow, agents, hooks and the grade the same way.</p>
+  </div>
+</div>
+</section>
+
+<section>
+<h2>2. The pipeline</h2>
+<pre>storyboard page ──▶ owner approves ──▶ freeze approved-design/
+       │
+       └─▶ make-film.py ──▶ film.html (2x canvas, renderAt(t))
+                                 │
+           render-frames.mjs ──▶ f000.png ... at 2160x3840 ──▶ encode ──▶ preflight
+                                                                   │
+           approved stills ◀──── compare.py ────▶ frames decoded from the MP4</pre>
+</section>
+
+<section>
+<h2>3. What compare.py would say: real numbers from the verify reel</h2>
+<p>Twelve moments of the approved page against the same moments decoded from the film (true pairs), and eleven controls that pair each still with the next moment's frame (must differ). Both images are blurred 2 px first. Move the limits and watch which side breaks.</p>
+<label for="m">mean difference limit = <span class="val" id="mv"></span> of 255</label>
+<input id="m" type="range" min="1" max="10" step="0.1" value="4">
+<label for="o">pixels-off limit = <span class="val" id="ov"></span> %</label>
+<input id="o" type="range" min="0" max="5" step="0.05" value="1">
+<p class="verdict" id="verdict" role="status"></p>
+<table><thead><tr><th>pair</th><th>mean</th><th>off %</th><th>reads as</th><th>should be</th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+
+<section>
+<h2>4. Limits worth knowing</h2>
+<p>The compare samples moments. A defect between them, such as a scene sliding over a fixed footer during a pan, passes it. On the verify reel the first fresh review found five such defects in a film that matched 12 of 12 moments, so <code>references/code-drawn-mode.md</code> keeps a fresh reviewer reading strips across every transition.</p>
+<button id="copy">Copy as prompt</button>
+<textarea id="out" readonly aria-label="Prompt text"></textarea>
+</section>
+</main>
+<script>
+// 1. tiny drawFrame(g, t): pure function of t
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const eo = x => 1 - Math.pow(1 - clamp(x), 3);
+const LANES = ['#2456d3', '#773ac1', '#00746a', '#b23c00', '#137738', '#835b00'];
+function drawFrame(g, t) {
+  g.setTransform(0.25, 0, 0, 0.25, 0, 0);
+  g.fillStyle = '#f3ecdb'; g.fillRect(0, 0, 1080, 1920);
+  g.fillStyle = '#fffaf0'; g.fillRect(340, 1330, 400, 160);
+  g.fillStyle = '#8a6415'; g.font = '700 54px ui-monospace, monospace'; g.textAlign = 'center';
+  g.fillText('/ork:verify', 540, 1426);
+  const sy = 1330 - 330 * eo((t - 0.3) / 1.2);
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI * (1.1 + 0.16 * i), x = 540 + 400 * Math.cos(a), y = 1000 + 380 * Math.sin(a);
+    const k = eo((t - 1.7 - i * 0.28) / 0.45);
+    if (k <= 0) continue;
+    g.strokeStyle = LANES[i]; g.lineWidth = 6; g.beginPath(); g.moveTo(540, sy);
+    g.lineTo(540 + (x - 540) * k, sy + (y - sy) * k); g.stroke();
+    if (k >= 1) { g.fillStyle = LANES[i]; g.fillRect(x - 50, y - 40, 100, 60); }
+  }
+  g.fillStyle = '#e0a92e'; g.beginPath(); g.arc(540, sy, 22, 0, 7); g.fill();
+  g.fillStyle = '#2a2116'; g.font = '800 96px -apple-system, sans-serif'; g.textAlign = 'left';
+  g.fillText('One skill', 72, 270); g.fillStyle = '#8a6415'; g.fillText('starts a workflow.', 72, 380);
+}
+const ts = document.getElementById('t');
+ts.oninput = () => { document.getElementById('tv').textContent = (+ts.value).toFixed(1); drawFrame(g, +ts.value); };
+ts.oninput();
+
+// 3. measured on the verify reel (approved v3 against v3.mp4), compare.py --json
+const PAIRS = [[0.0,1.97,0.0],[2.8,1.73,0.0],[3.2,1.53,0.0],[5.6,1.92,0.0],[7.6,2.01,0.0],[10.5,1.88,0.0],[15.2,1.87,0.0],[17.8,2.06,0.0],[21.0,2.1,0.0],[25.0,2.0,0.0],[28.5,2.08,0.0],[31.0,2.14,0.0]];
+const CONTROLS = [[0.0,2.8,6.05,2.81],[2.8,3.2,6.36,4.08],[3.2,5.6,7.68,5.3],[5.6,7.6,4.41,2.29],[7.6,10.5,18.83,13.33],[10.5,15.2,16.31,10.34],[15.2,17.8,4.29,2.01],[17.8,21.0,19.24,14.12],[21.0,25.0,23.05,15.88],[25.0,28.5,3.78,1.74],[28.5,31.0,32.65,19.59]];
+const ms = document.getElementById('m'), os = document.getElementById('o');
+function judge() {
+  const M = +ms.value, O = +os.value;
+  document.getElementById('mv').textContent = M.toFixed(1);
+  document.getElementById('ov').textContent = O.toFixed(2);
+  const match = (m, o) => m < M && o < O;
+  let rows = '', missed = 0, blind = 0;
+  PAIRS.forEach(([t, m, o]) => { const ok = match(m, o); if (!ok) missed++;
+    rows += `<tr><td>${t.toFixed(1)} s</td><td>${m}</td><td>${o}</td><td class="${ok ? 'ok' : 'bad'}">${ok ? 'match' : 'DIFFER'}</td><td>match</td></tr>`; });
+  CONTROLS.forEach(([a, b, m, o]) => { const same = match(m, o); if (same) blind++;
+    rows += `<tr><td>${a.toFixed(1)} vs ${b.toFixed(1)} s</td><td>${m}</td><td>${o}</td><td class="${same ? 'bad' : 'ok'}">${same ? 'match' : 'DIFFER'}</td><td>differ</td></tr>`; });
+  document.getElementById('rows').innerHTML = rows;
+  const v = document.getElementById('verdict');
+  if (!missed && !blind) { v.className = 'verdict ok'; v.textContent = 'PASS: 12 of 12 true pairs match, 11 of 11 controls caught.'; }
+  else { v.className = 'verdict bad'; v.textContent = `FAIL: ${missed} true pair(s) read as different, ${blind} control(s) not caught.`; }
+  document.getElementById('out').value = `demo-producer code-drawn compare, verify reel numbers: mean limit ${M.toFixed(1)}, pixels-off limit ${O.toFixed(2)} % gives ${missed} false misses and ${blind} blind controls. The defaults in compare.py are 4 and 1.`;
+}
+ms.oninput = os.oninput = judge; judge();
+document.getElementById('copy').onclick = async () => { const out = document.getElementById('out');
+  try { await navigator.clipboard.writeText(out.value); } catch (e) { out.select(); document.execCommand('copy'); } };
+</script>
+</body>
+</html>

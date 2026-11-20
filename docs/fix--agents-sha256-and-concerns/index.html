@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Builder committed_sha accepts SHA-256; DONE_WITH_CONCERNS</title>
+<meta name="description" content="Follow-ups from #5007: committed_sha accepts 40-hex or 64-hex, and the builder result status enum includes DONE_WITH_CONCERNS when the commit landed but something is worth flagging.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button,textarea{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  textarea{width:100%;min-height:8.5rem;padding:.6rem .8rem}
+  .verdict{font-size:.9rem;font-weight:700;margin:.8rem 0 .4rem}
+  .verdict.ok{color:var(--ok)}
+  .verdict.bad{color:var(--bad)}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:start}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+</head>
+<body><main>
+<h1>Builder committed_sha accepts SHA-256; DONE_WITH_CONCERNS</h1>
+<p class="sub">Branch fix/agents-sha256-and-concerns (#5010, follow-ups from #5007). The builder schema now accepts a 40-hex or 64-hex <code>committed_sha</code>, and <code>DONE_WITH_CONCERNS</code> when the commit landed but something is worth flagging. Pick a result to see whether <code>src/shared/build-result.schema.json</code> accepts it.</p>
+
+<section><h2>1. Pick a builder result</h2>
+<div class="controls">
+  <select id="preset" aria-label="preset result"></select>
+  <span class="sub" style="margin:0">or edit the JSON below</span>
+</div>
+<textarea id="json" aria-label="builder result JSON" spellcheck="false"></textarea>
+<div class="verdict" id="verdict"></div>
+<div class="out" id="out"></div>
+<p class="note"><strong>What changed.</strong> Before, only a 40-hex sha and statuses DONE or BLOCKED validated. Now a SHA-256 repo (64-hex ids) validates, and DONE_WITH_CONCERNS is a first-class landed status with a real sha and null blocked_reason.</p>
+</section>
+
+<section><h2>2. The rule, per status</h2>
+<table><thead><tr><th>status</th><th>committed_sha</th><th>blocked_reason</th></tr></thead><tbody id="rules"></tbody></table>
+<div class="controls" style="margin-top:1rem"><button id="copy" type="button">copy this result and verdict as JSON</button><span id="copied" class="sub" style="margin:0"></span></div>
+</section>
+
+<script>
+const SHA40 = '54189f18632f7d419e9377cbfc617c99fe9ff72e';
+const SHA64 = '54189f18632f7d419e9377cbfc617c99fe9ff72e' + '0123456789abcdef0123456789abcdef';
+const PRESETS = {
+  done40: { status: 'DONE', committed_sha: SHA40, blocked_reason: null },
+  done64: { status: 'DONE', committed_sha: SHA64, blocked_reason: null },
+  concerns: { status: 'DONE_WITH_CONCERNS', committed_sha: SHA40, blocked_reason: null },
+  concerns64: { status: 'DONE_WITH_CONCERNS', committed_sha: SHA64, blocked_reason: null },
+  empty: { status: 'DONE', committed_sha: '', blocked_reason: null },
+  short39: { status: 'DONE', committed_sha: SHA40.slice(0, 39), blocked_reason: null },
+  blocked: { status: 'BLOCKED', committed_sha: null, blocked_reason: 'pre-commit: lint FAILED (1 error)', uncommitted_files: ['src/app.ts'] }
+};
+const LABELS = {
+  done40: 'DONE, 40-hex sha',
+  done64: 'DONE, 64-hex sha (SHA-256)',
+  concerns: 'DONE_WITH_CONCERNS, 40-hex',
+  concerns64: 'DONE_WITH_CONCERNS, 64-hex',
+  empty: 'DONE, empty sha (still rejected)',
+  short39: 'DONE, 39-char sha (still rejected)',
+  blocked: 'BLOCKED, null sha, hook named'
+};
+const RULES = [
+  ['DONE', '40-hex or 64-hex lowercase sha', 'null'],
+  ['DONE_WITH_CONCERNS', '40-hex or 64-hex lowercase sha', 'null'],
+  ['BLOCKED', 'null', 'non-empty: the refusing hook or check and its message']
+];
+function check(r) {
+  const errs = [];
+  if (r === null || typeof r !== 'object' || Array.isArray(r)) return ['the result must be a JSON object'];
+  for (const k of ['status', 'committed_sha', 'blocked_reason']) if (!(k in r)) errs.push('missing required field ' + k);
+  if (!['DONE', 'DONE_WITH_CONCERNS', 'BLOCKED'].includes(r.status)) errs.push('status must be DONE, DONE_WITH_CONCERNS, or BLOCKED');
+  const sha = r.committed_sha;
+  if (sha !== null && sha !== undefined) {
+    if (typeof sha !== 'string') errs.push('committed_sha must be a string or null');
+    else if (!/^[0-9a-f]{40}$|^[0-9a-f]{64}$/.test(sha)) errs.push('committed_sha ' + JSON.stringify(sha) + ' is not a 40-hex or 64-hex lowercase sha');
+  }
+  const why = r.blocked_reason;
+  if (why !== null && why !== undefined && (typeof why !== 'string' || why.length < 1)) errs.push('blocked_reason must be a non-empty string or null');
+  if (r.status === 'DONE' || r.status === 'DONE_WITH_CONCERNS') {
+    if (typeof sha !== 'string') errs.push(r.status + ' needs committed_sha as a string');
+    if (why !== null) errs.push(r.status + ' needs blocked_reason null');
+  }
+  if (r.status === 'BLOCKED') {
+    if (sha !== null) errs.push('BLOCKED needs committed_sha null');
+    if (typeof why !== 'string') errs.push('BLOCKED needs a blocked_reason naming what refused the commit');
+  }
+  return errs;
+}
+let last = { result: null, valid: false, errors: [] };
+function render() {
+  const text = document.getElementById('json').value;
+  const v = document.getElementById('verdict');
+  const out = document.getElementById('out');
+  let r;
+  try { r = JSON.parse(text); } catch (e) {
+    v.className = 'verdict bad'; v.textContent = 'not JSON';
+    out.textContent = String(e.message); last = { result: null, valid: false, errors: ['not JSON'] }; return;
+  }
+  const errs = check(r);
+  last = { result: r, valid: errs.length === 0, errors: errs };
+  v.className = 'verdict ' + (errs.length ? 'bad' : 'ok');
+  v.textContent = errs.length ? 'REJECTED: the caller stops here' : 'ACCEPTED';
+  if (errs.length) {
+    out.textContent = errs.map(function (e) { return '- ' + e; }).join('\n');
+  } else if (r.status === 'BLOCKED') {
+    out.textContent = 'blocked by: ' + r.blocked_reason + '; the workflow stops and reports it';
+  } else if (r.status === 'DONE_WITH_CONCERNS') {
+    out.textContent = 'the commit landed at ' + r.committed_sha + ' with concerns; the workflow may chain on after reading them';
+  } else {
+    out.textContent = 'the commit landed at ' + r.committed_sha + '; the workflow may chain on';
+  }
+}
+function load(name) {
+  document.getElementById('json').value = JSON.stringify(PRESETS[name], null, 2);
+  render();
+}
+(function init() {
+  const sel = document.getElementById('preset');
+  Object.keys(LABELS).forEach(function (key) {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = LABELS[key];
+    sel.appendChild(opt);
+  });
+  const tbody = document.getElementById('rules');
+  RULES.forEach(function (row) {
+    const tr = document.createElement('tr');
+    row.forEach(function (cell) {
+      const td = document.createElement('td');
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  sel.addEventListener('change', function (e) { load(e.target.value); });
+  document.getElementById('json').addEventListener('input', render);
+  document.getElementById('copy').addEventListener('click', async function () {
+    const text = JSON.stringify(last, null, 2);
+    try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'copied'; }
+    catch { document.getElementById('copied').textContent = 'clipboard blocked'; }
+  });
+  load('done64');
+})();
+</script>
+</main></body>
+</html>

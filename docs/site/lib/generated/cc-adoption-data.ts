@@ -16,6 +16,1627 @@ export interface AdoptionWave {
 
 export const ADOPTION_WAVES: AdoptionWave[] = [
   {
+    "version": "2.1.322",
+    "features": []
+  },
+  {
+    "version": "2.1.321",
+    "features": []
+  },
+  {
+    "version": "2.1.319",
+    "features": []
+  },
+  {
+    "version": "2.1.318",
+    "features": []
+  },
+  {
+    "version": "2.1.317",
+    "features": []
+  },
+  {
+    "version": "2.1.316",
+    "features": []
+  },
+  {
+    "version": "2.1.314",
+    "features": []
+  },
+  {
+    "version": "2.1.312",
+    "features": []
+  },
+  {
+    "version": "2.1.311",
+    "features": []
+  },
+  {
+    "version": "2.1.310",
+    "features": []
+  },
+  {
+    "version": "2.1.309",
+    "features": [
+      {
+        "slug": "sandbox_startup_files_fix",
+        "category": "fix",
+        "description": "Shell startup files ran outside the sandbox before each sandboxed command.",
+        "gapScore": 7,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sandbox_permission_fixes",
+        "category": "fix",
+        "description": "denyWrite through symlinks, --mcp-config edits, Edit deny vs Bash redirect, worktree guard fixes.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sed_i_prompt",
+        "category": "changed_default",
+        "description": "sed -i runs as written with the standard Bash prompt and is no longer restored by /rewind.",
+        "gapScore": 4,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.308",
+    "features": [
+      {
+        "slug": "bug_fixes_only",
+        "category": "fix",
+        "description": "No itemized changes.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.307",
+    "features": [
+      {
+        "slug": "otel_safety_event",
+        "category": "new_attr",
+        "description": "One event per tool call a permission rule, auto mode, safety check, hook or sandbox stopped, prompted or sent back.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "claude_api_api_version",
+        "category": "new_command",
+        "description": "Moves Claude API code to API version 2026-10-21.",
+        "gapScore": 3,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.306",
+    "features": [
+      {
+        "slug": "fixes",
+        "category": "fix",
+        "description": "Two fixes: cloud claude -p login and a spurious prompt-too-long with many MCP tools.",
+        "gapScore": 1,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.305",
+    "features": [
+      {
+        "slug": "retry_watchdog_usage_limit_recheck",
+        "category": "new_env",
+        "description": "The retry watchdog notices a usage limit lifted before its reset.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "bare-eval",
+          "configure"
+        ]
+      },
+      {
+        "slug": "sandbox_nested_user_namespaces",
+        "category": "new_perm",
+        "description": "Linux sandboxed commands can create user namespaces; CC notes this gets around file protections.",
+        "gapScore": 4,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "workflow_resume_journal_fix",
+        "category": "fix",
+        "description": "Workflow resume serves completed pipeline() and parallel() agents from the journal.",
+        "gapScore": 5,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.304",
+    "features": [
+      {
+        "slug": "mod_tool_check_decider_person",
+        "category": "new_attr",
+        "description": "tool.check can require a person to approve; e.isReadOnly marks read-only calls.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "auto_mode_setup",
+        "category": "new_command",
+        "description": "Guided setup that teaches auto mode about the environment.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "resume_usage_warning",
+        "category": "ui",
+        "description": "Warns before a resume would use a noticeable share of the 5-hour limit.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "compaction_resends_skill_list",
+        "category": "changed_default",
+        "description": "Compaction resends the skill list; /reload-skills sends only new or changed skills.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "skill_hook_caps",
+        "category": "changed_default",
+        "description": "One source's skills register at most 1,024 hooks and 16,384 matcher characters per session.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_headless_max_turns_fix",
+        "category": "fix",
+        "description": "Plugin subagent spawns no longer extend a headless run past --max-turns or Stop.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "auto_compact_window_suffix",
+        "category": "fix",
+        "description": "The variable accepts k and M suffixes and warns on out-of-range values.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.303",
+    "features": [
+      {
+        "slug": "bug_fixes_only",
+        "category": "fix",
+        "description": "No itemized changes.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.302",
+    "features": [
+      {
+        "slug": "claude_design_shutdown",
+        "category": "changed_default",
+        "description": "Standalone Claude Design (claude.ai/design) closes by December 14, 2026.",
+        "gapScore": 9,
+        "affectedSkills": [
+          "design-import",
+          "design-ship"
+        ]
+      },
+      {
+        "slug": "auto_mode_model_env",
+        "category": "new_env",
+        "description": "Chooses the client-side auto mode classifier model; server-side auto mode is unchanged.",
+        "gapScore": 4,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "idle_compaction_config_row",
+        "category": "ui",
+        "description": "/config can turn idle compaction off or on.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "otel_classifier_category_fix",
+        "category": "fix",
+        "description": "classifier_category no longer missing; new attributes no longer push out tool_use_id under a low attribute limit.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "prompt_agent_hook_concurrency",
+        "category": "changed_default",
+        "description": "At most 12 prompt or agent hooks of one event run at a time.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "fork_subagents_headless_default",
+        "category": "changed_default",
+        "description": "Fork subagents are on by default in claude -p, the SDK, desktop and VS Code.",
+        "gapScore": 4,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.301",
+    "features": [
+      {
+        "slug": "retry_watchdog_usage_limit_cap",
+        "category": "new_env",
+        "description": "The retry watchdog ends a request at a usage limit that resets too far away instead of waiting.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "bare-eval",
+          "configure"
+        ]
+      },
+      {
+        "slug": "otel_tool_decision_classifier",
+        "category": "new_attr",
+        "description": "tool_decision events carry classifier_verdict and permission_mode.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "otel_tool_decision_category",
+        "category": "new_attr",
+        "description": "tool_decision carries classifier_category with OTEL_LOG_TOOL_DETAILS=1.",
+        "gapScore": 6,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "mod_catch_semantics",
+        "category": "changed_default",
+        "description": "A mod hook's .catch runs only when the hook throws or times out.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "skill_args_cap",
+        "category": "fix",
+        "description": "Only the first 64 argument names, each up to 64 characters, are filled in.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "misc_fixes",
+        "category": "fix",
+        "description": "Search failure reporting, model switch, vim, Read binary and UI fixes.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.300",
+    "features": [
+      {
+        "slug": "otel_cache_creation_split",
+        "category": "new_attr",
+        "description": "api_request events split cache writes into 5m and 1h lifetimes.",
+        "gapScore": 9,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "otel_genai_semconv",
+        "category": "new_attr",
+        "description": "Trace spans carry gen_ai.provider.name, gen_ai.conversation.id, gen_ai.tool.name and error.type.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "mod_prompt_change",
+        "category": "new_attr",
+        "description": "Mod hook raised when the prompt box text changes without a typed edit.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_agent_spawn_rewrite",
+        "category": "new_attr",
+        "description": "agent.spawn can rewrite a workflow agent's prompt and model.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_virtualtext_view_dir",
+        "category": "new_attr",
+        "description": "virtualText decorations, $.ui.view({agentId}) and a Text dir prop for right-to-left rows.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "updated_input_validated",
+        "category": "breaking",
+        "description": "updatedInput from PreToolUse and PermissionRequest hooks is validated: unknown keys dropped, rejected input denies the call.",
+        "gapScore": 7,
+        "affectedSkills": []
+      },
+      {
+        "slug": "sessionend_hooks_bg_fix",
+        "category": "fix",
+        "description": "SessionEnd hooks run when exiting with a background command still running.",
+        "gapScore": 4,
+        "affectedSkills": []
+      },
+      {
+        "slug": "misc_fixes",
+        "category": "fix",
+        "description": "Worktree, Remote Control, cloud, transcript, daemon and UI fixes.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.299",
+    "features": [
+      {
+        "slug": "idle_compaction",
+        "category": "new_attr",
+        "description": "A 200K+ token terminal conversation idle for about 54 minutes is compacted before its 1h prompt cache expires.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "idle_compact_min_tokens_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS moves the 200K minimum; idleCompaction:false turns idle compaction off.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "disable_file_mentions_env",
+        "category": "new_env",
+        "description": "@ file mentions pass paths for Claude to read with its file tools instead of contents.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "plugin_eval_disallow_tools",
+        "category": "new_attr",
+        "description": "claude plugin eval can keep built-in tools such as Agent out of eval runs.",
+        "gapScore": 8,
+        "affectedSkills": [
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "plugin_eval_api_error_scores_zero",
+        "category": "fix",
+        "description": "A plugin eval run that ends on an API error scores 0 and makes the suite exit 1.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "mod_text_weight_bold_deprecated",
+        "category": "new_attr",
+        "description": "Mod Text gains size, weight, mono and tabular; bold is deprecated in favor of weight.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_prompt_media_session_identity",
+        "category": "new_attr",
+        "description": "Managed mods can read prompt attachments ($.prompt.media) and sign-in identity ($.session.identity()).",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_skill_prompt_richer_input",
+        "category": "new_attr",
+        "description": "A mod's skill.prompt hook receives the skill's frontmatter, source, plugin name and path.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "userpromptsubmit_before_skill_expand",
+        "category": "changed_default",
+        "description": "UserPromptSubmit hooks run before a skill or slash command expands; a blocking hook also stops its embedded shell.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_hook_fail_closed_handoff",
+        "category": "changed_default",
+        "description": "A plugin hook that cannot be handed an action or cannot answer now refuses it instead of letting it through.",
+        "gapScore": 6,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mcp_allow_rule_exact_server",
+        "category": "breaking",
+        "description": "mcp__a no longer allows a server named a__b; agent tools: lists take only the named server.",
+        "gapScore": 4,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "usage_warnings",
+        "category": "new_command",
+        "description": "/usage warns on max effort, workflows, always-on context and large tool results.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "misc_fixes",
+        "category": "fix",
+        "description": "Sandbox, MCP, Remote Control, cloud, mod runtime, Windows and UI fixes.",
+        "gapScore": 3,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.296",
+    "features": [
+      {
+        "slug": "read_allow_large",
+        "category": "new_attr",
+        "description": "The Read tool takes allow_large to read a text file past the usual size limits in one call.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sonnet_5_5_cache_read_price",
+        "category": "changed_default",
+        "description": "/cost, the status line, the max budget flag and SDK cost price Sonnet 5.5 cache reads at $0.10 per MTok (was $0.20).",
+        "gapScore": 10,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "mcp_description_cap_4096",
+        "category": "changed_default",
+        "description": "The default limit on MCP tool descriptions sent up front and on MCP server instructions rises from 2,048 to 4,096 characters.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "workflow_subagent_model_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL runs every workflow agent on one model while other subagents keep theirs.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "subagent_autocompact_window",
+        "category": "new_attr",
+        "description": "autoCompactWindow is allowed in subagent frontmatter and in agents flag definitions, so a subagent can auto-compact earlier than the main window.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "overloaded_retry_max_delay_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS sets a longer maximum backoff for 529 retries.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "debug_unknown_agent_frontmatter",
+        "category": "new_attr",
+        "description": "Debug output names unrecognized frontmatter fields in custom agent files, with a typo hint.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_same_name_hooks_note",
+        "category": "new_attr",
+        "description": "/plugin notes a plugin whose hooks are left out because another enabled plugin has the same name.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "esc_userpromptsubmit_headless",
+        "category": "fix",
+        "description": "Esc during a UserPromptSubmit hook or a mod's prompt.submit hook no longer ends headless sessions, clears the prompt or lets the unchecked prompt through.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "haiku_55_token_counts",
+        "category": "fix",
+        "description": "Token counts for Haiku 5.5 and other adaptive-thinking-only models are fixed.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "workflow_crlf_scripts",
+        "category": "fix",
+        "description": "The Workflow tool accepts script files with CRLF line endings.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "debug_hook_timing",
+        "category": "new_attr",
+        "description": "Debug output for command hooks logs command, plugin, outcome and duration when they finish.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "managed_pretooluse_continue_false",
+        "category": "fix",
+        "description": "Managed-settings PreToolUse hooks that deny with continue: false, and managed prompt hooks that block, now end the turn.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.295",
+    "features": [
+      {
+        "slug": "hook_on_failure_block",
+        "category": "new_attr",
+        "description": "Command and HTTP hooks take onFailure: \"block\": a hook that cannot start, times out or exits with an unexpected code blocks the action. The default still lets the action through.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "tool_search_mcp_description_16384",
+        "category": "changed_default",
+        "description": "MCP tool descriptions the model loads through tool search are cut at 16,384 characters instead of 2,048.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "retry_watchdog_max_wait_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS limits how long unattended retry mode waits out 429 and 529 errors.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "skill_allowed_tools_effort_p_runs",
+        "category": "fix",
+        "description": "A skill's allowed-tools and effort are no longer dropped when the Skill tool finishes before the response stream ends, which denied the skill's Bash commands in -p runs.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "forked_skill_workflow_results",
+        "category": "fix",
+        "description": "Forked skills invoked from Workflow subagents return their results to the invoking agent instead of the main conversation.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "workflow_scriptpath_refusal",
+        "category": "changed_default",
+        "description": "The Workflow tool's scriptPath refusal now says to pass the script inline; scriptPath needs a Read tool.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "subagent_32_skills_preload",
+        "category": "changed_default",
+        "description": "Subagents preload at most 32 skills from the skills field, each once.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "worktree_subagent_own_branch",
+        "category": "fix",
+        "description": "Subagents in their own linked worktree see their own git branch, status and commits, not the parent's.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_force_color",
+        "category": "fix",
+        "description": "Commands and hooks in background sessions no longer inherit FORCE_COLOR=3.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "async_sessionstart_context_resume",
+        "category": "fix",
+        "description": "An async SessionStart hook's unchanged context is no longer added again on every resume.",
+        "gapScore": 3,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.294",
+    "features": [
+      {
+        "slug": "prompt_agent_hooks_instruction_block",
+        "category": "fix",
+        "description": "prompt and agent hooks written as instructions no longer allow what they should block.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "stop_prompt_hooks_judged",
+        "category": "changed_default",
+        "description": "prompt hooks on Stop and SubagentStop written as instructions are judged so Claude is less likely to stop early.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.293",
+    "features": [
+      {
+        "slug": "haiku_5_5_default",
+        "category": "new_attr",
+        "description": "Claude Haiku 5.5 is the default Haiku model on the Anthropic API (1M context, $0.10/$0.50 per MTok); adaptive thinking, rejects sampling parameters and prefill.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "plugin_eval_docker_desktop",
+        "category": "fix",
+        "description": "claude plugin eval no longer refuses every Bash-granting run on Macs with Docker Desktop links.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "rules_load_on_bash_reads",
+        "category": "changed_default",
+        "description": "Path-scoped rules and nested CLAUDE.md now load when Claude reads a file through cat, head, tail, sed -n or grep in Bash.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "http_mcp_memory_leak",
+        "category": "fix",
+        "description": "An HTTP MCP connection no longer keeps every sent request in memory until close.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "subagent_status_line_agent_type",
+        "category": "new_attr",
+        "description": "agentType is added to the subagentStatusLine payload.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.292",
+    "features": [
+      {
+        "slug": "agent_tool_effort_param",
+        "category": "new_attr",
+        "description": "The Agent tool takes an effort parameter, so one subagent can run at a named effort.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_install_marketplace_flag",
+        "category": "new_command",
+        "description": "claude plugin install takes a marketplace source and adds the marketplace before installing, in one command.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "stdio_mcp_protocol_negotiation",
+        "category": "changed_default",
+        "description": "Local (stdio) MCP servers negotiate protocol 2026-07-28 by default; MCP_PROTOCOL_NEGOTIATION=legacy opts out; slow servers are remembered for 7 days.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "hook_output_system_reminder_escaped",
+        "category": "breaking",
+        "description": "<system-reminder> tags written in hook output are escaped before they reach Claude.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "overloaded_retry_base_delay_env",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS sets a longer base delay for 529 retries.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "p_waits_background_commands",
+        "category": "changed_default",
+        "description": "One-shot claude -p now waits for background commands and scheduled wakeups instead of stopping them after 5 s.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_hook_reject_after_next_interrupted",
+        "category": "breaking",
+        "description": "A mod hook that called next(e) and then failed during an interrupted turn now rejects the call.",
+        "gapScore": 5,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mcp_tool_name_128_dropped",
+        "category": "fix",
+        "description": "An MCP tool with a name over 128 characters is dropped with a named error instead of failing every request.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.291",
+    "features": [
+      {
+        "slug": "session_loss_floor_note",
+        "category": "fix",
+        "description": "2.1.288 could lose the last messages of a session on quit, and 2.1.290 could drop cloud permission answers; both fixed.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.290",
+    "features": [
+      {
+        "slug": "web_search_refills_env",
+        "category": "new_env",
+        "description": "The WebSearch budget refills 100 calls per hour instead of a hard 200 per session; CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR sets the rate, 0 turns it off.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "bash_wildcard_readonly_prompt",
+        "category": "new_perm",
+        "description": "Bash permission checks now ask for read-only commands whose wildcard arguments the shell expands (rg, git grep).",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "permission_after_pretooluse_rewrite",
+        "category": "breaking",
+        "description": "Permission rules and safety checks now apply to a tool call after a PreToolUse hook rewrote its input.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "teammate_agent_id_teammateidle",
+        "category": "breaking",
+        "description": "In-process teammate agent_id is now the agent ID (name@team moves to teammate_id) and TeammateIdle no longer fires from a teammate's subagents or forks.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_validate_gating_hooks",
+        "category": "new_attr",
+        "description": "claude plugin validate lists each gating-site mod hook and whether it has a .catch (gatingHooks in JSON output).",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "webfetch_offset_large_pages",
+        "category": "fix",
+        "description": "WebFetch no longer drops text past 100k characters; it reports the unread amount and takes an offset.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_agents_mac_sleep",
+        "category": "fix",
+        "description": "Background agents no longer fail with Agent stalled, and Workflow subagents no longer restart, after the Mac sleeps.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "background_subagent_worktree_access",
+        "category": "fix",
+        "description": "Background subagents keep write and Bash access in their worktree when the main session switches worktree.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "skills_found_by_skill_md_name",
+        "category": "fix",
+        "description": "Skills are found by their SKILL.md name when the folder name differs.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "pyright_asks",
+        "category": "new_perm",
+        "description": "The Bash tool now asks before running pyright (no longer treated as read-only).",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.289",
+    "features": [
+      {
+        "slug": "read_deny_symlink_ide",
+        "category": "fix",
+        "description": "Read deny rules now apply to files @-mentioned, changed or selected in the IDE through a symlink.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_deny_env_prefix_sandbox",
+        "category": "fix",
+        "description": "Bash deny and ask rules no longer miss a command behind an env var prefix with an expanded value when the sandbox auto-allows commands.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_deny_bare_assignment_sandbox",
+        "category": "fix",
+        "description": "A Bash deny or ask rule is no longer skipped under sandbox auto-allow when a bare variable assignment comes before the command.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mods_load_first_session_after_upgrade",
+        "category": "fix",
+        "description": "Installed mods now load in the first session after a Claude Code upgrade.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "agent_spawn_teammates_agent_id",
+        "category": "new_attr",
+        "description": "agent.spawn for teammates, one agent id across plugin hook events, and idle and waiting states in $.agent.list().",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mod_ui_render_row_throw",
+        "category": "fix",
+        "description": "A value a mod's ui.render hook wrote that makes a row throw no longer ends the session; the engine draws its own row.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mod_async_handler_throw",
+        "category": "fix",
+        "description": "Supervised and background sessions no longer end when a plugin's on-screen handler throws asynchronously.",
+        "gapScore": 3,
+        "affectedSkills": []
+      },
+      {
+        "slug": "plugin_validate_marketplace_manifest",
+        "category": "fix",
+        "description": "claude plugin validate no longer skips the plugin when the folder also holds a marketplace manifest.",
+        "gapScore": 2,
+        "affectedSkills": []
+      },
+      {
+        "slug": "nested_compound_deny_managed_mod",
+        "category": "fix",
+        "description": "A deny or ask rule on a nested part of a compound shell command now holds over a user-installed mod's approval on managed machines.",
+        "gapScore": 2,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
+    "version": "2.1.288",
+    "features": [
+      {
+        "slug": "mods_ui_selection",
+        "category": "new_attr",
+        "description": "$.ui.selection() for mods returns the text last selected in fullscreen mode and, when the selection lies within one transcript row, that row.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "disable_structured_outputs_env",
+        "category": "new_env",
+        "description": "Session titles, memory recall and prompt hooks failing on Mantle or behind gateways that reject structured outputs are fixed; CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS turns structured outputs off.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_agent_spawn_config",
+        "category": "fix",
+        "description": "Agent teams: a plugin-defined agent spawned by name now runs with its own prompt, tools, disallowedTools and effort instead of the defaults.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "backend-system-architect"
+        ]
+      },
+      {
+        "slug": "pretool_permissionrequest_fail_closed",
+        "category": "fix",
+        "description": "PreToolUse and PermissionRequest hooks are no longer skipped when matching them failed or the tool's input could not be serialized to JSON; the call is now blocked.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_tool_call_worktree_subagent",
+        "category": "fix",
+        "description": "A plugin's tool.call hook no longer makes Bash fail and file searches read the wrong folder in subagents that run in a worktree.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "backend-system-architect"
+        ]
+      },
+      {
+        "slug": "git_subdir_old_git",
+        "category": "fix",
+        "description": "git-subdir plugin installs no longer fail or cache an incomplete plugin on git older than 2.39 (e.g. Ubuntu 22.04's 2.34).",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "instructions_loaded_agent_context",
+        "category": "fix",
+        "description": "The InstructionsLoaded hook no longer omits agent_id and agent_type when a subagent's file access loads a rule or nested CLAUDE.md; rules and nested CLAUDE.md files loaded on file access now also report effort.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "path_scoped_rules_write_load",
+        "category": "fix",
+        "description": "Path-scoped .claude/rules and nested CLAUDE.md files now load when Write or Edit creates or changes a file in their scope; previously only Read loaded them.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "background_cmd_limit_unattended_only",
+        "category": "changed_default",
+        "description": "The background command time limit now applies only in unattended sessions (-p, Agent SDK, CI, cloud); terminal, desktop app and VS Code sessions have no limit.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "backend-system-architect"
+        ]
+      },
+      {
+        "slug": "automode_classifier_sonnet_pin",
+        "category": "changed_default",
+        "description": "The client-side auto mode classifier ignores an ANTHROPIC_DEFAULT_SONNET_MODEL pin that names Claude Sonnet 5.5 or Opus 5.5 and uses Claude Sonnet 5 instead.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_c_dangerous_rm",
+        "category": "fix",
+        "description": "A dangerous rm inside a bash -c or sh -c script no longer runs without a prompt in bypassPermissions mode or under a shell allow rule.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "plugin_install_https_fallback",
+        "category": "fix",
+        "description": "claude plugin install for GitHub-source plugins on machines with no GitHub SSH key now falls back to HTTPS and prints a notice.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.287",
+    "features": [
+      {
+        "slug": "claude_mods_public",
+        "category": "new_attr",
+        "description": "Claude Mods are announced: plugins may now modify deeper behavior.",
+        "gapScore": 2,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "you_should_know_builtin_mod",
+        "category": "new_command",
+        "description": "You should know, a built-in mod where a side agent flags things you or Claude might miss; /plugin enable cc-plugin-you-should-know@builtin (first-party sessions with telemetry on).",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "mcp_url_elicitation",
+        "category": "new_attr",
+        "description": "URL prompts from MCP servers on the 2025-11-25 protocol; a server that no longer connects after the update needs \"bareElicitationCapability\": true in its MCP config entry.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "otel_user_prompt_prompt_text",
+        "category": "new_attr",
+        "description": "prompt_text joins the OpenTelemetry user_prompt event as a copy of prompt for backends that nest dotted keys; drop or mask it wherever prompt is dropped or masked.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "monitoring-observability"
+        ]
+      },
+      {
+        "slug": "asyncrewake_missing_script_report",
+        "category": "fix",
+        "description": "Hooks configured with asyncRewake no longer wake Claude repeatedly with \"found issues\" notifications when the hook's script file is missing; the broken hook is reported once.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "rm_always_ask_redirect_escape",
+        "category": "fix",
+        "description": "A dangerous rm no longer loses its always-ask safeguard when the same command redirects output to a ~ or wildcard path.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      },
+      {
+        "slug": "sessionstart_synced_plugin_cloud",
+        "category": "fix",
+        "description": "SessionStart hooks from synced plugins now run in new cloud sessions.",
+        "gapScore": 15,
+        "affectedSkills": []
+      },
+      {
+        "slug": "bash_allow_rule_protected_files",
+        "category": "changed_default",
+        "description": "Whole-tool Bash allow rules and allowing hooks now prompt for, not run, shell writes to files Claude Code's file tools refuse outright (the Anthropic profile store, the host credentials file).",
+        "gapScore": 3,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.286",
+    "features": [
+      {
+        "slug": "verify_skill_commit_guidance",
+        "category": "changed_default",
+        "description": "When project or user skills include one named verify, Claude is told to run it right before committing, except docs-only and tests-only commits.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "verify",
+          "commit"
+        ]
+      },
+      {
+        "slug": "bare_mode_narrowed",
+        "category": "changed_default",
+        "description": "--bare now connects only the MCP servers named on the command line, sends the model no system reminders and starts no background tasks; a shell command reaching its timeout stops instead of moving to the background.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "bare-eval"
+        ]
+      },
+      {
+        "slug": "tool_hook_nontext_400",
+        "category": "fix",
+        "description": "API 400 errors after a tool or hook returned an object, number or boolean instead of text are fixed, including in resumed sessions.",
+        "gapScore": 10,
+        "affectedSkills": []
+      },
+      {
+        "slug": "model_alias_refusal_fallback",
+        "category": "fix",
+        "description": "When the Anthropic API refuses the model a default or alias resolves to, Claude Code retries once on the previous model of the same tier instead of failing every turn.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "worktree_subagent_claudemd_dedup",
+        "category": "fix",
+        "description": "Subagents spawned with worktree isolation no longer load the project CLAUDE.md and its imports a second time from the worktree copy on their first file read.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "backend-system-architect"
+        ]
+      },
+      {
+        "slug": "secret_redaction_fixes",
+        "category": "fix",
+        "description": "MCP error messages no longer show a credential's value, percent-encoded Bearer tokens are fully masked, secrets with invisible characters stay redacted, and URL passwords with punctuation are masked.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "security-patterns",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "plugin_stdio_typeless_listing",
+        "category": "fix",
+        "description": "claude mcp list and claude mcp get no longer print escape sequences from server names and values, and stdio servers without a type field show Type, Command, Args and Environment again.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.285",
+    "features": [
+      {
+        "slug": "headless_auto_mode_default",
+        "category": "changed_default",
+        "description": "claude -p and Python Agent SDK sessions on third-party providers or with telemetry off start in auto mode when no permission mode is configured; --permission-mode still overrides.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "bare-eval",
+          "ci-sentinel"
+        ]
+      },
+      {
+        "slug": "plugin_stdio_mcp_get_redaction",
+        "category": "changed_default",
+        "description": "claude mcp get hides command, arguments and environment values of stdio MCP servers provided by plugins; variable names are still shown.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "allowed_providers_managed",
+        "category": "new_attr",
+        "description": "Managed allowedProviders limits which API providers a machine may use (Anthropic API, custom endpoint, Bedrock, Mantle, Vertex, Foundry, Claude Platform on AWS, Cloud gateway).",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "claude_plugin_configure_cmd",
+        "category": "new_command",
+        "description": "claude plugin configure <plugin> shows a plugin's options and which are unset, or saves values read from stdin with --values-stdin.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "claude_code_disable_web_fetch",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_DISABLE_WEB_FETCH turns off the WebFetch tool.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "background_bash_time_limit",
+        "category": "changed_default",
+        "description": "Background Bash and PowerShell commands stop after a time limit (their timeout with run_in_background, default 30 min, max 2 h); Claude is notified.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "backend-system-architect"
+        ]
+      },
+      {
+        "slug": "exit_plan_mode_plan_visibility",
+        "category": "fix",
+        "description": "Hooks and SDK permission callbacks no longer see a missing or outdated plan on ExitPlanMode when the plan was written in the same response.",
+        "gapScore": 10,
+        "affectedSkills": []
+      },
+      {
+        "slug": "sync_hook_daemon_output_hang",
+        "category": "fix",
+        "description": "Synchronous hooks no longer hang Claude Code while a background process the hook started kept its output open; the hook finishes shortly after its own process exits.",
+        "gapScore": 10,
+        "affectedSkills": []
+      },
+      {
+        "slug": "mcp_tool_alwaysload_meta",
+        "category": "changed_default",
+        "description": "An MCP tool that sets its own _meta['anthropic/alwaysLoad'] to false stays deferred when its --mcp-config, Agent SDK or plugin server is set to alwaysLoad.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.284",
+    "features": [
+      {
+        "slug": "elicitation_decision_block_honoured",
+        "category": "fix",
+        "description": "{\"decision\":\"block\"} from Elicitation and ElicitationResult hooks now declines the MCP elicitation, as exit code 2 does.",
+        "gapScore": 2,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "marketplace_plugin_allowed_tools_managed_only",
+        "category": "breaking",
+        "description": "Marketplace, claude.ai and npm plugins lose allowed-tools pre-approval under managed allowManagedPermissionRulesOnly unless the source is official or vouched for.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "sonnet_5_5_default",
+        "category": "new_attr",
+        "description": "claude-sonnet-5-5 is the default Sonnet on the Anthropic API: 1M context, $2/$10, cache reads $0.20.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "auto_mode_default_everywhere",
+        "category": "changed_default",
+        "description": "Interactive terminal and VS Code sessions start in auto mode when no permission mode is configured.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "configure"
+        ]
+      },
+      {
+        "slug": "mcp_reconnect_all",
+        "category": "new_command",
+        "description": "/mcp reconnect all retries every failed or unauthenticated MCP server.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.283",
+    "features": [
+      {
+        "slug": "denied_models_available_models_match",
+        "category": "new_attr",
+        "description": "Managed deniedModels and availableModelsMatch:\"exact\" block specific models or unlisted versions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor",
+          "configure"
+        ]
+      },
+      {
+        "slug": "doctor_prompt_audit",
+        "category": "new_command",
+        "description": "/doctor prompt-audit audits CLAUDE.md, skills, agents and commands for prompting patterns written for older models.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "otel_tool_output_mcp_webfetch",
+        "category": "new_attr",
+        "description": "MCP, WebFetch and WebSearch outputs join the tool.output OTel span event under OTEL_LOG_TOOL_CONTENT=1.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "monitoring-observability"
+        ]
+      },
+      {
+        "slug": "plugin_dir_load_failure_path",
+        "category": "new_attr",
+        "description": "--plugin-dir load failures in stream-json plugin_errors now carry path.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.282",
+    "features": [
+      {
+        "slug": "skill_allowed_tools_managed_only",
+        "category": "breaking",
+        "description": "Repo, user and --add-dir skills lose allowed-tools pre-approval under managed allowManagedPermissionRulesOnly.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "bash_mid_pattern_colon_star",
+        "category": "breaking",
+        "description": "Bash rules with a mid-pattern :* were skipped in settings files; now applied from every source with a startup warning.",
+        "gapScore": 3,
+        "affectedSkills": [
+          "setup",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "project_settings_ignore_otel_export",
+        "category": "breaking",
+        "description": "Project and local settings ignore OTEL variables that turn on export, set the endpoint or capture content.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "monitoring-observability"
+        ]
+      },
+      {
+        "slug": "max_prose_width",
+        "category": "new_attr",
+        "description": "maxProseWidth caps prose width in wide terminals.",
+        "gapScore": 20,
+        "affectedSkills": [
+          "configure"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.281",
+    "features": [
+      {
+        "slug": "mcp_tool_hooks_wait_for_connecting_server",
+        "category": "fix",
+        "description": "mcp_tool hooks on blocking events now wait for a connecting MCP server instead of being skipped.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "attribution_false",
+        "category": "new_attr",
+        "description": "settings.json accepts \"attribution\": false to hide commit and PR attribution; older CLIs skip a file holding it.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "commit"
+        ]
+      },
+      {
+        "slug": "plugin_validate_mcp_checks",
+        "category": "new_command",
+        "description": "claude plugin validate reports .mcp.json entries dropped at load, undeclared user_config refs and insecure URLs.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "doctor"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.280",
+    "features": [
+      {
+        "slug": "opus_5_5_default_model",
+        "category": "new_attr",
+        "description": "claude-opus-5-5 is the default Opus model: 1M context, $4/$20 per MTok, cache reads $0.20/MTok.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "multimodal-llm",
+          "audit-full",
+          "verify",
+          "doctor",
+          "analytics"
+        ]
+      },
+      {
+        "slug": "max_mcp_description_length",
+        "category": "new_env",
+        "description": "CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH changes the 2,048-character cap on MCP tool descriptions and server instructions.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "configure",
+          "mcp-patterns"
+        ]
+      },
+      {
+        "slug": "hook_execution_complete_output_sizes",
+        "category": "new_attr",
+        "description": "hook_execution_complete OTel event carries hook output sizes and the oversized-output count.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "analytics"
+        ]
+      },
+      {
+        "slug": "permission_request_agent_hooks_removed",
+        "category": "breaking",
+        "description": "PermissionRequest no longer runs agent-type hooks; shows an error pointing to command or http hooks.",
+        "gapScore": 0,
+        "affectedSkills": [
+          "doctor"
+        ]
+      },
+      {
+        "slug": "effort_new_model_default",
+        "category": "changed_default",
+        "description": "A pre-per-model saved effort no longer applies to newly released models such as Opus 5.5; Opus 4.7/4.8 and Fable 5 stop holding launch-default effort over settings.",
+        "gapScore": 10,
+        "affectedSkills": [
+          "audit-full",
+          "verify",
+          "configure"
+        ]
+      },
+      {
+        "slug": "reserved_marketplace_name_refused",
+        "category": "breaking",
+        "description": "Marketplaces imitating a reserved name are refused or stop loading.",
+        "gapScore": 0,
+        "affectedSkills": []
+      },
+      {
+        "slug": "fork_subagent_resume_cache",
+        "category": "fix",
+        "description": "Resumed fork subagents re-send their first tool list, keeping prompt caching.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "chain-patterns"
+        ]
+      },
+      {
+        "slug": "symlink_write_judgement",
+        "category": "fix",
+        "description": "Writes through a symlink are judged where they land.",
+        "gapScore": 15,
+        "affectedSkills": [
+          "security-patterns"
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.1.278",
+    "features": [
+      {
+        "slug": "auto_mode_server_classifier_default",
+        "category": "changed_default",
+        "description": "Auto mode on Claude API, Enterprise, Bedrock, Vertex, Foundry and gateways defaults to the server-side classifier; CLAUDE_CODE_AUTO_MODE_SERVER=0 opts out.",
+        "gapScore": 5,
+        "affectedSkills": [
+          "configure",
+          "doctor"
+        ]
+      },
+      {
+        "slug": "status_auto_mode_server_row",
+        "category": "ui",
+        "description": "/status shows an Auto mode server row.",
+        "gapScore": 0,
+        "affectedSkills": []
+      }
+    ]
+  },
+  {
     "version": "2.1.277",
     "features": [
       {
@@ -291,6 +1912,34 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
         "affectedSkills": []
       }
     ]
+  },
+  {
+    "version": "2.1.271",
+    "features": []
+  },
+  {
+    "version": "2.1.270",
+    "features": []
+  },
+  {
+    "version": "2.1.269",
+    "features": []
+  },
+  {
+    "version": "2.1.268",
+    "features": []
+  },
+  {
+    "version": "2.1.267",
+    "features": []
+  },
+  {
+    "version": "2.1.266",
+    "features": []
+  },
+  {
+    "version": "2.1.265",
+    "features": []
   },
   {
     "version": "2.1.263",
@@ -3355,11 +5004,11 @@ export const ADOPTION_WAVES: AdoptionWave[] = [
 ];
 
 export const CC_SUPPORT = {
-  latest: "2.1.251",
-  latestKnown: "2.1.277",
-  supportedFloor: "2.1.251",
+  latest: "2.1.277",
+  latestKnown: "2.1.322",
+  supportedFloor: "2.1.277",
   policy: "latest + 3 previous minors",
 } as const;
 
 /** sha256 (first 12 hex) of the two source files above, in that order. */
-export const SOURCE_DIGEST = "df4175966dc5" as const;
+export const SOURCE_DIGEST = "b6ca0b189021" as const;

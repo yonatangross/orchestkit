@@ -1,0 +1,14 @@
+{
+  "slug": "4747-triage-token-split",
+  "source": "docs/chore--dsp-47200-ork-fix-4747/index.html",
+  "title": "Keep triage issue text away from tokens (#4747)",
+  "description": "The old claude-triage.yml ran the model in one job holding id-token:write and the OAuth secret next to untrusted issue text. The fix splits it three ways: a read-only fetch+sanitize job, a model job on the sanitized artifact with no id-token, and an issues:write comment job that never sees the issue. Inspect each job's reads vs holds, and try the sanitizer on an injected issue body.",
+  "tags": [
+    "security",
+    "ci",
+    "workflows",
+    "prompt-injection",
+    "4747"
+  ],
+  "date": "2026-10-15"
+}

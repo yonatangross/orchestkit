@@ -1,0 +1,11 @@
+# PLANTED UNSAFE FIXTURE (XREVIEW 6209698795). Quoted top-level keys:
+# 'permissions' grants id-token: write to every job, and "jobs" is quoted too.
+name: probe
+on: workflow_dispatch
+'permissions':
+  id-token: write
+"jobs":
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh issue view 1

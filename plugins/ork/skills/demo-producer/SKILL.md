@@ -1,26 +1,25 @@
 ---
 name: demo-producer
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: "Universal demo video creator for skills, agents, plugins, tutorials, CLI commands, and code walkthroughs. Generates scripts, storyboards, VHS terminal recordings, and Remotion video compositions with task-tracked production phases. Use when producing video showcases, marketing content, or terminal recordings."
+compatibility: "Claude Code 2.1.277+."
+description: "Demo videos for skills, plugins, CLIs and code walkthroughs: scripts, storyboards, VHS terminal recordings, Remotion. Use when producing a showcase or marketing video."
 argument-hint: "[topic-or-feature]"
 user-invocable: false
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, PushNotification]
+allowed-tools: "AskUserQuestion Bash Read Write Edit Grep Glob Agent TaskCreate TaskUpdate PushNotification"
 context: inherit
-version: 1.1.0
-author: OrchestKit
-tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]
 targets:
   - tool: "vhs"
     version: ">=0.11.0"
   - library: "remotion"
     version: ">=4.0.448"
-complexity: low
-persuasion-type: collaborative
 effort: low
 model: haiku
 metadata:
   category: document-asset-creation
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "low"
+  tags: "demo, video, marketing, vhs, remotion, terminal, showcase, tutorial"
 ---
 
 # Demo Producer
@@ -139,6 +138,7 @@ What style fits your content?
 ○ Tutorial (30-60s) - Detailed explanation, code examples
 ○ Cinematic (60s+) - Story-driven, high polish
 ○ Scrapbook (15-35s) - Warm paper, fast cuts, social proof collage (Anthropic style)
+○ Code-drawn (15-40s) - Every frame drawn by a storyboard page; skills, agents, gates as moving pictures
 ```
 
 ### Question 4: Audio
@@ -155,6 +155,26 @@ Audio preferences?
 > Load details: `Read("references/demo-pipeline.md")` for the full pipeline diagram, generation commands, and output structure.
 
 Content Detector -> Content Analyzer -> Script Generator -> Terminal Script -> VHS Recorder -> Remotion Composer -> Final Outputs (horizontal/vertical/square).
+
+## Code-drawn mode
+
+> Load details: `Read("references/code-drawn-mode.md")` for the contract, the pipeline and what the compare can and cannot catch.
+
+The storyboard page is the renderer: `drawFrame(g, t)` draws every frame, the owner approves the page, and the same code renders the film. Freeze the approved page in `approved-design/`, then:
+
+```bash
+python3 scripts/code-drawn/make-film.py storyboard/index.html          # film.html, 2x canvas
+node scripts/code-drawn/render-frames.mjs <url>/film.html frames         # needs Chrome on CDP 9222
+python3 scripts/code-drawn/compare.py approved-stills rendered-stills    # exit 1 on any mismatch
+```
+
+Every string on screen comes from a real capture. The compare samples moments only, so a fresh reviewer still reads strips across every transition.
+
+## Finish line and budget
+
+**Finish line.** Done means: every requested format variant is rendered, written to the output directory, verified with ffprobe (non-zero duration, expected resolution per variant), and the completion PushNotification is sent.
+
+Budget: at most 2 render retries per video, 3 format variants, and 45 minutes wall clock per variant (135 minutes total); stop and report at the finish line or the first cap, whichever comes first, naming the variants still unrendered.
 
 ## Template System
 
@@ -246,3 +266,4 @@ Load on demand with `Read("references/<file>")`:
 | `demo-pipeline.md` | Pipeline architecture, generation commands, output structure |
 | `remotion-composition.md` | Remotion folder structure and composition guide |
 | `skill-category-mapping.md` | Skill category mapping and content type templates |
+| `code-drawn-mode.md` | Storyboard page as renderer: contract, pipeline, compare limits, lessons |

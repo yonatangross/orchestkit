@@ -1,7 +1,7 @@
 # OrchestKit Docs MCP server (stdio) — used by MCP registries (e.g. Glama) to
 # boot the server and run introspection checks, and by anyone preferring a
 # containerized stdio MCP client over the hosted Streamable HTTP endpoint at
-# https://orchestkit.yonyon.ai/api/mcp.
+# https://orchestkit.dev/api/mcp.
 #
 #   docker build -t orchestkit-docs-mcp .
 #   docker run -i --rm orchestkit-docs-mcp
@@ -14,7 +14,7 @@
 # Kept in step with .nvmrc and the root package.json engines range; the docker
 # ecosystem in .github/dependabot.yml bumps it (#3477). To refresh manually:
 #   docker buildx imagetools inspect node:24-alpine
-FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81 AS build
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
 WORKDIR /app
 COPY src/mcp-server/package.json src/mcp-server/package-lock.json ./
 RUN npm ci
@@ -22,7 +22,7 @@ COPY src/mcp-server/tsconfig.json src/mcp-server/esbuild.config.mjs ./
 COPY src/mcp-server/src ./src
 RUN npm run build
 
-FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
 # MCP registry ownership validation, must match server.json "name"
 LABEL io.modelcontextprotocol.server.name="io.github.yonatangross/orchestkit"
 # Auto-links the GHCR package to this repo (grants Actions GITHUB_TOKEN write

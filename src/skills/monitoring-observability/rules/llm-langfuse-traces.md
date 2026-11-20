@@ -41,7 +41,7 @@ async def analyze(content: str):
     async def generate_analysis(context):
         response = await llm.generate(content)
         get_client().update_current_observation(
-            model="claude-sonnet-5",
+            model="claude-sonnet-5-5",
             usage={"input_tokens": 1500, "output_tokens": 1000},
         )
         return response
@@ -56,7 +56,7 @@ content_analysis (2.3s, $0.045)
 +-- retrieval (0.1s)
 |   +-- metadata: {chunks_retrieved: 5}
 +-- generation (2.2s, $0.045)
-    +-- model: claude-sonnet-5
+    +── model: claude-sonnet-5-5
     +-- tokens: 1500 input, 1000 output
 ```
 
@@ -188,7 +188,7 @@ process.on("beforeExit", async () => {
 ## Best Practices
 
 1. **Use `from langfuse import observe, get_client`** — NOT `from langfuse.decorators`
-2. **Let `@observe()` auto-create traces** — no explicit `langfuse.trace()` needed
+2. Migration note: v4 removed `langfuse.trace()`. Let `@observe()` auto-create traces.
 3. **Name spans descriptively** (e.g., "retrieval", "generation")
 4. **Use `as_type=` parameter** (v4) for Agent Graph rendering
 5. **Add metadata** for debugging (chunk counts, model params)

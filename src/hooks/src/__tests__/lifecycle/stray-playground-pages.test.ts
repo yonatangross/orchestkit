@@ -25,7 +25,7 @@ const TWO_HOURS = 2 * 60 * 60 * 1000;
 let project: string;
 
 function git(...args: string[]): string {
-  return execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@x', ...args], {
+  return execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@x', '-c', 'commit.gpgsign=false', ...args], {
     cwd: project, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
   });
 }

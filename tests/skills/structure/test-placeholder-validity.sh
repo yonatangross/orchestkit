@@ -10,6 +10,9 @@
 #
 #     ${CLAUDE_PLUGIN_ROOT}  ${CLAUDE_PLUGIN_DATA}  ${CLAUDE_PROJECT_DIR}  ${CLAUDE_SKILL_DIR}
 #
+# plus two value substitutions, ${CLAUDE_SESSION_ID} and ${CLAUDE_EFFORT}
+# (accepted 2026-10-01, see VALID below).
+#
 # Anything else of the form ${CLAUDE_*} is delivered to the model as a LITERAL
 # string. It fails silently: no error, no warning, just an instruction the model
 # cannot act on.
@@ -62,7 +65,13 @@ cd "$REPO_ROOT"
 RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'
 BLUE=$'\033[0;34m'; BOLD=$'\033[1m'; NC=$'\033[0m'
 
-VALID="CLAUDE_PLUGIN_ROOT CLAUDE_PLUGIN_DATA CLAUDE_PROJECT_DIR CLAUDE_SKILL_DIR"
+# 2026-10-01: code.claude.com/docs/en/skills, table "Available string
+# substitutions", also lists ${CLAUDE_SESSION_ID} ("The current session ID.
+# Useful for logging, creating session-specific files...") and ${CLAUDE_EFFORT}
+# ("The current effort level"), both substituted in skill content. Read
+# 2026-10-01 for orchestkit #4576 (freeze keys its fence by session id). Every
+# other ${CLAUDE_*} still fails this gate.
+VALID="CLAUDE_PLUGIN_ROOT CLAUDE_PLUGIN_DATA CLAUDE_PROJECT_DIR CLAUDE_SKILL_DIR CLAUDE_SESSION_ID CLAUDE_EFFORT"
 fail=0
 
 echo "${BLUE}${BOLD}Placeholder validity (only CC-documented substitutions)${NC}"
@@ -250,6 +259,15 @@ for f in sorted(glob.glob("src/skills/*/SKILL.md")):
         c = open(f, encoding="utf-8").read()
     except (OSError, UnicodeDecodeError):
         continue
+    # Body only. A frontmatter `hooks:` command runs as a shell command, not as
+    # skill text: CC does not expand ${CLAUDE_SKILL_DIR} there and a relative
+    # path resolves against the session cwd, so the plugin root IS the portable
+    # form (the header table above, and the codemod, which never touches
+    # frontmatter and so could not fix such a hit).
+    if c.startswith("---"):
+        end = c.find("\n---", 3)
+        if end != -1:
+            c = c[end + 4:]
     k = len(pat.findall(c))
     if k:
         n += k; files += 1

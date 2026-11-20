@@ -142,7 +142,7 @@ Higher ratio = do first. **Quick Wins**: Effort <= 2 AND Impact >= 4 — always 
 | Condition | Threshold | Action |
 |-----------|-----------|--------|
 | Composite below minimum | < 6.0 (configurable) | BLOCK |
-| Security below minimum | < 7.0 (configurable) | BLOCK |
+| Security below minimum | < 9.0 (fixed for every project, operator decision 2026-09-25) | BLOCK |
 | Any critical dimension | < 3.0 | BLOCK |
 | Coverage below minimum | < 70% (configurable) | WARN |
 

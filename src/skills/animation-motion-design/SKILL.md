@@ -1,28 +1,21 @@
 ---
 name: animation-motion-design
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Animation and motion design patterns using Motion library (formerly Framer Motion) and View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or ensuring motion accessibility with prefers-reduced-motion.
-tags: [animation, motion, framer-motion, view-transitions, micro-interactions, gestures, layout-animation, AnimatePresence, prefers-reduced-motion, spring-physics]
-context: fork
-agent: frontend-ui-developer
-version: 1.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: Animation patterns with Motion (formerly Framer Motion) and the View Transitions API. Use when implementing component animations, page transitions, micro-interactions, gesture-driven UIs, or prefers-reduced-motion support.
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 targets:
   - library: motion
-    version: ">=12.0.0"
+    version: ">=13.4.6"
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "animation, motion, framer-motion, view-transitions, micro-interactions, gestures, layout-animation, AnimatePresence, prefers-reduced-motion, spring-physics"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/animation/**", "**/motion/**", "*.motion.*", "*.framer.*"]
 ---
 
@@ -199,7 +192,7 @@ GPU compositing, avoiding layout thrash, and keeping animations at 60fps.
 
 ## Related Skills
 
-- `ork:ui-components` — shadcn/ui component patterns and CVA variants
-- `ork:responsive-patterns` — Responsive layout and container query patterns
+- `ork-extras:ui-components` — shadcn/ui component patterns and CVA variants
+- `ork-extras:responsive-patterns` — Responsive layout and container query patterns
 - `ork:performance` — Core Web Vitals and runtime performance optimization
-- `ork:accessibility` — WCAG compliance, ARIA patterns, screen reader support
+- `ork-extras:accessibility` — WCAG compliance, ARIA patterns, screen reader support

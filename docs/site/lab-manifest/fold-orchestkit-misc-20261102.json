@@ -1,0 +1,12 @@
+{
+  "slug": "fold-orchestkit-misc-20261102",
+  "source": "docs/chore--fold-orchestkit-misc-20261102/index.html",
+  "title": "Fold 1: skill fitness, dependabot cooldown, traffic snapshot",
+  "description": "One CI run for three OrchestKit changes: routing boundaries for three skills, a 14-day Dependabot cooldown, and the weekly traffic snapshot. Pick a part to see what it changes.",
+  "tags": [
+    "skills",
+    "ci",
+    "dependabot"
+  ],
+  "date": "2026-11-02"
+}

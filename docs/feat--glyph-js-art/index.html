@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>glyph JS art: four patterns, one contract</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#6b6b6b;--line:#e2e2e2;--bg:#fbfbf9;--accent:#2f6f4e;--warn:#b45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:0 0 12px;letter-spacing:-.02em}
+  .lede{color:var(--muted);font-size:20px;margin:0 0 28px;max-width:62ch}
+  .kpis{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 36px}
+  .kpi{border:1px solid var(--line);border-radius:10px;padding:10px 16px;background:#fff}
+  .kpi b{display:block;font-size:22px}
+  .kpi span{color:var(--muted);font-size:14px}
+  section{margin:40px 0;padding-top:28px;border-top:1px solid var(--line)}
+  h2{margin:0 0 6px;font-size:24px}
+  section p{margin:0 0 14px;color:var(--muted);max-width:70ch}
+  iframe{width:100%;height:430px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .cap{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:15px;color:var(--muted)}
+  .cap button{font:inherit;padding:4px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  code{font:14px ui-monospace,monospace;background:#eef4f0;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body><div class="wrap">
+<h1>glyph learns JS art for pages</h1>
+<p class="lede">Chat stays ASCII. A glyph page now carries one animated piece with a Now/Ideal toggle. Each piece below is the kernel plus one pattern, copied from <code>references/js-art.md</code> at build time.</p>
+<div class="kpis">
+  <div class="kpi"><b>4</b><span>patterns</span></div>
+  <div class="kpi"><b>1</b><span>kernel, pasted after the pattern</span></div>
+  <div class="kpi"><b>seek(t)</b><span>any frame, for mp4 or gif</span></div>
+  <div class="kpi"><b>0</b><span>network requests</span></div>
+</div>
+<div id="pieces"></div>
+</div>
+<script>
+  var KERNEL = "// js-art kernel. Reads LOOP, HERO_T, ALT, CAPTION and draw() from the pattern.\nconst C = { ink: '#1a1a1a', muted: '#6b6b6b', line: '#e2e2e2',\n  accent: '#2f6f4e', warn: '#b45309', stop: '#b91c1c' };\nconst cv = document.getElementById('art');\nconst ctx = cv.getContext('2d');\nconst still = !!(window.matchMedia &&\n  window.matchMedia('(prefers-reduced-motion: reduce)').matches);\nconst playBtn = document.getElementById('art-play');\nlet mode = 'now';\nlet playing = false;\nlet frameId = 0; // the one queued animation frame; pause() cancels it\nlet last = HERO_T;\n\nfunction rng(seed) { // mulberry32: same seed, same sequence\n  return function () {\n    seed = (seed + 0x6d2b79f5) | 0;\n    let r = Math.imul(seed ^ (seed >>> 15), 1 | seed);\n    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;\n    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;\n  };\n}\nfunction render(t) {\n  last = ((t % LOOP) + LOOP) % LOOP;\n  ctx.clearRect(0, 0, cv.width, cv.height);\n  draw(ctx, last, mode);\n}\nfunction label() { if (playBtn) playBtn.textContent = playing ? 'Pause' : 'Play'; }\nfunction play() {\n  if (still) { render(HERO_T); return; } // reduced motion: one still frame\n  cancelAnimationFrame(frameId); // never two chains: drop any queued frame\n  playing = true;\n  label();\n  const start = performance.now() - last * 1000;\n  frameId = requestAnimationFrame(function tick(now) {\n    if (!playing) return; // second stop, if a cancel is ever missed\n    render((now - start) / 1000);\n    frameId = requestAnimationFrame(tick);\n  });\n}\nfunction pause() {\n  cancelAnimationFrame(frameId); // a frame queued before the pause never runs\n  playing = false;\n  label();\n}\n\nwindow.seek = function (t) { pause(); render(t); };\nwindow.setMode = function (m) {\n  mode = m;\n  for (const b of document.querySelectorAll('[data-mode]')) {\n    b.setAttribute('aria-pressed', String(b.dataset.mode === m));\n  }\n  const cap = document.getElementById('art-caption');\n  if (cap) cap.textContent = CAPTION[m];\n  cv.setAttribute('aria-label', ALT + ' ' + CAPTION[m]);\n  render(last);\n};\nfor (const b of document.querySelectorAll('[data-mode]')) {\n  b.addEventListener('click', () => window.setMode(b.dataset.mode));\n}\nif (playBtn) {\n  playBtn.hidden = still;\n  playBtn.addEventListener('click', () => (playing ? pause() : play()));\n}\nwindow.setMode('now');\nplay();\n";
+  var PATTERNS = ["const LOOP = 8;\nconst HERO_T = 3.2;\nconst ALT = 'Twelve dots travel left to right along one line.';\nconst CAPTION = {\n  now: 'Now: work moves in bursts and piles up at the start.',\n  ideal: 'Ideal: work moves at one steady pace.',\n};\nconst N = 12;\nconst DRAG = Array.from({ length: N }, (_, i) => rng(7 + i)());\n\nfunction draw(ctx, t, mode) {\n  const w = ctx.canvas.width;\n  const y = ctx.canvas.height / 2;\n  ctx.strokeStyle = C.line;\n  ctx.lineWidth = 2;\n  ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w - 40, y); ctx.stroke();\n  for (let i = 0; i < N; i++) {\n    const phase = (t / LOOP + i / N) % 1;\n    const p = mode === 'now' ? Math.pow(phase, 1 + DRAG[i] * 2) : phase;\n    ctx.fillStyle = mode === 'now' ? C.warn : C.accent;\n    ctx.beginPath(); ctx.arc(40 + p * (w - 80), y, 8, 0, Math.PI * 2); ctx.fill();\n  }\n}\n","const LOOP = 10;\nconst HERO_T = 6;\nconst ALT = 'Dots arrive at a gate, wait in a line while it is red, and pass when it is green.';\nconst CAPTION = {\n  now: 'Now: the gate opens only when someone checks by hand.',\n  ideal: 'Ideal: the gate checks each item as it arrives.',\n};\nconst N = 10;\nconst GAP = 0.25;    // seconds between two items through the gate\nconst TRAVEL = 2;    // seconds from the gate to the right edge\nconst OPEN = { now: [[7, 8.5]], ideal: [[0, LOOP]] };\n\nfunction passTime(arrive, prev, mode) {\n  const ready = Math.max(arrive, prev + GAP);\n  for (const [a, b] of OPEN[mode]) if (ready < b) return Math.max(ready, a);\n  return Infinity; // still waiting when the loop ends\n}\nfunction draw(ctx, t, mode) {\n  const w = ctx.canvas.width;\n  const y = ctx.canvas.height / 2;\n  const gx = w / 2;\n  const open = OPEN[mode].some(([a, b]) => t >= a && t < b);\n  ctx.fillStyle = open ? C.accent : C.stop;\n  ctx.fillRect(gx - 4, y - 40, 8, 80);\n  let prev = -Infinity;\n  let waiting = 0;\n  for (let i = 0; i < N; i++) {\n    const arrive = i * 0.6;\n    const pass = passTime(arrive, prev, mode);\n    prev = pass;\n    if (t < arrive) continue;\n    let x;\n    if (t < pass) { x = gx - 24 - waiting * 20; waiting++; }\n    else x = gx + 24 + ((t - pass) / TRAVEL) * (w / 2 - 64);\n    if (x > w - 20) continue;\n    ctx.fillStyle = t < pass ? C.warn : C.accent;\n    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();\n  }\n  ctx.fillStyle = C.muted;\n  ctx.font = '16px ui-sans-serif, system-ui, sans-serif';\n  ctx.fillText('waiting: ' + waiting, 40, 40);\n}\n","const LOOP = 6;\nconst HERO_T = 4.5;\nconst ALT = 'One progress bar that shows how much of the work is done.';\nconst CAPTION = {\n  now: 'Now: half the work is redone, so the bar never fills.',\n  ideal: 'Ideal: done once, the bar fills and stays full.',\n};\n\nfunction level(t, mode) {\n  const u = t / LOOP;\n  if (mode === 'ideal') return Math.min(1, u * 1.25);\n  return 0.1 + 0.35 * Math.abs(Math.sin(2 * Math.PI * u));\n}\nfunction draw(ctx, t, mode) {\n  const w = ctx.canvas.width;\n  const h = ctx.canvas.height;\n  const v = level(t, mode);\n  ctx.fillStyle = C.line;\n  ctx.fillRect(40, h / 2 - 20, w - 80, 40);\n  ctx.fillStyle = mode === 'now' ? C.warn : C.accent;\n  ctx.fillRect(40, h / 2 - 20, (w - 80) * v, 40);\n  ctx.fillStyle = C.ink;\n  ctx.font = '600 18px ui-sans-serif, system-ui, sans-serif';\n  ctx.fillText(Math.round(v * 100) + ' % done', 40, h / 2 - 32);\n}\n","const DATA = JSON.parse(document.getElementById('art-data').textContent);\nconst LOOP = 6;\nconst HERO_T = 5;\nconst ALT = 'Bar chart of hours per step, now against ideal, from the numbers in this page.';\nconst CAPTION = {\n  now: 'Now: hours each step takes today.',\n  ideal: 'Ideal: hours each step takes after the change.',\n};\nconst MAX = Math.max(1, ...DATA.flatMap((d) => [d.now, d.ideal]).filter((v) => typeof v === 'number'));\n\nfunction draw(ctx, t, mode) {\n  const w = ctx.canvas.width;\n  const h = ctx.canvas.height;\n  const grow = Math.min(1, t / 1.5); // grow in, then hold\n  const row = (h - 40) / Math.max(1, DATA.length);\n  const track = w - 280;\n  ctx.font = '15px ui-sans-serif, system-ui, sans-serif';\n  DATA.forEach((d, i) => {\n    const y = 20 + i * row;\n    const v = d[mode];\n    const known = typeof v === 'number';\n    const bw = known ? track * (v / MAX) * grow : 0;\n    ctx.fillStyle = C.ink;\n    ctx.fillText(String(d.label), 40, y + row / 2 + 5);\n    ctx.fillStyle = C.line;\n    ctx.fillRect(180, y + row * 0.2, track, row * 0.6);\n    ctx.fillStyle = mode === 'now' ? C.warn : C.accent;\n    ctx.fillRect(180, y + row * 0.2, bw, row * 0.6);\n    ctx.fillStyle = C.muted;\n    ctx.fillText(known ? String(v) : '?', 190 + bw, y + row / 2 + 5);\n  });\n}\n"];
+  var NAMES = ["Flow dots","Gate","Before/after meter","Real-data bars"];
+  var DATA = "[{\"label\":\"review\",\"now\":14,\"ideal\":3},{\"label\":\"fix CI\",\"now\":9,\"ideal\":4},{\"label\":\"deploy\",\"now\":6,\"ideal\":2},{\"label\":\"not measured\",\"now\":null,\"ideal\":null}]";
+  var NOTES = [
+    'Spacing and speed carry the message: bunched in Now, even in Ideal.',
+    'The line grows behind a gate that a person opens by hand.',
+    'The same bar in two modes, so the toggle is the explanation.',
+    'Bars come from a JSON array in the page. The last row has no number, so it draws a question mark.'
+  ];
+  var CLOSE = '</' + 'script>';
+  function frame(i) {
+    var dataTag = i === 3 ? '<' + 'script type="application/json" id="art-data">' + DATA + CLOSE : '';
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><style>' +
+      'body{margin:0;padding:14px;font:15px ui-sans-serif,system-ui,sans-serif;color:#1a1a1a;background:#fff}' +
+      'button{font:inherit;padding:4px 12px;margin-right:6px;border:1px solid #e2e2e2;border-radius:8px;background:#fff;cursor:pointer}' +
+      'button[aria-pressed=true]{background:#2f6f4e;color:#fff;border-color:#2f6f4e}' +
+      'canvas{display:block;width:100%;height:auto;margin-top:10px}figcaption{color:#6b6b6b;margin-top:6px}' +
+      '</style></head><body><figure style="margin:0">' +
+      '<div role="group" aria-label="Compare"><button data-mode="now" aria-pressed="true">Now</button>' +
+      '<button data-mode="ideal" aria-pressed="false">Ideal</button><button id="art-play">Pause</button></div>' +
+      '<canvas id="art" width="960" height="320" role="img" aria-label="Animated comparison of now and ideal"></canvas>' +
+      '<figcaption id="art-caption"></figcaption></figure>' + dataTag +
+      '<script>' + PATTERNS[i] + '\n' + KERNEL + CLOSE + '</body></html>';
+  }
+  var host = document.getElementById('pieces');
+  PATTERNS.forEach(function (_, i) {
+    var s = document.createElement('section');
+    var h = document.createElement('h2'); h.textContent = (i + 1) + '. ' + NAMES[i];
+    var p = document.createElement('p'); p.textContent = NOTES[i];
+    var f = document.createElement('iframe'); f.title = NAMES[i] + ' piece'; f.srcdoc = frame(i);
+    var c = document.createElement('div'); c.className = 'cap';
+    var b = document.createElement('button'); b.textContent = 'seek(t = HERO_T)';
+    b.addEventListener('click', function () { var w = f.contentWindow; w.seek(w.eval('HERO_T')); });
+    c.appendChild(b);
+    var n = document.createElement('span'); n.textContent = 'pauses and draws the hero frame, the same call a capture script makes';
+    c.appendChild(n);
+    s.appendChild(h); s.appendChild(p); s.appendChild(f); s.appendChild(c); host.appendChild(s);
+  });
+</script>
+</body>
+</html>

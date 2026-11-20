@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Skill audit B5 to B8: four claims the installed plugin cannot keep</title>
+<style>
+:root{--bg:#fbfaf7;--panel:#ffffff;--ink:#14171a;--muted:#4f5864;--line:#dcd8cf;--chip:#efece5;
+--good:#17663f;--goodbg:#e8f4ec;--bad:#9b2c1c;--badbg:#fbece8;--accent:#1f5fae;
+--sans:system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+:root[data-theme="dark"]{--bg:#14171b;--panel:#1c2026;--ink:#eef1f4;--muted:#b3bcc7;--line:#363d47;--chip:#262c34;
+--good:#7bd3a1;--goodbg:#173326;--bad:#f2a08f;--badbg:#3a1f1a;--accent:#8ab8f0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans)}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+h1{font-size:26px;line-height:1.25;margin:0 0 6px}
+.sub{color:var(--muted);margin:0}
+button{white-space:nowrap;flex:none;font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .n{font-size:28px;font-weight:700}
+.kpi .l{color:var(--muted);font-size:14px}
+h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px;margin:34px 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chips button{border:1px solid var(--line);background:var(--chip);padding:4px 12px;border-radius:999px}
+.chips button[aria-pressed="true"]{border-color:var(--ink);background:var(--panel);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.card[hidden]{display:none}
+.card h3{margin:0 0 10px;font-size:17px;display:flex;gap:8px;align-items:center}
+.tag{font:600 13px var(--mono);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.kind{margin-left:auto;font:400 13px var(--sans);color:var(--muted)}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.before,.after{border-radius:8px;padding:8px 12px}
+.before{background:var(--badbg)} .after{background:var(--goodbg)}
+.lbl{font-weight:700;font-size:13px}
+.before .lbl{color:var(--bad)} .after .lbl{color:var(--good)}
+ul{margin:4px 0 0;padding-left:20px}
+ul.x li::marker{content:"✗  ";color:var(--bad)}
+ul.v li::marker{content:"✓  ";color:var(--good)}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--accent);font-weight:600}
+pre.diff{font:12.5px/1.5 var(--mono);background:var(--chip);border-radius:8px;padding:10px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+pre.diff span{display:block}
+pre.diff .add{color:var(--good)} pre.diff .del{color:var(--bad)}
+.chk{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:8px;cursor:pointer}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px}
+#count{color:var(--muted)}
+textarea{width:100%;margin-top:10px;font:13px var(--mono);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+footer{color:var(--muted);font-size:14px;margin-top:30px}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}.ba{grid-template-columns:1fr}header{flex-direction:column}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Skill audit B5 to B8: four claims the plugin cannot keep"><meta property="og:description" content="Four skills said things the shipped plugin could not do: a broken link, a zero-config promise, a file the build did not ship, and retired browser guardrails. Each is now true or removed."><meta property="og:url" content="https://orchestkit.dev/lab/fix--skill-audit-b5-b8.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Skill audit B5 to B8: four claims the plugin cannot keep"><meta name="twitter:description" content="Four skills said things the shipped plugin could not do: a broken link, a zero-config promise, a file the build did not ship, and retired browser guardrails. Each is now true or removed."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Skill audit B5 to B8: four claims the installed plugin cannot keep</h1>
+    <p class="sub">Four skills said things the shipped plugin could not do. This PR makes each one true or removes it. 8 files changed, 30 insertions(+), 22 deletions(-). No behavior change.</p>
+  </div>
+  <button id="theme" type="button" aria-label="Toggle dark mode">◐ Dark</button>
+</header>
+<div class="kpis">
+  <div class="kpi"><div class="n">4</div><div class="l">claims fixed</div></div>
+  <div class="kpi"><div class="n">3</div><div class="l">text only</div></div>
+  <div class="kpi"><div class="n">1</div><div class="l">build change</div></div>
+  <div class="kpi"><div class="n">0</div><div class="l">new hooks</div></div>
+</div>
+
+<h2 id="before-after">01 / Before and after</h2>
+<div class="chips" role="group" aria-label="Filter claims">
+  <button type="button" data-f="all" aria-pressed="true">All</button>
+  <button type="button" data-f="links" aria-pressed="false">Links</button>
+  <button type="button" data-f="promises" aria-pressed="false">Promises</button>
+  <button type="button" data-f="build" aria-pressed="false">Build</button>
+</div>
+<article class="card" data-kind="promises">
+  <h3><span class="tag">B5</span> remember <span class="kind">promises</span></h3>
+  <div class="ba">
+    <div class="before"><div class="lbl">Before</div><ul class="x"><li>Promised the knowledge graph is &quot;FREE, zero-config, always works&quot;.</li></ul></div>
+    <div class="after"><div class="lbl">After</div><ul class="v"><li>Names the memory MCP server the tools come from and how to confirm it is connected.</li></ul></div>
+  </div>
+  <details><summary>Show diff</summary><pre class="diff"><span class="del">-1. **Knowledge Graph**: Entity and relationship storage via `mcp__memory__create_entities` and `mcp__memory__create_relations` - FREE, zero-config, always works</span><span class="add">+1. **Knowledge Graph**: Entity and relationship storage via `mcp__memory__create_entities` and `mcp__memory__create_relations`. These tools come from a `memory` MCP server that OrchestKit does not bundle: configure one in the user or project scope first (for example `@modelcontextprotocol/server-memory`) and confirm it with `claude mcp list`. Without it, every graph step here does nothing.</span><span class="del">-- Zero configuration required - works out of the box</span><span class="add">+- Free and local once the memory server is configured</span></pre></details>
+</article><article class="card" data-kind="promises">
+  <h3><span class="tag">B6</span> browser-tools <span class="kind">promises</span></h3>
+  <div class="ba">
+    <div class="before"><div class="lbl">Before</div><ul class="x"><li>The description promised URL blocklisting, rate limiting and robots.txt enforcement. The hook that did this was retired on 2026-08-31.</li><li>The env table listed 6 variables that nothing reads.</li></ul></div>
+    <div class="after"><div class="lbl">After</div><ul class="v"><li>Safety rules the model follows by hand. URL policy can be enforced by the Claude Code sandbox when the operator enables it.</li><li>The env table keeps only the variables the agent-browser CLI reads.</li><li>The body, the ork-delta reference and two rules no longer say a hook checks URLs, rate or robots.txt (later commit in this PR).</li></ul></div>
+  </div>
+  <details><summary>Show diff</summary><pre class="diff"><span class="del">-description: Security wrapper over the upstream agent-browser skill, adding URL blocklisting, rate limiting, robots.txt enforcement, and scraping guardrails. Use when automating browser workflows that need safety limits.</span><span class="add">+description: Safety rules over the upstream agent-browser skill (scraping ethics, auth handling, polite request pacing, local-dev URLs); URL policy is enforced by the Claude Code sandbox, not by this skill. Use when automating browser workflows that need safety limits.</span><span class="del">-Rate limits and behavior are configurable via environment variables:</span><span class="add">+These variables are read by the upstream agent-browser CLI. The rate-limit and robots.txt variables this table used to list were read by the `agent-browser-safety` hook, retired 2026-08-31, and did nothing after that.</span><span class="del">-| `AGENT_BROWSER_RATE_LIMIT_PER_MIN` | 10 | Requests per minute per domain |</span><span class="del">-| `AGENT_BROWSER_RATE_LIMIT_PER_HOUR` | 100 | Requests per hour per domain |</span><span class="del">-| `AGENT_BROWSER_BURST_LIMIT` | 3 | Max requests in 3-second window |</span><span class="del">-| `AGENT_BROWSER_ROBOTS_CACHE_TTL` | 3600000 | robots.txt cache TTL (ms) |</span><span class="del">-| `AGENT_BROWSER_IGNORE_ROBOTS` | false | Bypass robots.txt enforcement |</span><span class="del">-| `ORCHESTKIT_AGENT_BROWSER_ALLOW_LOCALHOST` | 1 | Allow `*.localhost` subdomains (RFC 6761) |</span></pre></details>
+</article><article class="card" data-kind="build">
+  <h3><span class="tag">B7</span> doctor <span class="kind">build</span></h3>
+  <div class="ba">
+    <div class="before"><div class="lbl">Before</div><ul class="x"><li>Check 10 reads shared/cc-support.json as the single source, but the built plugin did not carry the file.</li></ul></div>
+    <div class="after"><div class="lbl">After</div><ul class="v"><li>scripts/build-plugins.sh ships it, and plugins/ork/shared/cc-support.json is present.</li></ul></div>
+  </div>
+  <details><summary>Show diff</summary><pre class="diff"><span class="add">+    # doctor check 10 tells the model to read shared/cc-support.json as the</span><span class="add">+    # single source for the supported CC floor; it lives in the repo-root</span><span class="add">+    # shared/, not src/shared, so ship it explicitly (skills audit B7).</span><span class="add">+    if [[ -d &quot;$PLUGIN_DIR/shared&quot; &amp;&amp; -f &quot;$PROJECT_ROOT/shared/cc-support.json&quot; ]]; then</span><span class="add">+        cp &quot;$PROJECT_ROOT/shared/cc-support.json&quot; &quot;$PLUGIN_DIR/shared/&quot;</span><span class="add">+    fi</span></pre></details>
+</article><article class="card" data-kind="links">
+  <h3><span class="tag">B8</span> telemetry-inspect <span class="kind">links</span></h3>
+  <div class="ba">
+    <div class="before"><div class="lbl">Before</div><ul class="x"><li>The link to metrics-collection was one ../ short, so it opened nothing.</li></ul></div>
+    <div class="after"><div class="lbl">After</div><ul class="v"><li>The path is fixed.</li></ul></div>
+  </div>
+  <details><summary>Show diff</summary><pre class="diff"><span class="del">-- **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover [dash] annotate, don&#x27;t alert. See `references/../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.</span><span class="add">+- **CC 2.1.129+**: `claude_code.pull_request.count` now also counts PRs/MRs filed via MCP tools (e.g., GitHub MCP `create_pull_request`), not just shell commands run through the Bash tool. Dashboards built before 2.1.129 will see a step-function increase at the cutover, annotate, don&#x27;t alert. See `../monitoring-observability/references/metrics-collection.md` for the join pattern that distinguishes MCP- from shell-filed PRs.</span></pre></details>
+</article>
+
+<h2 id="check">02 / How to check</h2>
+<label class="chk"><input type="checkbox" data-id="B5"> <b>B5</b> Read the Knowledge Graph setup line in remember/SKILL.md.</label><label class="chk"><input type="checkbox" data-id="B6"> <b>B6</b> Compare the env table in browser-tools/SKILL.md with the agent-browser CLI help.</label><label class="chk"><input type="checkbox" data-id="B7"> <b>B7</b> ls plugins/ork/shared/cc-support.json after npm run build.</label><label class="chk"><input type="checkbox" data-id="B8"> <b>B8</b> Open the metrics-collection link in telemetry-inspect/SKILL.md.</label>
+<div class="bar"><span id="count">0 / 4 checked</span>
+<button id="copy" type="button">Copy checklist as prompt</button></div>
+<textarea id="out" rows="6" readonly aria-label="Checklist prompt"></textarea>
+
+<footer>Self-contained page. No network requests. Diff text is taken from commit bd1923191; a dash character in the quoted source shows as [dash].</footer>
+</div>
+<script>
+const root=document.documentElement,tb=document.getElementById('theme');
+function setT(t){root.dataset.theme=t;tb.textContent=t==='dark'?'◐ Light':'◐ Dark'}
+setT(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+tb.onclick=()=>setT(root.dataset.theme==='dark'?'light':'dark');
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.chips button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const f=b.dataset.f;document.querySelectorAll('.card').forEach(c=>c.hidden=!(f==='all'||c.dataset.kind===f));
+});
+const CHECKS={"B5": "Read the Knowledge Graph setup line in remember/SKILL.md.", "B6": "Compare the env table in browser-tools/SKILL.md with the agent-browser CLI help.", "B7": "ls plugins/ork/shared/cc-support.json after npm run build.", "B8": "Open the metrics-collection link in telemetry-inspect/SKILL.md."};
+const boxes=[...document.querySelectorAll('.chk input')],out=document.getElementById('out');
+function render(){
+  const n=boxes.filter(b=>b.checked).length;
+  document.getElementById('count').textContent=n+' / '+boxes.length+' checked';
+  out.value='Verify skill audit B5 to B8 (PR 4761):\n'+boxes.map(b=>'['+(b.checked?'x':' ')+'] '+b.dataset.id+': '+CHECKS[b.dataset.id]).join('\n');
+}
+boxes.forEach(b=>b.onchange=render);render();
+document.getElementById('copy').onclick=async()=>{
+  out.select();
+  try{await navigator.clipboard.writeText(out.value)}catch(e){document.execCommand('copy')}
+};
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

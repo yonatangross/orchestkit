@@ -1,0 +1,90 @@
+{
+  "measured_at": "2026-10-31T19:10:46.449Z",
+  "node": "v26.12.1",
+  "hooks_json": "hooks-flag-on.json (outside the repo)",
+  "path": "success (PreToolUse + PostToolUse + PostToolBatch, batch of one)",
+  "results": [
+    {
+      "tool": "Bash",
+      "hookProcesses": 2,
+      "childProcesses": 1,
+      "total": 3,
+      "syncMs": 242,
+      "runs": [
+        {
+          "event": "PreToolUse",
+          "handler": "pretool/tool-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 113,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/tool-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 129,
+          "children": [
+            "git"
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Edit",
+      "hookProcesses": 2,
+      "childProcesses": 4,
+      "total": 6,
+      "syncMs": 252,
+      "runs": [
+        {
+          "event": "PreToolUse",
+          "handler": "pretool/tool-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 117,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/tool-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 135,
+          "children": [
+            "which",
+            "which",
+            "grep",
+            "git"
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Read",
+      "hookProcesses": 2,
+      "childProcesses": 0,
+      "total": 2,
+      "syncMs": 240,
+      "runs": [
+        {
+          "event": "PreToolUse",
+          "handler": "pretool/tool-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 107,
+          "children": []
+        },
+        {
+          "event": "PostToolUse",
+          "handler": "posttool/tool-dispatcher",
+          "async": false,
+          "exit": 0,
+          "ms": 133,
+          "children": []
+        }
+      ]
+    }
+  ]
+}

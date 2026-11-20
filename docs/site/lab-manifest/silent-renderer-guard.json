@@ -1,0 +1,13 @@
+{
+  "slug": "silent-renderer-guard",
+  "source": "docs/chore--dsp-7492-4326-orchestkit-pr/index.html",
+  "title": "A Silent Crash Is Not a Missing Browser",
+  "description": "The glyph triage gate tells a browser that never launched from one that rendered nothing by stderr signature, never by absent output. Proof 5 only grepped for the guard's identifiers; proof 6 runs a non-zero-exit, empty-stderr stub under -u CI and asserts the hard no-DOM failure. Also on board: every stale '# v6' comment on the setup-node v7.0.0 pin, rewritten to '# v7.0.0'.",
+  "tags": [
+    "testing",
+    "ci",
+    "glyph",
+    "false-signals"
+  ],
+  "date": "2026-09-21"
+}

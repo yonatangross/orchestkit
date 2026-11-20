@@ -1,0 +1,11 @@
+{
+  "slug": "ci-sentinel-manual-dispatch",
+  "source": "docs/docs--5132-ci-sentinel-manual/index.html",
+  "title": "The sentinel skill stops promising a cron",
+  "description": "Pick a part of the ci-sentinel skill and compare what it said before and after it was matched to the manual-only workflow.",
+  "tags": [
+    "ci",
+    "skills"
+  ],
+  "date": "2026-11-08"
+}

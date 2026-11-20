@@ -1,0 +1,8 @@
+{
+  "slug": "cli-body-timeout",
+  "source": "docs/fix--cli-body-timeout/index.html",
+  "title": "CLI timeout: headers are not the finish line",
+  "description": "Compare timeout lifetimes and recorded real CLI evidence for a response body that stalls after headers.",
+  "tags": ["cli", "testing", "timeouts"],
+  "date": "2026-11-20"
+}

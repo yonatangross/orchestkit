@@ -1,0 +1,8 @@
+{
+  "slug": "nested-readme-gate",
+  "source": "docs/fix--playground-gate-nested-readme/index.html",
+  "title": "A nested README no longer needs a playground",
+  "description": "The PR Playground gate treats README.md and CHANGELOG.md as docs at any depth, so a registry entry in src/hooks/README.md stops requiring a playground.",
+  "tags": ["ci", "playground", "gate"],
+  "date": "2026-10-30"
+}

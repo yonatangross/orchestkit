@@ -1,0 +1,12 @@
+{
+  "slug": "json-render-0-21-3-skills",
+  "source": "docs/docs--json-render-0-21-3/index.html",
+  "title": "json-render 0.21.3: what changed for the skills",
+  "description": "OrchestKit's json-render skills move from 0.21.0 to 0.21.3. Pick a package to see its export list against 0.19.0, and type a patch path to see how 0.21.3 decodes it and which writers ignore a __proto__ segment and which do not.",
+  "tags": [
+    "json-render",
+    "genui",
+    "skills"
+  ],
+  "date": "2026-10-26"
+}

@@ -1,31 +1,24 @@
 ---
 name: monitoring-observability
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing (as_type, score_current_span, should_export_span, LangfuseMedia), and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
-tags: [monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging]
-context: fork
-version: 3.0.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: Observability patterns for Prometheus metrics, Grafana dashboards, Langfuse v4 LLM tracing, and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring.
 user-invocable: false
-disable-model-invocation: true
-complexity: medium
-persuasion-type: reference
 targets:
   # Python SDK. The JS/TS SDK is a separate line at 5.x (@langfuse/* packages) — see
   # references/langfuse-js-v5.md. The self-hosted platform is a third axis (v3) and is not an
   # SDK version.
   - library: langfuse
-    version: ">=4.0.0"
-upstream-version-tested: "4.15.1"
+    version: ">=4.16.0"
+upstream-version-tested: "4.16.0"
 metadata:
+  archive-candidate: "pending an outside usage signal"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "3.0.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "monitoring, observability, prometheus, grafana, langfuse, tracing, metrics, drift-detection, logging"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 path_patterns: ["**/metrics/**", "**/tracing/**", "prometheus.*", "grafana/**"]
 ---
 
@@ -148,7 +141,7 @@ Detection and alerting for silent failures in LLM agents.
 | `references/metrics-collection.md` | Claude Code OTEL metric inventory and collector-side joins |
 | `references/dashboards.md` | Dashboard layout conventions |
 | `references/structured-logging.md` | Structured log field conventions |
-| `references/dev-agent-lens.md` | LiteLLM proxy layer for API-boundary observability |
+| `references/dev-agent-lens.md` | LiteLLM proxy layer (or Bifrost) for API-boundary observability |
 | `examples/orchestkit-monitoring-dashboard.md` | Worked monitoring dashboard example |
 | `scripts/` | Templates: Prometheus, OpenTelemetry, health checks, Langfuse |
 

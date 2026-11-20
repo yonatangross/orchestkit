@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every elicitation logged as unknown: reading the fields Claude Code sends</title>
+<meta name="description" content="elicitation-result-logger read server_name and user_response.action, which Claude Code never sends, so every ElicitationResult line said unknown. Edit the payload and compare the line the old and new logger write.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  textarea{width:100%;min-height:6.5rem;background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.6rem .8rem;font-family:inherit;font-size:.78rem}
+  .controls{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0 .9rem}
+  button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .7rem;font-family:inherit;font-size:.78rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Every elicitation logged as unknown: reading the fields Claude Code sends"><meta property="og:description" content="elicitation-result-logger read server_name and user_response.action, which Claude Code never sends, so every ElicitationResult line said unknown. Edit the payload and compare the line the old and new logger write."><meta property="og:url" content="https://orchestkit.dev/lab/elicitation-logger-fields.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Every elicitation logged as unknown: reading the fields Claude Code sends"><meta name="twitter:description" content="elicitation-result-logger read server_name and user_response.action, which Claude Code never sends, so every ElicitationResult line said unknown. Edit the payload and compare the line the old and new logger write."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Every elicitation logged as unknown</h1>
+<p class="sub">Branch fix/4884-elicitation-logger-fields, 2026-10-30, issue #4884. The <code>ElicitationResult</code> hook logs who asked and what the user chose. It read field names Claude Code never sends.</p>
+
+<section><h2>1. Edit the payload, compare the log line</h2>
+<textarea id="payload" spellcheck="false" aria-label="ElicitationResult payload JSON"></textarea>
+<div class="controls">
+  <button data-p="captured">captured on 2.1.310</button>
+  <button data-p="old">old guessed shape</button>
+  <button data-p="empty">no fields</button>
+</div>
+<div class="grid">
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">OLD: server_name, user_response.action</div><div class="out" id="old"></div></div>
+  <div><div class="dim" style="font-size:.75rem;margin-bottom:.3rem">NEW: mcp_server_name, action, old names as fallback</div><div class="out" id="new"></div></div>
+</div>
+<p class="note"><strong>Where the shape comes from.</strong> The issue captured both <code>ElicitationResult</code> payloads from a headless run on Claude Code 2.1.310 against a stdio test MCP server: <code>mcp_server_name</code>, <code>mode</code> and a top-level <code>action</code>, with no <code>server_name</code> and no <code>user_response</code>. The sibling <code>elicitation-guard</code> already reads <code>mcp_server_name</code> since #1264 and #3335; the logger was never moved over.</p>
+</section>
+
+<section><h2>2. The proof</h2>
+<p class="dim" style="font-size:.82rem;margin:0">Before the fix, the captured payload logged <code>Elicitation unknown, server: unknown</code> and the new test failed on it. After the fix it logs <code>Elicitation cancel, server: l6elicit</code>. The old-name case and the no-fields case are controls and pass both ways.</p>
+</section>
+
+<script>
+(function(){
+  var P={
+    captured:{hook_event_name:'ElicitationResult',mcp_server_name:'l6elicit',mode:'form',action:'cancel'},
+    old:{hook_event_name:'ElicitationResult',server_name:'old-mcp',user_response:{action:'accept'}},
+    empty:{hook_event_name:'ElicitationResult'}
+  };
+  var ta=document.getElementById('payload');
+  function line(p,isNew){
+    var ur=p.user_response||{};
+    var action=(isNew&&p.action)||ur.action||'unknown';
+    var server=(isNew&&p.mcp_server_name)||p.server_name||'unknown';
+    return 'Elicitation '+action+', server: '+server;
+  }
+  function show(){
+    var p;
+    try{p=JSON.parse(ta.value);}catch(e){['old','new'].forEach(function(id){var el=document.getElementById(id);el.textContent='not valid JSON';el.className='out bad';});return;}
+    [['old',false],['new',true]].forEach(function(x){var t=line(p,x[1]);var el=document.getElementById(x[0]);el.textContent=t;el.className='out '+(t.indexOf('unknown')>=0?'bad':'ok');});
+  }
+  function load(k){ta.value=JSON.stringify(P[k],null,2);show();}
+  ta.oninput=show;
+  document.querySelectorAll('button[data-p]').forEach(function(b){b.onclick=function(){load(b.getAttribute('data-p'));};});
+  load('captured');
+})();
+</script>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>

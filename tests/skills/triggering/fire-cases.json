@@ -1,0 +1,14 @@
+{
+  "_comment": "The nine natural-trigger prompts of evals/40 to 72. Each prompt names no skill. skill is the one that should be the best match in the listing; intent is the ork:auto category that should route the same prompt to it (null when the skill is outside the routes this test pins). known_gap marks a prompt the skill does not actually cover: it is reported as SKIP with the reason, never counted as a pass. Offline: no model call, no spend.",
+  "cases": [
+    {"eval": "40-triage-root-cause-from-report", "skill": "fix-issue", "intent": "diagnose"},
+    {"eval": "41-triage-regression-window", "skill": "fix-issue", "intent": null, "known_gap": "asks for exact bisect commands between two release tags; fix-issue finds the introducing commit by blame inside a root-cause pass and has no bisect step, so no honest listing wording makes it the best match"},
+    {"eval": "50-review-sql-injection", "skill": "review-pr", "intent": "review"},
+    {"eval": "51-review-unawaited-foreach", "skill": "review-pr", "intent": "review"},
+    {"eval": "60-promote-pr-title-body", "skill": "create-pr", "intent": "open-pr"},
+    {"eval": "61-promote-hotfix-path", "skill": "create-pr", "intent": null, "known_gap": "asks which branch flow gets a hotfix to production; create-pr opens a PR against the remote's default base and has no hotfix or promote flow, so no listing wording can honestly route this prompt to it"},
+    {"eval": "70-ci-debug-lockfile-drift", "skill": "ci-debug", "intent": null},
+    {"eval": "71-ci-debug-startup-billing", "skill": "ci-debug", "intent": null},
+    {"eval": "72-ci-debug-vercel-pending", "skill": "ci-debug", "intent": null}
+  ]
+}

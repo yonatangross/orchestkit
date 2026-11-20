@@ -44,12 +44,23 @@ jobs:
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
           PR_LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
           # Override label: maintainers can apply `release-please-override` for
           # legitimate exceptions (drift fixes, config schema changes, etc.).
           if echo "$PR_LABELS" | grep -q '"release-please-override"'; then
             echo "::notice::PR carries 'release-please-override' label — skipping guard"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # release-please runs only on push to main (release-please.yml `on:
+          # push: branches: [main]`), so its state machine never reads a
+          # release/* branch. A version bump on a release/* line is the
+          # maintainer's job there, not a desync, so the guard does not apply.
+          if [[ "$BASE_REF" == release/* ]]; then
+            echo "::notice::Base is ${BASE_REF}; release-please runs only on main, so it does not govern this base. Skipping guard."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -135,9 +146,22 @@ jobs:
             exit 1
           fi
 
-          # Use grep -F -f to find lines from governed.txt present in changed.txt.
-          # An empty match list = clean PR; any match = violation.
-          violations=$(grep -F -x -f /tmp/governed.txt /tmp/changed.txt || true)
+          # Use grep -F -x to find governed paths present in changed.txt.
+          # An empty match list = clean PR; any match = violation UNLESS the
+          # file's committed content equals the current base tip: that means
+          # the change was inherited by merging main (release-please's own
+          # commits), not authored by this PR. Same exception the pre-commit
+          # hook got in #4277.
+          violations=""
+          while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            grep -F -x -q "$path" /tmp/changed.txt || continue
+            if git diff --quiet "origin/$BASE_REF" HEAD -- "$path"; then
+              echo "::notice::$path matches the current $BASE_REF tip (inherited via merge, not authored), allowed."
+              continue
+            fi
+            violations+="${violations:+$'\n'}$path"
+          done < /tmp/governed.txt
 
           # Field-level check: for json extra-files, a change is only a
           # violation if the governed jsonpath VALUE differs from the merge
@@ -148,6 +172,12 @@ jobs:
           while IFS=$'\t' read -r path jsonpath; do
             [[ -z "$path" ]] && continue
             grep -F -x -q "$path" /tmp/changed.txt || continue
+            # Same inherited-from-main exception: identical to the current
+            # base tip means the diff line came from a main merge.
+            if git diff --quiet "origin/$BASE_REF" HEAD -- "$path"; then
+              echo "::notice::$path matches the current $BASE_REF tip (inherited via merge, not authored), allowed."
+              continue
+            fi
             # $.version -> .version (jq filter)
             jq_path="${jsonpath#$}"
             base_val=$(git show "$merge_base:$path" 2>/dev/null | jq -r "$jq_path" 2>/dev/null || echo "__ABSENT__")

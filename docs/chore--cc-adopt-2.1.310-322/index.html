@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC 2.1.310 to 2.1.322 adoption</title>
+<meta name="description" content="Filter the Claude Code 2.1.310 to 2.1.322 items that matter to ork by verdict: adopted here, documented, or a follow-up issue, and copy a selection as a prompt.">
+<style>
+  :root{--pg-bg:oklch(19% .012 265);--pg-panel:oklch(23% .014 265);--pg-edge:oklch(32% .016 265);--pg-ink:oklch(94% .006 265);--pg-dim:oklch(72% .02 265);--pg-accent:oklch(83% .09 225);--pg-well:oklch(16% .01 265);--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--pg-bg);color:var(--pg-ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--pg-dim);margin:0 0 1.5rem;font-size:.85rem}
+  section{background:var(--pg-panel);border:1px solid var(--pg-edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  label{color:var(--pg-dim);font-size:.8rem;margin-right:.6rem}
+  select,button{background:var(--pg-well);color:var(--pg-ink);border:1px solid var(--pg-edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  button{cursor:pointer;margin-top:1rem}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:1rem}
+  th,td{text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--pg-edge);vertical-align:top}
+  th{color:var(--pg-dim);font-weight:400}
+  .tag{color:var(--pg-accent)}
+  @media (prefers-reduced-motion:reduce){*{transition:none;animation:none}}
+</style>
+</head>
+<body><main>
+<h1>CC 2.1.310 to 2.1.322 adoption</h1>
+<p class="sub">767 changelog bullets across 10 releases (2.1.313, 2.1.315 and 2.1.320 are absent upstream). No breaks. latest_known moves to 2.1.322; the floor stays 2.1.277.</p>
+<section>
+<label for="pick">Verdict</label>
+<select id="pick">
+  <option value="all">all</option>
+  <option value="adopted">adopted here</option>
+  <option value="doc">documented</option>
+  <option value="follow-up">follow-up issue</option>
+</select>
+<table><thead><tr><th>Version</th><th>Change</th><th>For ork</th><th>Verdict</th></tr></thead><tbody id="rows"></tbody></table>
+<button id="copy" type="button">Copy selection as prompt</button>
+</section>
+<script>
+const ROWS = [
+  ["2.1.321", "Fable 5.2 is the default Fable model ($8/$40)", "claude-fable-5-2 pricing row; was costed at the Sonnet 5.5 fallback", "adopted"],
+  ["2.1.312", "claude_code.safety_event no longer sent", "otel-fields.md marks it 2.1.307 to 2.1.311 only", "adopted"],
+  ["2.1.317", "anthropic.plan, seat_type, provider, custom_base_url on OTel", "listed in otel-fields.md", "doc"],
+  ["2.1.312", "OTel effort names the level in force", "per-effort panels over older data can misattribute", "doc"],
+  ["2.1.314", "Bash hooks run on Monitor's shell commands", "ork's Bash guards now cover Monitor; rewrites ignored there", "doc"],
+  ["2.1.311", "SubagentStop fired twice a minute per subagent", "older SubagentStop telemetry may be inflated", "doc"],
+  ["2.1.319", "self-paced /loop ends without a reschedule", "skills on dynamic pacing must call ScheduleWakeup each turn", "doc"],
+  ["2.1.319", "permissions.denyInsteadOfPrompting", "doctor should report it for unattended lanes (#5173)", "follow-up"],
+  ["2.1.314", "permissions.blockWritesOutsideWorkingDirectories", "doctor should warn that memory writes get refused (#5174)", "follow-up"],
+  ["2.1.321", "saved Fable 5.1 picks move to fable", "advance the fable alias to 5.2 (#5175)", "follow-up"],
+  ["2.1.318", "mod prompt.submit context stays in the user turn", "re-measure memory-lens delivery (#5176)", "follow-up"]
+];
+const body = document.getElementById('rows');
+const pick = document.getElementById('pick');
+function shown() { return ROWS.filter(r => pick.value === 'all' || r[3] === pick.value); }
+function render() {
+  body.replaceChildren(...shown().map(r => {
+    const tr = document.createElement('tr');
+    r.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 3) td.className = 'tag'; tr.append(td); });
+    return tr;
+  }));
+}
+pick.addEventListener('change', render);
+document.getElementById('copy').addEventListener('click', () => {
+  const lines = shown().map(r => '- ' + r[0] + ': ' + r[1] + ' -> ' + r[2] + ' [' + r[3] + ']');
+  navigator.clipboard.writeText('Act on these Claude Code adoption items in OrchestKit:\n' + lines.join('\n'));
+});
+render();
+</script>
+</main></body>
+</html>

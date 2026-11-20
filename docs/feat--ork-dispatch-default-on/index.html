@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ork tool dispatchers become the shipped default</title>
+<meta name="description" content="The shipped ork hooks.json now runs one PreToolUse and one PostToolUse dispatcher process per tool call. Pick a tool to compare processes and the time Claude Code waits, before and after, and see the spawn ratchet that holds the new count.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:64rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  .row{display:grid;grid-template-columns:11rem 1fr 6rem;gap:.6rem;align-items:center;font-size:.8rem;margin:.35rem 0}
+  .bar{height:.9rem;border-radius:3px;background:var(--bad)}
+  .bar.on{background:var(--ok)}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.78rem;white-space:pre-wrap}
+  table{border-collapse:collapse;font-size:.8rem;width:100%}
+  th,td{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:start}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  .note strong{color:var(--warn)}
+</style>
+</head>
+<body><main>
+<h1>ork tool dispatchers become the shipped default</h1>
+<p class="sub">Branch feat/ork-dispatch-default-on. <code>scripts/build-plugins.sh</code> now writes <code>plugins/ork/hooks/hooks.json</code> as <code>shippedToolHooks(src/hooks/hooks.json)</code> (#4962, #4971): one PreToolUse and one PostToolUse dispatcher, every other event kept, PostToolBatch included. Only the opt-in flag variant (<code>unifiedToolHooks</code>) drops PostToolBatch. <code>src/hooks/hooks.json</code> stays the per-handler registry. Numbers below are a replay by <code>scripts/measure-hook-processes.mjs</code> on 2026-11-02 against the flag variant (PostToolBatch dropped), three runs in alternating order at load 23 to 26; they are local wall clock, not production. The shipped default adds one async <code>tool-batch-observer</code> process per batch on top of them, not measured here.</p>
+
+<section><h2>1. Pick a tool</h2>
+<div class="controls">
+  <select id="tool" aria-label="tool">
+    <option>Bash</option><option>Edit</option><option>Read</option>
+  </select>
+  <select id="metric" aria-label="metric">
+    <option value="procs">processes per call (hooks + forks)</option>
+    <option value="wait">time Claude Code waits (median sync ms)</option>
+  </select>
+</div>
+<div id="rows"></div>
+<div class="out" id="out"></div>
+<p class="note"><strong>Why the wait does not grow.</strong> Before, most PostToolUse observers were <code>async</code>: Claude Code did not wait for them, but each was still a node process. Now they run inside the one PostToolUse dispatcher, after the guards and within their own budgets, so their time counts toward the wait. The median wait still fell for every tool, because one process start replaces several.</p>
+</section>
+
+<section><h2>2. The ratchet that holds it</h2>
+<table id="ratchet"><thead><tr><th>path</th><th>Bash</th><th>Edit</th><th>Write</th><th>Read</th></tr></thead><tbody></tbody></table>
+<p class="note"><strong>Paired probe.</strong> <code>spawn-ratchet.mjs</code> holds the shipped copy by baseline (PostToolBatch counted once per call, so one above the variant on every path) and checks the under-3 M1 target on the flag variant (2 per call, met). Adding one Bash command entry to the shipped file prints <code>ROSE success.Bash: 3 -> 4</code> and fails; the unchanged file prints <code>OK</code> (<code>src/__tests__/shipped-dispatchers.test.ts</code>).</p>
+<div class="controls"><button id="copy" type="button">copy numbers as JSON</button><span id="copied" class="sub"></span></div>
+</section>
+
+<script>
+const REPLAY = {
+  Bash: { before: { hooks: 11, forks: 1, wait: [333, 305, 507] }, after: { hooks: 2, forks: 1, wait: [217, 380, 213] } },
+  Edit: { before: { hooks: 17, forks: 4, wait: [619, 399, 401] }, after: { hooks: 2, forks: 4, wait: [225, 287, 392] } },
+  Read: { before: { hooks: 5, forks: 0, wait: [305, 294, 318] }, after: { hooks: 2, forks: 0, wait: [250, 219, 479] } }
+};
+const RATCHET = {
+  success:    { Bash: [12, 3], Edit: [18, 3], Write: [18, 3], Read: [6, 3] },
+  permission: { Bash: [14, 5], Edit: [20, 5], Write: [20, 5], Read: [6, 3] },
+  failure:    { Bash: [6, 4],  Edit: [6, 4],  Write: [6, 4],  Read: [4, 2] }
+};
+const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+function value(side, metric) {
+  return metric === 'procs' ? side.hooks + side.forks : median(side.wait);
+}
+function render() {
+  const t = document.getElementById('tool').value;
+  const m = document.getElementById('metric').value;
+  const d = REPLAY[t];
+  const vals = [['before', value(d.before, m)], ['after', value(d.after, m)]];
+  const max = Math.max(...vals.map((v) => v[1]));
+  const rows = document.getElementById('rows');
+  rows.textContent = '';
+  for (const [k, v] of vals) {
+    const r = document.createElement('div'); r.className = 'row';
+    const a = document.createElement('span'); a.textContent = k;
+    const b = document.createElement('div'); b.className = 'bar' + (k === 'after' ? ' on' : '');
+    b.style.width = (v / max * 100) + '%';
+    const c = document.createElement('span'); c.textContent = m === 'procs' ? `${v} procs` : `${v} ms`;
+    r.append(a, b, c); rows.append(r);
+  }
+  document.getElementById('out').textContent = m === 'procs'
+    ? `${t}: ${d.before.hooks} hook processes + ${d.before.forks} forks before, ${d.after.hooks} + ${d.after.forks} after on the flag variant (one PreToolUse and one PostToolUse dispatcher). The shipped default keeps PostToolBatch: one more async process per batch.`
+    : `${t}: sync wall per run before ${d.before.wait.join(', ')} ms, after ${d.after.wait.join(', ')} ms. Noisy at this load; the medians are shown.`;
+}
+function renderRatchet() {
+  const body = document.querySelector('#ratchet tbody');
+  for (const [path, tools] of Object.entries(RATCHET)) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('td'); th.textContent = path; tr.append(th);
+    for (const tool of ['Bash', 'Edit', 'Write', 'Read']) {
+      const td = document.createElement('td'); td.textContent = `${tools[tool][0]} -> ${tools[tool][1]}`; tr.append(td);
+    }
+    body.append(tr);
+  }
+}
+document.getElementById('tool').addEventListener('change', render);
+document.getElementById('metric').addEventListener('change', render);
+document.getElementById('copy').addEventListener('click', async () => {
+  const text = JSON.stringify({ replay: REPLAY, ratchet: RATCHET }, null, 2);
+  try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'copied'; }
+  catch { document.getElementById('copied').textContent = 'clipboard blocked'; }
+});
+render();
+renderRatchet();
+</script>
+</main></body>
+</html>

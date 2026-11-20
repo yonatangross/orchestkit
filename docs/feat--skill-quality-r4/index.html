@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill fitness round 4: fixes land, the graders move the bar</title>
+<meta name="description" content="Round 4 of the OrchestKit quality loop fixed review-pr, verify and expect. The scripted checklist rose; the two fresh LLM graders found new issues in skills nobody touched. Pick a score source to see both effects.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:60rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{color:var(--dim);font-size:.8rem}
+  select{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  table{border-collapse:collapse;width:100%;font-size:.78rem;margin-top:.8rem}
+  td,th{border-bottom:1px solid var(--edge);padding:.3rem .5rem;text-align:left}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .dim{color:var(--dim)}
+</style>
+</head>
+<body><main>
+<h1>Skill fitness round 4: fixes land, the graders move the bar</h1>
+<p class="sub">Branch feat/skill-quality-r4, 2026-11-07. Fixed review-pr, verify and expect (phantom skills, repo-only paths, a wrong flow format, old version tags). Scored by two fresh LLM graders plus the scripted checklist, all 0 to 10.</p>
+
+<section><h2>How each skill moved</h2>
+<label for="src">score source</label>
+<select id="src">
+  <option value="avg">average of all three</option>
+  <option value="C">checklist (deterministic)</option>
+  <option value="A">grader A</option>
+  <option value="B">grader B</option>
+</select>
+<table>
+<thead><tr><th>skill</th><th class="num">before</th><th class="num">after</th><th class="num">change</th><th>edited</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p class="dim" id="mean" aria-live="polite"></p>
+</section>
+
+<section><h2>What the numbers say</h2>
+<p class="dim">The checklist only moves when a file changes, so it rose exactly where the fixes went. The fresh graders each read deeper than the last pair and found new issues in skills nobody edited (a team_name contradiction, an undefined --force flag, a phase order that disagrees with its table), so their scores for untouched skills fell. A fresh grader per round keeps raising the bar.</p>
+</section>
+
+<script>
+const SKILLS = ['review-pr', 'verify', 'expect', 'auto', 'page-serve', 'glyph', 'ci-debug', 'brainstorm', 'visualize-plan', 'assess'];
+const EDITED = new Set(['review-pr', 'verify', 'expect']);
+const BEFORE = {
+  A: { 'review-pr': 16, expect: 18, verify: 19, 'visualize-plan': 19, auto: 20, 'ci-debug': 20, brainstorm: 20, assess: 20, 'page-serve': 22, glyph: 23 },
+  B: { 'ci-debug': 18, 'review-pr': 19, expect: 21, 'page-serve': 22, verify: 22, brainstorm: 22, auto: 23, 'visualize-plan': 24, glyph: 24, assess: 24 },
+  C: { auto: 7, verify: 7, 'page-serve': 8, glyph: 8, expect: 8, 'review-pr': 9, 'visualize-plan': 10, 'ci-debug': 10, brainstorm: 10, assess: 10 },
+};
+const AFTER = {
+  A: { verify: 18, brainstorm: 18, 'ci-debug': 18, 'visualize-plan': 19, glyph: 19, 'review-pr': 20, auto: 20, 'page-serve': 20, assess: 20, expect: 21 },
+  B: { brainstorm: 18, 'review-pr': 18, 'visualize-plan': 19, 'page-serve': 19, 'ci-debug': 19, verify: 20, auto: 21, assess: 21, glyph: 22, expect: 22 },
+  C: { auto: 7, 'page-serve': 8, glyph: 8, 'review-pr': 10, verify: 10, expect: 10, 'visualize-plan': 10, 'ci-debug': 10, brainstorm: 10, assess: 10 },
+};
+const val = (set, src, s) => src === 'avg' ? (set.A[s] / 3 + set.B[s] / 3 + set.C[s]) / 3 : src === 'C' ? set.C[s] : set[src][s] / 3;
+function render() {
+  const src = document.getElementById('src').value;
+  const tbody = document.getElementById('rows');
+  tbody.replaceChildren();
+  let mb = 0, ma = 0;
+  for (const s of SKILLS) {
+    const b = val(BEFORE, src, s), a = val(AFTER, src, s), d = a - b;
+    mb += b; ma += a;
+    const tr = document.createElement('tr');
+    [s, b.toFixed(1), a.toFixed(1), (d >= 0 ? '+' : '') + d.toFixed(1), EDITED.has(s) ? 'yes' : 'no'].forEach((text, i) => {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (i > 0 && i < 4) td.className = 'num' + (i === 3 ? (d > 0.05 ? ' ok' : d < -0.05 ? ' bad' : '') : '');
+      tr.append(td);
+    });
+    tbody.append(tr);
+  }
+  document.getElementById('mean').textContent = `Mean ${(mb / SKILLS.length).toFixed(2)} before, ${(ma / SKILLS.length).toFixed(2)} after.`;
+}
+document.getElementById('src').addEventListener('change', render);
+render();
+</script>
+</main></body>
+</html>

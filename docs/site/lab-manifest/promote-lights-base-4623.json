@@ -1,0 +1,8 @@
+{
+  "slug": "promote-lights-base-4623",
+  "source": "docs/fix--promote-lights-base-4623/index.html",
+  "title": "promote-lights: a configurable promote base (PROMOTE_BASE)",
+  "description": "In a dev, qa, main flow the promote PR goes into qa. PROMOTE_BASE (default main) now sets the base for both session PR queries and for the required checks, and the no-PR hint names it.",
+  "tags": ["mods", "promote-lights", "config"],
+  "date": "2026-10-16"
+}

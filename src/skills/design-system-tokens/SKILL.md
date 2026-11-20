@@ -1,28 +1,21 @@
 ---
 name: design-system-tokens
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: Design token management with the W3C Design Token spec, three-tier hierarchy (global/alias/component), OKLCH color, Style Dictionary transforms, and dark mode theming. Use when creating token files, implementing theme systems, or building design-to-code pipelines.
-tags: [design-tokens, w3c-tokens, oklch, style-dictionary, theming, dark-mode, css-variables, tailwind-theme, design-system, color-spaces]
-context: fork
-agent: frontend-ui-developer
-version: 1.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "W3C design tokens: global, alias and component tiers, OKLCH color, Style Dictionary, dark mode. Use when creating token files or theme systems."
 user-invocable: false
-complexity: medium
-persuasion-type: guidance
 targets:
   - library: "style-dictionary"
-    version: ">=5.3.0"
+    version: ">=5.5.5"
 metadata:
+  owner-agent: "frontend-ui-developer"
   category: document-asset-creation
   dtcg-version: "v2025.10"
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "1.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "design-tokens, w3c-tokens, oklch, style-dictionary, theming, dark-mode, css-variables, tailwind-theme, design-system, color-spaces"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # Design System Tokens
@@ -255,7 +248,7 @@ The `design-system-architect` agent orchestrates token workflows end-to-end — 
 
 ## Related Skills
 
-- `ork:ui-components` — Component library patterns (shadcn/ui, Radix)
-- `ork:accessibility` — WCAG compliance, contrast ratios
-- `ork:responsive-patterns` — Responsive breakpoints, fluid typography
-- `ork:figma-design-handoff` — Figma Variables to tokens pipeline
+- `ork-extras:ui-components` — Component library patterns (shadcn/ui, Radix)
+- `ork-extras:accessibility` — WCAG compliance, contrast ratios
+- `ork-extras:responsive-patterns` — Responsive breakpoints, fluid typography
+- `ork-extras:figma-design-handoff` — Figma Variables to tokens pipeline

@@ -731,6 +731,7 @@ prepare_scaffold() {
                 git init -q
                 git config user.email "eval@orchestkit.dev"
                 git config user.name "Eval Runner"
+                git config commit.gpgsign false
                 mkdir -p src tests
                 echo '{"name":"eval-project","scripts":{"test":"echo ok","build":"echo ok"}}' > package.json
                 cat > src/auth.ts << 'SCAFFOLD_EOF'

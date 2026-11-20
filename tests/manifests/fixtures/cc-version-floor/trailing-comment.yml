@@ -1,0 +1,14 @@
+# Fixture for check 6 of tests/manifests/test-cc-version-floor.sh (#4686).
+# Shape (a) of HOLD 6108025314: the first install step keeps a literal floor
+# and moves the jq read into a trailing comment. The second install step is
+# correct. The scan must flag the first step's pin.
+steps:
+  - name: Install Claude Code CLI
+    run: |
+      CC_FLOOR=2.1.251  # CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"
+
+  - name: Install Claude Code CLI
+    run: |
+      CC_FLOOR=$(jq -er '.supported_floor' shared/cc-support.json)
+      npm install -g "@anthropic-ai/claude-code@${CC_FLOOR}"

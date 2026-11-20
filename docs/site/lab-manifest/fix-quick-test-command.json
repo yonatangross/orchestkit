@@ -1,0 +1,8 @@
+{
+  "slug": "fix-quick-test-command",
+  "source": "docs/docs--fix-quick-test-command/index.html",
+  "title": "Two hyphens. The right test suite.",
+  "description": "Compare captured npm output to see why the quick-test flag needs an argument separator.",
+  "tags": ["testing", "docs"],
+  "date": "2026-11-20"
+}

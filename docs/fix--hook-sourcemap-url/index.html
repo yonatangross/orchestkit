@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hook sourcemaps: 11 dangling references to zero</title>
+  <meta name="description" content="Measured before and after evidence for removing sourceMappingURL comments from shipped hook bundles.">
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.6; }
+    body { max-width: 58rem; margin: 3rem auto; padding: 0 1rem; }
+    h1 { line-height: 1.2; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #888; padding: .7rem; text-align: left; }
+    pre { padding: 1rem; background: light-dark(#f1f5f9, #172033); overflow-x: auto; }
+    code { font-family: ui-monospace, monospace; }
+    summary { cursor: pointer; font-weight: 600; }
+    section, details { margin-top: 2rem; }
+    :focus-visible { outline: 3px solid #3984cf; outline-offset: 4px; }
+  </style>
+</head>
+<body>
+<main>
+  <p>Build evidence / hook packaging</p>
+  <h1>Eleven missing maps. No dangling references after the fix.</h1>
+  <p>This checkout builds hooks with esbuild, not Rolldown. The plugin packaging step excludes <code>*.map</code>, but the old build emitted comments pointing to them.</p>
+  <table>
+    <caption>Measured shipped bundles in plugins/ork/hooks/dist</caption>
+    <thead><tr><th scope="col">Check</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Bundles checked</th><td>11</td><td>11</td></tr>
+      <tr><th scope="row">Dangling sourceMappingURL references</th><td>11</td><td>0</td></tr>
+      <tr><th scope="row">Missing-map warning on Vitest import</th><td>Reproduced</td><td>Absent</td></tr>
+    </tbody>
+  </table>
+  <details>
+    <summary>Read the exact BEFORE warning</summary>
+    <pre>8:57:43 AM [vite] (ssr) Failed to load source map for /home/ubuntu/repos/orchestkit/plugins/ork/hooks/dist/notification.mjs.
+Error: An error occurred while trying to read the map file at notification.mjs.map
+Error: ENOENT: no such file or directory, open '/home/ubuntu/repos/orchestkit/plugins/ork/hooks/dist/notification.mjs.map'</pre>
+    <p>The original suite alone did not reproduce the warning. The new regression test imports the shipped notification bundle through Vitest and reproduced it before the fix.</p>
+  </details>
+  <section>
+    <h2>The change</h2>
+    <pre>sourcemap: true  →  sourcemap: 'external'</pre>
+    <p>In <code>src/hooks/esbuild.config.mjs</code>, external maps remain available locally without automatic URL comments. The packaging exclusion remains unchanged.</p>
+    <h2>AFTER output</h2>
+    <pre>Bundles checked: 11; dangling sourceMappingURL references: 0
+ Test Files  364 passed (364)
+      Tests  8770 passed | 3 skipped (8773)</pre>
+    <p>No missing-sourcemap warnings appeared in the AFTER targeted or full hook-suite logs. An unrelated existing Vite configuration warning about <code>__dirname</code> remains.</p>
+  </section>
+  <section>
+    <h2>Reproduce from the repository root</h2>
+    <p>Build hooks, assemble the plugin, then run the regression test against the shipped bundles:</p>
+    <pre>npm --prefix src/hooks run build &amp;&amp; npm run build &amp;&amp; npm --prefix src/hooks test -- src/__tests__/bundle-sourcemaps.test.ts</pre>
+    <p>The test rejects URL comments in every shipped bundle, rejects an empty bundle set, and loads a shipped bundle through Vitest. This is a saved evidence page, not a live test runner.</p>
+  </section>
+</main>
+</body>
+</html>

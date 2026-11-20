@@ -1,0 +1,20 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# FLAG: the REST merge called with bracket notation (XREVIEW 6413344349).
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Merge from a script
+        uses: actions/github-script@0000000000000000000000000000000000000000  # fixture pin
+        with:
+          script: |
+            await github.rest.pulls["merge"]({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: 123,
+            });

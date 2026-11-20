@@ -16,7 +16,7 @@ async function notFound(
 	const { path } = await params;
 	const instance = `/api/${(path ?? []).join("/")}`;
 	return problemResponse({
-		type: "https://orchestkit.yonyon.ai/docs/reference",
+		type: "https://orchestkit.dev/docs/reference",
 		title: "API endpoint not found",
 		status: 404,
 		detail: `No API endpoint matches ${instance}. See the API catalog at /.well-known/api-catalog or the OpenAPI spec at /api/openapi.`,

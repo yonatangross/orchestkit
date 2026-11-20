@@ -55,6 +55,12 @@ export function tldrSummary(input: HookInput, ctx: HookContext = NOOP_CTX): Hook
       return outputSilentSuccess();
     }
 
+    // Guard: allow_large (CC 2.1.296) asks for the whole file in one call; a
+    // summary would only add tokens the model is about to read in full.
+    if (toolInput.allow_large === true) {
+      return outputSilentSuccess();
+    }
+
     // Guard: unsupported extension
     const dotIdx = filePath.lastIndexOf('.');
     if (dotIdx === -1) {

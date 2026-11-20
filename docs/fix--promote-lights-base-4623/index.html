@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>promote-lights: a configurable promote base (PROMOTE_BASE)</title>
+<meta name="description" content="In a dev, qa, main flow the promote PR goes into qa, and promote-lights only searched base main. PROMOTE_BASE now sets the base for both PR queries and for the required checks.">
+<style>
+body{background:#faf9f6;color:#1d1d1b;font:15px/1.55 -apple-system,system-ui,sans-serif;max-width:980px;margin:0 auto;padding:28px 20px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:34px 0 8px;border-bottom:1px solid #e3e1da;padding-bottom:4px}
+.lede{color:#6b6a64;margin:0 0 18px}.verdict{border-left:4px solid #2f6f3e;background:#fff;padding:10px 14px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+.kpi{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:22px}.kpi span{color:#6b6a64;font-size:13px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #e3e1da;border-radius:10px;padding:10px 14px}.card h3{margin:0 0 6px;font-size:14px}
+.before h3{color:#a32020}.after h3{color:#2f6f3e}
+code,pre{font:12.5px/1.45 ui-monospace,Menlo,monospace}pre{background:#f2f1ec;border-radius:8px;padding:10px 12px;overflow:auto;white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid #e3e1da;padding:6px 8px;text-align:left;vertical-align:top}th{color:#6b6a64;font-weight:600}
+.warn{border-left:4px solid #b7791f;background:#fff;padding:10px 14px;border-radius:6px}
+label{font-size:14px;margin-right:12px}input{font:13px ui-monospace,Menlo,monospace;padding:3px 6px;width:130px}
+@media(prefers-color-scheme:dark){body{background:#161615;color:#ecebe6}.lede,th,.kpi span{color:#9a998f}.verdict,.warn,.kpi,.card{background:#1f1f1d;border-color:#33332f}pre{background:#262623}td,th,h2{border-color:#33332f}.before h3{color:#f0a0a0}.after h3{color:#8fe08f}}
+</style></head><body>
+
+<h1>promote-lights: a configurable promote base</h1>
+<p class="lede">Branch <code>fix/promote-lights-base-4623</code>, refs #4623. A repo that promotes development into qa, then qa into main, always got <code>no promote PR open</code>.</p>
+
+<p class="verdict"><b>Verdict.</b> Both session-start PR queries passed <code>--base main</code>, and the session tracked base was the literal <code>"main"</code>. <code>PROMOTE_BASE</code> (default <code>main</code>) now goes to both queries and becomes the tracked base, so the required checks come from that branch. Head globs such as <code>release/*</code> are not in this change.</p>
+
+<div class="kpis">
+<div class="kpi"><b>123</b><span>tests passing in mods/promote-lights</span></div>
+<div class="kpi"><b>+2</b><span>new tests, red on main</span></div>
+<div class="kpi"><b>0.0.13</b><span>promote-lights version</span></div>
+</div>
+
+<h2>1. Try the queries</h2>
+<p><label>PROMOTE_HEAD <input id="h" value="development"></label><label>PROMOTE_BASE <input id="b" value="qa"></label></p>
+<pre id="out"></pre>
+<script>
+function render(){
+  var h=document.getElementById('h').value||'dev', b=document.getElementById('b').value||'main';
+  var f='--state open --json number,headRefName,headRefOid,title,labels --limit 100';
+  document.getElementById('out').textContent=
+    'gh pr list --base '+b+' --head '+h+' '+f+'\n'+
+    'gh pr list --base '+b+' --label promote '+f+'\n'+
+    'gh api repos/{owner}/{repo}/branches/'+b+'/protection\n'+
+    'gh api repos/{owner}/{repo}/rules/branches/'+b+'\n\n'+
+    'no PR: no promote PR open with head "'+h+'" into "'+b+'" (set PROMOTE_HEAD or PROMOTE_BASE to look for another)';
+}
+document.getElementById('h').oninput=render;document.getElementById('b').oninput=render;render();
+</script>
+
+<h2>2. Before and after</h2>
+<div class="cols">
+<div class="card before"><h3>Before</h3>
+<pre>buildHeadQueryArgs(head)   --base main
+buildLabelQueryArgs()      --base main
+tracked.base = "main"
+hint: ... into main (set PROMOTE_HEAD ...)</pre></div>
+<div class="card after"><h3>After</h3>
+<pre>buildHeadQueryArgs(head, base)  --base base
+buildLabelQueryArgs(base)       --base base
+tracked.base = PROMOTE_BASE or "main"
+hint: ... into "base" (set PROMOTE_HEAD or PROMOTE_BASE ...)</pre></div>
+</div>
+
+<h2>3. Checks</h2>
+<table>
+<tr><th>Step</th><th>Result</th></tr>
+<tr><td>red commit 3a8dbaf72, <code>npx vitest run</code></td><td>2 failed, 121 passed</td></tr>
+<tr><td>fix commit, <code>npx vitest run</code></td><td>123 passed, 5 test files</td></tr>
+<tr><td><code>npx tsc --noEmit</code></td><td>clean</td></tr>
+<tr><td><code>claude plugin validate mods/promote-lights</code></td><td>passed</td></tr>
+</table>
+
+<h2>4. Not measured</h2>
+<p class="warn"><b>No live run.</b> No session was started against a real repo with a development, qa, main flow. The commands above are the argv the unit tests assert.</p>
+</body></html>

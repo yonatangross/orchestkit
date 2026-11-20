@@ -17,7 +17,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **notebooklm-mcp** | Google NotebookLM RAG | Cloud (Google) | External knowledge base, research synthesis, studio content |
 | **fal** | AI inference (1000+ models: FLUX.2, Kling, LTX, TTS) | Cloud (fal.ai) | multimodal-specialist, demo-producer, design-to-code |
 
-> **Subagent Model Note:** Sequential-thinking MCP is redundant for Opus 4.6+ (which has native adaptive thinking), but OrchestKit ships 30+ Sonnet/Haiku subagents that **do not** have native extended thinking. These subagents benefit from sequential-thinking for complex multi-step reasoning. Enable it for the subagent mix, not the parent model.
+> **Subagent Model Note:** Sequential-thinking MCP is redundant on models with native adaptive thinking (Opus 4.6+, Sonnet 4.6, Sonnet 5 and Sonnet 5.5; on by default from Opus 5 and on Sonnet 5). Haiku 4.5 supports extended thinking only with an explicit `budget_tokens`, so its subagents gain the most from sequential-thinking. Enable it for the subagent mix, not the parent model. <!-- model-recency-ok: per-model contrast, Sonnet 5 lacks what Sonnet 5.5 has (platform docs 2026-09-28) -->
 
 ## Recommended MCPs by Project Type
 
@@ -87,7 +87,7 @@ mcpServers: [tavily]
 - **`mcpServers: [tavily]`** → agent ONLY sees tavily tools
 - **`mcpServers: []`** → agent sees NO MCP tools
 
-OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessary tool definitions into their smaller context windows (Sonnet: 128K vs Opus: 200K).
+OrchestKit agents declare `mcpServers` explicitly to avoid inheriting unnecessary tool definitions into their context windows (every schema the parent loads costs each subagent context).
 
 ## Background Agent Limitation
 
@@ -115,7 +115,7 @@ With 4 MCPs (~4.2K tokens = 2.1% of 200K), schemas load upfront. This is accepta
 
 **Tighten the threshold:** Set `ENABLE_TOOL_SEARCH=auto:5` in your shell profile to defer at 5% instead of 10%.
 
-**Note:** MCPSearch requires Sonnet 4+ or Opus 4+ — Haiku agents cannot use it and always get full schema overhead. OrchestKit's 2 Haiku agents (ci-cd-engineer, release-engineer) use `mcpServers` scoping to minimize their MCP exposure.
+**Note:** MCPSearch requires Sonnet 4+ or Opus 4+; Haiku agents cannot use it and always get full schema overhead. OrchestKit's 3 Haiku agents (emulate-engineer, eval-runner, release-engineer) use `mcpServers` scoping to minimize their MCP exposure.
 
 ## Enabling/Disabling MCPs
 
@@ -142,7 +142,7 @@ Edit `.mcp.json` and set `"disabled": true` or `false` for each MCP:
     },
     "tavily": {
       "command": "sh",
-      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/Tavily API Key/API Key') exec npx -y tavily-mcp@latest"],
+      "args": ["-c", "TAVILY_API_KEY=$(op read 'op://<vault>/<item>/<field>') exec npx -y tavily-mcp@latest"],
       "disabled": false
     },
     "21st-dev-magic": {
@@ -280,7 +280,7 @@ When `TAVILY_API_KEY` is set and the Tavily MCP is enabled, agents gain access t
 
 > **Note:** Claude Code's MCP `env` block only resolves `${ENV_VAR}` syntax, not `op://` references directly. Use the `sh -c "TAVILY_API_KEY=$(op read '...') exec npx ..."` wrapper pattern to read from 1Password at startup.
 
-> **`<vault>` placeholder:** replace the `<vault>` segment above with your 1Password vault name. For individual accounts the default vault is named `Private`; for team/org accounts use your vault name (e.g. `op://YourTeam/Tavily API Key/API Key`).
+> **Placeholders:** replace every `op://` segment above, not just `<vault>`: `<vault>` is your 1Password vault name (`Private` for individual accounts, your team/org vault name otherwise), `<item>` is the entry holding the key, and `<field>` is the field inside it (e.g. `op://<vault>/<item>/<field>`).
 
 **Option B: Remote MCP (hosted, no npx)**
 
@@ -305,7 +305,7 @@ Agents fall back to WebFetch (Haiku-summarized) → agent-browser (full headless
 | context7 | None |
 | sequential-thinking | None |
 | memory | None (creates `.claude/memory/` automatically) |
-| tavily | 1Password: `op read 'op://<vault>/Tavily API Key/API Key'` (free: https://app.tavily.com) |
+| tavily | 1Password: `op read 'op://<vault>/<item>/<field>'` (free: https://app.tavily.com) |
 | notebooklm-mcp | `uv tool install notebooklm-mcp-cli` + `nlm login` + `nlm setup add claude-code` |
 | stitch | API key from [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/settings). Add via: `claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header "X-Goog-Api-Key: YOUR-KEY" -s user` |
 | 21st-dev-magic | API key from https://21st.dev (free tier available). Set `TWENTYFIRST_DEV_API_KEY` env var |
@@ -319,7 +319,7 @@ OrchestKit agents and skills integrate with these MCPs:
 |-----------|----------|---------|
 | /ork:implement, /ork:verify, /ork:review-pr | context7 | Fetch current library docs |
 | web-research-analyst, market-intelligence | tavily | Web search and content extraction |
-| /ork:remember, /ork:memory | memory | Persist decisions across sessions |
+| /ork:memory remember, /ork:memory | memory | Persist decisions across sessions |
 | /ork:release-sync, /ork:visualize-plan | notebooklm-mcp | External RAG, research, studio content |
 | Sonnet/Haiku subagents | sequential-thinking | Structured reasoning for non-Opus models |
 | /ork:design-to-code, design-context-extractor | stitch | AI design → HTML, screenshot extraction, design context |
@@ -440,3 +440,37 @@ claude
 **OrchestKit impact**: Enterprise deployments behind corporate proxies (Citrix/VDI, BYOK gateway, ZTNA) can connect to OAuth-protected MCP servers without per-flow workarounds. `.mcp.json` entries for OAuth-protected servers need no special config — the env-var-driven proxy/mTLS setup is honored end-to-end. The `mcp-patterns` SKILL.md and the `building-mcp-server-on-cloudflare` skill both reference this fix; if your customer skill warned users that "MCP OAuth bypasses HTTPS_PROXY", that caveat can be removed at our floor.
 
 See the `agent-browser` skill for Vercel's headless browser CLI.
+
+## Vercel Labs servers (portless, emulate, agent-browser, vercel)
+
+Wired 2026-10-29 into the templates this plugin ships:
+
+| Template | portless | emulate | agent-browser | vercel |
+|:-|:-:|:-:|:-:|:-:|
+| `.claude/templates/mcp-enabled.json` | on | on | on (core) | not present |
+| `.claude/templates/mcp-disabled.json` | disabled | disabled | disabled | not present |
+| `.pi/mcp.json.example` (attended pi) | on | on | on (core) | present, `disabled` |
+| Codex profile (`src/codex/ork-codex/mcp.json`) | not wired | not wired | not wired | not present |
+| Muse, Devin, Cursor, Claude Desktop | no OrchestKit template, nothing wired | | | |
+
+Commands are absolute under `/opt/homebrew/bin`, because zsh's builtin `emulate` shadows a bare name. That is also why the public Codex profile stays context7 only: a machine path in a shipped manifest breaks every other install. portless and emulate run their default profile; agent-browser runs `core`, never `all`.
+
+**Why Muse and Devin keep the agent-browser CLI skill:** MCP tool loading not measured on Muse and Devin; ~20.6k tokens of schema if loaded up front.
+
+**vercel** is the hosted `https://mcp.vercel.com` over OAuth. The sign-in is per client and is the operator's, so it is present but natively disabled in pi, and absent from the Claude Code templates.
+
+### agent-browser settings (same as the CLI path)
+
+| Setting | Name | Value |
+|:-|:-|:-|
+| Chrome args | `AGENT_BROWSER_ARGS` | `--mute-audio,--use-mock-keychain,--password-store=basic` |
+| Browser isolation | `AGENT_BROWSER_SESSION` | `ork-mcp-cc`, `ork-mcp-pi` |
+| Socket isolation | `AGENT_BROWSER_NAMESPACE` | `abmcp-ork`, `abmcp-pi` |
+| Tab pin | `AGENT_BROWSER_PIN_TAB` | `1` |
+| 1Password logins | none in any file | only through `~/.claude/hooks/op-read.sh` |
+
+The entry is **isolated by default**: its own isolated session, no `--cdp`, no CDP port, no identity Chrome attach, no logins. A template-level attach would hand every lane that uses the template a signed-in browser, unattended and bypass lanes included. A lane attaches to an identity Chrome per task through the browser-login skill, as the agent-browser CLI does.
+
+The allowed-domains and action-policy server settings are not wired: env name unconfirmed, the search was guard-denied (deploy-guard false positive).
+
+Not verified (no live run): that the `core` profile honours the env block.

@@ -1,0 +1,122 @@
+<!-- OrchestKit playground - PR docs/json-render-0-21-3 - 2026-10-26 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>json-render 0.21.3: what changed for the skills</title>
+<meta name="description" content="OrchestKit's json-render skills move from 0.21.0 to 0.21.3. Pick a package to see its export list against 0.19.0, and type a patch path to see how 0.21.3 decodes it and which writers ignore a __proto__ segment and which do not.">
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; background:#0f1115; color:#e6e6e6; }
+  main { max-width:980px; margin:0 auto; padding:26px 20px 68px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:28px 0 8px; color:#6ea8fe; }
+  p { margin:6px 0; color:#9aa3b2; max-width:82ch; }
+  code { font:12.5px ui-monospace, SFMono-Regular, Menlo, monospace; color:#cbd5e1; }
+  .panel { background:#181b22; border:1px solid #2a2f3a; border-radius:10px; padding:14px; margin-top:10px; }
+  .opts { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+  .opts button { background:#0b0d11; color:#9aa3b2; border:1px solid #2a2f3a; border-radius:20px; padding:6px 13px; cursor:pointer; font:12px ui-monospace,Menlo,monospace; }
+  .opts button[aria-pressed="true"] { border-color:#6ea8fe; color:#e6e6e6; }
+  input[type=text] { width:100%; background:#0b0d11; color:#e6e6e6; border:1px solid #2a2f3a; border-radius:6px; padding:8px; font:13px ui-monospace,Menlo,monospace; }
+  table { width:100%; border-collapse:collapse; font:13px ui-monospace,Menlo,monospace; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid #2a2f3a; vertical-align:top; }
+  th { color:#9aa3b2; font-weight:600; }
+  .bad { color:#e5484d; } .ok { color:#4cc38a; } .warn { color:#e2a336; }
+  .verdict { font:600 14px ui-monospace,Menlo,monospace; margin-top:8px; }
+  pre { background:#0b0d11; border:1px solid #2a2f3a; border-radius:8px; padding:10px; white-space:pre-wrap; font:12.5px ui-monospace,Menlo,monospace; color:#cbd5e1; }
+  .copy { margin-top:8px; background:#6ea8fe; color:#0b0d11; border:0; border-radius:6px; padding:7px 12px; cursor:pointer; font:600 12px ui-monospace,Menlo,monospace; }
+</style>
+</head>
+<body>
+<main>
+<h1>json-render 0.21.3: what changed for the skills</h1>
+<p>Four OrchestKit skills teach agents to use json-render: json-render-catalog, multi-surface-render, mcp-visual-output and ai-ui-generation. This change moves their tested version to 0.21.3. Every claim was checked against the published type definitions and compiled code of 0.19.0, 0.20.0 and 0.21.3, not against release notes. All 36 symbols the skills import still exist, and no package removed an export.</p>
+
+<h2>Export lists, 0.19.0 against 0.21.3</h2>
+<div class="panel">
+  <div class="opts" id="pkgs"></div>
+  <table><tbody id="rows"></tbody></table>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<h2>Patch path checker</h2>
+<div class="panel">
+  <p>Type a JSON Pointer path as a patch or state write would carry it. The checker decodes it the way 0.21.3 does (<code>~1</code> becomes <code>/</code>, then <code>~0</code> becomes <code>~</code>, the same as 0.19.0) and shows whether the write is applied.</p>
+  <input id="path" type="text" value="/elements/card-1/props/title" aria-label="JSON Pointer path">
+  <table><thead><tr><th>segment</th><th>decoded key</th></tr></thead><tbody id="segs"></tbody></table>
+  <div class="verdict" id="pathv"></div>
+  <div class="opts" style="margin-top:8px">
+    <button data-p="/elements/card-1/props/title">plain path</button>
+    <button data-p="/state/a~1b">key with a slash</button>
+    <button data-p="/state/~0home">key with a tilde</button>
+    <button data-p="/state/__proto__/polluted">__proto__ segment</button>
+  </div>
+</div>
+
+<h2>Copy as prompt</h2>
+<div class="panel">
+  <pre id="prompt"></pre>
+  <button class="copy" id="copy">copy as prompt</button>
+</div>
+</main>
+<script>
+  const PKGS = {
+    core: { before: 218, after: 238, removed: 0, note: "adds the 0.20 repeat helpers and strict visibility schema, then in 0.21 only experimental_composeSpec and experimental_createEvaluator (with their types)" },
+    react: { before: 73, after: 73, removed: 0, note: "export list identical" },
+    remotion: { before: 44, after: 44, removed: 0, note: "export list identical; Renderer still takes { spec, components }" },
+    shadcn: { before: 4, after: 4, removed: 0, note: "export list identical" },
+    yaml: { before: 13, after: 13, removed: 0, note: "export list identical; the YAML patch fixes are runtime behaviour, not API" }
+  };
+  let pkg = "core";
+
+  function cell(text, cls) { const td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; return td; }
+  function row(tbody, a, b, cls) { const tr = document.createElement("tr"); tr.appendChild(cell(a)); tr.appendChild(cell(b, cls)); tbody.appendChild(tr); }
+
+  function renderPkg() {
+    const p = PKGS[pkg];
+    document.querySelectorAll("#pkgs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === pkg)));
+    const rows = document.getElementById("rows");
+    rows.replaceChildren();
+    row(rows, "exports in 0.19.0", String(p.before));
+    row(rows, "exports in 0.21.3", String(p.after));
+    row(rows, "removed", String(p.removed), p.removed ? "bad" : "ok");
+    row(rows, "what changed", p.note);
+    const v = document.getElementById("verdict");
+    v.textContent = "@json-render/" + pkg + ": " + (p.removed ? p.removed + " removed" : "nothing the skills use was removed");
+    v.className = "verdict " + (p.removed ? "bad" : "ok");
+  }
+
+  function decode(token) { return token.replace(/~1/g, "/").replace(/~0/g, "~"); }
+
+  function renderPath() {
+    const raw = document.getElementById("path").value;
+    // Same split as parseJsonPointer in 0.21.3: one leading "/" is optional.
+    const tokens = (raw.startsWith("/") ? raw.slice(1) : raw).split("/");
+    const segs = tokens.map(decode);
+    const risky = s => s === "__proto__" || s === "constructor" || s === "prototype";
+    const tbody = document.getElementById("segs");
+    tbody.replaceChildren();
+    tokens.forEach((t, i) => row(tbody, t, segs[i], risky(segs[i]) ? "bad" : ""));
+    const v = document.getElementById("pathv");
+    if (raw === "" || raw === "/") { v.textContent = "root path: getByPath returns the whole object"; v.className = "verdict warn"; }
+    else if (segs.includes("__proto__")) { v.textContent = "setByPath, addByPath and removeByPath ignore this write (no error); createStateStore and createStoreAdapter do NOT, so reject it yourself"; v.className = "verdict bad"; }
+    else if (segs.some(risky)) { v.textContent = "no json-render writer guards constructor or prototype: reject this path yourself"; v.className = "verdict bad"; }
+    else { v.textContent = "no __proto__, constructor or prototype segment, so no key guard is involved: " + segs.length + " segment(s)" + (raw.startsWith("/") ? "" : " (no leading /, parsed the same)"); v.className = "verdict ok"; }
+    document.getElementById("prompt").textContent =
+      "Using json-render 0.21.3, write state or patch paths as RFC 6901 JSON Pointers (~0 for ~, ~1 for /) and reject __proto__, constructor and prototype keys before any state-store write (only setByPath, addByPath and removeByPath guard __proto__). Check this path: " + raw;
+  }
+
+  const box = document.getElementById("pkgs");
+  for (const k of Object.keys(PKGS)) {
+    const b = document.createElement("button"); b.textContent = "@json-render/" + k; b.dataset.k = k;
+    b.addEventListener("click", () => { pkg = k; renderPkg(); }); box.appendChild(b);
+  }
+  document.getElementById("path").addEventListener("input", renderPath);
+  document.querySelectorAll("button[data-p]").forEach(b => b.addEventListener("click", () => { document.getElementById("path").value = b.dataset.p; renderPath(); }));
+  document.getElementById("copy").addEventListener("click", () => navigator.clipboard.writeText(document.getElementById("prompt").textContent));
+  renderPkg(); renderPath();
+</script>
+</body>
+</html>

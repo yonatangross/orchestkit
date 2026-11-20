@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who writes MEMORY.md</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 42rem; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.5; }
+fieldset { border: 1px solid currentColor; border-radius: 6px; margin: 1.5rem 0; padding: 1rem; }
+label { display: block; margin: .25rem 0; }
+output { display: block; padding: .75rem 1rem; border-left: 4px solid; margin-bottom: 1rem; }
+output[data-state="red"] { border-color: #c62828; }
+output[data-state="green"] { border-color: #2e7d32; }
+code { font-size: .95em; }
+</style>
+</head>
+<body>
+<main>
+<h1>Who writes MEMORY.md</h1>
+<p>The memory pages said OrchestKit scored decisions and promoted those at confidence 0.7 and above into MEMORY.md. No code holds that threshold and no hook writes the file. Pick a step of the old story to compare what the pages said with what happens.</p>
+
+<fieldset>
+<legend>Step</legend>
+<label><input type="radio" name="step" value="score" checked> A decision gets a confidence score</label>
+<label><input type="radio" name="step" value="promote"> A high score promotes it to MEMORY.md</label>
+<label><input type="radio" name="step" value="bridge"> memory-bridge and graph-queue-sync carry it along</label>
+<label><input type="radio" name="step" value="session"> The session ends</label>
+</fieldset>
+
+<output id="old" data-state="red" aria-live="polite"></output>
+<output id="now" data-state="green" aria-live="polite"></output>
+</main>
+<script>
+const steps = {
+  score: ["Old pages: every decision is scored.", "Now: no hook scores decisions for MEMORY.md."],
+  promote: ["Old pages: at 0.7 and above, it moves to MEMORY.md.", "Now: Claude or you write MEMORY.md. No hook does."],
+  bridge: ["Old pages: two hooks sync memory in the background.", "Now: both hooks are gone from hooks.json."],
+  session: ["Old pages: promotion runs at the end of the session.", "Now: session-summary only suggests what to keep."],
+};
+const oldLine = document.getElementById("old");
+const nowLine = document.getElementById("now");
+function render() {
+  const step = document.querySelector("input[name=step]:checked").value;
+  oldLine.textContent = steps[step][0];
+  nowLine.textContent = steps[step][1];
+}
+document.querySelectorAll("input[name=step]").forEach((input) => input.addEventListener("change", render));
+render();
+</script>
+</body>
+</html>

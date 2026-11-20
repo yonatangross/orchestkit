@@ -1,0 +1,12 @@
+{
+  "slug": "skill-fitness-round-3",
+  "source": "docs/feat--skill-quality-r3/index.html",
+  "title": "Skill fitness round 3: a steadier score and an unset variable",
+  "description": "Round 3 of the OrchestKit quality loop. Two fresh graders plus a scripted checklist score the ten most-used skills; pick a graded source to see how each skill moved, or pick a fixed skill to see what changed.",
+  "tags": [
+    "skills",
+    "quality",
+    "evals"
+  ],
+  "date": "2026-11-07"
+}

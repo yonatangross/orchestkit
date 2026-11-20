@@ -37,6 +37,54 @@ drop_inherited_git_locators() {
 
 drop_inherited_git_locators
 
+# (#5009) Bash here-strings (<<<) and process substitutions write temporary
+# files named sh-thd-<digits> under $TMPDIR. When the agent sandbox denies
+# /tmp, bash falls back to DEFAULT_TMPDIR "." — which after the cd above is
+# the repository root — and an empty sh-thd-* file survives in the worktree
+# (seen across multiple worktrees on 2026-11-02/03). Keep TMPDIR off the
+# repo root; prefer /tmp, else a gitignored .cache dir. Clean any root
+# leftovers on the way out so a later `git add -A` cannot commit them.
+remove_repo_root_sh_thd() {
+  local f
+  for f in "$PROJECT_ROOT"/sh-thd-*; do
+    [[ -f "$f" ]] || continue
+    rm -f "$f"
+  done
+  return 0
+}
+
+ensure_pre_push_tmpdir() {
+  local resolved="" root_phys=""
+  root_phys=$(cd "$PROJECT_ROOT" && pwd -P) || root_phys="$PROJECT_ROOT"
+  if [[ -n "${TMPDIR:-}" && -d "$TMPDIR" && -w "$TMPDIR" ]]; then
+    resolved=$(cd "$TMPDIR" && pwd -P) || resolved=""
+  fi
+  # Compare physical paths: macOS /var is a symlink to /private/var, so a
+  # string compare of $TMPDIR against $PROJECT_ROOT misses the sandbox case
+  # where both resolve to the same directory.
+  if [[ -n "$resolved" && "$resolved" != "$root_phys" ]]; then
+    TMPDIR="$resolved"
+    export TMPDIR
+    return 0
+  fi
+  if [[ -d /tmp && -w /tmp ]]; then
+    TMPDIR=/tmp
+    export TMPDIR
+    return 0
+  fi
+  mkdir -p "$PROJECT_ROOT/.cache/pre-push-tmp" || return 1
+  TMPDIR="$PROJECT_ROOT/.cache/pre-push-tmp"
+  export TMPDIR
+  return 0
+}
+
+ensure_pre_push_tmpdir || {
+  echo "FAILED: cannot establish a writable TMPDIR away from the repository root (#5009)"
+  exit 1
+}
+remove_repo_root_sh_thd
+trap 'remove_repo_root_sh_thd' EXIT
+
 capture_initial_repo_config() {
   INITIAL_REPO_USER_EMAIL_SET=0
   INITIAL_REPO_USER_EMAIL=""
@@ -258,6 +306,77 @@ fi
 # Everything below this line runs on EVERY push (#4024). It used to be
 # unreachable for any conventionally-named branch.
 
+# ===== Pre-push mode (#4238) =====
+#
+# `full` is the default and is identical to before: every stage below runs.
+# ORK_PRE_PUSH_MODE=targeted narrows three of them for lane pushes:
+#   unit tests    only test files the selector picks for this diff
+#   security      only when the diff touches a security-relevant path
+#   tsc + build   only when src/ or manifests/ changed
+# Everything else (imports, mdx, agents, skills, manifests, tokens, vitest,
+# the repo-config guard) is unconditional in both modes.
+#
+# The contract is announce, never hide: the targeted run prints the selected
+# tests and names the CI checks that still cover the deferred stages on the
+# PR. Anything uncertain falls back to `full` with one WARN line: an unknown
+# mode, a diff base git cannot read, or a missing selector library.
+PRE_PUSH_MODE="${ORK_PRE_PUSH_MODE:-full}"
+PRE_PUSH_RUN_SECURITY=1
+PRE_PUSH_RUN_SRC_STAGES=1
+SELECTED_UNIT_TESTS=""
+case "$PRE_PUSH_MODE" in
+  full) ;;
+  targeted)
+    # A selector fed an unreadable diff can only under-select, so an
+    # unreadable base is the full suite. Targeted selection is a diff
+    # against main, so origin/main...HEAD itself must be readable: when it
+    # fails but HEAD~1...HEAD succeeds, CHANGED_FILES above quietly holds
+    # only the last commit, which is exactly the under-selection this
+    # guard exists to catch. Probed with git diff, the same channel the
+    # selector's input came through.
+    if ! git diff --name-only origin/main...HEAD >/dev/null 2>&1; then
+      echo "  WARN: ORK_PRE_PUSH_MODE=targeted but origin/main...HEAD is unreadable; running the full suite"
+      PRE_PUSH_MODE=full
+    fi
+    ;;
+  *)
+    echo "  WARN: ORK_PRE_PUSH_MODE='$PRE_PUSH_MODE' is not a known mode; running the full suite"
+    PRE_PUSH_MODE=full
+    ;;
+esac
+
+if [[ "$PRE_PUSH_MODE" == "targeted" ]]; then
+  if ! . "$PROJECT_ROOT/scripts/lib/pre-push-select.sh"; then
+    echo "  WARN: cannot source scripts/lib/pre-push-select.sh; running the full suite"
+    PRE_PUSH_MODE=full
+  else
+    SELECTED_UNIT_TESTS=$(pre_push_select_unit_tests)
+    pre_push_select_wants_security || PRE_PUSH_RUN_SECURITY=0
+    pre_push_select_wants_src_stages || PRE_PUSH_RUN_SRC_STAGES=0
+
+    _pp_sel_count=0
+    while IFS= read -r _pp_sel; do
+      [[ -n "$_pp_sel" ]] && _pp_sel_count=$((_pp_sel_count + 1))
+    done <<< "$SELECTED_UNIT_TESTS"
+    echo "  pre-push mode: targeted"
+    # HQ_CI_ONLY=1 skips the unit tier below, so a selection would announce
+    # tests that never run (#4753).
+    if [[ "${HQ_CI_ONLY:-}" == "1" ]]; then
+      echo "  unit tests: skipped (HQ_CI_ONLY=1)"
+    else
+      echo "  unit tests selected: ${_pp_sel_count}"
+      while IFS= read -r _pp_sel; do
+        [[ -n "$_pp_sel" ]] && printf '    %s\n' "$_pp_sel"
+      # pipebuf: legacy-unreviewed (pre-existing loop, only re-indented by #4753)
+      done <<< "$SELECTED_UNIT_TESTS"
+    fi
+    _pp_deferred="Unit Tests (node 22)"
+    [[ "$PRE_PUSH_RUN_SECURITY" -eq 0 ]] && _pp_deferred="$_pp_deferred, Security Tests"
+    echo "  deferred to CI: ${_pp_deferred}"
+    unset _pp_sel_count _pp_deferred _pp_sel
+  fi
+fi
+
 # Cross-platform timeout function (defined early for use in all checks)
 run_with_timeout() {
   local timeout_secs=$1
@@ -435,11 +554,18 @@ run_unit_tests_parallel() {
 # Always the checkout script. A PATH entry named run-security-tests.sh must
 # not be able to report this stage OK.
 run_security_stage() {
-  local stage_rc
+  local stage_rc audit_base
   print_pre_push_load_notice
   echo -n "  Running security tests... "
   if [[ -x "tests/security/run-security-tests.sh" ]]; then
-    ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; stage_rc=$?
+    # The npm audit gate judges the CHANGE here (orchestkit row 10, part 2): advisories in packages
+    # this push adds or changes, and high or critical anywhere; an untouched moderate advisory is
+    # deferred to the scheduled whole-tree audit. The base is the merge base with origin/main. When
+    # git cannot compute it the base stays empty and the gate fails closed with its own message
+    # (CANNOT COMPUTE THE LOCKFILE DIFF), never a silent pass.
+    audit_base="$(git merge-base origin/main HEAD 2>/dev/null)" || audit_base=""
+    ORK_AUDIT_MODE=change ORK_AUDIT_BASE="$audit_base" \
+      ORK_PRE_PUSH_STAGE_JOBS="$MAX_JOBS" run_captured ./tests/security/run-security-tests.sh; stage_rc=$?
     if [[ "$stage_rc" -ne 0 ]]; then
       echo "FAILED"
       echo ""
@@ -458,13 +584,22 @@ run_security_stage() {
 }
 
 # Hooks vitest. Same MAX_JOBS as the unit stage, via --maxWorkers (vitest 5).
+# Skip when the local binary is absent so bare npx cannot fetch an unrelated
+# npm package (#4220 HR-7 / IC-4). Still invoke via `npx vitest` when present
+# so the GIT_* scrub + Test 9 argv probe stay intact; a local install means
+# npx resolves without a network fetch.
 run_hooks_vitest_stage() {
   print_pre_push_load_notice
   echo -n "  Running hook vitest suite... "
   HOOK_LOG="$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")"
+  if [[ ! -x src/hooks/node_modules/.bin/vitest ]]; then
+    echo "SKIP (vitest not installed under src/hooks/node_modules/.bin)"
+    rm -f "$HOOK_LOG"
+    return 0
+  fi
   if ! (cd src/hooks && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX \
       -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY npx vitest run --reporter=dot --maxWorkers="$MAX_JOBS" >"$HOOK_LOG" 2>&1); then
-    LOG_KEEP_DIR="$PROJECT_ROOT/.cache/pre-push"
+    LOG_KEEP_DIR=".cache/pre-push"
     mkdir -p "$LOG_KEEP_DIR"
     LOG_KEEP="$LOG_KEEP_DIR/hooks-vitest.log"
     cp "$HOOK_LOG" "$LOG_KEEP"
@@ -500,23 +635,68 @@ assert_repo_config_unchanged() {
   fi
 }
 
+# ===== Test slot governor (#4238, targeted mode only) =====
+#
+# Machine-wide cap on concurrent suite runs: at most ORK_TEST_SLOT_MAX
+# (default 2) holders across every repo on this host. A push that arrives
+# third queues; a slot whose holder pid is gone is reclaimed. Only
+# targeted mode takes a slot: full/unset is the default human path and
+# must behave exactly as it did before the mode switch existed, so it
+# never touches the slot dir and can never queue behind other lanes.
+# Skipped on CI (runners govern themselves) and when the library is
+# absent (governance is a courtesy, not a correctness gate).
+# ORK_TEST_SLOT_NOLOCK=1 bypasses. With HQ_CI_ONLY=1 the unit tier is
+# skipped. The slot is dropped only when nothing else that does real work
+# runs either: the security stage deferred, the src stages (tsc, build)
+# off, and no src/hooks/ change (which runs the hook unit suite below).
+# Then no suite runs here and a slot would only make the push wait for
+# nothing (#4753, #4758 review).
+# awk, not grep: it exits 0 on no match, so nothing needs swallowing.
+HOOK_CHANGES=$(printf '%s\n' "$CHANGED_FILES" | awk '/^src\/hooks\//')
+_pp_runs_a_suite=1
+if [[ "${HQ_CI_ONLY:-}" == "1" && "$PRE_PUSH_RUN_SECURITY" -eq 0 \
+      && "$PRE_PUSH_RUN_SRC_STAGES" -eq 0 && -z "$HOOK_CHANGES" ]]; then
+  _pp_runs_a_suite=0
+fi
+if [[ "$PRE_PUSH_MODE" == "targeted" && "$_pp_runs_a_suite" -eq 1 && -f "$PROJECT_ROOT/scripts/lib/test-slot.sh" ]]; then
+  # shellcheck source=../../scripts/lib/test-slot.sh
+  . "$PROJECT_ROOT/scripts/lib/test-slot.sh"
+  _pp_slot_rc=0
+  acquire_test_slot "pre-push $BRANCH" || _pp_slot_rc=$?
+  if [[ "$_pp_slot_rc" -ne 0 ]]; then
+    echo "FAILED: could not acquire a test slot (rc=$_pp_slot_rc)"
+    exit "$_pp_slot_rc"
+  fi
+  unset _pp_slot_rc
+fi
+
 # ===== TypeScript Type Check =====
 echo -n "  Running TypeScript type check... "
 
-if [[ -f "src/hooks/tsconfig.json" ]]; then
-  run_captured run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
-  if [[ "$stage_rc" -ne 0 ]]; then
-    echo "FAILED"
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║  TypeScript validation failed!"
-    echo "╠════════════════════════════════════════════════════════════╣"
-    echo "║  Run: cd src/hooks && npx tsc --noEmit"
-    print_kept_stage_log
-    echo "╚════════════════════════════════════════════════════════════╝"
-    exit "$stage_rc"
+if [[ "$PRE_PUSH_RUN_SRC_STAGES" -eq 0 ]]; then
+  echo "SKIP (targeted mode, no src/ or manifests/ changes; deferred to CI)"
+elif [[ -f "src/hooks/tsconfig.json" ]]; then
+  # Prefer local binary; bare `npx tsc` can fetch the unrelated npm package
+  # named `tsc` when typescript is absent (#4220 HR-7 / IC-4).
+  if [[ ! -x src/hooks/node_modules/.bin/tsc ]]; then
+    echo "SKIP (tsc not installed under src/hooks/node_modules/.bin)"
+  else
+    # Run the checked local binary under src/hooks (npx from repo root can
+    # miss a checkout that only installed typescript there) (#4220 HR-7 / IC-4).
+    run_captured run_with_timeout 120 src/hooks/node_modules/.bin/tsc --noEmit -p src/hooks/tsconfig.json; stage_rc=$?
+    if [[ "$stage_rc" -ne 0 ]]; then
+      echo "FAILED"
+      echo ""
+      echo "╔════════════════════════════════════════════════════════════╗"
+      echo "║  TypeScript validation failed!"
+      echo "╠════════════════════════════════════════════════════════════╣"
+      echo "║  Run: cd src/hooks && ./node_modules/.bin/tsc --noEmit"
+      print_kept_stage_log
+      echo "╚════════════════════════════════════════════════════════════╝"
+      exit "$stage_rc"
+    fi
+    echo "OK"
   fi
-  echo "OK"
 else
   echo "SKIP (no tsconfig.json)"
 fi
@@ -524,19 +704,23 @@ fi
 # ===== Build Verification =====
 echo -n "  Verifying build... "
 
-run_captured run_with_timeout 300 npm run build; stage_rc=$?
-if [[ "$stage_rc" -ne 0 ]]; then
-  echo "FAILED"
-  echo ""
-  echo "╔════════════════════════════════════════════════════════════╗"
-  echo "║  Build failed!"
-  echo "╠════════════════════════════════════════════════════════════╣"
-  echo "║  Run: npm run build"
-  print_kept_stage_log
-  echo "╚════════════════════════════════════════════════════════════╝"
-  exit "$stage_rc"
+if [[ "$PRE_PUSH_RUN_SRC_STAGES" -eq 0 ]]; then
+  echo "SKIP (targeted mode, no src/ or manifests/ changes; deferred to CI)"
+else
+  run_captured run_with_timeout 300 npm run build; stage_rc=$?
+  if [[ "$stage_rc" -ne 0 ]]; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Build failed!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Run: npm run build"
+    print_kept_stage_log
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit "$stage_rc"
+  fi
+  echo "OK"
 fi
-echo "OK"
 
 # ===== Import Verification =====
 echo -n "  Verifying imports... "
@@ -560,6 +744,15 @@ else
 fi
 
 # ===== Unit Tests (mirrors CI exactly) =====
+#
+# HQ_CI_ONLY=1 is the lane switch for a push whose diff is already gated by
+# CI's required checks: the unit tier is skipped, and with it every headless
+# Chrome launch (they only ever start inside unit tests). The fast checks
+# before and after this stage still run. The announce is one line, never
+# silent; unset, the hook behaves exactly as before.
+if [[ "${HQ_CI_ONLY:-}" == "1" ]]; then
+  echo "pre-push: HQ_CI_ONLY=1, unit tier skipped, CI required checks are the gate"
+else
 echo -n "  Running unit tests... "
 
 # Discover unit tests exactly the way CI does.
@@ -587,16 +780,27 @@ SKIP_UNIT_TESTS=()
 # loop for exactly that reason; sharing CI's discovery rule means sharing the
 # way CI reads it.
 CI_UNIT_TESTS=()
-while IFS= read -r file; do
-  [[ -n "$file" ]] || continue
-  CI_UNIT_TESTS+=("$file")
-done < <(
-  find tests/unit \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f \
-    | sort \
-    | { if ((${#SKIP_UNIT_TESTS[@]})); then grep -vFx -f <(printf '%s\n' "${SKIP_UNIT_TESTS[@]}"); else cat; fi; }
-)
+if [[ "$PRE_PUSH_MODE" == "targeted" ]]; then
+  # Targeted: the selector's answer is the list. Zero is a valid answer here
+  # (a docs-only diff selects nothing); it must not trip the discovery guard.
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
+    CI_UNIT_TESTS+=("$file")
+  done <<< "$SELECTED_UNIT_TESTS"
+else
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
+    CI_UNIT_TESTS+=("$file")
+  done < <(
+    find tests/unit \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f \
+      | sort \
+      | { if ((${#SKIP_UNIT_TESTS[@]})); then grep -vFx -f <(printf '%s\n' "${SKIP_UNIT_TESTS[@]}"); else cat; fi; }
+  )
+fi
 
-if ((${#CI_UNIT_TESTS[@]} == 0)); then
+if [[ "$PRE_PUSH_MODE" == "targeted" && ${#CI_UNIT_TESTS[@]} -eq 0 ]]; then
+  echo "OK (targeted: 0 selected, suite deferred to CI)"
+elif ((${#CI_UNIT_TESTS[@]} == 0)); then
   echo "FAIL (no unit tests discovered under tests/unit — check the glob)"
   exit 1
 fi
@@ -605,10 +809,15 @@ fi
 # The job count was resolved once, from the 5-minute load, before any stage.
 # The banner names the count BEFORE the run, so a log of a failed stage still
 # shows what parallelism it ran at (the OK line only prints on success).
-echo -n "jobs=${MAX_JOBS} (ncpu=${CORES}, load5=${LOAD5:-unreadable}${ORK_PRE_PUSH_JOBS:+, ORK_PRE_PUSH_JOBS=$ORK_PRE_PUSH_JOBS})... "
+if ((${#CI_UNIT_TESTS[@]} > 0)); then
+  echo -n "jobs=${MAX_JOBS} (ncpu=${CORES}, load5=${LOAD5:-unreadable}${ORK_PRE_PUSH_JOBS:+, ORK_PRE_PUSH_JOBS=$ORK_PRE_PUSH_JOBS})... "
+fi
 
 export _PREPUSH_FAIL_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
-trap 'rm -rf "$_PREPUSH_FAIL_DIR"' EXIT
+# This and the TOKEN_LOG trap below replace the EXIT trap that
+# acquire_test_slot installs in targeted mode, so each must release the
+# slot itself (a no-op when no slot was taken).
+trap 'rm -rf "$_PREPUSH_FAIL_DIR"; remove_repo_root_sh_thd; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
 
 # Dispatch on EXTENSION, not on hope (#4024).
 #
@@ -649,7 +858,12 @@ _run_test() {
 }
 export -f _run_test
 
-run_unit_tests_parallel
+# Empty selection under targeted mode must not reach xargs: `printf '%s\n'`
+# on an empty array still emits one blank line, which -I {} turns into
+# `_run_test ""`, which the missing-file branch counts as a failure.
+if ((${#CI_UNIT_TESTS[@]} > 0)); then
+  run_unit_tests_parallel
+fi
 
 FAILURES=()
 for f in "$_PREPUSH_FAIL_DIR"/*; do
@@ -678,10 +892,17 @@ if [[ ${#FAILURES[@]} -gt 0 ]]; then
   echo "╚════════════════════════════════════════════════════════════╝"
   exit 1
 fi
-echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
+if ((${#CI_UNIT_TESTS[@]} > 0)); then
+  echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
+fi
+fi  # HQ_CI_ONLY unit-tier gate
 
 # ===== Security Tests =====
-run_security_stage
+if [[ "$PRE_PUSH_RUN_SECURITY" -eq 1 ]]; then
+  run_security_stage
+else
+  echo "  Security tests: SKIP (targeted mode, no security-relevant paths in diff; deferred to CI)"
+fi
 
 # ===== MDX Compile Guard (#1401 — catches nested-fence + other mdx bugs) =====
 echo -n "  Running mdx-compile guard... "
@@ -773,7 +994,7 @@ echo "OK"
 echo -n "  Checking token overhead budget... "
 
 TOKEN_LOG=$(mktemp "${TMPDIR:-/tmp}/ork.XXXXXX")
-trap 'rm -f "$TOKEN_LOG"' EXIT
+trap 'rm -f "$TOKEN_LOG"; remove_repo_root_sh_thd; declare -f release_test_slot >/dev/null && release_test_slot' EXIT
 
 if ! run_with_timeout 30 bash tests/performance/test-token-overhead.sh >"$TOKEN_LOG" 2>&1; then
   echo "FAILED"
@@ -801,16 +1022,39 @@ fi
 # surface in CI (cross-reference, split-bundles, webhook-forwarder-coverage,
 # hooks-json-wiring, dispatcher-registry-wiring). Running the hook unit
 # suite locally catches these BEFORE push instead of after a failed CI run.
-HOOK_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/hooks/' || true)
+# HOOK_CHANGES is computed once, before the test slot decision above.
 if [[ -n "$HOOK_CHANGES" ]]; then
   run_hooks_vitest_stage
 fi
+
+# Return the governor slot before exiting; only targeted mode ever holds
+# one. The EXIT traps above release it on every earlier exit path, and
+# this covers the success path.
+if declare -f release_test_slot >/dev/null 2>&1; then
+  release_test_slot
+fi
+
+# (#5009) Clean root leftovers, then observe. Do not exit before the
+# repo-config assert below: test-pre-push-hook.sh requires
+# assert_repo_config_unchanged in the last 16 lines with the success line.
+remove_repo_root_sh_thd
+_ORK_SH_THD_LEFT=0
+for _sh_thd in "$PROJECT_ROOT"/sh-thd-*; do
+  [[ -f "$_sh_thd" ]] || continue
+  _ORK_SH_THD_LEFT=1
+done
 
 # A fixture init that inherits this hook's GIT_* environment can change this
 # checkout's config. Refuse the push if that happened; never repair it here.
 if ! assert_repo_config_unchanged; then
   exit 1
 fi
+
+if [[ "$_ORK_SH_THD_LEFT" -ne 0 ]]; then
+  echo "FAILED: pre-push left sh-thd-* in the repository root (#5009)"
+  exit 1
+fi
+unset _ORK_SH_THD_LEFT _sh_thd
 
 echo ""
 echo "Pre-push validation passed"

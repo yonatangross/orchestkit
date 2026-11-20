@@ -9,7 +9,7 @@ Use this template for creating domain entities with:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol
 from uuid import UUID, uuid4
@@ -30,7 +30,7 @@ class EntityCreated:
     """Event: Entity was created."""
 
     entity_id: UUID
-    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,7 @@ class EntityUpdated:
     field_name: str
     old_value: str
     new_value: str
-    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ============================================================================
@@ -122,8 +122,8 @@ class Entity:
     # State fields with defaults
     status: EntityStatus = EntityStatus.DRAFT
     description: str | None = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     # Domain events (not persisted)
     _events: list[DomainEvent] = field(default_factory=list, repr=False)
@@ -196,7 +196,7 @@ class Entity:
 
         old_status = self.status
         self.status = new_status
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
         self._raise_event(
             EntityUpdated(
@@ -214,7 +214,7 @@ class Entity:
 
         old_description = self.description or ""
         self.description = description
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
         self._raise_event(
             EntityUpdated(
@@ -242,7 +242,7 @@ class Entity:
     @property
     def age_days(self) -> int:
         """Calculate entity age in days."""
-        return (datetime.now(timezone.utc) - self.created_at).days
+        return (datetime.now(UTC) - self.created_at).days
 
     # -------------------------------------------------------------------------
     # Domain Events

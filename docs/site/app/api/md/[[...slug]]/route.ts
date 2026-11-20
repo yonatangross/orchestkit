@@ -3,6 +3,8 @@
 
 import { COUNTS, PAGE_SUMMARY, SITE } from "@/lib/constants";
 import { readDocBody } from "@/lib/docs-content";
+import { homeFactsMarkdown } from "@/lib/home-facts";
+import { docsLandingMarkdown, isDocsLandingSlug } from "@/lib/docs-landing-markdown";
 import {
 	MARKDOWN_NEGOTIATED_HEADERS,
 	withFrontmatter,
@@ -32,8 +34,10 @@ function homepageMarkdown(): string {
 	return [
 		`# ${SITE.name}`,
 		"",
-		`> AI development toolkit for Claude Code — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
+		`> AI development toolkit for Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks.`,
 		"",
+		// The facts the HTML carries in JSON-LD, for crawlers that get this body.
+		homeFactsMarkdown(),
 		"## Documentation",
 		"",
 		...pages.map(
@@ -74,6 +78,11 @@ export async function GET(
 	}
 
 	const page = source.getPage(slug);
+	// Hand-authored /docs/mcp and /docs/sdk are not fumadocs MDX. Synthesize
+	// their Markdown so AI-bot / Accept: text/markdown rewrites still 200.
+	if (!page && slug.length === 1 && isDocsLandingSlug(slug[0])) {
+		return new Response(docsLandingMarkdown(slug[0]), { headers: MD_HEADERS });
+	}
 	// No frontmatter on the miss: `canonical` would have to name a URL that does
 	// not resolve, and inventing one is worse than a bare body.
 	if (!page) return new Response("# Not found\n", { status: 404, headers: MD_HEADERS });

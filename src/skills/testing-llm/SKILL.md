@@ -1,30 +1,23 @@
 ---
 name: testing-llm
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: LLM and AI testing patterns — mock responses, evaluation with DeepEval/RAGAS, structured output validation, and agentic test patterns (generator, healer, planner). Use when testing AI features, validating LLM outputs, or building evaluation pipelines.
-tags: [testing, llm, ai, deepeval, ragas, evaluation, mocking]
-context: fork
-agent: test-generator
-version: 2.1.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features."
 user-invocable: false
 disable-model-invocation: false
-complexity: medium
-persuasion-type: reference
 targets:
   - library: "deepeval"
-    version: ">=4.0.0"
+    version: ">=4.2.7"
   - library: "ragas"
     version: ">=0.4.0"
 metadata:
+  owner-agent: "test-generator"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.1.0"
+  author: "OrchestKit"
+  complexity: "medium"
+  tags: "testing, llm, ai, deepeval, ragas, evaluation, mocking"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # LLM & AI Testing Patterns
@@ -39,6 +32,7 @@ Patterns and tools for testing LLM integrations, evaluating AI output quality, m
 | **Rules** | `rules/llm-mocking.md` | Mock LLM responses, VCR.py recording, custom request matchers |
 | **Reference** | `references/ork-delta.md` | House rules the vendor docs do not carry: GEval and RAGAS API corrections, threshold direction, cassette path, golden-dataset and latency budgets |
 | **Reference** | `references/healer-agent.md` | Auto-fixes failing tests (selectors, waits, dynamic content) |
+| **Reference** | `references/langfuse-v4.md` | Langfuse Python SDK v4 tracing and dataset runs, plus the non-zero throughput assertion |
 | **Checklist** | `checklists/llm-test-checklist.md` | Complete LLM testing checklist (setup, coverage, CI/CD) |
 
 ## Upstream coverage (do not restate)
@@ -238,6 +232,6 @@ See `checklists/llm-test-checklist.md` for the complete checklist.
 
 - `ork:testing-unit` — Unit testing fundamentals, AAA pattern
 - `ork:testing-integration` — Integration testing for AI pipelines
-- `ork:golden-dataset` — Evaluation dataset management
+- `ork-extras:golden-dataset` — Evaluation dataset management
 - `ork:testing-e2e` owns the Planner and Generator agent workflow and the Playwright locator ladder
 - `ork:testing-perf` owns the latency and load budgets referenced in `references/ork-delta.md`

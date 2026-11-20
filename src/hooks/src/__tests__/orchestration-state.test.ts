@@ -27,6 +27,8 @@ import {
   saveConfig,
   clearSessionState,
   cleanupOldStates,
+  getWebhookUrl,
+  getHookToken,
 } from '../lib/orchestration-state.js';
 import type { ClassificationResult } from '../lib/orchestration-types.js';
 
@@ -37,6 +39,13 @@ import type { ClassificationResult } from '../lib/orchestration-types.js';
 // Use per-test unique directories to avoid cross-test contamination
 let TEST_PROJECT_DIR: string;
 let TEST_SESSION_ID: string;
+
+const WEBHOOK_ENV_KEYS = [
+  'CLAUDE_PLUGIN_OPTION_WEBHOOKURL',
+  'CLAUDE_PLUGIN_OPTION_HOOKTOKEN',
+  'ORCHESTKIT_HOOK_URL',
+  'ORCHESTKIT_HOOK_TOKEN',
+] as const;
 
 let originalEnv: {
   CLAUDE_PROJECT_DIR?: string;
@@ -58,6 +67,7 @@ beforeEach(() => {
   // Set test environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
   process.env.CLAUDE_SESSION_ID = TEST_SESSION_ID;
+  for (const key of WEBHOOK_ENV_KEYS) delete process.env[key];
 
   // Create test directory
   if (!existsSync(TEST_PROJECT_DIR)) {
@@ -82,6 +92,7 @@ afterEach(() => {
       delete process.env[key];
     }
   }
+  for (const key of WEBHOOK_ENV_KEYS) delete process.env[key];
 });
 
 // =============================================================================
@@ -305,12 +316,18 @@ describe('updateAgentStatus - status transitions', () => {
     expect(state.activeAgents[0].retryCount).toBe(2);
   });
 
-  test('handles non-existent agent gracefully', () => {
+  test('tracks an agent that was never pre-tracked, leaving the others untouched', () => {
     updateAgentStatus('non-existent-agent', 'in_progress');
 
-    // Should not throw
+    // Should not throw; the unknown agent is recorded so its status and retry
+    // count persist (retry-handler relies on this).
     const state = loadState();
-    expect(state.activeAgents.length).toBe(1); // Original agent still there
+    expect(state.activeAgents.length).toBe(2);
+    const original = state.activeAgents.find(a => a.agent === 'test-agent');
+    expect(original?.status).toBe('pending');
+    const added = state.activeAgents.find(a => a.agent === 'non-existent-agent');
+    expect(added?.status).toBe('in_progress');
+    expect(added?.retryCount).toBe(0);
   });
 
   test('supports all valid statuses', () => {
@@ -669,6 +686,50 @@ describe('loadConfig - configuration loading', () => {
     expect(config.maxRetries).toBe(5);
     // Other defaults should remain
     expect(config.enableSkillInjection).toBe(true);
+  });
+});
+
+describe('getWebhookUrl / getHookToken — resolved config (#1270)', () => {
+  test('getWebhookUrl prefers manifest userConfig (CLAUDE_PLUGIN_OPTION_WEBHOOKURL)', () => {
+    process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL = 'https://uc.example.com';
+    process.env.ORCHESTKIT_HOOK_URL = 'https://env.example.com';
+    expect(getWebhookUrl()).toBe('https://uc.example.com');
+  });
+
+  test('getWebhookUrl falls back to ORCHESTKIT_HOOK_URL when userConfig is absent', () => {
+    process.env.ORCHESTKIT_HOOK_URL = 'https://env.example.com';
+    expect(getWebhookUrl()).toBe('https://env.example.com');
+  });
+
+  test('getWebhookUrl ignores config.webhookUrl from project tree (#4218)', () => {
+    saveConfig({ webhookUrl: 'https://file.example.com' });
+    process.env.CLAUDE_PLUGIN_OPTION_WEBHOOKURL = 'https://uc.example.com';
+    process.env.ORCHESTKIT_HOOK_URL = 'https://env.example.com';
+    expect(getWebhookUrl()).toBe('https://uc.example.com');
+  });
+
+  test('getWebhookUrl ignores project-tree webhook when env unset (#4218)', () => {
+    saveConfig({ webhookUrl: 'https://file.example.com' });
+    expect(getWebhookUrl()).toBeUndefined();
+  });
+
+  test('getWebhookUrl returns undefined when nothing is configured', () => {
+    expect(getWebhookUrl()).toBeUndefined();
+  });
+
+  test('getHookToken prefers manifest userConfig (CLAUDE_PLUGIN_OPTION_HOOKTOKEN)', () => {
+    process.env.CLAUDE_PLUGIN_OPTION_HOOKTOKEN = 'uc-token';
+    process.env.ORCHESTKIT_HOOK_TOKEN = 'env-token';
+    expect(getHookToken()).toBe('uc-token');
+  });
+
+  test('getHookToken falls back to ORCHESTKIT_HOOK_TOKEN when userConfig is absent', () => {
+    process.env.ORCHESTKIT_HOOK_TOKEN = 'env-token';
+    expect(getHookToken()).toBe('env-token');
+  });
+
+  test('getHookToken returns undefined when nothing is configured', () => {
+    expect(getHookToken()).toBeUndefined();
   });
 });
 

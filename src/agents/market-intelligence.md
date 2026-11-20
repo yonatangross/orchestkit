@@ -1,11 +1,9 @@
 ---
 name: market-intelligence
 description: "Market research: competitive landscapes, market trends, TAM/SAM/SOM sizing, threat/opportunity analysis."
-category: product
 model: sonnet
 maxTurns: 20
 effort: low
-context: fork
 color: violet
 memory: local
 background: true
@@ -32,21 +30,13 @@ tools:
 disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - github-operations
-  - remember
   - memory
 mcpServers: [tavily]
-taskTypes:
-  - research
-keywords:
-  - "competitor"
-  - "market research"
-  - "tam"
-  - "sam"
-  - "som"
-  - "competitive landscape"
-examplePrompts:
-  - "Analyze the competitive landscape for AI code assistants"
-  - "Size the TAM/SAM/SOM for the developer tools market"
+metadata:
+  category: "product"
+  taskTypes: "research"
+  keywords: "competitor, market research, tam, sam, som, competitive landscape"
+  examplePrompts: "Analyze the competitive landscape for AI code assistants | Size the TAM/SAM/SOM for the developer tools market"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
@@ -222,3 +212,5 @@ The `product-frameworks` skill is `user-invocable: false` AND `disable-model-inv
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.

@@ -9,17 +9,22 @@
  * pre-existing synonym and casing suggestions.
  */
 
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { describe, test, expect } from 'vitest';
-import type { HookInput } from '../../types.js';
+import { describe, test, expect, vi } from 'vitest';
+import type { HookInput, HookContext } from '../../types.js';
+import { NOOP_CTX } from '../../lib/context.js';
 import {
   taskAgentAdvisor,
   matchSpecialistDomain,
   isDeterministicRunTask,
   ORK_AGENT_SYNONYMS,
   SPECIALIST_DOMAINS,
+  NOT_ROUTED,
+  READ_ONLY_SPECIALISTS,
+  BUILD_INTENT_PATTERN,
+  hasBuildIntent,
 } from '../../pretool/task/task-agent-advisor.js';
 
 // Repo-root src/agents/, resolved from this test file's location
@@ -246,4 +251,597 @@ describe('advisor maps cross-checked against src/agents/ (map existence)', () =>
       expect(existsSync(file)).toBe(true);
     },
   );
+});
+
+describe('#4630 routing gaps', () => {
+  test.each([
+    'read .github/workflows/example-bot.yml',
+    'repo/.github/workflows/x.yml',
+  ])('workflow path "%s" routes to ork:ci-cd-engineer', (text) => {
+    expect(matchSpecialistDomain(text, '')).toBe('ork:ci-cd-engineer');
+  });
+
+  test.each([
+    ['rebase the feature branch onto main and resolve conflicts', 'ork:git-operations-engineer'],
+    ['rebase the release branch onto main', 'ork:git-operations-engineer'],
+    ['fix the deploy workflow', 'ork:ci-cd-engineer'],
+    ['write the changelog and cut a release for 2.3.0', 'ork:release-engineer'],
+    ['plan a blue-green deploy to production with a rollback procedure', 'ork:deployment-manager'],
+    ['write a terraform module for the VPC', 'ork:infrastructure-architect'],
+    ['update the script under migrations/ that applies the orders change', 'ork:database-engineer'],
+    ['check alembic/versions for a missing down revision', 'ork:database-engineer'],
+    ['write a react component for the settings page', 'ork:frontend-ui-developer'],
+  ])('%s routes to %s', (text, expected) => {
+    expect(matchSpecialistDomain(text, '')).toBe(expected);
+  });
+
+  test.each([
+    'Create a git worktree for the fix',
+    'merge the meeting notes into one summary',
+    'summarize the release of the movie',
+  ])('negative: "%s" matches no new specialist row', (text) => {
+    const agent = matchSpecialistDomain(text, '');
+    expect(['ork:git-operations-engineer', 'ork:release-engineer', 'ork:deployment-manager']).not.toContain(agent);
+  });
+
+  test('worktree creation on general-purpose gets the Bash nudge, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Create a git worktree for the fix' }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('Bash');
+    expect(contextOf(result)).toContain('git worktree add');
+  });
+
+  test('reading one file on general-purpose gets the Read/Explore nudge, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Read apply-db.sh' }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('Read');
+    expect(contextOf(result)).toContain('Explore');
+  });
+
+  test('read nudge does not fire on an authoring task', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Read apply-db.sh and implement the retry' }),
+    );
+    expect(contextOf(result)).not.toContain('Explore');
+  });
+
+  test('bypassPermissions match stays advisory and logs a matched-in-bypass miss', () => {
+    const log = vi.fn();
+    const ctx: HookContext = { ...NOOP_CTX, log };
+    const input = { ...makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }), permission_mode: 'bypassPermissions' } as HookInput;
+    const result = taskAgentAdvisor(input, ctx);
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('ork:security-auditor');
+    expect(log).toHaveBeenCalledWith('task-agent-advisor', expect.stringContaining('matched-in-bypass'));
+  });
+
+  test('general-purpose with no match logs a general-purpose-no-match record', () => {
+    const log = vi.fn();
+    const ctx: HookContext = { ...NOOP_CTX, log };
+    taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: 'summarize the meeting notes' }), ctx);
+    expect(log).toHaveBeenCalledWith('task-agent-advisor', expect.stringContaining('general-purpose-no-match'));
+  });
+
+  // The issue's own measured task shapes: every one must get a route or a nudge.
+  test.each([
+    ['Read example-bot.yml workflow', 'Read'],
+    ['Read the bot workflow file example-bot.yml', 'Read'],
+    ['Read the migrations apply script', 'Read'],
+    ['Read apply-db.sh', 'Read'],
+    ['Create a git worktree for the fix', 'git worktree add'],
+  ])('issue shape "%s" on general-purpose gets a nudge, not silence or ask', (description, expected) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(expected);
+  });
+
+  // File shapes, not only domain words, route when the task acts on the file.
+  test.each([
+    ['Fix the example-bot.yml workflow', 'ork:ci-cd-engineer'],
+    ['Update the bot workflow file example-bot.yml', 'ork:ci-cd-engineer'],
+    ['Update the migrations apply script', 'ork:database-engineer'],
+    ['Change apply-db.sh to retry on lock timeout', 'ork:database-engineer'],
+    ['Rename 0042_add_orders_migration.sql', 'ork:database-engineer'],
+  ])('file shape "%s" routes to %s', (text, expected) => {
+    expect(matchSpecialistDomain(text, '')).toBe(expected);
+  });
+
+  test.each([
+    'rebase the timeline in the video',
+    'read the docs on workflow engines',
+    'summarize the bird migration study',
+  ])('negative: "%s" stays unrouted', (text) => {
+    expect(matchSpecialistDomain(text, '')).toBeNull();
+  });
+
+  test('a read nudge does not fire on a multi-step investigation', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Read the migrations apply script and explain why it deadlocks' }),
+    );
+    expect(contextOf(result)).not.toContain('Reading a file needs no subagent');
+  });
+
+  test('every agent in src/agents is routed or listed in NOT_ROUTED, with no overlap', () => {
+    const onDisk = readdirSync(AGENTS_DIR)
+      .filter((f) => f.endsWith('.md') && f !== 'README.md')
+      .map((f) => `ork:${f.replace(/\.md$/, '')}`)
+      .sort();
+    const routed = new Set(SPECIALIST_DOMAINS.map((d) => d.agent));
+    const notRouted = Object.keys(NOT_ROUTED);
+    expect(notRouted.filter((a) => routed.has(a))).toEqual([]);
+    expect([...routed, ...notRouted].sort()).toEqual(onDisk);
+    for (const reason of Object.values(NOT_ROUTED)) expect(reason.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Parse an agent file's frontmatter into its granted and disallowed tool names.
+ * Only the two keys this check needs; comments and non-list lines are skipped.
+ */
+function agentToolGrants(agent: string): { tools: string[]; disallowed: string[] } {
+  const raw = readFileSync(join(AGENTS_DIR, `${agent.replace('ork:', '')}.md`), 'utf8');
+  const fm = raw.split(/^-{3}$/m)[1] ?? '';
+  const tools: string[] = [];
+  let disallowed: string[] = [];
+  let inTools = false;
+  for (const line of fm.split('\n')) {
+    const inline = /^disallowedTools:\s*\[(.*)\]/.exec(line);
+    if (inline) {
+      disallowed = inline[1].split(',').map((t) => t.trim()).filter(Boolean);
+      inTools = false;
+      continue;
+    }
+    if (/^tools:\s*$/.test(line)) { inTools = true; continue; }
+    if (/^\S/.test(line)) { inTools = false; continue; }
+    const item = /^\s+-\s+(\S+)/.exec(line);
+    if (inTools && item) tools.push(item[1]);
+  }
+  return { tools, disallowed };
+}
+
+describe('#4649 routing hint checks build intent against the agent tools', () => {
+  test('a build task matching a read-only specialist does NOT ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Security review then fix, commit and open a PR',
+      }),
+    );
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    const ctx = contextOf(result);
+    expect(ctx).toContain('plan/review: prefer `ork:security-auditor`');
+    expect(ctx).toContain('build: keep `general-purpose`');
+  });
+
+  test.each([
+    ['run a security audit on the upload endpoint, then implement the fixes', 'ork:security-auditor'],
+    ['find the root cause of the crash and push a fix', 'ork:debug-investigator'],
+    ['review this PR and commit the suggested changes', 'ork:code-quality-reviewer'],
+  ])('build intent + read-only match "%s" is advisory, not ask', (description, agent) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(`plan/review: prefer \`${agent}\``);
+  });
+
+  test('an explicit code change (replace, add tests) with a read-only match is advisory, not ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Address SQL injection vulnerability',
+        prompt: 'Replace interpolated SQL with parameterized queries in app/db.py and add regression tests.',
+      }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('plan/review: prefer `ork:security-auditor`');
+  });
+
+  test.each([
+    ['Security review of the auth implementation'],
+    ['Security review of this PR, do not commit or push'],
+    ['security review the fix'],
+    ['security review; never edit the code'],
+  ])('review-only or negated "%s" is not build intent, so it still asks', (description) => {
+    expect(hasBuildIntent(description, '')).toBe(false);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description }));
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  // codex HOLD 6101944326 and agy 6101938077: one security match from the
+  // description, the probe in the prompt; classifier and hook both pinned.
+  const SQL_DESC = 'Address SQL injection vulnerability';
+  test.each([
+    ['Apply this fix for the SQL injection vulnerability'],
+    ['Do not forget to fix the SQL injection vulnerability'],
+    ['Never skip implementing the endpoint'],
+    ['Without delay fix the SQL injection vulnerability'],
+    ['Do not commit or push but write unit tests for the query builder'],
+    ['Implement the endpoint, never skip tests'],
+    ['fix the bug; do not push'],
+    ['Add the guard without changing the API'],
+    // product-13 HOLD 6102436178: conversational build shapes, true at 63d5.
+    ['Your task is to implement the parameterized query'],
+    ['Can you fix the SQL injection in the login query'],
+    ['I need you to fix the SQL injection vulnerability'],
+    ['I want you to patch the query builder'],
+    ["Let's fix the SQL injection in users.py"],
+    ['Go fix the SQL injection in users.py'],
+    ['Help me fix the SQL injection'],
+    // codex HOLD 6102229680 P2-1 and agy 6102200262.
+    ['Your task is to fix the SQL injection vulnerability in app/db.py.'],
+    ['Please carefully fix the SQL injection vulnerability in app/db.py.'],
+    ['We need you to implement the SQL injection guard in app/db.py.'],
+    ['You are to replace interpolated SQL with parameterized queries in app/db.py.'],
+    ['Security review and remember to fix the SQL injection vulnerability.'],
+    ['Just fix the SQL injection in users.py'],
+    ['In order to fix the SQL injection, parameterize the query'],
+    ['Do not commit and write tests for the query builder'],
+    // codex HOLD 6102977795: a colon ends a prohibition; write takes a longer object.
+    ['Do not push: fix the SQL injection locally.'],
+    ['Without pushing: implement the SQL injection guard.'],
+    ['Do not commit: add regression tests for the SQL injection.'],
+    ['Never push: replace interpolated SQL with parameters.'],
+    ['Please write a SQL injection regression test.'],
+    // codex HOLD 6103186316: no fixed word count between verb and noun.
+    ['Please write a new SQL injection regression unit test.'],
+    ['Please add a new SQL injection regression unit test.'],
+    ['Write a focused SQL injection parameterization regression test.'],
+    // agy HOLD 6109078062: "and" ends a without-prohibition, so a coordinated
+    // clause after it keeps its build verb.
+    ['Review the code without changing the API and fix the bug.'],
+    ['Review the code without changing anything and implement the cache.'],
+    ['Review the code without editing it and patch the parser.'],
+  ])('build prompt "%s" is build intent, so it is advisory', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
+    expect(decisionOf(result)).not.toBe('ask');
+  });
+
+  test.each([
+    ['Security review of commit abc123'],
+    ['Security review of fixes in this PR'],
+    ['Security review of a possible fix'],
+    ['Security review of our fix'],
+    ['Security review the bug fix'],
+    // codex HOLD 6102229680 P2-3: a prohibition carries across ", or".
+    ['Security review only. Do not fix the bug, or push changes.'],
+    ['Security review: implementation details only.'],
+    // The noun must sit in the verb's own clause.
+    ['Security review. Write a summary for the team. Tests are out of scope.'],
+    ['Security review; add a note to the report; the code stays as is.'],
+    // agy HOLD CLEAN 6108013942: "without" must carry the prohibition across
+    // an or-joined object, not just the first noun after the gerund.
+    ['Review without making any code changes or commits.'],
+    // CodeRabbit 4242284355: the and-continuation must accept every commit
+    // form (commit, commits, committed, committing), not just the first.
+    ['Review without changing files and committing changes'],
+    // #4715: any gerund after "and" stays under "without", not only
+    // commit, push and edit.
+    ['Review without fixing bugs and adding tests'],
+    ['Review without refactoring and rewriting the module'],
+    ['Review without changing the API and implementing the cache.'],
+  ])('review-object prompt "%s" is not build intent, so it asks', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description: SQL_DESC, prompt }));
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  // The ERROR DIRECTION, chosen on purpose (conductor153, 2026-10-11): a miss
+  // asks the human to redirect a code change to a read-only agent, a false
+  // positive only swaps that ask for a note. So these review-only prompts are
+  // KNOWN false positives, pinned so a change to them is a decision, not drift.
+  // At 292d8fab the last 4 were already true; the first 3 became true with the
+  // joining-word widen (to/you/lets/go/me/just) at 79d5b602.
+  test.each([
+    ['Tell me what you fixed last week'], // new at 79d5 vs 292d8fab
+    ['Review the diff and say what to fix'], // new at 79d5 vs 292d8fab
+    ['Report what you would refactor'], // already true at 292d8fab
+    ['Check how to fix it, report only, do not fix'], // new at 79d5 vs 292d8fab
+    ['Security review of whether to fix or replace the vulnerable query.'], // already true at 292d8fab
+    ['Security review of commit and push permissions.'], // already true at 292d8fab
+    ['Security review of the fix and patch plan.'], // already true at 292d8fab
+    // product-13 HOLD CLEAN 6103347795: write/add prose about tests or checks.
+    ['Write a short report on the missing input validation'],
+    ['Write up which of the endpoints lack guards'],
+    ['Write a review comment about why the tests are flaky'],
+    ['Add your findings to the report about missing checks'],
+  ])('accepted false positive "%s" reads as build intent', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(true);
+  });
+
+  // conductor153 should: negation keeps going across "and" when the next verb
+  // is commit, push or edit. These used to read as build at 79d5b602.
+  test.each([
+    ['Review this PR only. Do not commit and push.'],
+    ['Security review; never edit and commit anything'],
+    ['Do not commit and push'],
+    ['never edit and commit'],
+  ])('negated ship pair "%s" is not build intent', (prompt) => {
+    expect(hasBuildIntent(SQL_DESC, prompt)).toBe(false);
+  });
+
+  // CodeRabbit 4240757717: without <gerund> must not swallow a later fix.
+  test('without gerund keeps a later fix as build intent', () => {
+    expect(hasBuildIntent(SQL_DESC, 'Without breaking the API fix the SQL injection')).toBe(true);
+  });
+
+  test('a read-only match WITHOUT build intent still asks', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'run a security audit on the upload endpoint' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  test('build intent with a writable specialist still asks', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'write unit tests for the parser and commit them' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:test-generator');
+  });
+
+  test('BUILD_INTENT_PATTERN matrix', () => {
+    expect(BUILD_INTENT_PATTERN.test('commit and push')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('open a PR')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('implement the change')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('then fix it')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('find the root cause')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('audit the fixture loader')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('Replace interpolated SQL with parameterized queries')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('add regression tests')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('refactor the upload handler')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('rewrite the query builder')).toBe(true);
+    expect(BUILD_INTENT_PATTERN.test('add your findings to the report')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('list replacement candidates')).toBe(false);
+    expect(BUILD_INTENT_PATTERN.test('implementing the endpoint')).toBe(true);
+    expect(hasBuildIntent('fix the bug, do not push', '')).toBe(true);
+    expect(hasBuildIntent('review the commit history', '')).toBe(false);
+  });
+
+  test.each(SPECIALIST_DOMAINS.map((d) => [d.agent] as const))(
+    'READ_ONLY_SPECIALISTS membership of %s matches its frontmatter tools',
+    (agent) => {
+      const { tools, disallowed } = agentToolGrants(agent);
+      expect(tools.length).toBeGreaterThan(0);
+      const canWrite = ['Write', 'Edit'].some((t) => tools.includes(t) && !disallowed.includes(t));
+      expect(READ_ONLY_SPECIALISTS.has(agent)).toBe(!canWrite);
+    },
+  );
+});
+
+/**
+ * #4835: the 12 rows measured in the issue, each on general-purpose in the
+ * default permission mode. Part 1: the #4630 read and worktree shapes are
+ * decided on the description, so a realistic prompt keeps the nudge. Part 2:
+ * a guard-rail sentence ("do not X", "stop and report", "report only") never
+ * raises a permission ask for the agent of X.
+ */
+describe('#4835 advisor decides on the description and ignores negated asks', () => {
+  const WORKTREE_NOTE = 'git worktree add';
+  const READ_NOTE = 'Reading a file needs no subagent';
+
+  test.each([
+    ['Create a git worktree for the fix', '', WORKTREE_NOTE],
+    ['Create a git worktree for the fix', 'Create a git worktree for the fix branch and print its path.', WORKTREE_NOTE],
+    ['Create a git worktree for the fix', 'Run git worktree add ../wt -b fix/x and report the path.', WORKTREE_NOTE],
+    ['Read example-bot.yml workflow', '', READ_NOTE],
+    ['Read example-bot.yml workflow', 'Read .github/workflows/example-bot.yml and explain what triggers it.', READ_NOTE],
+    ['Read apply-db.sh', 'Read apply-db.sh and report what it does.', READ_NOTE],
+    ['Read docs/intro-to-terraform.md', '', READ_NOTE],
+    ['Read docs/terraform-intro.md', '', READ_NOTE],
+  ])('part 1: "%s" with prompt "%s" gets the nudge, never silence or ask', (description, prompt, note) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description, prompt }));
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain(note);
+  });
+
+  test.each([
+    ['Summarize the design doc', 'If you hit merge conflicts, stop and report.', 'ork:git-operations-engineer'],
+    ['Update the docs', 'Do not deploy to production.', 'ork:deployment-manager'],
+    ['Review the release notes', 'Do not commit and push. Report only.', 'ork:release-engineer'],
+  ])('part 2: "%s" with guard rail "%s" never asks for %s', (description, prompt, agent) => {
+    const result = taskAgentAdvisor(makeInput({ subagent_type: 'general-purpose', description, prompt }));
+    expect(result.continue).toBe(true);
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(reasonOf(result)).not.toContain(agent);
+  });
+
+  test('part 2: "Build the changelog page React component" asks for the frontend agent, not release', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Build the changelog page React component' }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+    expect(reasonOf(result)).toContain('ork:frontend-ui-developer');
+    expect(reasonOf(result)).not.toContain('ork:release-engineer');
+  });
+
+  // Guards on the guard: the fix must not silence real asks.
+  test.each([
+    ['Plan a blue-green deploy to production. Do not commit.', 'ork:deployment-manager'],
+    ['Do not forget to deploy to production after the review', 'ork:deployment-manager'],
+    ['Do not just review: resolve the merge conflicts on the feature branch', 'ork:git-operations-engineer'],
+    ['Write the changelog for 2.3.0', 'ork:release-engineer'],
+  ])('a real domain ask next to a negation still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain(text, '')).toBe(expected);
+  });
+
+  test.each([
+    ['Do not deploy to production.', null],
+    ["Don't touch the terraform module.", null],
+    ['Never rebase the release branch onto main.', null],
+    ['If you hit merge conflicts, stop and report.', null],
+    ['When the CVE-2026-1234 scan fails, stop and ask.', null],
+  ])('a guard-rail sentence alone matches no specialist: "%s"', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // XREVIEW HOLD 6343034324 must 1: the stop clause ran to the end of the
+  // sentence, so an ask after it in the same sentence was dropped (a silent
+  // allow that main did not have). The clause now ends at a comma, and, then,
+  // but, instead or however, as NEGATED_CLAUSE_PATTERN does.
+  test.each([
+    ['If you hit merge conflicts, stop and report, then deploy to production.', 'ork:deployment-manager'],
+    ['Stop and ask if the build breaks, then deploy to production.', 'ork:deployment-manager'],
+    ['Stop if you hit merge conflicts and deploy to staging.', 'ork:deployment-manager'],
+    // Reviewer HOLD 6344107617: the CONDITION side crossed commas, so an
+    // instruction between a leading condition and a later ", stop" was removed.
+    ['If the tests pass, deploy to production, but if they fail, stop.', 'ork:deployment-manager'],
+    ['When the build is green, deploy to production and if it breaks, stop.', 'ork:deployment-manager'],
+  ])('an ask after a stop clause in the same sentence still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // Reviewer HOLD 6344107617 round 3: the STOP side crossed but, instead, however,
+  // or and "and check ... before you", so an instruction between a leading stop
+  // and its later condition was removed. A stop span is no longer dropped whole:
+  // only its obstacle (the piece right after if/when) goes, and any other piece
+  // the routing detector matches stays in the text.
+  test.each([
+    ['Stop the canary but deploy to production if the checks pass.', 'ork:deployment-manager'],
+    ['Stop the old job instead deploy to production when ready.', 'ork:deployment-manager'],
+    ['Halt the canary however deploy to production if green.', 'ork:deployment-manager'],
+    ['Stop the old worker or deploy to production if it is idle.', 'ork:deployment-manager'],
+    ['Stop and check staging before you deploy to production if green.', 'ork:deployment-manager'],
+  ])('an ask between a stop and its later condition still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // The obstacle piece ends at any conjunction or clause adverb, so an
+  // instruction joined to the condition by one of them is not dropped with it.
+  test.each([
+    ['Stop if the checks fail while you deploy to production.', 'ork:deployment-manager'],
+    ['Halt if it is red so deploy to production manually.', 'ork:deployment-manager'],
+    ['Stop if the canary fails plus deploy to production.', 'ork:deployment-manager'],
+    ['Abort if CI is red because you must rebase the feature branch onto main.', 'ork:git-operations-engineer'],
+  ])('an ask joined to the condition by a subordinator still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // XREVIEW HOLD 6346226707 Must: "or else" and "otherwise" after a stop.
+  test.each([
+    ['If it breaks, stop or else deploy to production.', 'ork:deployment-manager'],
+    ['If it breaks, stop otherwise deploy to production.', 'ork:deployment-manager'],
+    ['Stop if it breaks or else deploy to production.', 'ork:deployment-manager'],
+    ['Stop if it breaks otherwise deploy to production.', 'ork:deployment-manager'],
+  ])('an ask after "or else" or "otherwise" still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // XREVIEW HOLD 6346226707 Should, pinned as a choice: a condition with no comma
+  // runs into the instruction. The obstacle is dropped only when its routed match
+  // IS the obstacle (the condition's subject, or the object of hit, see, get and
+  // the like); anything else before the match keeps the piece, an extra ask.
+  test.each([
+    ['If ready deploy to production, then stop.', 'ork:deployment-manager'],
+    ['When done deploy to production, stop.', 'ork:deployment-manager'],
+    ['If the build passes deploy to production, stop if it fails.', 'ork:deployment-manager'],
+  ])('a comma-less condition does not swallow the instruction: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  test.each([
+    ['Stop and ask if the deploy to production breaks.'],
+    ['When you hit merge conflicts, just stop and report back.'],
+    // A follow-up that does not refer back to the condition keeps it an obstacle.
+    ['Stop if the deploy to production breaks, then report it.'],
+    ['Stop if the deploy to production breaks; then report it.'],
+    ['Stop if the deploy to production breaks; otherwise continue.'],
+    // CodeRabbit :276: "if so" with no work verb after it reports, it does not do the work.
+    ['Stop if the deploy to production breaks; if so, report it.'],
+    ['Stop if the deploy to production breaks and if so, tell me.'],
+    ['Stop if the deploy to production breaks, and if so report it.'],
+  ])('the obstacle inside a stop clause is still removed: "%s"', (text) => {
+    expect(matchSpecialistDomain('', text)).toBeNull();
+  });
+
+  // Reviewer HOLD 6346951302 / 6365962150 Must: when the rest of the sentence
+  // refers back to the condition ("then do it", "if so"), the condition names the
+  // work, not an obstacle, and must still route. main routed both.
+  test.each([
+    ['Stop and check if a deploy to production is needed, then do it.', 'ork:deployment-manager'],
+    ['Stop and check if a rebase onto main is needed, then do it.', 'ork:git-operations-engineer'],
+    ['Stop and check if a deploy to production is needed and if so run it.', 'ork:deployment-manager'],
+    // HOLD 6369316669: the same back-reference after a ";" ("; if so, do it").
+    ['Stop and check if a rebase onto main is needed; if so, do it.', 'ork:git-operations-engineer'],
+    ['Stop and check if a deploy to production is needed; then do it.', 'ork:deployment-manager'],
+    ['Stop and check if a deploy to production is needed; if so, run it.', 'ork:deployment-manager'],
+    ['Stop and check if a rebase of the feature branch onto main is needed; then do it.', 'ork:git-operations-engineer'],
+  ])('a condition referred back to by "then do it" or "if so" still routes: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  // Known extra ask, pinned on purpose (reviewer HOLD 6344107617): the condition
+  // ends at a clause word too, so "and" inside a condition leaves its second half
+  // in the text. An extra ask is the safe error; reading across "and" is what let
+  // a real instruction be removed.
+  test('a condition joined by "and" leaves its second half: an extra ask, not a silent allow', () => {
+    expect(matchSpecialistDomain('', 'If the build and the deploy to staging fail, stop.')).toBe(
+      'ork:deployment-manager',
+    );
+  });
+
+  // XREVIEW HOLD 6343034324 must 2, behavior pinned on purpose: in "do not X and
+  // Y" the negation ends at "and" (unless Y is commit, push or edit), so Y still
+  // routes. English reads it both ways; an extra ask is the safe error, a
+  // negation that also swallowed Y would be a silent allow for "do not deploy
+  // and rebase the branch onto main" read as an instruction to rebase.
+  test.each([
+    ['Do not deploy to staging and rebase the feature branch onto main.', 'ork:git-operations-engineer'],
+    ['Never touch production and write unit tests for the parser.', 'ork:test-generator'],
+  ])('"do not X and Y" keeps Y: "%s" → %s', (text, expected) => {
+    expect(matchSpecialistDomain('', text)).toBe(expected);
+  });
+
+  test('a read-only task with a real domain match gets a note, not an ask', () => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Review the release notes', prompt: 'Read only.' }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+    expect(contextOf(result)).toContain('ork:release-engineer');
+  });
+
+  // CodeRabbit :473: "report only if X fails" is a conditional instruction in a
+  // task that does the work, so the specialist ask still fires.
+  test.each([
+    ['Publish a new release; report only if publishing fails.'],
+    ['Cut the release and only report if the tag push fails.'],
+  ])('a conditional "report only if" does not make the task report-only: "%s"', (prompt) => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Publish a new release', prompt }),
+    );
+    expect(decisionOf(result)).toBe('ask');
+  });
+
+  // CodeRabbit :245: the condition lookahead stays on its own line, so a prompt that
+  // opens with "If ..." or "When ..." does not cancel a report-only description.
+  test.each([
+    ['If anything looks off, list it.'],
+    ['When done, summarise.'],
+    ['If there are errors, list them.'],
+  ])('a report-only description stays report-only across the prompt join: "%s"', (prompt) => {
+    const result = taskAgentAdvisor(
+      makeInput({ subagent_type: 'general-purpose', description: 'Review the release notes, report only', prompt }),
+    );
+    expect(decisionOf(result)).not.toBe('ask');
+  });
+
+  test('a prompt that asks to build still turns the read nudge off', () => {
+    const result = taskAgentAdvisor(
+      makeInput({
+        subagent_type: 'general-purpose',
+        description: 'Read apply-db.sh',
+        prompt: 'Read apply-db.sh, then fix the lock timeout and commit.',
+      }),
+    );
+    expect(contextOf(result)).not.toContain(READ_NOTE);
+  });
 });

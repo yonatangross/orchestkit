@@ -20,6 +20,18 @@ NC='\033[0m' # No Color
 # Get project root name for worktree naming
 PROJECT_NAME=$(basename "$(git rev-parse --show-toplevel)")
 
+# True when the worktree path is registered, matched as a whole porcelain line
+# so "../proj-feat" cannot substring-match a sibling like "../proj-feat2".
+worktree_registered() {
+    local worktree_path="$1"
+    local parent_abs worktree_abs list
+    parent_abs=$(cd "$(dirname "$worktree_path")" 2>/dev/null && pwd -P) || return 1
+    worktree_abs="${parent_abs}/$(basename "$worktree_path")"
+    # No piped grep -q under pipefail: grep exits early and SIGPIPEs git.
+    list="$(git worktree list --porcelain)"
+    grep -Fxq "worktree ${worktree_abs}" <<<"$list"
+}
+
 usage() {
     echo "Usage: $0 <command> [feature-name]"
     echo ""
@@ -41,7 +53,7 @@ create_worktree() {
     local worktree_path="../${PROJECT_NAME}-${feature_name}"
 
     # Check if worktree already exists
-    if git worktree list | grep -q "$worktree_path"; then
+    if worktree_registered "$worktree_path"; then
         echo -e "${YELLOW}Worktree already exists at $worktree_path${NC}"
         exit 1
     fi
@@ -72,33 +84,39 @@ cleanup_worktree() {
     local worktree_path="../${PROJECT_NAME}-${feature_name}"
 
     # Check if worktree exists
-    if ! git worktree list | grep -q "$worktree_path"; then
+    if ! worktree_registered "$worktree_path"; then
         echo -e "${RED}Worktree not found at $worktree_path${NC}"
         exit 1
     fi
 
-    # Check for uncommitted changes
+    # Check for uncommitted changes. `git status --porcelain` includes untracked
+    # files, which `git diff --quiet` cannot see; force-removing a tree with
+    # untracked work deletes it without a prompt.
+    local confirmed_discard=0
     if [ -d "$worktree_path" ]; then
-        pushd "$worktree_path" > /dev/null
-        if ! git diff --quiet || ! git diff --cached --quiet; then
+        if [ -n "$(git -C "$worktree_path" status --porcelain)" ]; then
             echo -e "${RED}WARNING: Uncommitted changes detected!${NC}"
             echo ""
-            git status --short
+            git -C "$worktree_path" status --short
             echo ""
             read -p "Discard changes and remove worktree? (y/N) " -n 1 -r
             echo
             if [[ ! $REPLY =~ ^[Yy]$ ]]; then
                 echo "Aborting. Commit or stash your changes first."
-                popd > /dev/null
                 exit 1
             fi
+            confirmed_discard=1
         fi
-        popd > /dev/null
     fi
 
-    # Remove worktree
+    # Remove worktree. --force only after the user confirmed the discard;
+    # a clean tree needs no force and git refuses a dirty one without it.
     echo "Removing worktree..."
-    git worktree remove "$worktree_path" --force
+    if [[ "$confirmed_discard" == "1" ]]; then
+        git worktree remove "$worktree_path" --force
+    else
+        git worktree remove "$worktree_path"
+    fi
 
     # Ask about branch deletion
     read -p "Delete branch $branch_name? (y/N) " -n 1 -r
@@ -122,7 +140,7 @@ status_worktree() {
     local feature_name="$1"
     local worktree_path="../${PROJECT_NAME}-${feature_name}"
 
-    if ! git worktree list | grep -q "$worktree_path"; then
+    if ! worktree_registered "$worktree_path"; then
         echo -e "${RED}Worktree not found at $worktree_path${NC}"
         exit 1
     fi

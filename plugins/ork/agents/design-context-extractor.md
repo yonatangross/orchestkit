@@ -2,13 +2,10 @@
 name: design-context-extractor
 description: "Design context extraction: analyzes screenshots, URLs, or live apps to extract color palettes, typography, spacing, and component patterns as structured design tokens."
 model: sonnet
-category: frontend
 maxTurns: 20
 effort: low
-context: fork
 color: cyan
 memory: project
-isolation: worktree
 tools:
   - Read
   - Write
@@ -28,26 +25,30 @@ tools:
   # WebSearch. Read-only surface; resolve the library ID first, then query.
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  # mcpServers/required_mcp_servers stitch entries are metadata only (F12).
+  # Grant BOTH prefixes: mcp__stitch__* (standalone) and
+  # mcp__plugin_hq-ext_stitch__* (hq-ext). https://code.claude.com/docs/en/mcp-servers
+  - mcp__stitch__list_projects
+  - mcp__plugin_hq-ext_stitch__list_projects
+  - mcp__stitch__get_project
+  - mcp__plugin_hq-ext_stitch__get_project
+  - mcp__stitch__list_screens
+  - mcp__plugin_hq-ext_stitch__list_screens
+  - mcp__stitch__get_screen
+  - mcp__plugin_hq-ext_stitch__get_screen
+  - mcp__stitch__generate_screen_from_text
+  - mcp__plugin_hq-ext_stitch__generate_screen_from_text
 skills:
   - design-context-extract
   - design-system-tokens
-  - remember
   - memory
 mcpServers: [stitch, context7]
-required_mcp_servers: [stitch]
-taskTypes:
-  - design
-  - research
-keywords:
-  - "design tokens"
-  - "color palette"
-  - "typography"
-  - "spacing"
-  - "screenshot"
-  - "design extraction"
-examplePrompts:
-  - "Extract design tokens from this app screenshot"
-  - "Analyze the live URL and produce a design-tokens.json"
+metadata:
+  category: "frontend"
+  taskTypes: "design, research"
+  keywords: "design tokens, color palette, typography, spacing, screenshot, design extraction"
+  examplePrompts: "Extract design tokens from this app screenshot | Analyze the live URL and produce a design-tokens.json"
+  required_mcp_servers: "stitch"
 ---
 ## Directive
 Extract design context ("Design DNA") from visual sources — screenshots, URLs, or existing project styles — and produce structured design tokens. Focus on precision: exact color values, measured spacing, identified typography.
@@ -142,6 +143,8 @@ Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
 
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
+
 ## Skill Index
 
 Read the specific file before advising. Do NOT rely on training data.
@@ -154,6 +157,5 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |design-context-extract:{SKILL.md}|design-context,design-tokens,stitch,extraction,colors,typography,audit,visual-identity
 |design-system-tokens:{SKILL.md,references/{style-dictionary-config.md,token-naming-conventions.md,w3c-token-spec.md}}|design-tokens,w3c-tokens,oklch,style-dictionary,theming,dark-mode,css-variables,tailwind-theme,design-system,color-spaces
-|remember:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{memory-commands.md,mermaid-patterns.md,session-resume-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|memory:{SKILL.md,references/{category-detection.md,confirmation-templates.md,entity-extraction-workflow.md,examples.md,graph-operations.md,housekeeping.md,index-budget.md,memory-commands.md,mermaid-patterns.md,safe-deletes.md,session-resume-patterns.md,verb-dream.md}}|memory,best-practices,graph,session,context,search,remember,dream
 ```

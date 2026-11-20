@@ -1,0 +1,13 @@
+{
+  "measured_at": "2026-10-31T19:01:18Z",
+  "claude_code": "2.1.316",
+  "method": "fresh headless session (claude -p --plugin-dir <plugins/ork snapshot> --debug-file), one Bash, one Read and one Edit call; one 'Hooks: <Event>:<Tool> [...] (plugin ork@inline)' line per launched hook process",
+  "plugin": "ork (plugins/ork at main de2b5a6ae)",
+  "ork_hook_processes_per_call": {
+    "Bash": 10,
+    "Edit": 16,
+    "Read": 4
+  },
+  "ork_post_tool_batch_per_batch": 1,
+  "note": "Matches scripts/measure-hook-processes.mjs after it dedupes identical commands per event (Bash 11, Edit 17, Read 5 including the PostToolBatch process). Other plugins and user settings hooks are not counted here."
+}

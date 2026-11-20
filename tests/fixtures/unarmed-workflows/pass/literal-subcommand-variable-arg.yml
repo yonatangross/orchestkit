@@ -1,0 +1,16 @@
+# Fixture for tests/unit/test-workflows-open-prs-unarmed.sh. Never run.
+# PASS: a literal pr subcommand; only its arguments come from variables.
+name: fixture
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Label the PR
+        env:
+          PR: "1"
+          LABEL: held
+        run: gh pr edit "$PR" --add-label "$LABEL"

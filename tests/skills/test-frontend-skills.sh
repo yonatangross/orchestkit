@@ -54,7 +54,7 @@ for skill in "${FRONTEND_SKILLS[@]}"; do
     # Check for required frontmatter fields
     if grep -q "^name:" "$skill_file" && \
        grep -q "^description:" "$skill_file" && \
-       grep -q "^tags:" "$skill_file"; then
+       grep -qE "^[[:space:]]*tags:" "$skill_file"; then  # top level or under metadata (m1)
       log_pass "$skill has valid frontmatter"
     else
       log_fail "$skill missing required frontmatter fields"

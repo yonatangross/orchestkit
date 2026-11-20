@@ -1,0 +1,408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed shared Jev shadow emitter v1, not installed",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "namespace",
+    "producer",
+    "seam",
+    "mode",
+    "decision_id",
+    "phase",
+    "harness",
+    "session_id",
+    "prompt_id",
+    "router",
+    "jev_pick",
+    "jev_confidence",
+    "incumbent_pick",
+    "agree",
+    "floor",
+    "decided_by",
+    "unknown_reason"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "harness": {
+      "enum": [
+        "claude-code",
+        "codex",
+        "cursor",
+        "devin",
+        "pi",
+        "agy",
+        "gemini",
+        "grok",
+        "platform"
+      ]
+    },
+    "namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seam": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "const": "shadow"
+    },
+    "session_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "prompt_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "router": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "jev_pick": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "jev_confidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "incumbent_pick": {
+      "oneOf": [
+        {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "choice",
+            "reason"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "failed",
+                "unobserved"
+              ]
+            },
+            "choice": {
+              "const": null
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "agree": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "floor": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "decided_by": {
+      "enum": [
+        "incumbent",
+        "jev",
+        "none",
+        "unknown"
+      ]
+    },
+    "unknown_reason": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "incumbent_pick_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "enum": [
+        "pending",
+        "paired",
+        "handoff",
+        "unobserved"
+      ]
+    },
+    "handoff_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "tool_call_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "incumbent_model": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "candidate_set_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "selected_pick": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1
+    },
+    "selected_by": {
+      "enum": [
+        "jev",
+        "incumbent",
+        "none",
+        "unknown"
+      ]
+    },
+    "incumbent_origin": {
+      "enum": [
+        "independent",
+        "not_run",
+        "unobserved"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "session_id": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "session_id"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "prompt_id": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "prompt_id"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "router": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "router"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "jev_pick": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "jev_pick"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "jev_confidence": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "jev_confidence"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "floor": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "floor"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "incumbent_pick": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "incumbent_pick_reason"
+        ],
+        "properties": {
+          "incumbent_pick_reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unknown_reason": {
+            "type": "object",
+            "required": [
+              "incumbent_pick"
+            ]
+          },
+          "agree": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "incumbent_pick": {
+            "type": "object"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "agree": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "jev_pick": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "agree": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

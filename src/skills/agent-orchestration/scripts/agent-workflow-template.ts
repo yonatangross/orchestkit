@@ -148,7 +148,6 @@ Answer: [Final answer to the user's task]
 
 IMPORTANT:
 - Use tools when you need information
-- Think step by step
 - Only use available tools
 - Action Input must be valid JSON
 `

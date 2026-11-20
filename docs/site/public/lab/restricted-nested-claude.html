@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A hook that spawned an unrestricted claude</title>
+<style>
+  :root { color-scheme: light dark; --ok:#1a7f37; --bad:#cf222e; --mut:#6e7781; }
+  body { font: 16px/1.55 system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.6rem; margin-bottom: .2rem; }
+  .sub { color: var(--mut); margin-top: 0; }
+  .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+  .lane { border: 1px solid #d0d7de; border-radius: 8px; padding: .9rem 1rem; }
+  .lane h2 { font-size: 1rem; margin: 0 0 .5rem; }
+  .req { font: 13px/1.4 ui-monospace, monospace; padding: .45rem .6rem; border-radius: 6px; margin: .35rem 0; }
+  .req.ok { background: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .req.bad { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+  .verdict { font-weight: 600; margin-top: .6rem; }
+  .verdict.ok { color: var(--ok); } .verdict.bad { color: var(--bad); }
+  button { font: inherit; padding: .4rem .8rem; border-radius: 6px; border: 1px solid #d0d7de; cursor: pointer; }
+  code { font-size: .92em; }
+  @media (max-width: 700px) { .lanes { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A Hook That Spawned an Unrestricted Claude"><meta property="og:description" content="Under claude --restricted, the session-identity hook started a nested claude -p to title the session, and that child still offered Bash and WebFetch. The restricted smoke checked only the first request, so it went red about one run in five. The child now gets --tools &quot;&quot; and the smoke checks every request."><meta property="og:url" content="https://orchestkit.dev/lab/restricted-nested-claude.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A Hook That Spawned an Unrestricted Claude"><meta name="twitter:description" content="Under claude --restricted, the session-identity hook started a nested claude -p to title the session, and that child still offered Bash and WebFetch. The restricted smoke checked only the first request, so it went red about one run in five. The child now gets --tools &quot;&quot; and the smoke checks every request."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<h1>A hook that spawned an unrestricted claude</h1>
+<p class="sub">orchestkit #4906 · session-identity, CC Restricted Smoke</p>
+
+<p>Under <code>claude --restricted</code>, the session-identity hook starts a nested <code>claude -p --model haiku</code> to title the session. Before the fix, that child ran with every built-in tool, Bash and WebFetch included. The smoke only checked the first request it saw, so it caught this about one run in five. Press <b>Run</b> to replay a run in each version.</p>
+
+<button id="run">Run once</button>
+<div class="lanes">
+  <section class="lane"><h2>Before: first request only, child has tools</h2><div id="before"></div></section>
+  <section class="lane"><h2>After: every request, child has <code>--tools ""</code></h2><div id="after"></div></section>
+</div>
+<p class="sub" id="tally"></p>
+
+<script>
+  const main = { who: "main loop (opus, --restricted)", tools: 19, bash: false };
+  const childOld = { who: "nested child (haiku)", tools: 24, bash: true };
+  const childNew = { who: "nested child (haiku)", tools: 0, bash: false };
+  let runs = 0, oldRed = 0, newRed = 0;
+  function row(r) { return `<div class="req ${r.bash ? "bad" : "ok"}">${r.who}: ${r.tools} tools${r.bash ? ", offers Bash/WebFetch" : ""}</div>`; }
+  function run() {
+    runs++;
+    const childFirst = Math.random() < 0.2; // the order race seen on CI, 3 of 15
+    const oldReqs = childFirst ? [childOld, main] : [main, childOld];
+    const firstBig = oldReqs.find(r => r.tools > 5);
+    const oldBad = firstBig.bash; if (oldBad) oldRed++;
+    document.getElementById("before").innerHTML = oldReqs.map(row).join("") +
+      `<div class="verdict ${oldBad ? "bad" : "ok"}">${oldBad ? "red: the child landed first" : "green: the leak went unseen"}</div>`;
+    const newReqs = childFirst ? [childNew, main] : [main, childNew];
+    const newBad = newReqs.some(r => r.tools > 0 && r.bash); if (newBad) newRed++;
+    document.getElementById("after").innerHTML = newReqs.map(row).join("") +
+      `<div class="verdict ${newBad ? "bad" : "ok"}">${newBad ? "red" : "green: no request offers Bash or WebFetch"}</div>`;
+    document.getElementById("tally").textContent = `${runs} run(s): before red ${oldRed} times, after red ${newRed} times.`;
+  }
+  document.getElementById("run").addEventListener("click", run);
+  run();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

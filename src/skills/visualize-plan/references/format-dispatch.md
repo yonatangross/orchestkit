@@ -92,7 +92,7 @@ sub-route in the visual standard). The contract:
 
    ```bash
    # SLUG = the plan's stable slug (kebab-case, derived from the plan title — NOT the branch)
-   bash "$SKILL_DIR/scripts/find-living-plan.sh" "$SLUG"
+   bash "${CLAUDE_SKILL_DIR}/scripts/find-living-plan.sh" "$SLUG"
    ```
 
    - **Exactly one hit** → you are UPDATING that file. Merge into it (step 2) wherever it lives.

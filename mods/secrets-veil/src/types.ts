@@ -1,7 +1,7 @@
 // secrets-veil: types.ts - shared type definitions
 // Reused from commit 30720692 and trimmed: the reveal surface (RevealedState,
-// UIPressEvent, CommandRegisterEvent, ui.render/ui.press on OnFn) and ui.log
-// are gone by design. This mod has no reveal path and no ui.log.
+// UIPressEvent, CommandRegisterEvent, ui.render/ui.press on OnFn) is gone by
+// design. This mod has no reveal path; its ui calls carry counts, never values.
 
 /**
  * Configuration for the high-entropy value layer.
@@ -25,8 +25,21 @@ export type MaskTableEntry =
     }
   | {
       type: "pattern";
+      /** Literal prefix: the scan finds candidates with indexOf on it. */
       pattern: string;
+      /**
+       * Optional shape gate, sticky ("y"): tested at each prefix hit, which
+       * counts only when the shape matches there. Unset means the bare
+       * prefix is enough.
+       */
+      shape?: RegExp;
     };
+
+/**
+ * One default pattern: a bare prefix, or a prefix with the token shape that
+ * must match where the prefix is found.
+ */
+export type PatternSpec = string | { prefix: string; shape: RegExp };
 
 /**
  * The mask table built at session.start from named values and patterns.
@@ -64,15 +77,29 @@ export interface MaskResult {
 
 /**
  * The $ dependency object (subset used by secrets-veil).
- * Deliberately minimal: env reads and one notice. No ui.log, no ui.render,
- * no ui.press, no commands, no process, no http, no store.
+ * Deliberately minimal: env reads, one notice, and the three calls that make
+ * masking visible (toast, status, debug log), each carrying counts only,
+ * never a value. No ui.render, no ui.press, no commands, no process, no
+ * http, no store.
  */
 export interface DollarAPI {
   env: {
     get(name: string): Promise<string | undefined>;
   };
+  clock: {
+    /** One-shot timer; the mod sandbox has no ambient timers. */
+    after(ms: number, fn: () => void): { cancel?: () => void };
+  };
   ui: {
     notice(id: string, message: string): void;
+    toast(text: string): Promise<void>;
+    status(line: string): Promise<void>;
+    /** { to: "debug" } writes the debug log only; the default is the transcript. */
+    log(text: string, options?: { to?: "transcript" | "debug" }): Promise<void>;
+    /** Opt-in only: the AskUserQuestion dialog, resolves to the picked label. */
+    ask(question: string, options: readonly string[]): Promise<unknown>;
+    /** Opt-in only: writes to the human's clipboard (OSC 52); the model never sees it. */
+    copy(spec: { text: string }): Promise<{ isCopied: boolean; reason?: string }>;
   };
 }
 
@@ -86,7 +113,7 @@ export interface ToolCallEvent {
 }
 
 export interface ToolCallResult {
-  deny?: { reason: string };
+  deny?: string;
   result?: unknown;
   text?: string;
   isError?: boolean;

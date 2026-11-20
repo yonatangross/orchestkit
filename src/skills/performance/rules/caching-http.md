@@ -22,7 +22,7 @@ messages = [
 ```python
 # Claude prompt caching: static content first with cache_control
 response = await client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-sonnet-5-5",
     system=[
         {
             "type": "text",

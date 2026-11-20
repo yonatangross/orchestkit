@@ -1,17 +1,9 @@
 ---
 name: langgraph
 license: MIT
-compatibility: "Claude Code 2.1.251+."
-description: LangGraph 1.x (LTS) Python workflow patterns for state management, delta channels, resilience (node timeouts, error handlers, graceful drain), routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming (v2 format), subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
-tags: [langgraph, workflow, state, delta-channel, resilience, timeout, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts, python]
-context: fork
-agent: workflow-architect
-version: 2.3.0
-author: OrchestKit
+compatibility: "Claude Code 2.1.277+."
+description: "LangGraph 1.x Python workflow patterns: state, routing, parallel, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
 user-invocable: false
-disable-model-invocation: true
-complexity: high
-persuasion-type: reference
 effort: high
 targets:
   # Python only. The JS package `@langchain/langgraph` is on its own faster line (1.4.x as of
@@ -19,15 +11,16 @@ targets:
   # does not have. Re-add it only alongside real TypeScript rules.
   - library: "langgraph"
     version: ">=1.2.0"
-upstream-version-tested: "1.2.11"
+upstream-version-tested: "1.2.12"
 metadata:
+  archive-candidate: "pending an outside usage signal"
+  owner-agent: "workflow-architect"
   category: document-asset-creation
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+  version: "2.3.0"
+  author: "OrchestKit"
+  complexity: "high"
+  tags: "langgraph, workflow, state, delta-channel, resilience, timeout, routing, parallel, supervisor, tools, checkpoints, streaming, streaming-v2, subgraphs, functional, lts, python"
+allowed-tools: "Read Glob Grep WebFetch WebSearch"
 ---
 
 # LangGraph Workflow Patterns
@@ -344,7 +337,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Related Skills
 
-- `ork:agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
+- `ork-extras:agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
 - `temporal-io` - Durable execution alternative
-- `ork:llm-integration` - General LLM function calling
+- `ork-extras:llm-integration` - General LLM function calling
 - `type-safety-validation` - Pydantic model patterns

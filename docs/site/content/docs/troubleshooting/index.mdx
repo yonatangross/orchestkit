@@ -1,6 +1,7 @@
 ---
 title: Troubleshooting
-description: Solutions for the 10 most common OrchestKit issues.
+seoTitle: "OrchestKit Troubleshooting: Fix Common Claude Code Issues"
+description: "Fix the 10 most common OrchestKit problems: plugin not found, hooks not firing, skills not loading and more. Each issue gives the symptom, cause and fix."
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -37,7 +38,7 @@ If you installed via git clone, make sure you ran `npm run build` after cloning.
 
 ## 2. Hooks Not Firing
 
-**Symptom:** Expected behavior does not happen -- skills are not auto-suggested, dangerous commands are not blocked, or memory is not injected.
+**Symptom:** Expected behavior does not happen: skills are not auto-suggested, dangerous commands are not blocked, or memory is not injected.
 
 **Cause:** Hooks are disabled, hooks.json is missing, or the TypeScript bundles are not compiled.
 
@@ -94,7 +95,7 @@ Common frontmatter issues:
 
 ## 4. Memory Not Persisting Across Sessions
 
-**Symptom:** Decisions stored with `/ork:remember` do not appear in the next session.
+**Symptom:** Decisions stored with `/ork:memory remember` do not appear in the next session.
 
 **Cause:** The MCP memory server is not configured, or local memory files are not being written.
 
@@ -117,7 +118,7 @@ The memory system has 3 tiers. If Tier 1 (Graph) is not configured, decisions fa
 |------|-------|-----|
 | 1. Graph | `claude mcp list` shows memory server | Configure MCP memory server |
 | 2. Local | `.claude/memory/` directory exists | Create it: `mkdir -p .claude/memory` |
-| 3. CC Native | `MEMORY.md` exists in project memory | Automatic -- no action needed |
+| 3. CC Native | `MEMORY.md` exists in project memory | Automatic, no action needed |
 
 ---
 
@@ -130,7 +131,7 @@ The memory system has 3 tiers. If Tier 1 (Graph) is not configured, decisions fa
 **Fix:**
 
 ```bash
-# Check Claude Code version (requires >= 2.1.251)
+# Check Claude Code version (requires >= 2.1.277)
 claude --version
 
 # Verify agent definition exists
@@ -235,20 +236,20 @@ Count drift is the most common consistency bug in OrchestKit. After adding any s
 
 ## 9. Git Operations Blocked
 
-**Symptom:** Git commands fail with "operation blocked by file-guard" or "branch protection prevents this action."
+**Symptom:** A command or file edit is refused by a permission rule, or a push fails because the branch is protected.
 
 **Cause:** OrchestKit's safety hooks are preventing a potentially destructive operation.
 
 **Fix:**
 
-The `dangerous-command-blocker` hook blocks commands like `git push --force`, `git reset --hard`, and `rm -rf` by default. This is intentional.
+The `permissions.deny` rules that `/ork:setup` writes to your settings deny commands like `git push --force origin main` and `rm -rf /`. This is intentional. `/ork:doctor` audits them.
 
 If the operation is legitimate:
 
 1. Check the hook output for which rule triggered
 2. If it is a branch protection rule: create a feature branch instead of committing to `main`
-3. If it is a file-guard rule: verify you are not modifying protected files (`.claude/coordination/`, secrets)
-4. If the block is incorrect: the hook returns `{"continue": false}` with a reason -- share this in a GitHub issue
+3. If it is a protected-file rule (`Edit(**/.env)`, `Edit(**/*.pem)` and the like): make that change yourself, outside Claude Code
+4. If a rule is wrong for you: edit the `permissions.deny` list in your settings; if an OrchestKit hook blocked it, share its reason in a GitHub issue
 
 ---
 

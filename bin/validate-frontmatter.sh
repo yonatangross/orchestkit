@@ -38,7 +38,9 @@ get_field() {
 }
 
 # ===== Agent Validation =====
-AGENT_REQUIRED_FIELDS="name description category context model"
+# category and critical_system_reminder live under metadata (m3); get_field
+# reads them through the parser's metadata lift. context was dropped in m3.
+AGENT_REQUIRED_FIELDS="name description category model"
 
 for agent_file in "$AGENTS_DIR"/*.md; do
   [[ ! -f "$agent_file" ]] && continue

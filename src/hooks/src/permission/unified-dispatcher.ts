@@ -14,7 +14,8 @@
  * Logic: If auto-approve-safe-bash returns an allow decision, skip learning-tracker.
  * If it passes through, try learning-tracker. If neither approves, pass through to user.
  *
- * CC 2.1.49 Compliant: includes continue field and permissionDecision in all outputs
+ * Reads PermissionRequest allow via decision.behavior (CC hook reference),
+ * not PreToolUse permissionDecision (F11 / SC47).
  */
 
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -31,6 +32,10 @@ export const registeredHookNames = () => [
   'learning-tracker',
 ];
 
+function isPermissionRequestAllow(result: HookResult): boolean {
+  return result.hookSpecificOutput?.decision?.behavior === 'allow';
+}
+
 /**
  * Unified PermissionRequest dispatcher for Bash commands.
  * Runs safe-bash check first, falls back to learned patterns.
@@ -40,8 +45,8 @@ export function unifiedPermissionBashDispatcher(input: HookInput, ctx: HookConte
   try {
     const safeResult = autoApproveSafeBash(input, ctx);
 
-    // If auto-approve returned an 'allow' decision, use it immediately
-    if (safeResult.hookSpecificOutput?.permissionDecision === 'allow') {
+    // If auto-approve returned an allow decision, use it immediately
+    if (isPermissionRequestAllow(safeResult)) {
       ctx.log(HOOK_NAME, 'auto-approve-safe-bash: allowed');
       return safeResult;
     }
@@ -54,8 +59,8 @@ export function unifiedPermissionBashDispatcher(input: HookInput, ctx: HookConte
   try {
     const learnedResult = learningTracker(input, ctx);
 
-    // If learning-tracker returned an 'allow' decision, use it
-    if (learnedResult.hookSpecificOutput?.permissionDecision === 'allow') {
+    // If learning-tracker returned an allow decision, use it
+    if (isPermissionRequestAllow(learnedResult)) {
       ctx.log(HOOK_NAME, 'learning-tracker: allowed via learned pattern');
       return learnedResult;
     }

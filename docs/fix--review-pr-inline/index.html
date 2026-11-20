@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>review-pr runs inline: a fork drops its hooks</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#fffdf8; --ink:#1d1b18; --mute:#6b655c; --line:#d9d2c5; --ok:#1f7a3a; --bad:#b3261e; }
+  [data-theme="dark"] { --bg:#16171a; --card:#1f2024; --ink:#ecebe8; --mute:#a19d95; --line:#3a3b40; --ok:#6fcf8a; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 25px; margin: 0 0 6px; } h2 { font-size: 18px; margin: 0 0 8px; }
+  .lede { color: var(--mute); margin: 0 0 18px; }
+  .top { display:flex; justify-content:space-between; gap:12px; align-items:start; }
+  button { font: inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; } td, th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top; }
+  pre { margin:6px 0; white-space:pre-wrap; font: 13px/1.45 ui-monospace, monospace; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  code { font: 13px ui-monospace, monospace; }
+  .ok { color: var(--ok); font-weight:600; } .bad { color: var(--bad); font-weight:600; }
+  .wrap { display:grid; grid-template-columns: 180px 1fr; gap: 24px; max-width: 1100px; margin: 0 auto; }
+  nav.rail { position: sticky; top: 16px; align-self: start; font-size: 14px; padding-top: 32px; }
+  nav.rail a { display:block; color: var(--mute); text-decoration:none; padding: 3px 0; }
+  nav.rail a:hover { color: var(--ink); }
+  @media (max-width: 1000px) { .wrap { grid-template-columns: 1fr; } nav.rail { position: static; padding-top: 12px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <a href="#verdict">Verdict</a>
+  <a href="#runs">The two runs</a>
+  <a href="#change">The change</a>
+</nav>
+<main>
+<div class="top">
+  <div>
+    <h1>review-pr runs inline: a fork drops its hooks</h1>
+    <p class="lede">Measured on Claude Code 2.1.294 with claude -p, one plugin copy, no gh login.</p>
+  </div>
+  <button id="theme" type="button">Dark</button>
+</div>
+<section class="card" id="verdict">
+  <h2>Verdict</h2>
+  <p><span class="bad">A forked skill's frontmatter hooks never run.</span> review-pr declares frontmatter hooks, so on main they are dead. Run inline, the same hook runs and acts.</p>
+</section>
+<section class="card" id="runs">
+  <h2>The two runs</h2>
+  <table>
+    <tr><th>Run</th><th>review-pr</th><th>Bash <code>gh pr comment 4681 -b gate-probe-fork</code></th></tr>
+    <tr><td>913b0ab4</td><td><code>context: fork</code></td><td class="bad">10 global PreToolUse:Bash hooks recorded, no record of the skill hook; gh failed only on auth</td></tr>
+    <tr><td>c6fae215</td><td>inline</td><td class="ok">skill hook ran: "review-pr runs gh read-only (gh pr comment is a write)"</td></tr>
+  </table>
+  <p>A spawned agent leg was not reached (the auto-mode classifier denied the Agent call): untested.</p>
+</section>
+<section class="card" id="change">
+  <h2>The change</h2>
+  <p>Drop <code>context: fork</code> and <code>background: false</code> from review-pr. <code>tests/skills/structure/test-review-pr-runs-inline.mjs</code> fails while review-pr forks and declares frontmatter hooks.</p>
+</section>
+</main>
+</div>
+<script>
+  const b = document.getElementById('theme');
+  b.addEventListener('click', () => {
+    const d = document.documentElement;
+    const dark = d.dataset.theme === 'dark';
+    d.dataset.theme = dark ? 'light' : 'dark';
+    b.textContent = dark ? 'Dark' : 'Light';
+  });
+</script>
+</body>
+</html>

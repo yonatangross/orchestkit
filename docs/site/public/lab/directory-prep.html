@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plugin directory prep: validate --strict passes, README discloses every outbound call</title>
+<meta name="description" content="Before submitting ork to the Claude plugin directory, claude plugin validate --strict failed on a generated CLAUDE.md that Claude Code never loads, and the README said no hook runs telemetry-sync. Both fixed at the source; the remaining directory findings are listed with their severity.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:68rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  code{background:#0b0d13;border:1px solid var(--edge);border-radius:5px;padding:0 4px}
+  table{width:100%;border-collapse:collapse;font-size:.76rem}
+  th,td{text-align:start;padding:.3rem .5rem;border-bottom:1px solid var(--edge);vertical-align:top}
+  th{color:var(--dim);font-weight:normal}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  .controls{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem;font-size:.8rem}
+  select,button{background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.25rem .5rem;font-family:inherit;font-size:.8rem}
+  button{cursor:pointer}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.76rem;white-space:pre-wrap;margin-top:.6rem}
+  .note{border-inline-start:3px solid var(--warn);padding-inline-start:.9rem;color:var(--dim);font-size:.82rem;margin-top:1rem}
+  @media (max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Plugin directory prep: validate --strict passes, README discloses every outbound call"><meta property="og:description" content="Before submitting ork to the Claude plugin directory, validate --strict failed on a generated CLAUDE.md that Claude Code never loads, and the README said no hook runs telemetry-sync. Both fixed at the source; the remaining directory findings are listed with their severity."><meta property="og:url" content="https://orchestkit.dev/lab/directory-prep.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Plugin directory prep: validate --strict passes, README discloses every outbound call"><meta name="twitter:description" content="Before submitting ork to the Claude plugin directory, validate --strict failed on a generated CLAUDE.md that Claude Code never loads, and the README said no hook runs telemetry-sync. Both fixed at the source; the remaining directory findings are listed with their severity."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<h1>Plugin directory prep: validate --strict passes, README discloses every outbound call</h1>
+<p class="sub">Branch chore/directory-prep. Before ork goes to the Claude plugin directory, the plugin folder must pass <code>claude plugin validate --strict</code>, and the README must describe everything the plugin runs, sends or fetches (the directory's security scan checks it).</p>
+
+<section><h2>1. validate --strict, before and after</h2>
+<div class="cols">
+  <div><strong class="bad">before (origin/main)</strong><div class="out" id="before"></div></div>
+  <div><strong class="ok">after (this branch)</strong><div class="out" id="after"></div></div>
+</div>
+<p class="note">The CLAUDE.md came from Stage 4 of scripts/generate-indexes.js. No hook and no eval runner read it, and Claude Code does not load a plugin-root CLAUDE.md, so removing it changes nothing a user sees. The routing index still ships as .claude-plugin/agent-index.md. The directory takes the listing icon from the plugin only on the first portal save, so the official icon now ships in the plugin before that save.</p>
+</section>
+
+<section><h2>2. Directory checklist findings for plugins/ork</h2>
+<div class="controls">
+  <label>Show <select id="filter">
+    <option value="all">all findings</option>
+    <option value="fixed">fixed in this PR</option>
+    <option value="held">held for a reviewer</option>
+    <option value="decide">maintainer decision</option>
+    <option value="pass">passes</option>
+  </select></label>
+  <span id="tally"></span>
+</div>
+<table id="findings"><thead><tr><th>check</th><th>measured</th><th>status</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section><h2>3. Outbound calls the README now lists</h2>
+<table id="calls"><thead><tr><th>call</th><th>when</th><th>default</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section><h2>4. Copy as prompt</h2>
+<button id="copy" type="button">Copy the current findings as a prompt</button>
+<div class="out" id="copyout"></div>
+</section>
+</main>
+<script>
+(function () {
+  "use strict";
+  var BEFORE = [
+    "Found 1 warning:",
+    "  root: CLAUDE.md at the plugin root is not loaded",
+    "  as project context.",
+    "Found 1 plugin directory warning:",
+    "  icon: No icon (ICON_MISSING)",
+    "Validation failed (--strict treats warnings as errors)"
+  ].join("\n");
+  var AFTER = [
+    "No warnings.",
+    "No plugin directory warnings.",
+    "Validation passed"
+  ].join("\n");
+
+  var FINDINGS = [
+    { check: "validate --strict: CLAUDE.md at plugin root", measured: "generated by scripts/generate-indexes.js Stage 4", status: "fixed" },
+    { check: "README discloses what runs and sends", measured: "said no hook runs telemetry-sync; a SessionEnd hook does", status: "fixed" },
+    { check: "files in plugin folder (512 max)", measured: "1877 files, 1659 of them under skills/", status: "held" },
+    { check: "readable source, not minified", measured: "hooks/dist/*.mjs are esbuild minified (lines up to 24k chars)", status: "held" },
+    { check: "env credential sent to a server", measured: "opt-in sinks send a bearer token you configured to your own URL", status: "held" },
+    { check: "listing icon (square PNG, 512 to 2048 px)", measured: "official 512 px icon, built into .claude-plugin/icon.png and named by icon in plugin.json", status: "fixed" },
+    { check: "documentation and support URLs", measured: "documentationUrl orchestkit.dev, supportUrl the GitHub issues page", status: "fixed" },
+    { check: "privacy policy URL", measured: "orchestkit.dev/privacy rewritten from the code; privacyPolicyUrl in plugin.json", status: "fixed" },
+    { check: "local telemetry retention", measured: "rotation and 7-day pruning ran only when a webhook was set; now on every session end", status: "fixed" },
+    { check: "listing short description", measured: "plugin.json description is the 140-character listing line", status: "fixed" },
+    { check: "README in the plugin folder", measured: "none; validator falls back to the repository README", status: "pass" },
+    { check: "hook commands from CLAUDE_PLUGIN_ROOT, no shell", measured: "104 entries, all node + args", status: "pass" },
+    { check: "files over 256 KiB", measured: "none", status: "pass" },
+    { check: "symlinks, .DS_Store, registry config", measured: "none", status: "pass" },
+    { check: "MCP servers shipped", measured: "none (no .mcp.json, no mcpServers)", status: "pass" }
+  ];
+
+  var CALLS = [
+    { call: "claude -p --model haiku", when: "first prompt of a session (title and color)", def: "on; ORK_SESSION_IDENTITY=0 turns it off" },
+    { call: "gh issue view", when: "subagent start on an issue/<n> or fix/<n> branch", def: "on" },
+    { call: "gh pr view, gh pr list", when: "gh pr merge --delete-branch", def: "on" },
+    { call: "telemetry-sync, webhook forwarder", when: "SessionEnd and hook events", def: "off until you set a URL and token" },
+    { call: "telemetry HTTP sink", when: "analytics writes", def: "off until ORK_HQ_TELEMETRY_URL" },
+    { call: "api.typesafe.ai", when: "session category or /ork:auto routing", def: "off until ORK_TYPESAFE_API_KEY plus a mode" }
+  ];
+
+  var LABEL = { fixed: "fixed", held: "held for reviewer", decide: "maintainer decision", pass: "passes" };
+  var CLS = { fixed: "ok", held: "warn", decide: "warn", pass: "ok" };
+
+  function cell(tr, text, cls) {
+    var td = document.createElement("td");
+    td.textContent = text;
+    if (cls) td.className = cls;
+    tr.appendChild(td);
+  }
+
+  document.getElementById("before").textContent = BEFORE;
+  document.getElementById("after").textContent = AFTER;
+
+  var filterEl = document.getElementById("filter");
+  var body = document.querySelector("#findings tbody");
+
+  function shown() {
+    var v = filterEl.value;
+    return FINDINGS.filter(function (f) { return v === "all" || f.status === v; });
+  }
+
+  function render() {
+    while (body.firstChild) body.removeChild(body.firstChild);
+    var rows = shown();
+    rows.forEach(function (f) {
+      var tr = document.createElement("tr");
+      cell(tr, f.check);
+      cell(tr, f.measured);
+      cell(tr, LABEL[f.status], CLS[f.status]);
+      body.appendChild(tr);
+    });
+    document.getElementById("tally").textContent = rows.length + " of " + FINDINGS.length;
+  }
+
+  var callsBody = document.querySelector("#calls tbody");
+  CALLS.forEach(function (c) {
+    var tr = document.createElement("tr");
+    cell(tr, c.call);
+    cell(tr, c.when);
+    cell(tr, c.def);
+    callsBody.appendChild(tr);
+  });
+
+  filterEl.addEventListener("change", render);
+  render();
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var lines = ["Plugin directory prep for ork, findings (" + filterEl.value + "):"];
+    shown().forEach(function (f) {
+      lines.push("- " + f.check + ": " + f.measured + " [" + LABEL[f.status] + "]");
+    });
+    var text = lines.join("\n");
+    document.getElementById("copyout").textContent = text;
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(function () {});
+  });
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

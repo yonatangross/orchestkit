@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>memory-lens: recall goes to Claude, not to your pane</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;margin:8px 0}
+.dim{color:#8b93a1}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#58606e;margin:14px 0 4px}
+button{font:inherit;border:1px solid #c9ced6;background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+</style></head><body><main>
+<h1>memory-lens: recall goes to Claude, not to your pane</h1>
+<p>memory-lens recalls the few memories related to each prompt and hands them to Claude as context. Before this change it also drew one line under every prompt listing what it recalled. On a busy session those lines add up. Now the line is written to the debug log only; Claude still gets the same context, and <code>/memory-lens show &lt;n&gt;</code> prints a recalled memory whenever you ask.</p>
+<div class="card">
+<fieldset>version
+<label><input type="radio" name="v" value="old"> before</label>
+<label><input type="radio" name="v" value="new" checked> this change</label>
+</fieldset>
+<fieldset>prompts in a row
+<label><input type="radio" name="n" value="1"> 1</label>
+<label><input type="radio" name="n" value="3" checked> 3</label>
+<label><input type="radio" name="n" value="6"> 6</label>
+</fieldset>
+<h2>what your pane draws</h2>
+<div class="term" id="pane"></div>
+<h2>what Claude receives</h2>
+<div class="term" id="model"></div>
+<p id="count" class="dim"></p>
+<button id="copy" type="button">copy as prompt</button>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+const TITLES=['Use the staging runbook for deploys','Prefer small reviewed commits','Tests run before every push','Keep notes short and dated','Ask before anything outward-facing','Write the file, then summarize it'];
+function run(){
+  const v=pick('v'), n=+pick('n'), pane=[], model=[];
+  for(let i=0;i<n;i++){
+    pane.push('❯ prompt '+(i+1));
+    if(v==='old') pane.push('  memory-lens: 1/3 '+TITLES[i%6]+' · match words  |  2/3 '+TITLES[(i+1)%6]+' · match words');
+    model.push('prompt '+(i+1)+': context entry with up to 3 memories (name, description, path)');
+  }
+  document.getElementById('pane').textContent=pane.join('\n');
+  document.getElementById('model').textContent=model.join('\n');
+  const shown=v==='old'?n:0;
+  document.getElementById('count').textContent=shown+' recall line'+(shown===1?'':'s')+' in your pane, '+n+' context entr'+(n===1?'y':'ies')+' for Claude.';
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+document.getElementById('copy').onclick=()=>{
+  const t='memory-lens: draw no recall line under the prompt (log it with { to: \'debug\' }); keep the context entry for Claude unchanged; /memory-lens show <n> stays.';
+  if(navigator.clipboard) navigator.clipboard.writeText(t);
+};
+</script>
+</body></html>

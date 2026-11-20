@@ -98,9 +98,11 @@ portless_proxy_running() {
 }
 
 # True if a route with the given slug is already registered (conflict guard).
+# No piped grep -q under pipefail: grep exits early and SIGPIPEs portless.
 portless_route_exists() {
-  local sub="$1"
-  portless list 2>/dev/null | grep -qE "https?://${sub}\.localhost(:[0-9]+)?\b"
+  local sub="$1" routes
+  routes="$(portless list 2>/dev/null || true)"
+  grep -qE "https?://${sub}\.localhost(:[0-9]+)?\b" <<<"${routes}"
 }
 
 # Canonical URL for a registered slug — uses portless's own resolver so we
@@ -132,7 +134,9 @@ main() {
     case "$1" in
       --share)         share_mode="tailscale"; shift ;;
       --funnel)        share_mode="funnel";    shift ;;
-      --live)          share_mode="funnel"; live_duration_hours="${2:-4}"; shift 2 ;;
+      --live)          share_mode="funnel"; live_duration_hours="4"
+                       if [[ "${2:-}" =~ ^[0-9]+$ ]]; then live_duration_hours="$2"; shift; fi
+                       shift ;;
       stop|status|start) shift ;;
       *)               shift ;;
     esac
@@ -251,7 +255,7 @@ main() {
   local base_url=""
   if [[ "${mode_label}" == "monorepo" ]]; then
     sleep 3  # give bare portless a moment to discover and register subdomains
-    base_url="$(portless list 2>/dev/null | head -1 | awk '{print $1}')"  # silent: best-effort
+    base_url="$({ portless list 2>/dev/null | head -1 | awk '{print $1}'; } || true)"  # silent: best-effort
     [[ -z "${base_url}" ]] && base_url="(see 'portless list')"
     printf '[5] portless registered subdomain map (monorepo) — see /ork:dev status or `portless list`\n' >&2
   else
@@ -279,7 +283,7 @@ main() {
   local tailscale_url=""
   local expires_at=""
   if [[ -n "${share_mode}" ]]; then
-    tailscale_url="$(tailscale status --json 2>/dev/null | jq -r '.Self.DNSName // empty' | sed 's:\.$::')"  # silent: best-effort
+    tailscale_url="$({ tailscale status --json 2>/dev/null | jq -r '.Self.DNSName // empty' | sed 's:\.$::'; } || true)"  # silent: best-effort
     if [[ -n "${tailscale_url}" ]]; then
       tailscale_url="https://${tailscale_url}"
     fi

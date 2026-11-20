@@ -16,7 +16,7 @@ else:
 
 ## Comparison Table
 
-| Aspect | Task Tool (star) | Agent Teams (mesh) |
+| Aspect | Agent Tool (star) | Agent Teams (mesh) |
 |--------|------------------|--------------------|
 | Communication | All agents report to lead only | Teammates message each other |
 | API contract | Lead relays between agents | Backend messages frontend directly |
@@ -27,4 +27,4 @@ else:
 
 ## Fallback
 
-If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Task tool mode for remaining phases. The approaches are compatible — work done in Teams mode transfers to Task tool continuation.
+If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Agent tool mode for remaining phases. The approaches are compatible, work done in Teams mode transfers to Agent tool continuation.

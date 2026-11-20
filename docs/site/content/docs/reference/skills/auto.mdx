@@ -1,6 +1,6 @@
 ---
 title: "Auto"
-description: "Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion). Triggers on: auto, do this, figure out, just make, I want, help me, fix, build, improve, any goal description."
+description: "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help)."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
@@ -11,32 +11,32 @@ description: "Intent-classified router, the front door to OrchestKit and the DEF
 
 <ContextualSkillSidebar slug="auto" />
 
-> **Auto** Intent-classified router, the front door to OrchestKit and the DEFAULT entry point for any goal-shaped request. Classifies a plain-English goal and routes it to the right specialist skill. Routing is never overhead, so use it even when the target skill seems obvious; skip only when already executing inside another skill (no recursion).
+> **Auto** Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help).
 
 
-# auto — Intent Router
+# auto: Intent Router
 
 The front door to OrchestKit. **You describe a goal in plain English; the router classifies it and hands off to the right specialist.** One entry point, many execution paths.
 
-> **Why this exists:** OrchestKit has 107 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door** — not low quality. This router turns "you must know the exact `/ork:&lt;name&gt;`" into "describe what you want."
+> **Why this exists:** OrchestKit has 115 skills, but usage telemetry shows users fire only the handful they can name by memory (10 distinct skills across thousands of sessions). The dominant cause of "dead" skills is **no front door**, not low quality. This router turns "you must know the exact `/ork:<name>`" into "describe what you want."
 
-**Core principle:** routing is a *deterministic workflow*, not an autonomous agent (Anthropic, *Building Effective Agents*). Classify → confirm → hand off. The router never does the work itself — it picks who does.
+**Core principle:** routing is a *deterministic workflow*, not an autonomous agent (Anthropic, *Building Effective Agents*). Classify → confirm → hand off. The router never does the work itself, it picks who does.
 
 ## When to use
 
 **By default, for any goal-shaped request.** An unambiguous goal is a 1-step
-route: auto classifies, confirms in one line, and hands off — no extra hops,
+route: auto classifies, confirms in one line, and hands off, no extra hops,
 so there is no "too obvious for auto".
 
 | Use `auto` for… | Skip only when… |
 |---|---|
 | Any goal description ("fix X", "get Y to Z") | Already executing inside another skill (no recursion) |
 | The right skill isn't obvious | Chaining a known multi-skill workflow you're mid-way through |
-| You think you know the skill — auto confirms & short-circuits | |
+| You think you know the skill, auto confirms & short-circuits | |
 
 > **Design note (2026-07-12):** this table previously said "Go direct when you
 > already know the skill / the request maps unambiguously to one". That inverted
-> instruction made the front door structurally unreachable — a competent model
+> instruction made the front door structurally unreachable, a competent model
 > always believes it knows the target, so the router recorded near-zero
 > invocations across thousands of sessions (the exact dead-skill problem the
 > "Why this exists" note above describes). Routers must be framed as the
@@ -47,23 +47,27 @@ so there is no "too obvious for auto".
 | intent | signal words | routes to |
 |---|---|---|
 | **fix** | fix, debug, broken, failing, error, crash, regression | `fix-issue` |
-| **diagnose** | why, why isn't, why does, why can't, investigate | `fix-issue` (investigation-first) |
+| **diagnose** | why, why isn't, why does, why can't, investigate, triage, root cause, culprit commit | `fix-issue` (investigation-first) |
 | **optimize** | faster, reduce, latency, bundle, minimize, below N ms | a **`/goal` optimization loop** (see Gaps) |
 | **cover** | coverage, untested, get to N% | `cover --target N` |
-| **design** | design, architect, how should we, explore, idea | `brainstorm` |
+| **e2e** | e2e, in the browser, browser test, playwright | `expect` (run on the diff); `cover` when no e2e tests exist yet |
+| **design** | design, architect, how should we, explore, idea | `/ork:brainstorm` |
 | **build** | build, implement, create, add feature, from ticket | `implement` |
-| **review** | review, PR, MR, pull request, #N | `review-pr` |
+| **review** | review, PR, MR, pull request, #N, diff | `review-pr` |
+| **open-pr** | open a PR, make a PR, PR title and body, ready for review, go up for review | `create-pr` |
 | **verify** | verify, check, make sure, passes, green | `verify` |
 | **improve-skill** | improve the skill, optimize the prompt, SKILL.md | the **holdout-promotion gate** (see Gaps) |
+| **setup** | set up OrchestKit, onboard this repo, which skills fit this project, rescan the stack | `/ork:setup` |
+| **migrate** | across all repos, every repo, org-wide, roll out to N repos, bump in each consumer | `/ork-extras:swarm-migrate` (formerly a core ork skill; needs the opt-in ork-extras plugin, slash-only) |
 | **(fallback)** | no confident category | clarify with ONE question |
 
 Full per-category parameter extraction + edge cases: `references/routing-rules.md`.
 
 ## Model weight (orthogonal second dimension)
 
-Intent picks **who** does the work. Weight picks **how expensive that worker should be**. A route is `\{intent\} @ \{weight\}`. Weight never changes the intent and never replaces it. The taxonomy above and the 7 disambiguation rules are untouched by it.
+Intent picks **who** does the work. Weight picks **how expensive that worker should be**. A route is `{intent} @ {weight}`. Weight never changes the intent and never replaces it. The taxonomy above and the 7 disambiguation rules are untouched by it.
 
-Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 · `sonnet` 10 · `opus` 6 · `inherit` 13). No parallel taxonomy.
+Tiers are the ones already declared in each agent's `model:` frontmatter (`haiku` 3 · `sonnet` 23 · `opus` 6 · `inherit` 4). No parallel taxonomy.
 
 | weight | tier | the task is… |
 |---|---|---|
@@ -75,7 +79,7 @@ Tiers are the ones already declared in `src/agents/*.md` frontmatter (`haiku` 7 
 
 Weight is **per leg, not per route**. A PR review can be a Heavy security leg plus a Light lint leg. Full signal table, per-intent defaults, and the honest limits of this lever: `references/routing-rules.md`.
 
-> **This is the selector, not the cap.** `src/hooks/src/pretool/task/team-size-gate.ts` is an ex-post, per-session counter keyed on `ORK_TEAM_OPUS_MAX` (default 8). Its default posture is advisory (`outputWarning`); with `ORK_TEAM_SIZE_HARD=1` it escalates to `outputDeny` and refuses the spawn outright. Either way it reads the model read-only: it can refuse a premium spawn, but it cannot *choose* a cheaper one for you. Routing is what chooses. The two compose, cap as backstop and routing as selector; never duplicate the cap's counting here.
+> **This is the selector, and the only cost control.** OrchestKit ships no spawn cap: the old `team-size-gate` hook was removed in #3839. Choosing the tier here is what keeps a premium model off routine work.
 
 ## The flow
 
@@ -84,18 +88,18 @@ Weight is **per leg, not per route**. A PR review can be a Heavy security leg pl
      |            |             |
   intent       show the     invoke the
   + weight     route        target skill;
-  out loud     + nod        follow ITS phases
+  one line     + nod        follow ITS phases
 ```
 
-### 1. Classify (reason out loud first)
+### 1. Classify
 
-State your reasoning **before** committing to a route — this triggers chain-of-thought and is the single biggest accuracy lever (Anthropic, *Writing Effective Tools for Agents*). Example: *"'get latency under 200ms' names a metric + a direction → optimize, not fix."*
+Name the route and the one signal that decided it in a single short line. Example: *"'get latency under 200ms' names a metric + a direction, so optimize, not fix."*
 
-Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins** — "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
+Apply the disambiguation rules (most specific wins; explicit verb beats inferred intent). **The load-bearing one: explicit verb wins**, "Fix the slow query" → `fix`, not `optimize`. For the full ordered ruleset (all 7, including the truly-ambiguous fallback), `references/routing-rules.md` is canonical.
 
 Then classify **weight in the same pass**, naming the signal that decided it: *"touches auth and models an attacker → Heavy."* Intent first, weight second; a weight call never rewrites the intent you just committed to.
 
-**A `route:` line is a prior, not a verdict.** When the prompt context carries one line of the shape `route: &lt;class&gt; -> /ork:&lt;skill&gt; (conf 0.xx)` or `route: &lt;class&gt; -> Agent(&lt;name&gt;) (conf 0.xx)`, it came from the Jev routing seam (`ORK_ROUTE_JEV=steer`, off by default, #4233): one typed judgment of the capability class, taken before you read this table. Treat it as the prior for this step, state in one sentence whether you agree and why, and then classify as above. Your reasoning still decides; a confident prior you disagree with is worth a sentence, never a silent override in either direction. The confirm step is unchanged; the hand-off tool follows the target: a `/ork:` skill goes through the Skill tool, an `Agent(...)` target through the Agent tool.
+**A `route:` line is a prior, not a verdict.** When the prompt context carries one line of the shape `route: <class> -> /ork:<skill> (conf 0.xx)` or `route: <class> -> Agent(<name>) (conf 0.xx)`, it came from the Jev routing seam (`ORK_ROUTE_JEV=steer`, off by default, #4233): one typed judgment of the capability class, taken before you read this table. Treat it as the prior for this step, state in one sentence whether you agree and why, and then classify as above. Your reasoning still decides; a confident prior you disagree with is worth a sentence, never a silent override in either direction. The confirm step is unchanged; the hand-off tool follows the target: a `/ork:` skill goes through the Skill tool, an `Agent(...)` target through the Agent tool.
 
 ### 2. Confirm (low ceremony)
 
@@ -109,7 +113,7 @@ Route:  {skill or loop} {extracted args}
         [run] · [adjust] · [cancel]
 ```
 
-For low-risk single-pass routes (`verify`, `review`), an inline "routing you to verify — ok?" is enough. Never hand off without a nod.
+For low-risk single-pass routes (`verify`, `review`), an inline "routing you to verify, ok?" is enough. Never hand off without a nod.
 
 **Premium spend is never silent.** Routing down (Light/Standard) needs no approval, because spending less is not a decision the user has to make. Routing **up to Heavy** is premium spend and gets its own line the user must accept:
 
@@ -122,70 +126,70 @@ If they decline, run Standard and say plainly which check is weakened. Never upg
 
 ### 3. Hand off
 
-Invoke the target skill with the extracted parameters and **follow that skill's own phases and guardrails** — do not override them. The router's job ends at the handoff; the specialist owns execution and its own report.
+Invoke the target skill with the extracted parameters and **follow that skill's own phases and guardrails**, do not override them. The router's job ends at the handoff; the specialist owns execution and its own report.
 
-**A hand-off is a Skill-tool invocation, not a recommendation.** The failure mode that motivated M170 (#3127): telemetry traced 43 router hand-offs and found ZERO reached an executor skill (`implement`, `cover`, `fix-issue`, `review-pr`) — the route was named in chat, then the work happened inline in the main loop, so the executors' specialist wiring (implement → backend-system-architect, cover → test-generator) never activated. Therefore:
+**A hand-off is a Skill-tool invocation, not a recommendation.** The failure mode that motivated M170 (#3127): telemetry traced 43 router hand-offs and found ZERO reached an executor skill (`implement`, `cover`, `fix-issue`, `review-pr`), the route was named in chat, then the work happened inline in the main loop, so the executors' specialist wiring (implement → backend-system-architect, cover → test-generator) never activated. Therefore:
 
 - Once the user nods, the SAME turn must contain the Skill-tool call for the routed skill. Never end the routing turn with only a description of what will run.
-- Doing the routed work inline "because it's faster" is a routing failure, not a shortcut — the executor's parallel specialists and guardrails are the point of routing.
+- Doing the routed work inline "because it's faster" is a routing failure, not a shortcut, the executor's parallel specialists and guardrails are the point of routing.
 - If the routed skill genuinely cannot run (missing prerequisite, wrong repo state), say exactly that and stop; do not silently absorb the work into the main loop.
 
 ## Fallback + honest gaps
 
-- **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work — surface it, don't bury it.
-- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal` → `references/recipe-library.md`). Route `optimize` there and say so plainly — don't pretend a `experiment` skill exists.
-- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (`assess` evals + `evolution-engine`), not a one-shot edit. It requires a benchmark + holdout set first.
+- **Fallback category.** If no category clears a confident threshold, ask exactly ONE clarifying question rather than guessing. A rising fallback rate is the leading indicator that the taxonomy needs work, surface it, don't bury it.
+- **`optimize` has no dedicated skill (yet).** OrchestKit's metric-driven optimization runs as a **`/goal` loop** using the loop recipe library (`prd-to-goal/references/recipe-library.md`). Route `optimize` there and say so plainly, don't pretend a `experiment` skill exists.
+- **`improve-skill` routes to the evolution gate.** Self-optimizing a `SKILL.md` goes through the champion/challenger **holdout-promotion gate** (in an OrchestKit source checkout, `npm run eval:skill -- --holdout-promote <skill>`; an installed plugin has no runner, so score both versions with `assess` on held-out cases and let the user decide), not a one-shot edit. It requires a benchmark + holdout set first.
 
-## Stacked invocation (CC 2.1.199+)
+## Stacked invocation
 
-`/skill-a /skill-b &lt;goal&gt;` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `auto brainstorm &lt;goal&gt;` pre-loads the specialist alongside the router — useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
+`/skill-a /skill-b <goal>` loads all leading skills (up to 5) into context at once; the trailing args belong to the whole stack. So `auto brainstorm <goal>` pre-loads the specialist alongside the router, useful when the user already knows part of the route. The router still owns classification and handoff; a pre-loaded specialist does not bypass the confirm step.
 
 ## Guardrails
 
 - **No recursion.** `auto` must not route to itself, directly or via a spawned agent.
 - **No bypass.** Routing does not skip the target skill's guardrails, readonly enforcement, or confirmation steps.
-- **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask — don't gamble.
+- **A pronoun target is yours to resolve.** Pass a concrete target, not `this` or `them`: read it back from the conversation and announce it in one line. If a routed skill returns `TARGET_UNRESOLVED: <word>`, resolve `<word>` the same way and invoke the skill again; never relay the sentinel to the user (`Read("../../shared/rules/target-resolution.md")`).
+- **Classification quality is the whole job.** A misroute that fails silently is worse than a fallback question. When two categories are equally plausible, ask, don't gamble.
 - **No silent upgrade.** A Heavy (opus/fable) leg is premium spend and requires an explicit nod on its own line. Downgrades stay silent.
-- **The cap is not the router's to move.** Never read, set, or suggest raising `ORK_TEAM_OPUS_MAX`. That is the user's budget.
-- **A gate denial is not a re-route trigger.** If `team-size-gate` denies a spawn, do NOT relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user decide.
-- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 13 `inherit` agents adopt. It never overrides a target skill's own agent selection.
+- **A gate denial is not a re-route trigger.** If a gate denies a spawn (a Fable spend prompt, a permission refusal), do NOT relabel a Heavy leg as Standard to get past it. Report the denial and let the user decide.
+- **Weight is a hint, not an override.** The router cannot change an agent's declared `model:`. It selects skills and agents, and sets the caller's model that the 4 `inherit` agents adopt. It never overrides a target skill's own agent selection.
 
 ## Validation
 
-Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 50 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
+Routing accuracy is gateable, not vibes. `routing-benchmark.json` holds 78 labeled `goal → category` pairs (easy + genuinely ambiguous). Validate after any change to the category table or disambiguation rules:
 
 ```bash
-# isolated classification check via the bare-eval harness
-bare-eval   # grade router output against routing-benchmark.json
+# isolated classification check: /ork-extras:bare-eval grades router output against routing-benchmark.json
+/ork-extras:bare-eval
 ```
 
 Target ≥95% category accuracy; track the fallback rate as a degradation alarm as the skill library grows.
 
 ## References
 
-- `references/routing-rules.md` — per-category parameter extraction, edge cases, disambiguation
-- `routing-benchmark.json` — 50 labeled goal→category pairs for accuracy validation
+- `references/routing-rules.md`: per-category parameter extraction, edge cases, disambiguation
+- `routing-benchmark.json`: 78 labeled goal→category pairs for accuracy validation
 
 ## Quality Bar
 
 Done means all of these hold:
 - Classification reasoning is stated out loud BEFORE a route is committed, naming the chosen intent category and the signal words that triggered it.
 - Weight is classified in the same pass as intent, naming the signal that decided it, and resolves asymmetrically (ANY heavy signal ⇒ Heavy; Light needs ALL light signals; else Standard).
-- The confirm block names one of the taxonomy's intent categories, its target skill or `/goal` loop, and the extracted args — on one line.
+- The confirm block names one of the taxonomy's intent categories, its target skill or `/goal` loop, and the extracted args, on one line.
 - Every Heavy (opus/fable) leg is surfaced for explicit approval before handoff; no premium spend is silent, and declining it runs Standard with the weakened check named.
 - Adversarial, security, safety, architecture, and cross-cutting work is never routed below opus tier; mechanical single-file IO-bound work is not routed above haiku tier.
-- The router neither counts spawns nor touches `ORK_TEAM_OPUS_MAX`, and never downgrades a Heavy leg to evade a `team-size-gate` denial.
+- The router does not count spawns, and never downgrades a Heavy leg to evade a gate denial.
 - No target skill is invoked without an explicit nod (or `-y`); handoff never precedes confirmation.
-- When two categories are equally plausible, exactly ONE clarifying question is asked — the fallback is never silently guessed.
+- When two categories are equally plausible, exactly ONE clarifying question is asked, the fallback is never silently guessed.
 - `optimize` routes to a `/goal` loop and `improve-skill` to the evolution gate; neither claims a dedicated skill that does not exist.
 - The router does none of the target work itself and never routes to `auto` (no recursion).
 
 ## Related skills
 
-- `help` — static categorized directory (browse, don't route)
-- `prd-to-goal` — decompose a spec into a `/goal` line (the `optimize` route's engine)
-- `fix-issue` · `cover` · `brainstorm` · `implement` · `review-pr` · `verify` — the route targets
-- `assess` — champion/challenger holdout gate (the `improve-skill` route)
+- `help`: static categorized directory (browse, don't route)
+- `prd-to-goal`: decompose a spec into a `/goal` line (the `optimize` route's engine)
+- `fix-issue` · `cover` · `expect` · `brainstorm` · `implement` · `review-pr` · `create-pr` · `verify` · `setup` · `swarm-migrate`: the route targets
+- `assess`: champion/challenger holdout gate (the `improve-skill` route)
 
 
 ---
@@ -198,17 +202,21 @@ Done means all of these hold:
 
 Per-category parameter extraction + edge cases. Read during the Classify step to configure the target skill correctly.
 
+A follow-up that depends on the caller's conversation ("now fix that", "verify it") routes inline. Never hand it to a forked context, and never set `context: fork` on this skill: a fork starts without the conversation the follow-up refers to (#4539, guarded by `tests/skills/test-router-skill-context.sh`).
+
 ## fix → /ork:fix-issue
 
 - **Extract:** bug description (full goal), target files if named, ticket/issue `#N`, quoted error message.
-- **Invoke:** `/ork:fix-issue \{description or #N\}`
+- **Invoke:** `/ork:fix-issue {description or #N}`
 - **Edges:** "fix the tests" is `fix` (repair broken tests), not `cover` (add new tests). "fix performance" is ambiguous → ask: debug a specific issue, or optimize a metric?
 
 ## diagnose → /ork:fix-issue (investigation-first)
 
 - A "why…" question is a gentler entry than a fix command. Frame the plan as **observe → hypothesize → propose**, then offer to apply the fix.
-- **A "why…" question is ALWAYS `diagnose`, even when it names a failure** ("why isn't the build green", "why does the API return 500", "why can't users log in"). The **question form** is what makes it `diagnose` — without one, a statement of breakage or a repair imperative is `fix` ("there's a regression in checkout", "resolve the 500 errors on /api/users").
-- **Invoke:** `/ork:fix-issue \{question\}` with an investigation framing. ("I'll investigate first, then propose a fix — ok?")
+- **"Triage this bug report", "what is the root cause", "find the culprit commit" are `diagnose`**: the goal is a diagnosis, so frame it observe → hypothesize → propose, and take `fix-issue`'s "Investigate first" option when the user asked for no patch. They stay `diagnose` when worded as "how should I find …": rule 4 below sends "how should we …" to `design` only when the thing to decide is what to build.
+- **`fix-issue` resolves its target from an issue number or URL** and stops with `TARGET_UNRESOLVED` otherwise. When the user pastes the report and names no issue, ask for the issue number, or say plainly that the skill cannot take the pasted text. It has no bisect step; "which commit broke it" is answered from `git blame` in its root-cause phase.
+- **A "why…" question is ALWAYS `diagnose`, even when it names a failure** ("why isn't the build green", "why does the API return 500", "why can't users log in"). The **question form** is what makes it `diagnose`, without one, a statement of breakage or a repair imperative is `fix` ("there's a regression in checkout", "resolve the 500 errors on /api/users").
+- **Invoke:** `/ork:fix-issue {question}` with an investigation framing. ("I'll investigate first, then propose a fix, ok?")
 
 ## optimize → /goal loop (no dedicated skill)
 
@@ -219,26 +227,41 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 ## cover → /ork:cover
 
 - **Extract:** target % ("90%" → 90, "above 85" → 85), scope ("the auth module" → `src/auth/`).
-- **Invoke:** `/ork:cover --target \{N\}`
-- **Edges:** "write more tests" with no target → ask the target %. "test the new feature" is `build`/`verify` (functional tests), not `cover` (coverage %). A surface called out as **"untested"** is `cover` even with no % target ("the payments service is untested, fix that") — the "fix" there repairs a coverage gap, not a bug; ask the target % at invoke time.
+- **Invoke:** `/ork:cover --target {N}`
+- **Edges:** "write more tests" with no target → ask the target %. "test the new feature" is `build`/`verify` (functional tests), not `cover` (coverage %). A surface called out as **"untested"** is `cover` even with no % target ("the payments service is untested, fix that"), the "fix" there repairs a coverage gap, not a bug; ask the target % at invoke time.
+
+## e2e → /ork:expect (run) or /ork:cover (write)
+
+- **Signals:** e2e, end-to-end tests, in the browser, browser test, playwright.
+- **Run:** "check the change in the browser", "run the playwright tests on this branch", "why don't you do proper e2e" → `/ork:expect`. It reads the diff, builds a browser test plan and runs it.
+- **Write:** "no e2e tests yet", "write e2e tests for the signup page" → `/ork:cover`, whose E2E tier writes and runs new Playwright tests.
+- **Edges:** a failing or flaky e2e run ("why is the e2e suite failing on CI") is `diagnose`/`fix`, not a new run. Never hand off to `Skill(ork:testing-e2e)`: it is reference guidance that loads inline, not an executor.
 
 ## design → /ork:brainstorm
 
 - **Extract:** topic (full goal). Deep mode if the goal says "thorough/comprehensive/deep dive" or spans multiple systems.
-- **Invoke:** `/ork:brainstorm \{topic\}`
+- **Invoke:** `/ork:brainstorm {topic}`
 - **Edges:** "how should we…" is `design`, not `build`. "Design AND build…" → start `design`, offer `build` after.
 
 ## build → /ork:implement
 
 - **Extract:** feature description, ticket ID, mode (greenfield/brownfield/refactor/bugfix).
-- **Invoke:** `/ork:implement \{description\}`
+- **Invoke:** `/ork:implement {description}`
 - **Edges:** "implement the design from the brainstorm" → check for recent brainstorm state first.
 
 ## review → /ork:review-pr
 
 - **Extract:** PR/MR number (`#123` → 123), scope filter if named.
-- **Invoke:** `/ork:review-pr \{number or branch\}`
-- **Edges:** "review my code" with no PR → ask which PR/branch. "review the design" is `design`, not `review`.
+- **Invoke:** `/ork:review-pr {number or branch}`
+- **Edges:** "review my code" with no PR → ask which PR/branch. "review the design" is `design`, not `review`. A diff pasted into the message with a verdict asked for ("review this diff before I merge it") is `review`, but `review-pr` takes a PR, a branch or a `base...head` range, not pasted text: ask which PR or range the paste came from, and say that the resolver cannot take the text itself.
+- **Opening a PR is not reviewing one:** "open a PR", "write the PR title and body" is `open-pr`, below.
+
+## open-pr → /ork:create-pr
+
+- **Signals:** open a PR, make a PR, PR title and body, ready for review, go up for review.
+- **Extract:** the branch, the issue it closes (`#N`), an explicit title if given. `create-pr` asks for the PR type (feature, bug fix, refactor, quick) itself and derives the base branch from the remote, so do not pass either.
+- **Invoke:** `/ork:create-pr {title if given}`
+- **Edges:** `create-pr` opens the PR with `gh`; it has no text-only mode. When the user cannot run `gh`, say that the skill ends at that step and give the title and body its own rules produce (`rules/pr-title-format.md`, `rules/pr-body-structure.md`). A bare "push my branch" or "gh pr create" with the title already decided is plain tooling, not `open-pr`. A question about which branch flow a repo uses (feature PRs into `dev`, `dev` promoted to `main`) is not `open-pr`: answer it from the repo's own rules first.
 
 ## verify → /ork:verify
 
@@ -249,21 +272,33 @@ Per-category parameter extraction + edge cases. Read during the Classify step to
 ## improve-skill → holdout-promotion gate
 
 - **Extract:** which `SKILL.md`, quality metric (else task-completion against test cases).
-- **Invoke:** the champion/challenger **holdout-promotion gate** (`/ork:assess` evals + `evolution-engine`). Requires a benchmark + holdout set to exist first — if missing, help the user define 5–10 cases before looping.
-- **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent** — a SKILL.md, a named skill, an agent prompt — it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
+- **Invoke:** the champion/challenger **holdout-promotion gate**. The runner ships only in an OrchestKit source checkout: when `tests/evals/scripts/run-skill-eval.sh` exists in the working repo, run `npm run eval:skill -- --holdout-promote <skill>` (sealed holdout bake-off, add `--challenger <path/to/SKILL.md>` for a candidate). In an installed plugin there is no runner: say so, score the incumbent and the candidate with `/ork:assess` on the same held-out cases, and leave the promotion call to the user. `/ork:assess` only scores; it never decides promotion. Requires a benchmark + holdout set to exist first, if missing, help the user define 5-10 cases before looping.
+- **Edges:** "optimize my prompt" (not a skill file) → route to `optimize` with the prompt as the target. **When the improvement target IS a skill or agent**, a SKILL.md, a named skill, an agent prompt, it is `improve-skill` regardless of the verb: "optimize the prompt for the security-auditor skill" and "make the brainstorm SKILL.md produce better ideas" are both `improve-skill`, not `optimize`/`design`.
+
+## setup → /ork:setup
+- **Signals:** set up OrchestKit (or ork) for this project, onboard this repo, which skills or MCP servers fit this stack, rescan after a big change.
+- **Extract:** `--rescan` when the goal says the project already ran setup. Setup takes flags only and scans the current directory, so when the goal names a different repo ("set up OrchestKit for ../project-b"), ask the user to start the session in that repo instead of routing.
+- **Invoke:** `/ork:setup [--rescan]`
+- **Edges:** the object must be OrchestKit or the project's ork configuration. "Set up CI for this repo" or "set up a postgres container" is `build`. Tuning one ork setting ("turn on the hook X") is `/ork:configure`, not setup, and stays a direct skill call.
+
+## migrate → /ork-extras:swarm-migrate
+- **Signals:** the same change in many repos: across all repos, every consumer, org-wide, roll out to N repos, bump X in each repo that uses it.
+- **Extract:** the transformation (bump, codemod, workflow change) and the target repo list or the selector that yields it, then the spec file that holds them. Swarm-migrate takes a YAML spec (`swarm-specs/<name>.yaml`), not free text: use an existing spec that matches, or write one from the extracted transformation and repo list and show it to the user before invoking.
+- **Invoke:** `/ork-extras:swarm-migrate swarm-specs/{name}.yaml` (formerly a core ork skill; it now lives in the opt-in ork-extras plugin and is slash-only, so print the command for the user to run. If ork-extras is not installed, say so and give `/plugin install ork-extras@orchestkit` first.)
+- **Edges:** one repo is `build` (`/ork:implement`), even when the change is a migration ("migrate this repo to vitest"). A database or schema migration is `build`, never `migrate`. "Which repos still pin X" with no change asked is a question: answer it, do not start a swarm.
 
 ## Model weight (second, orthogonal dimension)
 
-Intent answers **who does the work**. Weight answers **how expensive that worker should be**. Both are decided in the same Classify pass. Weight never changes the intent, and intent never fixes the weight: a route is `\{intent\} @ \{weight\}`.
+Intent answers **who does the work**. Weight answers **how expensive that worker should be**. Both are decided in the same Classify pass. Weight never changes the intent, and intent never fixes the weight: a route is `{intent} @ {weight}`.
 
 The tiers are the ones already declared in `src/agents/*.md` frontmatter. There is no separate router taxonomy and no new vocabulary to learn (36 agents):
 
 | tier | count | representative agents |
 |---|---|---|
-| `haiku` | 7 | git-operations-engineer, release-engineer, deployment-manager, monitoring-engineer, eval-runner, data-pipeline-engineer, market-intelligence |
-| `sonnet` | 10 | debug-investigator, database-engineer, frontend-performance-engineer, accessibility-specialist, web-research-analyst, llm-integrator |
-| `opus` | 6 | security-auditor, security-layer-auditor, ai-safety-auditor, system-design-reviewer, event-driven-architect, workflow-architect |
-| `inherit` | 13 | test-generator, code-quality-reviewer, backend-system-architect, ci-cd-engineer, infrastructure-architect (these adopt the caller's model) |
+| `haiku` | 3 | eval-runner, emulate-engineer, release-engineer |
+| `sonnet` | 23 | debug-investigator, database-engineer, test-generator, ci-cd-engineer, git-operations-engineer, llm-integrator |
+| `opus` | 6 | security-auditor, security-layer-auditor, ai-safety-auditor, system-design-reviewer, code-quality-reviewer, workflow-architect |
+| `inherit` | 4 | backend-system-architect, frontend-ui-developer, infrastructure-architect, product-strategist (these adopt the caller's model) |
 
 ### The rubric (one pass, decidable)
 
@@ -300,11 +335,15 @@ Defaults, not verdicts. The rubric overrides any row here when the goal carries 
 | diagnose | Standard | root cause spans services or is adversarial | reading a log or reproducing a named error |
 | optimize | Standard | the optimization changes architecture | tuning one measured constant |
 | cover | Standard | tests must model an attacker or a race | mechanical test scaffolding for existing pure functions |
+| e2e | Standard | the flow covers auth, payment, or data loss | one page, one assertion, already-running app |
 | design | Standard | architecture, protocol, or cross-cutting design | never (design is judgment by definition) |
 | build | Standard | new public API, schema, or auth surface | single-file change fully specified in the goal |
 | review | Standard | security, auth, crypto, or safety in scope | style or formatting only |
+| open-pr | Standard | the PR touches auth, schema or a public API | a PR for a docs-only or one-file change |
 | verify | Standard | verifying a security-critical claim | running the existing checks and reporting the result |
 | improve-skill | Standard | rewriting the evaluation contract itself | executing an existing benchmark (`eval-runner`, haiku) |
+| setup | Standard | never (setup reads and recommends; writes stay behind its own gates) | a rescan of a project that already ran setup |
+| migrate | Standard | the change touches auth, CI gates, deploy, or a public API in each repo | a patch-level bump in a repo list the goal names |
 
 ### Premium spend needs explicit consent
 
@@ -312,27 +351,23 @@ Routing **down** is silent. Spending less is never a decision the user has to ap
 
 Routing **up to Heavy** is premium spend (`opus` / `fable`) and MUST be surfaced in the confirm line, naming the heavy signal that triggered it. Never upgrade silently, never mid-handoff, never inside a spawned agent that the user did not see. If the user declines the upgrade, run Standard and state plainly which check is being weakened.
 
-### Composition with the spend cap (they are different mechanisms)
+### No spend cap ships
 
-```
-routing        (ex ante,  per leg)     -> SELECTS the tier
-team-size-gate (ex post,  per session) -> COUNTS what was selected, caps it
-```
+OrchestKit used to back routing with `team-size-gate`, a per-session counter that warned or
+denied premium spawns past a limit. It was removed in #3839, so routing is now the only cost
+control: the tier chosen here is the tier that runs.
 
-`src/hooks/src/pretool/task/team-size-gate.ts` is a **backstop, not a selector**. It reads `toolInput.model` exactly once, read-only, to classify premium vs non-premium, then increments a session ledger and warns or denies past `ORK_TEAM_OPUS_MAX` (default 8). It has no model-override surface and is ADVISORY by default, so its "Use sonnet/haiku" message is advice to a human that it cannot itself enact. Routing is what enacts it.
-
-Rules that keep the two composed rather than duplicated:
-
-- The router never reads, sets, or suggests raising `ORK_TEAM_OPUS_MAX`. The cap is the user's budget, not a router variable.
-- A gate denial is **not** a re-route trigger. Do not relabel a Heavy leg as Standard to slip under the cap. Report the denial and let the user choose.
-- The router does not re-implement counting. It has no session ledger and makes no claim about remaining budget.
+- The router has no session ledger and makes no claim about remaining budget.
+- Another gate's denial (a Fable spend prompt, a permission refusal) is **not** a re-route
+  trigger. Do not relabel a Heavy leg as Standard to get past it. Report the denial and let the
+  user choose.
 
 ### Honest limits of this dimension
 
 Tier is bound **statically to agent identity** in each agent's frontmatter, and the spawn happens downstream in whichever skill the router handed off to. The router therefore has exactly two levers, and neither is a model override:
 
 1. **Selection**: which skill and which agent gets the work (choosing `eval-runner` over a sonnet agent is a real tier decision).
-2. **The caller's model**: the 13 `inherit` agents (36% of the catalog) adopt it, so the weight the router hands off at propagates to that bloc.
+2. **The caller's model**: the 4 `inherit` agents (11% of the catalog) adopt it, so the weight the router hands off at propagates to that bloc.
 
 Everything else is a documented hint carried into the handoff. Per the no-bypass guardrail, the router does not override a target skill's own agent selection.
 
@@ -341,8 +376,10 @@ Everything else is a documented hint carried into the handoff. Per the no-bypass
 1. Explicit verb wins. "Fix the slow query" → `fix`.
 2. Metric + direction → `optimize`.
 3. Percentage in a test context → `cover`.
-4. Question form → `design` ("how should") or `diagnose` ("why") — and this beats symptom words: "why isn't the build green" is `diagnose`, not `fix`.
-5. PR/MR/`#N` → `review`.
+3b. An e2e or browser signal → `e2e` (or `cover` when the tests do not exist yet). It beats the plain verify verb and the request form "why don't you ..."; a failing or flaky e2e run stays `diagnose`/`fix`.
+4. Question form → `design` ("how should") or `diagnose` ("why"), and this beats symptom words: "why isn't the build green" is `diagnose`, not `fix`.
+5. PR/MR/`#N` to be read and judged → `review`. A PR to be opened or written up → `open-pr`.
 6. Ticket reference → `build`.
+6b. Many repos named or implied ("every repo", "all consumers", "org-wide") with a change to make → `migrate`; one repo → `build`. OrchestKit itself as the object of "set up" or "onboard" → `setup`; any other object of "set up" → `build`.
 7. Truly ambiguous → ask ONE question naming the two candidate routes. **Do not guess when two DIFFERENT skills are plausible and the goal names no artifact, metric, or number.** Canonical fallbacks: "fix performance on the dashboard" (fix vs optimize), "review my code" with no PR/branch named (review vs verify), "test the new feature" (cover vs verify vs build), "the queries are slow and maybe vulnerable to injection" (optimize vs review).
 

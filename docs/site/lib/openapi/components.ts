@@ -59,7 +59,7 @@ export const OPENAPI_COMPONENTS = {
 			in: "query",
 			required: false,
 			description:
-				'Opaque pagination cursor from a previous response\'s `X-Next-Cursor` header (or `Link: rel="next"`). Omit for the first page. Cursor-based — page contents do not drift between requests.',
+				'Opaque pagination cursor from a previous response\'s `X-Next-Cursor` header (or `Link: rel="next"`). Omit for the first page. Cursor-based: page contents do not drift between requests.',
 			schema: { type: "string" },
 		},
 	},

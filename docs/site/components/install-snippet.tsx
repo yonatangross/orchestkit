@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { track } from "@/lib/search-beacon";
 
@@ -12,13 +12,91 @@ import { track } from "@/lib/search-beacon";
  */
 export type SnippetCopyEvent = "install_copied" | "setup_copied";
 
+/**
+ * Where a copy happened. PostHog (2026-09-25) could not tell a hero copy from
+ * a picker or docs copy because only the hero chip sent `surface`; every copy
+ * now carries one.
+ */
+export type CopySurface = "hero" | "docs-card" | "setup-wizard" | "factory-ride";
+
+/** Copy `payload`, fire the funnel event, flip to a check for 2s. */
+export function useTrackedCopy(
+	payload: string,
+	event: SnippetCopyEvent,
+	props: { host?: string; surface?: CopySurface },
+) {
+	// "Copied" belongs to the payload that was copied, so switching hosts clears
+	// it at once, and a clipboard write that resolves after the switch cannot
+	// mark the new host (review, 2026-09-25: it carried over for up to 2 s).
+	const [copiedPayload, setCopiedPayload] = useState<string | null>(null);
+	const copied = copiedPayload === payload;
+	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	useEffect(
+		() => () => {
+			if (timer.current) clearTimeout(timer.current);
+		},
+		[],
+	);
+	const copy = () => {
+		// The click is the funnel signal, so it is tracked either way; the
+		// "Copied" state only shows once the clipboard write succeeded.
+		const eventProps: Record<string, string> = {};
+		if (props.host) eventProps.host = props.host;
+		if (props.surface) eventProps.surface = props.surface;
+		track(event, eventProps);
+		navigator.clipboard
+			.writeText(payload)
+			.then(() => {
+				if (timer.current) clearTimeout(timer.current);
+				setCopiedPayload(payload);
+				timer.current = setTimeout(() => setCopiedPayload(null), 2000);
+			})
+			.catch(() => {});
+	};
+	return { copied, copy };
+}
+
+/**
+ * A shell command that wraps at spaces, and inside a long token only after a
+ * "/", "#" or "@" (ork-codex@orchestkit-codex clipped at 768 to 850px). Segments are nowrap because browsers also break after a hard
+ * hyphen, which split "--sparse" and "orchestkit-codex" at 390; a whole token
+ * nowrap then clipped Devin's 406px git URL (QA 2026-09-25). A <wbr> inside a
+ * nowrap span is ignored, so the break points sit between segment spans.
+ */
+export function CommandText({ line }: { line: string }) {
+	const tokens = line.split(" ");
+	return (
+		<span data-command className="min-w-0 [overflow-wrap:anywhere]">
+			{tokens.map((token, i) => {
+				const segments = token.split(/(?<=[/#@])(?=.)/);
+				return (
+					// Tokens can repeat ("--sparse") and never reorder, so the index keys them.
+					<span key={i} data-token>
+						{segments.map((segment, j) => (
+							<span key={j}>
+								<span className="whitespace-nowrap">{segment}</span>
+								{j < segments.length - 1 ? <wbr /> : null}
+							</span>
+						))}
+						{i < tokens.length - 1 ? " " : null}
+					</span>
+				);
+			})}
+		</span>
+	);
+}
+
 export function InstallSnippet({
 	text,
 	prompt = true,
 	host,
 	event = "install_copied",
+	surface,
+	copy: copyText,
 }: {
 	text: string | string[];
+	/** Clipboard payload when it differs from the displayed lines. */
+	copy?: string;
 	prompt?: boolean;
 	host?: string;
 	/**
@@ -27,19 +105,11 @@ export function InstallSnippet({
 	 * counted as a second install.
 	 */
 	event?: SnippetCopyEvent;
+	surface?: CopySurface;
 }) {
 	const lines = typeof text === "string" ? [text] : text;
-	const payload = lines.join("\n");
-	const [copied, setCopied] = useState(false);
-	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-	const copy = () => {
-		navigator.clipboard.writeText(payload).catch(() => {});
-		track(event, host ? { host } : {});
-		if (timer.current) clearTimeout(timer.current);
-		setCopied(true);
-		timer.current = setTimeout(() => setCopied(false), 2000);
-	};
+	const payload = copyText ?? lines.join(prompt ? " && " : "\n");
+	const { copied, copy } = useTrackedCopy(payload, event, { host, surface });
 
 	return (
 		<button
@@ -51,12 +121,16 @@ export function InstallSnippet({
 			}
 		>
 			<div className="min-w-0 flex-1 font-mono text-[12.5px] leading-5 text-fd-foreground">
+				{/* Wrap at spaces with a hanging indent after the $. break-all split
+				    "yo / natangross" mid-word on the Installation page (QA 2026-09-25). */}
 				{lines.map((line) => (
-					<div
-						key={line}
-						className={`break-all ${prompt ? "before:mr-1.5 before:text-fd-muted-foreground before:content-['$_']" : ""}`}
-					>
-						{line}
+					<div key={line} className="flex gap-1.5">
+						{prompt ? (
+							<span aria-hidden="true" className="shrink-0 text-fd-muted-foreground">
+								$
+							</span>
+						) : null}
+						<CommandText line={line} />
 					</div>
 				))}
 			</div>

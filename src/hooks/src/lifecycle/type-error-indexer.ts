@@ -88,9 +88,17 @@ export function typeErrorIndexer(input: HookInput, ctx: HookContext = NOOP_CTX):
 
   const sessionId = input.session_id || 'unknown';
 
+  // Prefer the local typescript binary. Bare `npx tsc` can fetch the unrelated
+  // npm package named `tsc` when typescript is not installed (#4220 HR-7).
+  const localTsc = join(projectDir, 'node_modules', '.bin', 'tsc');
+  if (!existsSync(localTsc)) {
+    ctx.log('type-error-indexer', 'No local typescript binary, skipping');
+    return outputSilentSuccess();
+  }
+
   try {
     // Run tsc --noEmit with timeout
-    execFileSync('npx', ['tsc', '--noEmit'], {
+    execFileSync(localTsc, ['--noEmit'], {
       cwd: projectDir,
       timeout: TSC_TIMEOUT_MS,
       encoding: 'utf-8',

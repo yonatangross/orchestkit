@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit CLI: option values</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+  main { max-width: 65rem; margin: 2rem auto; padding: 0 1rem; }
+  select { font: inherit; max-width: 100%; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 1rem; }
+  pre { border: 1px solid; padding: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<main>
+  <h1>What happens when a CLI option is missing its value?</h1>
+  <p>Pick a command to compare captured output from the built CLI. Search used a fixture, not the live API.</p>
+  <label for="command">Command arguments</label>
+  <select id="command">
+    <option value="limit">install --limit --all</option>
+    <option value="base">install --base-url</option>
+    <option value="invalid">search x --limit abc</option>
+    <option value="valid">search x --limit 3</option>
+    <option value="negative">search x --limit -3</option>
+  </select>
+  <div class="results" aria-live="polite">
+    <section><h2>Before</h2><pre id="before"></pre></section>
+    <section><h2>After</h2><pre id="after"></pre></section>
+  </div>
+</main>
+<script>
+  const detection = `No coding agent found on PATH. OrchestKit installs into any of these:
+
+  claude    Claude Code
+  cursor    Cursor
+  codex     Codex
+  devin     Devin
+  opencode  OpenCode
+  muse      Muse Code
+  pi        Pi
+  agy       Antigravity
+
+Run: orchestkit install <host>    (or --all to print every command)
+exit: 0`;
+  const search = `  1. A doc
+     https://orchestkit.dev/docs/x
+
+118/120 requests left in this window (resets in 60s).
+exit: 0`;
+  const negative = `Request limit: 1\n${search}`;
+  const output = {
+    limit: [detection, "--limit requires a value.\nexit: 2"],
+    base: [detection, "--base-url requires a value.\nexit: 2"],
+    invalid: [search, "--limit requires an integer.\nexit: 2"],
+    valid: [search, search],
+    negative: [negative, negative],
+  };
+  const command = document.getElementById("command");
+  function render() {
+    const [before, after] = output[command.value];
+    document.getElementById("before").textContent = before;
+    document.getElementById("after").textContent = after;
+  }
+  command.addEventListener("change", render);
+  render();
+</script>
+</html>

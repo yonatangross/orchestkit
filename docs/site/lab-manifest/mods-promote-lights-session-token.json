@@ -1,0 +1,13 @@
+{
+  "slug": "mods-promote-lights-session-token",
+  "source": "docs/fix--promote-lights-session-token/index.html",
+  "title": "promote-lights: a new session never shows old lights",
+  "description": "Stored CI lights now carry a per-session token, so the band never draws the previous session's pull request while the new session starts.",
+  "tags": [
+    "claude-code",
+    "mods",
+    "function-hooks",
+    "promote-lights"
+  ],
+  "date": "2026-09-26"
+}

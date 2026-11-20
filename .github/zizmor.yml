@@ -12,13 +12,24 @@
 
 rules:
   # dependabot-automerge.yml uses pull_request_target, but safely: it NEVER checks
-  # out or executes PR code (only `gh pr merge|edit|comment`), is gated to the
+  # out or executes PR code (only `gh pr edit|comment`), is gated to the
   # dependabot[bot] actor, and passes metadata via env (not run-body). This is the
   # GitHub-recommended pattern for granting Dependabot PRs a privileged token.
   # Audited in milestone #160 (security-posture review).
   dangerous-triggers:
     ignore:
       - dependabot-automerge.yml
+      # standards-gate.yml uses pull_request_target so the PR being judged
+      # cannot weaken the gate judging it (ported from hq-ext-plugin #1983 +
+      # #1990). The safety model is enforced by
+      # tests/unit/test-standards-gate-base-trust.sh: top-level permissions:
+      # {}, job contents: read, no secrets referenced, every checkout with
+      # persist-credentials: false, and the PR head is checked out as DATA
+      # ONLY (nothing under head/ is executed, sourced, installed or used as
+      # a working directory; the trusted reader runs from the base branch tip
+      # and the base commit supplies the floor configs). Fork PRs are refused
+      # before any checkout of head data.
+      - standards-gate.yml
 
   # Same workflow: the `github.actor == 'dependabot[bot]'` gate. zizmor flags actor
   # checks as spoofable in general, but github.actor on pull_request_target is set

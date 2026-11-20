@@ -19,6 +19,10 @@ const path = require('path');
 const modelShortNames = require('../src/hooks/src/lib/models.vocab.json').shortNames;
 const crypto = require('crypto');
 const { parseYamlFrontmatter } = require('./lib/parse-frontmatter');
+const { slugLabel } = require('./lib/slug-label');
+const { tagPluginVersions } = require('./lib/release-version-marker');
+const { buildLibrary, listHooks } = require('./lib/library-stations');
+const { buildLibraryHosts } = require('./lib/library-hosts');
 
 // Paths
 const PROJECT_ROOT = path.join(__dirname, '..');
@@ -58,6 +62,10 @@ function scanFolderStructure(skillPath) {
     if (fs.existsSync(folderPath) && fs.statSync(folderPath).isDirectory()) {
       const files = fs.readdirSync(folderPath)
         .filter(f => !f.startsWith('.'))
+        // Generated docs must be a pure function of tracked inputs. Local
+        // Python runs leave __pycache__/ and *.pyc/*.pyo under scripts/; those
+        // are gitignored and must not land in skills-data.ts (#4367/#4373/#4358).
+        .filter(f => f !== '__pycache__' && !f.endsWith('.pyc') && !f.endsWith('.pyo'))
         .sort();
       structure[folder] = files;
     }
@@ -293,6 +301,14 @@ function extractSkillFlow(body) {
 }
 
 /**
+ * allowed-tools as a list: a space-separated string splits on whitespace,
+ * a YAML list passes through, anything missing becomes [].
+ */
+function toolList(value) {
+  return typeof value === 'string' ? value.split(/\s+/).filter(Boolean) : value || [];
+}
+
+/**
  * Extract skill metadata from SKILL.md
  */
 function extractSkillMetadata(skillName, skillPath) {
@@ -320,22 +336,26 @@ function extractSkillMetadata(skillName, skillPath) {
 
   return {
     name: frontmatter.name || skillName,
-    description: frontmatter.description || '',
+    description: displayText(frontmatter.description || ''),
     version: frontmatter.version || '1.0.0',
     sha256,
     author: frontmatter.author || 'OrchestKit',
     tags: frontmatter.tags || [],
     userInvocable: frontmatter['user-invocable'] === true,
     context: frontmatter.context || 'fork',
-    allowedTools: frontmatter['allowed-tools'] || [],
+    // Frontmatter allows a space-separated string (the normalised form) or a
+    // YAML list; the generated field is always string[].
+    allowedTools: toolList(frontmatter['allowed-tools']),
     skills: frontmatter.skills || [],
-    agent: frontmatter.agent || null,
+    // The fork agent for a task skill, else the owning agent a guideline
+    // skill records under metadata (it no longer forks, ork-ref-skill-fork).
+    agent: frontmatter.agent || frontmatter.metadata?.['owner-agent'] || null,
     complexity: frontmatter.complexity || 'low',
     structure: structure,
     // Derived from the FULL body on purpose: `content` below is truncated at
     // 3000 chars, which lands short of most phase tables.
-    flow: extractSkillFlow(body),
-    content: truncatedBody,
+    flow: displayDeep(extractSkillFlow(body)),
+    content: displayMarkdown(truncatedBody),
     contentTruncated: bodyTruncated
   };
 }
@@ -353,7 +373,9 @@ function readManifest(manifestPath) {
  */
 function getManifestSkills(manifest, allSkillNames) {
   if (manifest.skills === 'all') {
-    return allSkillNames;
+    // skillsExclude (#4936): skills that ship in another plugin (ork-extras).
+    const excluded = new Set(manifest.skillsExclude || []);
+    return allSkillNames.filter(name => !excluded.has(name));
   }
   return manifest.skills || [];
 }
@@ -377,13 +399,59 @@ function getSkillPlugins(skillName, manifestData, allSkillNames) {
 /**
  * Extract agent metadata from agent .md file
  */
+// Display text for the site: the house writing rule has no em dash, en dash or
+// prose double hyphen, but skill and agent frontmatter still use them, and the
+// library cards print descriptions verbatim (site QA 2026-09-25, item 19). A
+// dash between numbers is a range and becomes a hyphen; any other becomes a
+// comma. Same rules as undash_line in _build-docs-generate.py.
+function displayText(text) {
+  // A lone dash is an empty-value placeholder (phase tables): keep it, as a hyphen.
+  if (/^\s*[\u2013\u2014]\s*$/.test(String(text))) return '-';
+  return String(text)
+    .replace(/(\d)\s*[\u2013\u2014]\s*(\d)/g, '$1-$2')
+    .replace(/\s*[\u2013\u2014]\s*/g, ', ')
+    .replace(/\s+-{2}\s+/g, ', ')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*,/g, ',');
+}
+
+// displayText for a markdown body: fenced code and inline code stay literal,
+// everything else is normalized. The skill pages render these headings and
+// tables straight from the body (gate sweep 2026-09-25: 20 pages).
+function displayMarkdown(md) {
+  let inFence = false;
+  return String(md).split('\n').map((line) => {
+    if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; return line; }
+    if (inFence || !/[\u2013\u2014]/.test(line)) return line;
+    // A heading reads as a title, so its dash becomes a colon (as in _build-docs-generate.py).
+    if (/^#{1,6}\s/.test(line)) return line.replace(/\s*[\u2013\u2014]\s*/g, ': ');
+    return line.split(/(`+[^`]*`+)/).map((part, i) => (i % 2 ? part : part.replace(/\|(\s*)[\u2013\u2014](\s*)(?=\|)/g, '|$1-$2').replace(/[^|]+/g, (cell) => (/[\u2013\u2014]/.test(cell) ? displayText(cell) : cell)))).join('');
+  }).join('\n');
+}
+
+// displayText on every string in a derived structure (the skill flow graphs).
+// A lone dash in a node's `out` is an empty-value placeholder, so it becomes
+// empty and the page omits it; as "-" it rendered "-> -" on phases with no
+// output. Other keys keep a literal "-" (review, #4452).
+function displayDeep(value, key) {
+  if (typeof value === 'string') {
+    const text = displayText(value);
+    return key === 'out' && text === '-' ? '' : text;
+  }
+  if (Array.isArray(value)) return value.map((item) => displayDeep(item));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, displayDeep(v, k)]));
+  }
+  return value;
+}
+
 function extractAgentMetadata(agentPath) {
   const content = fs.readFileSync(agentPath, 'utf-8');
   const { frontmatter } = parseYamlFrontmatter(content);
 
   return {
     name: frontmatter.name || path.basename(agentPath, '.md'),
-    description: frontmatter.description || '',
+    description: displayText(frontmatter.description || ''),
     model: frontmatter.model || 'inherit',
     category: frontmatter.category || 'other',
     tools: frontmatter.tools || [],
@@ -445,8 +513,9 @@ function countHooks(agentsData) {
     }
   }
 
-  // Count skill-scoped hooks (command:.*run-hook in SKILL.md frontmatter)
+  // Count skill-scoped hook handlers in SKILL.md frontmatter, the rule bin/count-hooks.sh uses
   let skillScopedCount = 0;
+  const skillScopedBySkill = {};
   const skillsDir = path.join(PROJECT_ROOT, 'src', 'skills');
   if (fs.existsSync(skillsDir)) {
     for (const skillName of fs.readdirSync(skillsDir)) {
@@ -456,14 +525,69 @@ function countHooks(agentsData) {
         const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
         if (fmMatch) {
           const fm = fmMatch[1];
-          const hookMatches = fm.match(/command:.*run-hook/g);
-          if (hookMatches) skillScopedCount += hookMatches.length;
+          const hookMatches = fm.match(/^[ \t]*(- )?type: ["']?(command|http)["']?[ \t]*$/gm);
+          if (hookMatches) {
+            skillScopedCount += hookMatches.length;
+            skillScopedBySkill[skillName] = hookMatches.length;
+          }
         }
       }
     }
   }
 
-  return { global: globalCount, scoped: scopedCount + skillScopedCount, total: globalCount + scopedCount + skillScopedCount };
+  return {
+    global: globalCount,
+    agentScoped: scopedCount,
+    skillScoped: skillScopedCount,
+    skillScopedBySkill,
+    scoped: scopedCount + skillScopedCount,
+    total: globalCount + scopedCount + skillScopedCount,
+  };
+}
+
+/**
+ * library-data.ts: every skill, agent and hook with the workflow station where it acts, for the home
+ * page library. Rules live in scripts/lib/library-stations.js. The hook items are the hooks.json
+ * handlers; the skill-scoped handlers stay with their skill (scopedHooks), so
+ * counts.hooks + counts.skillScopedHooks + agent-scoped == TOTALS.hooks.
+ */
+function writeLibraryData(skillsDetailed, agentsData, hookCounts) {
+  const hooksJson = JSON.parse(fs.readFileSync(path.join(HOOKS_DIR, 'hooks.json'), 'utf-8'));
+  const library = buildLibrary({
+    skills: skillsDetailed,
+    agents: agentsData,
+    hooks: listHooks(hooksJson),
+    skillScopedHooks: hookCounts.skillScopedBySkill,
+  });
+  if (library.counts.hooks !== hookCounts.global) {
+    throw new Error(`library-data: ${library.counts.hooks} hook items but ${hookCounts.global} hooks.json handlers`);
+  }
+  const content = [
+    '// AUTO-GENERATED by scripts/generate-docs-data.js',
+    '// DO NOT EDIT MANUALLY — your changes will be overwritten.',
+    '',
+    'export type LibraryStationKey = "ask" | "plan" | "build" | "guard" | "check" | "ship" | "remember";',
+    'export type LibraryStation = { key: LibraryStationKey; label: string; line: string; skills: number; agents: number; hooks: number };',
+    'export type LibraryItem =',
+    '  | { id: string; kind: "skill"; name: string; station: LibraryStationKey; description: string; command: boolean; scopedHooks: number }',
+    '  | { id: string; kind: "agent"; name: string; station: LibraryStationKey; description: string; model: string | null }',
+    '  | { id: string; kind: "hook"; name: string; station: LibraryStationKey; event: string; matcher: string; script: string };',
+    'export type LibraryCounts = { items: number; skills: number; agents: number; hooks: number; skillScopedHooks: number; skillsWithHooks: number };',
+    '// What each host ships, read from the pack manifests (scripts/lib/library-hosts.js). A null set means',
+    '// "not verified": Devin stays null until one `devin plugins info ork` read gives a count.',
+    'export type LibraryHostSets = { skills: string[] | "all" | null; agents: string[] | "all" | null; roles?: string[]; hooks: "claude" | "none" | "unknown" };',
+    '',
+    `export const LIBRARY_HOSTS: Record<"claude" | "cursor" | "codex" | "devin" | "opencode" | "muse" | "pi" | "agy", LibraryHostSets> = ${JSON.stringify(buildLibraryHosts(PROJECT_ROOT), null, 2)};`,
+    '',
+    `export const LIBRARY_STATIONS: LibraryStation[] = ${JSON.stringify(library.stations, null, 2)};`,
+    '',
+    `export const LIBRARY_COUNTS: LibraryCounts = ${JSON.stringify(library.counts, null, 2)};`,
+    '',
+    `export const LIBRARY_ITEMS: LibraryItem[] = ${JSON.stringify(library.items, null, 2)};`,
+    '',
+  ].join('\n');
+  fs.writeFileSync(path.join(TS_OUTPUT_DIR, 'library-data.ts'), content);
+  return library.counts;
 }
 
 /**
@@ -741,6 +865,8 @@ function generateSplitModules(data) {
     'export interface Totals {',
     '  plugins: number;',
     '  skills: number;',
+    '  coreSkills: number;',
+    '  extrasSkills: number;',
     '  agents: number;',
     '  hooks: number;',
     '  commands: number;',
@@ -772,9 +898,10 @@ function generateSplitModules(data) {
   fs.writeFileSync(path.join(TS_OUTPUT_DIR, 'shared-data.ts'), sharedContent);
 
   // 3. plugins-data.ts — PLUGINS
-  // Serialize, then tag the version line so release-please can bump it in-place
-  const pluginsJson = JSON.stringify(plugins, null, 2)
-    .replace(/"version": "[^"]+",/, `"version": "${plugins[0].version}", // x-release-please-version`);
+  // Serialize, then tag EVERY plugin's version line so release-please bumps each
+  // in place. Tagging only the first one left ork-extras behind on the 10.13.0
+  // release PR and failed its build on drift (#5218).
+  const pluginsJson = tagPluginVersions(JSON.stringify(plugins, null, 2));
   const pluginsContent = [
     '// AUTO-GENERATED by scripts/generate-docs-data.js',
     '// DO NOT EDIT MANUALLY — your changes will be overwritten.',
@@ -892,7 +1019,7 @@ function generateSplitModules(data) {
   for (const [key, skill] of Object.entries(skillsDetailed)) {
     graphNodes.push({
       id: key,
-      label: key.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      label: slugLabel(key),
       type: skill.userInvocable ? 'command' : 'reference',
       complexity: skill.complexity || 'low',
       category: detectCategory(skill),
@@ -940,7 +1067,7 @@ function generateSplitModules(data) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([id, agent]) => ({
       id,
-      name: id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      name: slugLabel(id),
       description: agent.description,
       category: categoryMapping[agent.category] || 'other',
       model: agent.model,
@@ -1225,9 +1352,16 @@ function generate() {
   const orkSkills = getManifestSkills(manifestData['ork'], allSkillNames);
 
   // Build totals
+  // #4936: skills is every skill OrchestKit publishes (core ork plus the
+  // opt-in ork-extras); coreSkills is what installing ork alone gives you.
+  const extrasSkills = manifestData['ork-extras']
+    ? getManifestSkills(manifestData['ork-extras'], allSkillNames)
+    : [];
   const totals = {
-    plugins: 1,
+    plugins: manifestData['ork-extras'] ? 2 : 1,
     skills: allSkillNames.length,
+    coreSkills: orkSkills.length,
+    extrasSkills: extrasSkills.length,
     agents: agentFiles.length,
     hooks: hookCounts.total,
     commands: userInvocableCount,
@@ -1254,9 +1388,30 @@ function generate() {
       commands: Object.entries(skillsDetailed)
         .filter(([_, s]) => s.userInvocable)
         .map(([name]) => name)
+        .filter(name => orkSkills.includes(name))
         .sort()
     }
   ];
+  if (extrasSkills.length > 0) {
+    const extrasManifest = manifestData['ork-extras'];
+    plugins.push({
+      name: "ork-extras",
+      description: `Opt-in reference skills split out of ork: ${extrasSkills.length} skills, no agents or hooks.`,
+      fullDescription: extrasManifest.description,
+      category: "development",
+      version: extrasManifest.version || manifestData['ork'].version,
+      skillCount: extrasSkills.length,
+      agentCount: 0,
+      hooks: 0,
+      commandCount: extrasSkills.filter(name => skillsDetailed[name] && skillsDetailed[name].userInvocable).length,
+      color: "#a78bfa",
+      required: false,
+      recommended: false,
+      skills: extrasSkills.slice(0, 24),
+      agents: [],
+      commands: extrasSkills.filter(name => skillsDetailed[name] && skillsDetailed[name].userInvocable).sort()
+    });
+  }
 
   // Build agents array for display (category read from frontmatter)
   const agents = Object.entries(agentsData).map(([name, data]) => {
@@ -1302,7 +1457,7 @@ function generate() {
     { id: "Verify", skill: "verify", command: "/ork:verify", hook: "6 agents validate your feature", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#22c55e", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
     { id: "Commit", skill: "commit", command: "/ork:commit", hook: "Conventional commits in seconds", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
     { id: "Explore", skill: "explore", command: "/ork:explore", hook: "Understand codebases in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", relatedPlugin: "ork", tags: ["core","landscape","tri-terminal"] },
-    { id: "Remember", skill: "remember", command: "/ork:remember", hook: "Build your team's knowledge base", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#8b5cf6", relatedPlugin: "ork", tags: ["memory","landscape","tri-terminal"] },
+    { id: "Remember", skill: "remember", command: "/ork:memory remember", hook: "Build your team's knowledge base", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#8b5cf6", relatedPlugin: "ork", tags: ["memory","landscape","tri-terminal"] },
     { id: "Memory", skill: "memory", command: "/ork:memory", hook: "Search, load, sync, visualize your knowledge", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#06b6d4", relatedPlugin: "ork", tags: ["memory","landscape","tri-terminal"] },
     { id: "ReviewPR", skill: "review-pr", command: "/ork:review-pr", hook: "Expert PR review in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#f97316", relatedPlugin: "ork", tags: ["review","landscape","tri-terminal"] },
     { id: "CreatePR", skill: "create-pr", command: "/ork:create-pr", hook: "PRs that pass review the first time", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#22c55e", relatedPlugin: "ork", tags: ["review","landscape","tri-terminal"] },
@@ -1392,6 +1547,10 @@ function generate() {
     skillsSummary
   });
 
+  // Library: every item with its workflow station (home page library)
+  const libraryCounts = writeLibraryData(skillsDetailed, agentsData, hookCounts);
+  console.log(`${GREEN}  Library: ${libraryCounts.items} items (${libraryCounts.hooks} hooks + ${libraryCounts.skillScopedHooks} skill-scoped handlers in ${libraryCounts.skillsWithHooks} skills)${NC}`);
+
   // Generate barrel file for backward compatibility
   const tsOutputDir = path.dirname(TS_OUTPUT_FILE);
   if (!fs.existsSync(tsOutputDir)) {
@@ -1415,5 +1574,7 @@ function generate() {
   console.log('');
 }
 
-// Run
-generate();
+// Run when executed directly; a require() (the unit test) only gets the helpers.
+if (require.main === module) generate();
+
+module.exports = { displayText, displayMarkdown, displayDeep };

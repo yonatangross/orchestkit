@@ -56,7 +56,7 @@ After report generation:
 ExitWorktree(action="keep")
 ```
 
-> **Fallback:** If team formation fails, use standard Task tool spawns. See [exploration-agents.md](exploration-agents.md).
+> **Fallback:** If team formation fails, use standard Agent tool spawns. See [exploration-agents.md](exploration-agents.md).
 
 **Incorrect — Sequential exploration without coordination:**
 ```python

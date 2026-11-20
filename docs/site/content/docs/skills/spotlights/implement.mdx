@@ -9,7 +9,7 @@ The `/ork:implement` command is the most ambitious skill in OrchestKit. It turns
 
 ## Why This Skill
 
-Building a feature end-to-end involves many steps that are independent of each other: the API design does not depend on the UI mockup, the database schema does not depend on the test fixtures. Yet developers typically work through these sequentially because context-switching between domains is expensive. The `/ork:implement` skill exploits this independence by running specialized agents in parallel -- an architect designs the API while a frontend developer builds the components while a test generator writes fixtures, all simultaneously.
+Building a feature end-to-end involves many steps that are independent of each other: the API design does not depend on the UI mockup, the database schema does not depend on the test fixtures. Yet developers typically work through these sequentially because context-switching between domains is expensive. The `/ork:implement` skill exploits this independence by running specialized agents in parallel: an architect designs the API while a frontend developer builds the components while a test generator writes fixtures, all simultaneously.
 
 The result is a complete, tested implementation in a fraction of the time, with built-in quality gates that catch scope creep and security issues before they reach code review.
 
@@ -78,7 +78,7 @@ A `workflow-architect` agent compares the actual implementation against the orig
 
 | Score | Action |
 |-------|--------|
-| 0-2 | Proceed -- minimal drift |
+| 0-2 | Proceed, minimal drift |
 | 3-5 | Document and justify unplanned changes |
 | 6-8 | Review with user, potentially split PR |
 | 9-10 | Stop and reassess |
@@ -143,8 +143,8 @@ For a feature that touches 15+ files across multiple domains, the worktree phase
 
 ## Related Skills
 
-- [/ork:verify](/docs/skills/spotlights/verify) -- Independent verification after implementation
-- [/ork:commit](/docs/skills/spotlights/commit) -- Commit the implemented changes
-- [/ork:review-pr](/docs/skills/spotlights/review-pr) -- Review the implementation as a PR
-- [/ork:memory](/docs/skills/spotlights/memory) -- Search past implementation decisions
-- [Command Skills Reference](/docs/skills/command-skills) -- All 36 command skills
+- [/ork:verify](/docs/skills/spotlights/verify): Independent verification after implementation
+- [/ork:commit](/docs/skills/spotlights/commit): Commit the implemented changes
+- [/ork:review-pr](/docs/skills/spotlights/review-pr): Review the implementation as a PR
+- [/ork:memory](/docs/skills/spotlights/memory): Search past implementation decisions
+- [Command Skills Reference](/docs/skills/command-skills): Every command skill, grouped by task

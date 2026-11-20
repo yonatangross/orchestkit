@@ -5,13 +5,13 @@ description: Deep code review with 6 parallel specialized agents covering securi
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-The `/ork:review-pr` command runs a comprehensive code review using 6 parallel specialized agents. Each agent focuses on a different dimension -- code quality, type safety, security, test coverage, backend patterns, and frontend patterns -- and produces a structured report with conventional comment prefixes. This page explains how the review works, what each agent looks for, and how to get the most value from automated reviews.
+The `/ork:review-pr` command runs a comprehensive code review using 6 parallel specialized agents. Each agent focuses on a different dimension (code quality, type safety, security, test coverage, backend patterns, and frontend patterns) and produces a structured report with conventional comment prefixes. This page explains how the review works, what each agent looks for, and how to get the most value from automated reviews.
 
 ## Why This Skill
 
-Manual code review is thorough but slow. A reviewer reading a 500-line diff needs to mentally context-switch between checking for security issues, evaluating type safety, assessing test coverage, and verifying architectural patterns -- all at once. The `/ork:review-pr` skill eliminates this context-switching by assigning each concern to a dedicated agent that can focus deeply on its specialty.
+Manual code review is thorough but slow. A reviewer reading a 500-line diff needs to mentally context-switch between checking for security issues, evaluating type safety, assessing test coverage, and verifying architectural patterns, all at once. The `/ork:review-pr` skill eliminates this context-switching by assigning each concern to a dedicated agent that can focus deeply on its specialty.
 
-The result is not a replacement for human review. It is a structured pre-review that catches the mechanical issues (missing tests, type safety gaps, security vulnerabilities) so that human reviewers can focus on design decisions, naming, and business logic -- the things that require human judgment.
+The result is not a replacement for human review. It is a structured pre-review that catches the mechanical issues (missing tests, type safety gaps, security vulnerabilities) so that human reviewers can focus on design decisions, naming, and business logic: the things that require human judgment.
 
 ## Quick Start
 
@@ -45,9 +45,9 @@ From this, it identifies total files changed, lines added/removed, and which dom
 
 Claude Code 2.1.6+ automatically discovers and loads relevant skills based on the PR content:
 
-- `code-review-playbook` -- Review patterns and conventional comments
-- `security-scanning` -- OWASP, secrets, dependencies
-- `type-safety-validation` -- Zod, TypeScript strict mode
+- `code-review-playbook`: Review patterns and conventional comments
+- `security-scanning`: OWASP, secrets, dependencies
+- `type-safety-validation`: Zod, TypeScript strict mode
 
 These skills provide the knowledge base that agents use during their analysis.
 
@@ -129,7 +129,7 @@ gh pr review 123 --request-changes -b "Security issue in search endpoint."
 
 ### Pattern 1: Review Before Merge
 
-The standard workflow -- review a PR before merging:
+The standard workflow is to review a PR before merging:
 
 ```bash
 /ork:review-pr 123
@@ -187,7 +187,7 @@ The review uses conventional comment prefixes so you can quickly scan for severi
 </Callout>
 
 <Callout type="warn">
-**Do not skip human review.** The 6 agents catch mechanical issues -- type errors, security gaps, missing tests. They do not evaluate whether the feature makes sense, whether the naming communicates intent, or whether the architecture will scale. Those require human judgment.
+**Do not skip human review.** The 6 agents catch mechanical issues: type errors, security gaps, missing tests. They do not evaluate whether the feature makes sense, whether the naming communicates intent, or whether the architecture will scale. Those require human judgment.
 </Callout>
 
 <Callout type="info">
@@ -200,7 +200,7 @@ The review uses conventional comment prefixes so you can quickly scan for severi
 
 ## Related Skills
 
-- [/ork:commit](/docs/skills/spotlights/commit) -- Commit changes after review
-- [/ork:verify](/docs/skills/spotlights/verify) -- Independent verification with grading
-- [/ork:implement](/docs/skills/spotlights/implement) -- Build features with built-in quality gates
-- [Command Skills Reference](/docs/skills/command-skills) -- All 36 command skills
+- [/ork:commit](/docs/skills/spotlights/commit): Commit changes after review
+- [/ork:verify](/docs/skills/spotlights/verify): Independent verification with grading
+- [/ork:implement](/docs/skills/spotlights/implement): Build features with built-in quality gates
+- [Command Skills Reference](/docs/skills/command-skills): Every command skill, grouped by task

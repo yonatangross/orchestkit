@@ -1,6 +1,6 @@
 ---
 title: "Expect"
-description: "Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components."
+description: "Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Use when testing UI changes before merge. Not for writing tests (use cover), grading a suite (use verify) or unit tests."
 ---
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
@@ -11,14 +11,14 @@ description: "Diff-aware AI browser testing — reads the git diff, maps changes
 
 <ContextualSkillSidebar slug="expect" />
 
-> **Expect** Diff-aware AI browser testing — reads the git diff, maps changes to affected pages via the route map, generates a targeted test plan, and executes it via agent-browser (Rust daemon + CDP, ARIA-tree-first) with pass/fail reporting. Use when testing UI changes, verifying PRs before merge, or running regression checks on changed components.
+> **Expect** Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Use when testing UI changes before merge. Not for writing tests (use cover), grading a suite (use verify) or unit tests.
 
 
-# Expect — Diff-Aware AI Browser Testing
+# Expect: Diff-Aware AI Browser Testing
 
 Analyze git changes, generate targeted test plans, and execute them via AI-driven browser automation.
 
-> **Note:** If `disableSkillShellExecution` is enabled (CC 2.1.91), the agent-browser install check won't run. Verify it's installed: `npx agent-browser --version`.
+> **Note:** If `disableSkillShellExecution` is enabled, the agent-browser install check won't run. Verify it's installed: `npx agent-browser --version`.
 
 ```bash
 expect                              # Auto-detect changes, test affected pages
@@ -28,7 +28,7 @@ expect --target branch              # Test all changes on current branch vs main
 expect -y                           # Skip plan review, run immediately
 ```
 
-**Core principle:** Only test what changed. Git diff drives scope — no wasted cycles on unaffected pages.
+**Core principle:** Only test what changed. Git diff drives scope, no wasted cycles on unaffected pages.
 
 
 ## Argument Resolution
@@ -38,7 +38,7 @@ ARGS = "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y
 
 # Parse from full argument string
 import re
-raw = ""  # Full argument string from CC
+raw = "$ARGUMENTS"  # Full argument string
 
 INSTRUCTION = None
 TARGET = "unstaged"  # Default: test unstaged changes
@@ -69,7 +69,7 @@ if '-y' in raw.split():
 ## STEP 0: MCP Probe + Prerequisite Check
 
 ```python
-# memory is alwaysLoad in .mcp.json (CC 2.1.121+, #1541) — probe below kept as fallback for older CC:
+# memory may be absent from the user's .mcp.json; probe so the memory steps below are skipped, not failed:
 ToolSearch(query="select:mcp__memory__search_nodes")
 
 # Verify agent-browser is available (Rust-native, no Playwright)
@@ -80,6 +80,11 @@ Bash("command -v agent-browser || npx agent-browser --version")
 # NOT `skills get agent-browser` — that resolves but returns only the thin
 # top-level router; `core --full` is the actual 2,800+ line command reference.
 Bash("agent-browser skills get core --full")
+
+# Load it before the first agent-browser command, never drive the CLI from memory.
+# Windows (Git Bash): never pipe a command that may start the daemon (| tail hangs);
+# redirect to a file instead. See ../browser-tools/references/ork-delta.md,
+# section "Windows (Git Bash) and piping".
 ```
 
 
@@ -161,9 +166,9 @@ elif TARGET == "commit":
 ```
 
 Classify each changed file into 3 levels:
-1. **Direct** — the file itself changed
-2. **Imported** — a file that imports the changed file
-3. **Routed** — the page/route that renders the changed component
+1. **Direct**: the file itself changed
+2. **Imported**: a file that imports the changed file
+3. **Routed**: the page/route that renders the changed component
 
 Load: `Read("references/diff-scanner.md")`
 
@@ -208,9 +213,9 @@ Generate a test plan with:
 """
 ```
 
-If `--flow` specified, load saved flow from `.expect/flows/\{slug\}.yaml` instead of generating.
+If `--flow` specified, load saved flow from `.expect/flows/{slug}.yaml` instead of generating.
 
-If NOT `--y`, present plan to user via `AskUserQuestion` for review before executing.
+If NOT `-y`, present plan to user via `AskUserQuestion` for review before executing.
 
 Load: `Read("references/test-plan.md")`
 
@@ -219,20 +224,21 @@ Load: `Read("references/test-plan.md")`
 
 ### agent-browser Quick Primer
 
-> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.36.0** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert &lt;path&gt;` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused.
+> Floor is `>= 0.31.1` (0.27.1 is documented broken on prod pages); current tested release is **0.38.1** (see `upstream-version-tested`). Commands below hold across this range. 0.30+ adds `agent-browser read` (agent-readable text extraction) and the `--restore` / `--namespace` session-restore workflow for stable, isolated browser state across agent runs. 0.33.0 adds `agent-browser a11y [url]`, an embedded axe-core audit (WCAG tag filtering, selector scoping, iframe-aware text/JSON output) available as both a CLI command and an MCP tool. 0.34.0 adds persistent session-to-tab binding for shared Chrome sessions, with `--pin-tab` making the binding strict so an externally closed tab yields a stable `tab_gone` error. 0.35.0 adds `--ca-cert <path>` for a trusted local CA behind an SSL-inspecting proxy (Linux-only; the targeted alternative to `--ignore-https-errors`). 0.35.1 changes behaviour the Diff row below relies on: `diff snapshot` now resets ref numbering per diff and invalidates refs across navigations, so refs captured before a navigation must be re-read rather than reused. 0.36.0 adds experimental WebMCP tool discovery (`webmcp list/invoke/result/cancel`, brief untrusted catalog summaries on `open`). 0.37.0 makes `record` capture the active page at 30 fps and inherits session setup into new tabs. 0.38.0 adds `snapshot --delta` (full baseline, then `unchanged` or a compact structural change), `screenshot --if-changed --threshold`, persistent refs that survive same-document DOM changes, `--human` / `--input-mode` pointer realism, and `auth login --no-navigate`. Full command surface: `../browser-tools/references/upstream.md` and `agent-browser skills get core --full`.
 
 
 | Area | Command | Notes |
 |------|---------|-------|
 | Snapshot | `agent-browser snapshot -i` | ARIA tree w/ `@eN` refs. `-C`/`--cursor` was removed in 0.22 |
-| Semantic locator | `agent-browser find role button click --name "Continue"` | Grammar: `find &lt;locator&gt; &lt;value&gt; [action]`; stable alternative to `@eN` refs |
-| Interaction | `fill @e1 "..."`, `click @e2`, `press Enter`, `drag @e1 @e2`, `upload @e1 file.pdf` | All take ARIA refs |
+| Snapshot delta *(0.38+)* | `agent-browser snapshot --delta` | Full tree once, then `unchanged` or a compact structural diff; refs persist across same-document changes |
+| Semantic locator | `agent-browser find role button click --name "Continue"` | Grammar: `find <locator> <value> [action]`; stable alternative to `@eN` refs |
+| Interaction | `fill @e1 "..."`, `click @e2`, `press Enter`, `drag @e1 @e2`, `upload @e1 file.pdf` | All take ARIA refs. Add `--human` for a curved approach instead of an instant jump |
 | Waits | `wait --load networkidle`, `wait --text "Success"`, `wait --fn "window.ready"` | Event-driven, never sleep-based |
-| Network | `network route "*analytics*" --abort`, `network route "https://api/*" --body '\{...\}'` | Intercept + stub |
-| State | `state save/load auth.json`, `--session-name &lt;name&gt;` | Persist auth across runs |
+| Network | `network route "*analytics*" --abort`, `network route "https://api/*" --body '{...}'` | Intercept + stub |
+| State | `state save/load auth.json`, `--session-name <name>` | Persist auth across runs |
 | Vault | `vault store github_pat`, `vault load github_pat` | Encrypted credential store |
-| Diff | `diff snapshot`, `diff screenshot --baseline /tmp/x.png` | ARIA + pixel diffing |
-| Capture | `screenshot --annotate`, `pdf`, `record start/stop` | Evidence artifacts |
+| Diff | `diff snapshot`, `diff screenshot --baseline /tmp/x.png` | ARIA + pixel diffing across separate runs; prefer `snapshot --delta` for within-run before/after on the same page |
+| Capture | `screenshot --annotate`, `screenshot --if-changed --threshold <n>` *(0.38+)*, `pdf`, `record start/stop --fps <n>` | `--if-changed` skips re-encoding an unchanged screenshot; `record` defaults to 30 fps (0.37+) |
 | Dashboard | `agent-browser dashboard start` *(0.25+)* | Browser-side runtime inspector on :4848 |
 
 ### Run the test plan
@@ -254,14 +260,14 @@ expect_task = Agent(
   max_turns=50
 )
 
-# Stream agent-browser progress line-by-line instead of polling (CC 2.1.98+)
+# Stream agent-browser progress line-by-line instead of polling
 # Each stdout line from agent-browser arrives as a notification — useful for
 # catching a failing step early rather than waiting for the full plan.
 # Full pattern: Read("${CLAUDE_PLUGIN_ROOT}/skills/chain-patterns/references/monitor-patterns.md")
 Monitor(pid=expect_task.agent_id)
 
 # For long test plans (>3 min typical), notify on completion — requires
-# Remote Control + "Push when Claude decides" config (CC 2.1.110+).
+# Remote Control + "Push when Claude decides" config.
 # Skip silently if the user doesn't have Remote Control enabled.
 if test_plan_duration_estimate > 180:
     PushNotification(
@@ -300,18 +306,21 @@ Load: `Read("references/report.md")`
 
 ## Saved Flows
 
-Reusable test sequences stored in `.expect/flows/`:
+Reusable test sequences stored as Markdown files with YAML frontmatter in `.expect/flows/`
+(full format: `references/saved-flows.md`):
 
-```yaml
-# .expect/flows/login.yaml
-name: Login Flow
+```markdown
+---
+format_version: 1
+title: "Login flow"
+slug: "login"
+target_scope: "branch"
 steps:
-  - navigate: /login
-  - fill: { selector: "#email", value: "test@example.com" }
-  - fill: { selector: "#password", value: "password123" }
-  - click: button[type="submit"]
-  - assert: { url: "/dashboard" }
-  - assert: { text: "Welcome back" }
+  - instruction: "Navigate to /login"
+    expected: "Login form visible with email and password fields"
+  - instruction: "Fill email and password, click Login"
+    expected: "Redirect to /dashboard showing 'Welcome back'"
+---
 ```
 
 Run with: `expect --flow login`
@@ -319,20 +328,20 @@ Run with: `expect --flow login`
 
 ## Auto-trigger after UI edits (M125 #2)
 
-When the dev stack is live (`dev`), saving any `.tsx`, `.jsx`, `.css`, or `.scss` file (and Next.js route files like `app/**/page.tsx`, `pages/**/*.tsx`) emits a nudge to run `expect &lt;route&gt;`. The hook (`posttool/ui-change-detector`) is **default-on** and:
+When the dev stack is live (`dev`), saving any `.tsx`, `.jsx`, `.css`, or `.scss` file (and Next.js route files like `app/**/page.tsx`, `pages/**/*.tsx`) emits a nudge to run `expect <route>`. The hook (`posttool/ui-change-detector`) is **default-on** and:
 
 - skips silently if `dev` hasn't booted (no agent-browser session to attach to);
 - enforces a 30-second cooldown per route to prevent spam on rapid saves;
-- honors `.claude/state/expect-skip.&lt;sessionId&gt;` as a per-session opt-out (write any content);
+- honors `.claude/state/expect-skip.<sessionId>` as a per-session opt-out (write any content);
 - honors `ORK_EXPECT_AUTO=0` for an env-level kill switch.
 
 Route resolution: `app/dashboard/page.tsx` → `/dashboard`, `pages/settings.tsx` → `/settings`, component / global-style edits → `/` (home as proxy). Route groups like `app/(marketing)/pricing/page.tsx` strip to `/pricing`.
 
 ## ARIA snapshot recording (M125 #6)
 
-After a passing run, the `posttool/expect/snapshot-recorder` hook persists the captured ARIA tree to `.claude/state/expect-snapshots/&lt;route-slug&gt;/&lt;parent-commit&gt;.json`. Subsequent `expect &lt;route&gt; --diff` runs compare against the most recent prior snapshot for that route — surfaces structural regressions (added/removed buttons, label changes, hierarchy shifts) without needing a baseline screenshot.
+After a passing run, the `posttool/expect/snapshot-recorder` hook persists the captured ARIA tree to `.claude/state/expect-snapshots/<route-slug>/<parent-commit>.json`. Subsequent `expect <route> --diff` runs compare against the most recent prior snapshot for that route, surfaces structural regressions (added/removed buttons, label changes, hierarchy shifts) without needing a baseline screenshot.
 
-For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|&lt;route&gt;`, and `ARIA|&lt;json-summary&gt;` tags. The agent-browser-driven flow already emits these.
+For the snapshot recorder to fire, the expect run output must contain `RUN_COMPLETED|passed`, `ROUTE|<route>`, and `ARIA|<json-summary>` tags. The agent-browser-driven flow already emits these.
 
 ## Jev step judge (opt-in, three modes)
 
@@ -341,33 +350,35 @@ For the snapshot recorder to fire, the expect run output must contain `RUN_COMPL
 
 ## When NOT to Use
 
-- **Unit tests** — use `cover` instead
-- **API-only changes** — no browser UI to test
-- **Generated files** — skip build artifacts, lock files
-- **Docs-only changes** — unless you want to verify docs site rendering
+- **Unit tests**: use `cover` instead
+- **API-only changes**: no browser UI to test
+- **Generated files**: skip build artifacts, lock files
+- **Docs-only changes**: unless you want to verify docs site rendering
 
 
 ## Quality Bar
 
 Done means all of these hold:
-- Test-plan scope is derived from the git diff for the chosen `--target` — no unaffected page appears in the plan.
+- Test-plan scope is derived from the git diff for the chosen `--target`, no unaffected page appears in the plan.
 - Every changed file maps to at least one tested route (via `.expect/config.yaml` or inferred convention) OR is explicitly excluded as API-only, generated, or docs-only.
 - Fingerprint check runs first; a diff unchanged since the last run skips execution instead of re-testing.
 - Unless `-y` is passed, the plan is presented for review before any browser action runs.
 - Each executed step reports PASS or FAIL with evidence (screenshot on failure), and the report's pass/fail totals match the steps actually run.
 - The report's exit code is non-zero whenever any step failed.
 
+Budget: at most 30 minutes total and 5 minutes per page (a slower page is skipped, per `references/test-plan.md`; defaults, `.expect/config.yaml` overrides), 50 executor turns (`max_turns=50`), one sequential `ork:expect-agent`, never parallel browsers (`rules/no-parallel-browsers.md`); stop and report partial results at the finish line or the first cap, whichever comes first.
+
 ## Related Skills
 
-- `agent-browser` — Browser automation engine (required dependency)
-- `ork:cover` — Test suite generation (unit/integration/e2e)
-- `ork:verify` — Grade existing test quality
-- `testing-e2e` — Playwright patterns and best practices
+- `agent-browser`: Browser automation engine (required dependency)
+- `ork:cover`: Test suite generation (unit/integration/e2e)
+- `ork:verify`: Grade existing test quality
+- `testing-e2e`: Playwright patterns and best practices
 
 
 ## References
 
-Load on demand with `Read("references/&lt;file&gt;")`:
+Load on demand with `Read("references/<file>")`:
 
 | File | Content |
 |------|---------|
@@ -388,7 +399,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 | `jev-shadow.md` | Opt-in Jev step judge per step: bounded-action Choice + verify Nouls; shadow logs, act drives with fail-closed fallback |
 
 
-**Version:** 1.0.0 (March 2026) — Initial scaffold, M99 milestone
+**Version:** 1.2.0 (frontmatter `metadata.version` is the source of truth). First scaffold March 2026, M99 milestone.
 
 
 ---
@@ -402,7 +413,7 @@ Load on demand with `Read("references/&lt;file&gt;")`:
 
 All expect artifacts live under `.expect/` with a consistent directory structure.
 
-**Incorrect — scattered artifact locations:**
+**Incorrect, scattered artifact locations:**
 ```bash
 # Wrong: artifacts in random locations
 /tmp/test-screenshot-1.png
@@ -410,7 +421,7 @@ All expect artifacts live under `.expect/` with a consistent directory structure
 ./screenshots/login-fail.png
 ```
 
-**Correct — structured under .expect/:**
+**Correct, structured under .expect/:**
 ```
 .expect/
 ├── config.yaml              # Project config (committed)
@@ -444,13 +455,13 @@ All expect artifacts live under `.expect/` with a consistent directory structure
 
 Only test pages that are connected to the changed files via the 3-level classification.
 
-**Incorrect — testing all pages regardless of diff:**
+**Incorrect, testing all pages regardless of diff:**
 ```python
 # Wrong: testing entire site when only Button.tsx changed
 pages_to_test = ["/", "/about", "/pricing", "/dashboard", "/settings", "/login"]
 ```
 
-**Correct — scoped to affected routes:**
+**Correct, scoped to affected routes:**
 ```python
 # Right: only test pages that render the changed component
 changed = ["src/components/Button.tsx"]
@@ -461,10 +472,10 @@ pages_to_test = routed  # ["/", "/dashboard"] — only pages using Button
 ```
 
 **Key rules:**
-- Always run diff scan before route mapping — never assume scope
+- Always run diff scan before route mapping, never assume scope
 - If route map is empty (no `.expect/config.yaml`, no framework detected), test only `base_url` root
 - Log which level triggered each page test for debugging
-- Respect `ignore_patterns` from config — skip test files, docs, lockfiles
+- Respect `ignore_patterns` from config, skip test files, docs, lockfiles
 
 
 ### When to invalidate fingerprints and force re-run: HIGH
@@ -474,14 +485,14 @@ pages_to_test = routed  # ["/", "/dashboard"] — only pages using Button
 
 Fingerprints must be invalidated when file contents change outside the normal edit flow.
 
-**Incorrect — trusting fingerprints after git operations:**
+**Incorrect, trusting fingerprints after git operations:**
 ```python
 # Wrong: fingerprints match but code is completely different branch
 git checkout feature-branch  # Different code
 /ork:expect                  # "No changes since last run" — WRONG
 ```
 
-**Correct — invalidate on state-changing git operations:**
+**Correct, invalidate on state-changing git operations:**
 ```python
 # Right: clear fingerprints when git state changes
 INVALIDATION_TRIGGERS = [
@@ -497,7 +508,7 @@ INVALIDATION_TRIGGERS = [
 
 **Key rules:**
 - Hash file **contents** (sha256sum), not metadata (mtime)
-- Store fingerprints per target (unstaged/branch/commit) — don't mix
+- Store fingerprints per target (unstaged/branch/commit), don't mix
 - Always re-run if last result was `fail` (even if fingerprints match)
 - `--force` flag bypasses fingerprint check entirely
 - `.expect/fingerprints.json` should be in `.gitignore`
@@ -510,7 +521,7 @@ INVALIDATION_TRIGGERS = [
 
 Always test pages sequentially in a single browser session.
 
-**Incorrect — parallel browser sessions:**
+**Incorrect, parallel browser sessions:**
 ```python
 # Wrong: multiple agents hitting the same app simultaneously
 Agent(prompt="Test /login", run_in_background=True)
@@ -519,7 +530,7 @@ Agent(prompt="Test /settings", run_in_background=True)
 # Risk: shared cookies, race conditions, port conflicts
 ```
 
-**Correct — single agent, sequential navigation:**
+**Correct, single agent, sequential navigation:**
 ```python
 # Right: one agent tests all pages in sequence
 Agent(prompt="""Test these pages in order:
@@ -544,7 +555,7 @@ Navigate between them sequentially. Do not open multiple tabs.""")
 
 Set explicit timeouts for every browser operation and retry transient failures exactly once.
 
-**Incorrect — no timeout, no retry:**
+**Incorrect, no timeout, no retry:**
 ```python
 # Wrong: waits forever if element doesn't exist
 await page.click("#submit-button")
@@ -552,7 +563,7 @@ await page.click("#submit-button")
 assert page.url == "/dashboard"
 ```
 
-**Correct — explicit timeouts with single retry:**
+**Correct, explicit timeouts with single retry:**
 ```python
 # Right: 10s timeout for element interaction
 await page.click("#submit-button", timeout=10000)
@@ -575,7 +586,7 @@ except ElementNotFound:
 | Page navigation | 15s | 1x |
 | Element click/fill | 10s | 1x after 2s wait |
 | Assertion | 5s | No retry |
-| Page crash (5xx) | — | Skip remaining steps on page |
+| Page crash (5xx) | - | Skip remaining steps on page |
 | Network timeout | 15s | 1x |
 
 
@@ -597,7 +608,7 @@ Semantic UI change detection using ARIA tree snapshots instead of pixel-based vi
 | Screenshot diff | Catches visual regressions | Brittle (font rendering, anti-aliasing, viewport), large files |
 | ARIA snapshot | Semantic, tiny diffs, framework-agnostic | Misses purely visual changes (colors, spacing) |
 
-ARIA diffing catches **structural and semantic** changes — missing labels, changed hierarchy, removed interactive elements — which are the changes most likely to break user experience.
+ARIA diffing catches **structural and semantic** changes, missing labels, changed hierarchy, removed interactive elements, which are the changes most likely to break user experience.
 
 ## Snapshot Format
 
@@ -640,7 +651,7 @@ Save to .expect/snapshots/login.json
 
 ## Diffing Algorithm
 
-1. Load previous snapshot from `.expect/snapshots/\{page-slug\}.json`
+1. Load previous snapshot from `.expect/snapshots/{page-slug}.json`
 2. Capture current ARIA tree
 3. Compute structural diff:
    - Added nodes (new elements)
@@ -662,7 +673,7 @@ Change score: 15% (threshold: 10%) — FLAGGED
 ```
 
 
-### Ci Integration
+### CI Integration
 
 # CI Integration (#1180)
 
@@ -744,7 +755,7 @@ claude "/ork:expect --target branch -y"
 | /ork:expect Exit | CI Behavior |
 |-----------------|-------------|
 | `0` (all pass) | CI passes |
-| `0` (skip — fingerprint) | CI passes (zero-cost) |
+| `0` (skip, fingerprint) | CI passes (zero-cost) |
 | `1` (test failure) | CI fails, artifacts uploaded |
 | `0` + warning (env issue) | CI passes with warning annotation |
 
@@ -883,10 +894,10 @@ Parse git diff output into 3 concurrent data levels for test targeting.
 
 | Mode | Git Command | Use Case |
 |------|-------------|----------|
-| `changes` (default) | `git diff $(merge-base)` | All changes — committed + uncommitted |
+| `changes` (default) | `git diff $(merge-base)` | All changes, committed + uncommitted |
 | `unstaged` | `git diff` | Only uncommitted working tree changes |
 | `branch` | `git diff main...HEAD` | Full branch diff vs main |
-| `commit [hash]` | `git diff \{hash\}^..\{hash\}` | Single commit |
+| `commit [hash]` | `git diff {hash}^..{hash}` | Single commit |
 
 ## 3 Data Levels (Gathered Concurrently)
 
@@ -950,7 +961,7 @@ After the diff scan, the expect pipeline classifies each changed file:
 | Level | Name | How to Find | Test Depth |
 |-------|------|-------------|------------|
 | 1 | **Direct** | `git diff --name-only` output | Full interaction tests |
-| 2 | **Imported** | `grep -rl "from.*\{module\}" src/` | Render check + basic interaction |
+| 2 | **Imported** | `grep -rl "from.*{module}" src/` | Render check + basic interaction |
 | 3 | **Routed** | Route map lookup (config or inference) | Page load + smoke test |
 
 ## Filtering
@@ -999,15 +1010,17 @@ Agent(
 
 | Command | Use | Example |
 |---------|-----|---------|
-| `open &lt;url&gt;` | Navigate to page | `open http://localhost:3000/login` |
+| `open <url>` | Navigate to page | `open http://localhost:3000/login` |
 | `snapshot` | Full ARIA accessibility tree | Capture page structure |
 | `snapshot -i` | Interactive elements only | Find clickable/fillable elements |
+| `snapshot --delta` (0.38+) | Full tree once, `unchanged` or a compact diff after | Cheap re-check after an in-page action, no navigation |
 | `screenshot` | Capture viewport | Auto on failure |
+| `screenshot --if-changed` (0.38+) | Skip re-encoding an unchanged capture | Repeated evidence shots of the same route across a run |
 | `screenshot --annotate` | Labeled screenshot | Vision fallback for complex UIs |
 | `click @ref` | Click by ARIA ref | `click @e15` (from snapshot refs) |
-| `fill @ref &lt;text&gt;` | Type into input | `fill @e8 "test@example.com"` |
-| `select @ref &lt;option&gt;` | Dropdown selection | `select @e12 "United States"` |
-| `eval &lt;js&gt;` | Execute JavaScript | `eval document.title` |
+| `fill @ref <text>` | Type into input | `fill @e8 "test@example.com"` |
+| `select @ref <option>` | Dropdown selection | `select @e12 "United States"` |
+| `eval <js>` | Execute JavaScript | `eval document.title` |
 
 ## Auth Profiles
 
@@ -1018,13 +1031,14 @@ If `.expect/config.yaml` specifies an `auth_profile`:
 Bash(f"agent-browser auth login {auth_profile}")
 ```
 
-Auth profiles are managed by agent-browser's vault system — credentials are never stored in `.expect/`.
+Auth profiles are managed by agent-browser's vault system, credentials are never stored in `.expect/`.
 
 ## Session Management
 
-- **One session per run** — sequential page visits, shared auth state
+- **One named session per run**: mint one literal session name (`expect-<run-id>`, for example `expect-1759500000-4821`) and write `--session <that name>` on EVERY agent-browser command, `open` and `close` included, so sequential page visits share auth state inside a session only this run owns. Do not export `AGENT_BROWSER_SESSION` once and rely on it: Bash tool calls run in separate shells, the export does not survive, and later commands fall back to `default`, the session every other agent-browser caller on the machine shares.
 - **Session timeout**: 5 minutes per page (configurable)
 - **Cleanup**: agent-browser auto-closes on agent completion
+- **Never pass `--all` to `agent-browser close`**: on a shared machine it kills sessions owned by other agents (#4520). If cleanup is needed, close only this run's session (`agent-browser --session expect-<run-id> close`)
 
 ## Failure Decision Tree
 
@@ -1043,23 +1057,41 @@ Step fails
 
 ## ARIA Snapshot Diffing Integration
 
+Two different comparisons need two different tools. Within one page visit
+(no navigation between the two captures), agent-browser 0.38+ already
+computes the structural diff natively, so use it instead of hand-rolling
+one:
+
 ```python
-# Before test steps
-pre_snapshot = agent_browser("snapshot")
+# Before test steps: establish the delta baseline for this page visit
+pre_snapshot = agent_browser("snapshot --delta --full")
 
-# After test steps
-post_snapshot = agent_browser("snapshot")
+# After test steps: same page, no navigation in between
+post_snapshot = agent_browser("snapshot --delta")
+# post_snapshot is "unchanged", or a compact structural change (added/removed
+# nodes, changed names/roles, an exact ref/tree-change splice). Read it
+# directly, no local diffing needed.
+```
 
-# Diff (see aria-diffing.md)
-diff = compute_aria_diff(pre_snapshot, post_snapshot)
+Across separate runs (baseline saved to `.expect/snapshots/{page-slug}.json`
+on a prior run, compared against today's fresh capture after a fresh
+navigation), `--delta` does not apply, since its baseline resets per session
+and per navigation. Use the persisted-file comparison instead (see
+`aria-diffing.md`):
+
+```python
+# Cross-run comparison: fresh navigation, so take a full snapshot and diff
+# it against the saved baseline file, not against --delta's in-session state.
+current_snapshot = agent_browser("snapshot")
+diff = compute_aria_diff(load_saved_baseline(page), current_snapshot)
 if diff.change_score > config.aria_snapshots.diff_threshold:
     report.add_aria_diff(page, diff)
 ```
 
 ## Concurrency Rules
 
-- **Sequential pages** — no parallel browser sessions (see rules/no-parallel-browsers.md)
-- **Background agent** — the runner agent runs in background, lead monitors via status protocol
+- **Sequential pages**: no parallel browser sessions (see rules/no-parallel-browsers.md)
+- **Background agent**: the runner agent runs in background, lead monitors via status protocol
 - **Timeout per page**: 5 min default, configurable in config.yaml
 - **Total run timeout**: 30 min default
 
@@ -1183,7 +1215,7 @@ The review is automatically skipped when:
 - `-y` flag is passed
 - Running in CI (`CI=true`)
 - Fingerprint matched (no test to run)
-- Saved flow replay (`--flow` flag — flow is pre-approved)
+- Saved flow replay (`--flow` flag, flow is pre-approved)
 
 ## Progressive Feedback
 
@@ -1205,7 +1237,18 @@ One Jev judgment per expect step, in one of three modes selected by
 or the network); `shadow` logs a second opinion beside the agent's pick
 and never drives the browser; `1` or `act` lets the Jev pick drive the
 step, failing closed to the agent's own pick on any error, timeout, empty
-or malformed answer, or a confidence below `act_confidence_floor`. The
+or malformed answer, or a confidence below `act_confidence_floor`. Jev
+reads untrusted page content, so in act mode its pick runs only when it
+agrees with the agent's pick, or when a disagreement clears the floor and
+the step passes `--confirm-disagreement`; every other disagreement runs
+the agent's pick and logs `path: "fallback:disagreement"` (or
+`"fallback:unknown_agreement"` when the agent's pick sits outside the
+keyspace). Agreement is on verb and ref only, so on the form path a Jev
+field decision that would rewrite the action (a different fill value,
+click turned into check or uncheck, click turned into done) runs only
+when it equals the agent's own action or the step passes
+`--confirm-disagreement`; otherwise the agreed key runs and the field
+records `rewrite_blocked`. The
 legacy `ORK_EXPECT_JEV_SHADOW` flag, truthy with `ORK_EXPECT_JEV` unset,
 still selects `shadow`.
 
@@ -1248,14 +1291,14 @@ back to the agent's pick).
 
 Per enabled step, exactly one HTTPS POST to the configured endpoint
 carrying `state` = the step goal, the last verify result, and up to
-`element_cap` interactive elements as `\{ref, role, name\}` triples. Only
+`element_cap` interactive elements as `{ref, role, name}` triples. Only
 the fields the four questions need leave; the only ids are the snapshot's
 ephemeral `@eN` refs (positional, per-capture, not real identifiers, so
 nothing is worth hashing). No page text beyond accessible names, no
 cookies, no tokens: every outbound string passes a secret redactor
 (`[redacted]`) and a length cap before the request is built. The guard
-runs on the decoded form, so a secret smuggled raw (`token=&lt;v&gt;`) or
-JSON-escaped (`token\u003d&lt;v&gt;`) is caught the same. Question text and
+runs on the decoded form, so a secret smuggled raw (`token=<v>`) or
+JSON-escaped (`token\u003d<v>`) is caught the same. Question text and
 option descriptions are static strings built locally.
 
 ## Tunables
@@ -1272,12 +1315,29 @@ config; nothing is a code constant.
 | `context_max_chars` | Per-field truncation for goal / last verify |
 | `latency_budget_ms` | Abort budget for the one request (default 400) |
 | `act_confidence_floor` | Act mode only: Choice confidence below this falls back to the agent's pick (default 0.5) |
+| `act_list_confidence_floor` | Raised floor for list fields (checkboxes); the two-step list answer and the state answer must agree and clear this floor or the field defers (default 0.7) |
 | `model` | Pinned Jev model id |
 | `endpoint` | POST target (`ORK_EXPECT_JEV_ENDPOINT` overrides, for mocks) |
 | `thresholds.low_confidence` | Choice confidence below this flags the pick |
-| `thresholds.\{goal_reached,page_changed_as_expected,blocked\}` | Noul at or above raises the flag |
+| `thresholds.{goal_reached,page_changed_as_expected,blocked}` | Noul at or above raises the flag |
 
 ## The record
+
+Every active invocation appends its row to `.expect/jev-shadow.jsonl` before
+emitting stdout. This journal does not depend on `report.sh --save`.
+Use `--log-file` or `ORK_EXPECT_JEV_LOG` to choose another journal. New files
+use mode 0600; write failures surface on stderr without changing the fallback.
+All rows include `jev_pick`, `jev_confidence`, `incumbent_pick`, `agree`,
+`floor`, and `decided_by`, including configuration and transport failures.
+Pass the actual choice with `--model-action`. If the incumbent truly did not
+run, shadow mode accepts `--incumbent-not-run REASON` instead. Missing evidence
+is rejected before writing; act mode always requires an incumbent fallback.
+An unrecognized supplied action stays recorded with unknown agreement.
+
+Export the review bucket with
+`node scripts/jev-shadow-report.mjs --confident-wrong .expect/jev-shadow.jsonl`.
+Its predicate is `agree=false AND jev_confidence >= floor`. The result is a
+candidate for adjudication, not an assertion that the incumbent was correct.
 
 ```json
 {
@@ -1311,17 +1371,49 @@ fallbacks, agree_rate\}` summary to the JSON report, and prints one
 `JEV_RUN|steps=N|picks=N|fallbacks=N|agree_rate=R` line at the end of the
 run. Failures (`http N`, `unreachable_or_timeout`, `malformed_answer`,
 `empty_answer`, `no_api_key`, `no jev_shadow config`) land as error
-records with `agree: null`. The script always exits 0: a dead Jev lane
+records with `agree: null`. With valid CLI arguments, the script exits 0: a dead Jev lane
 must never fail a run.
 
 In act mode every record additionally carries `mode: "act"`, `path`, and
 `executed_action`. `path` is `"jev"` when the Jev pick ran and
-`"fallback:&lt;reason&gt;"` when the agent's own pick ran instead
+`"fallback:<reason>"` when the agent's own pick ran instead
 (`fallback:low_confidence` still logs the full Jev answer; the floor
-rejected it, not the network). `executed_action` is the canonical
+rejected it, not the network; `fallback:disagreement` likewise logs the
+full answer plus `high_confidence_disagreement` and
+`disagreement_confirmed`). `executed_action` is the canonical
 candidate key (`verb:@eN` or a meta verb) the agent translates back to an
 agent-browser command; on fallback it is the agent's normalized pick, or
 its raw action text when the pick sits outside the keyspace.
+
+Every record also carries the decision provenance fields: `jev_pick`,
+`jev_confidence`, `incumbent_pick` (the agent's normalized pick),
+`agree`, `floor` (the resolved `act_confidence_floor`), `decided_by`
+(`"jev"` or `"incumbent"`), `prompt_id` (config `prompt_id`, override
+with `--prompt-id`), and `session_id` (`--session-id`, else
+`ORK_EXPECT_SESSION`, else `AB_SESSION`).
+
+## Form path (`--task-doc`)
+
+When `--task-doc` carries the step's task document, the request adds
+field questions per form element (up to `field_cap`): a value Choice over
+candidates extracted from the document for textbox/searchbox/spinbutton/
+combobox/listbox elements, and two questions per checkbox-family element:
+`list::<ref>` asks which document list names the item (keep/do/build/add
+vs drop/remove/skip/hold/not-do vs unlisted) and `field::<ref>` asks the
+final state (check/uncheck/skip). The decision is match-then-map: the
+list answer derives the target (do=check, drop=uncheck, none=skip), the
+state answer cross-checks it, and disagreement marks the field
+`inconsistent` and forces deferral. List fields gate on the raised
+`act_list_confidence_floor` (default 0.7); other fields use
+`act_confidence_floor`. Per-field answers land in `field_decisions` keyed
+by ref, each with `jev_pick`, `jev_confidence` (the weaker of the two
+answers for list fields), `list_pick`, `list_conf`, `floor`,
+`decided_by`, and the resolved `value` or `target` when Jev decided. In
+act mode, when the step's executed action targets a decided field,
+`executed_action` carries the decision through: `fill:@eN="value"`,
+`check:@eN`, `uncheck:@eN`, or `done` when Jev's target is skip. A field
+Jev answers below the floor keeps `decided_by: "incumbent"` and the
+agent's own handling stands.
 
 ## Invocation (expect-agent, per step)
 
@@ -1340,6 +1432,13 @@ bash $CLAUDE_PLUGIN_ROOT/skills/expect/scripts/jev-shadow.sh \
 already captured (text or `--json` form; only ref/role/name are read).
 `--config` or `ORK_EXPECT_CONFIG` points at an alternate config file;
 `.expect/config.yaml` is used when present.
+
+Deliberately NOT `snapshot --delta` (0.38+): the bounded legal-action set
+needs the full list of interactive elements on every step, and a delta call
+answers `unchanged` whenever the page has not moved, which would starve Jev
+of candidates on exactly the steps where nothing visibly changed. Use
+`snapshot -i` here even though `--delta` is the better choice for the
+retry loop in `expect-agent.md`.
 
 
 ### Report
@@ -1474,14 +1573,14 @@ Architecture analysis of millionco/expect and related tools.
 
 ## millionco/expect
 
-[GitHub: millionco/expect](https://github.com/millionco/expect) — AI-powered browser testing tool.
+[GitHub: millionco/expect](https://github.com/millionco/expect): AI-powered browser testing tool.
 
 ### Key Architecture Decisions
 
-1. **Diff-first**: Uses git diff to determine test scope — doesn't test unchanged code
+1. **Diff-first**: Uses git diff to determine test scope, doesn't test unchanged code
 2. **ARIA over pixels**: Accessibility tree snapshots for semantic UI diffing
 3. **Natural language steps**: Test plans written in plain English, executed by AI
-4. **Fingerprint gating**: SHA-256 hash of file state — zero-cost skip when unchanged
+4. **Fingerprint gating**: SHA-256 hash of file state, zero-cost skip when unchanged
 5. **Failure taxonomy**: 6 categories (app-bug, env-issue, auth-blocked, missing-test-data, selector-drift, agent-misread)
 
 ### What We Adopted
@@ -1514,7 +1613,7 @@ Architecture analysis of millionco/expect and related tools.
 |------|----------|------------|
 | Playwright | Code-first E2E tests | Manual test authoring, no AI |
 | Cypress | Code-first E2E tests | Same as Playwright |
-| agent-browser | AI browser automation | Generic — expect adds diff-awareness |
+| agent-browser | AI browser automation | Generic, expect adds diff-awareness |
 | Meticulous | Visual regression | Pixel-based, not semantic |
 | Chromatic | Storybook visual testing | Component-level, not page-level |
 | testmon | Python test selection | Unit test scope, not browser |
@@ -1589,7 +1688,7 @@ For dynamic routes (`[slug]`, `[id]`), use test values from:
 
 # rrweb Session Recording (#1178)
 
-Full session replay without video encoding — captures DOM mutations and events as lightweight JSON.
+Full session replay without video encoding, captures DOM mutations and events as lightweight JSON.
 
 ## Why rrweb Over Video
 
@@ -1654,7 +1753,7 @@ rrweb:
 
 ## Notes
 
-- rrweb is injected via `eval` — works with any framework, no build step needed
+- rrweb is injected via `eval`, works with any framework, no build step needed
 - Recordings are gitignored (ephemeral, large-ish)
 - Only record on failure by default to minimize storage
 - Future: integrate with report.md to embed replay links in failure details
@@ -1782,7 +1881,7 @@ Adjust test plan depth based on the change target scope.
 
 ## Strategy Definitions
 
-### commit — Narrow Focus
+### commit: Narrow Focus
 ```
 Test depth: NARROW
 Focus: Prove this specific commit works correctly.
@@ -1793,7 +1892,7 @@ Edge cases: Only test edge cases if the commit explicitly handles them.
 Style: Quick validation — this is a single logical change.
 ```
 
-### unstaged — Exact Match
+### unstaged: Exact Match
 ```
 Test depth: EXACT
 Focus: Test exactly what's been modified in the working tree.
@@ -1804,7 +1903,7 @@ Edge cases: Skip — the code may be incomplete.
 Style: Development feedback loop — fast, targeted, forgiving of WIP.
 ```
 
-### changes — Combined (Default)
+### changes: Combined (Default)
 ```
 Test depth: COMBINED
 Focus: Treat committed branch changes + uncommitted edits as one body.
@@ -1816,7 +1915,7 @@ Edge cases: Light — test obvious boundary conditions.
 Style: Pre-push validation — comprehensive but not exhaustive.
 ```
 
-### branch — Thorough Coverage
+### branch: Thorough Coverage
 ```
 Test depth: THOROUGH
 Focus: Full coverage of all changes on this branch vs main.
@@ -1861,7 +1960,7 @@ The test plan generator should respect the flow count range:
 
 ### Test Plan
 
-# AI Test Plan Generation — buildExecutionPrompt (#1169)
+# AI Test Plan Generation: buildExecutionPrompt (#1169)
 
 Core prompt template that generates test plans from diff context using AI agents.
 
@@ -1913,16 +2012,16 @@ SECTION 4: AGENT-BROWSER TOOL DOCS
 ═══════════════════════════════════════════════════════════════
 
 Available commands (use via agent-browser skill):
+- open <url>: Go to URL
 - snapshot: Capture current page accessibility tree
 - click <selector>: Click an element
 - fill <selector> <value>: Type into an input
 - select <selector> <option>: Select dropdown option
 - screenshot [filename]: Take screenshot (auto on failure)
-- eval <js>: Run JavaScript in page context
-- navigate <url>: Go to URL
-- wait <ms>: Wait for specified milliseconds
-- assert_text <text>: Assert text is visible on page
-- assert_url <pattern>: Assert current URL matches pattern
+- eval <js>: Run JavaScript in page context; assert page text or URL by returning a check from here
+- wait <selector>: Wait for an element to appear (prefer this over a fixed delay)
+- wait --url <pattern>: Wait for the URL to match
+- wait --load networkidle: Wait for the page to settle
 
 ═══════════════════════════════════════════════════════════════
 SECTION 5: INTERACTION PATTERN

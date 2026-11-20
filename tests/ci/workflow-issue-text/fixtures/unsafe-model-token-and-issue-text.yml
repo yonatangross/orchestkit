@@ -1,0 +1,27 @@
+# PLANTED UNSAFE FIXTURE for tests/ci/test-workflow-issue-text-credentials.sh.
+# One job reads issue text while holding BOTH id-token:write and a named
+# secret. This is the pre-#4747 claude-triage.yml shape, condensed, and the
+# lint must flag it twice-worth of credential.
+name: Unsafe triage fixture
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  triage:
+    if: contains(fromJSON('["OWNER","MEMBER"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Model reads the issue while holding a token
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          gh issue view "${{ inputs.issue_number }}" --json title,body

@@ -1,0 +1,13 @@
+{
+  "slug": "4572-brainstorm-effort-low-implement-ladder",
+  "source": "docs/feat--skill-effort-brainstorm-implement/index.html",
+  "title": "#4572: brainstorm diverges at effort low, implement effort ladder",
+  "description": "Brainstorm's divergent phase runs through a Workflow that passes effort low to every generator while scoring keeps the session effort; implement documents when low is right and hands off to verify at high.",
+  "tags": [
+    "skills",
+    "effort",
+    "workflows",
+    "explainer"
+  ],
+  "date": "2026-10-01"
+}

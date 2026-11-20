@@ -28,7 +28,7 @@ import { NOOP_CTX } from '../lib/context.js';
 const MAX_CONCURRENT_BACKGROUND = 6;
 const MAX_AGENTS_PER_RESPONSE = 8;
 const WARNING_THRESHOLD = 5;
-const EXPENSIVE_TYPES = /^(test-generator|backend-system-architect|workflow-architect|security-auditor|llm-integrator)$/;
+const EXPENSIVE_TYPES = /^(?:ork:)?(test-generator|backend-system-architect|workflow-architect|security-auditor|llm-integrator)$/;
 
 // Worktree isolation: raise limits when in worktree (CC 2.1.49).
 //

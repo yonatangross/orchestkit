@@ -120,5 +120,5 @@ export function architectureChangeDetector(input: HookInput, ctx: HookContext = 
   if (isDontAskMode(input)) {
     return outputWarning(`[Quality Gate] ${archContext}`);
   }
-  return outputWithContext(archContext);
+  return outputWithContext(archContext, input);
 }

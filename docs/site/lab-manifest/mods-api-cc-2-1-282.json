@@ -1,0 +1,12 @@
+{
+  "slug": "mods-api-cc-2-1-282",
+  "source": "docs/fix--mods-api-cc-2-1-282/index.html",
+  "title": "Mods ported to the CC 2.1.282 API",
+  "description": "lesson-cards, promote-lights and secrets-veil were skipped or throwing on Claude Code 2.1.282: what moved in the mods API per mod, the live proof after the port, and the build fix that stopped version stamping of the mods.",
+  "tags": [
+    "mods",
+    "function-hooks",
+    "claude-code"
+  ],
+  "date": "2026-09-25"
+}

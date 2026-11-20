@@ -30,6 +30,18 @@ Object.defineProperty(navigator, "clipboard", {
 	configurable: true,
 });
 
+/**
+ * A rendered command, matched on its full text: CommandText splits a command
+ * into one span per wrap segment, so a plain getByText never sees it whole.
+ */
+function getCommand(match: string | RegExp) {
+	return screen.getByText((_, el) => {
+		if (!el?.hasAttribute("data-command")) return false;
+		const text = el.textContent ?? "";
+		return typeof match === "string" ? text === match : match.test(text);
+	});
+}
+
 function copyLine(line: string) {
 	fireEvent.click(
 		screen.getByRole("button", {
@@ -53,7 +65,7 @@ describe("SetupWizard", () => {
 			screen.getByRole("button", { name: /^Claude Code$/ }),
 		).toHaveAttribute("aria-pressed", "true");
 		expect(
-			screen.getByText(/claude plugin marketplace add yonatangross\/orchestkit/),
+			getCommand(/claude plugin marketplace add yonatangross\/orchestkit/),
 		).toBeInTheDocument();
 	});
 
@@ -117,7 +129,7 @@ describe("SetupWizard", () => {
 		expect(
 			screen.getByText(/Muse hooks stay in \.muse\/hooks\.json/),
 		).toBeInTheDocument();
-		expect(screen.getByText("muse skills list")).toBeInTheDocument();
+		expect(getCommand("muse skills list")).toBeInTheDocument();
 	});
 
 	it("navigates to the optional stack step and back", () => {

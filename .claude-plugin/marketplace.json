@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "10.0.0-beta.56",
-  "description": "The Complete AI Development Toolkit - 107 skills, 36 agents, 36 commands, 171 hooks for full-stack development",
+  "version": "10.15.1",
+  "description": "The Complete AI Development Toolkit - 115 skills, 36 agents, 47 commands, 163 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonaigross@gmail.com"
@@ -14,8 +14,8 @@
   "plugins": [
     {
       "name": "ork",
-      "version": "9.8.0",
-      "description": "Complete AI development toolkit with 107 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 36 specialized agents, 36 commands, and 171 lifecycle hooks.",
+      "version": "10.15.1",
+      "description": "Complete AI development toolkit covering AI/LLM, backend, frontend, security, and testing patterns, with specialized agents, commands, and lifecycle hooks.",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonaigross@gmail.com"
@@ -25,12 +25,12 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
-        "ref": "v9.8.0"
+        "ref": "v10.15.1"
       }
     },
     {
       "name": "ork-alpha",
-      "version": "10.0.0-beta.56",
+      "version": "10.15.1",
       "description": "Prerelease channel for OrchestKit. Tracks main, so it carries alpha and beta builds ahead of the stable ork plugin. Install only if you want unreleased changes.",
       "author": {
         "name": "Yonatan Gross",
@@ -41,6 +41,86 @@
         "source": "git-subdir",
         "url": "https://github.com/yonatangross/orchestkit.git",
         "path": "plugins/ork",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "ork-extras",
+      "version": "10.15.1",
+      "description": "Opt-in reference skills split out of ork: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) and engineering domain guides (accessibility, distributed systems, DDD, release management). Skills only, no agents or hooks. Install next to ork; invoke as /ork-extras:<skill>.",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "plugins/ork-extras",
+        "ref": "v10.15.1"
+      }
+    },
+    {
+      "name": "promote-lights",
+      "description": "Mod (function hooks): CI lights above the prompt while a promote PR is open, or for any PR with /lights watch owner/repo#N; /lights [off|refresh|watch]. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
+      "version": "0.0.15",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/promote-lights",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "secrets-veil",
+      "description": "Mod (function hooks): masks secret values in tool results before the model reads them. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
+      "version": "0.0.11",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "security",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/secrets-veil",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "memory-lens",
+      "description": "Mod (function hooks): recalls the few memories related to each prompt you send (not notifications, peers, schedules or slash commands, and never on file tool calls); /memory-lens for stats, reload and show. Requires Claude Code 2.1.266+. On 2.1.266 to 2.1.286 set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1; on 2.1.287+ Mods are public.",
+      "version": "0.1.1",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/memory-lens",
+        "ref": "main"
+      }
+    },
+    {
+      "name": "prompt-enhancer",
+      "description": "Beta mod (function hooks, experimental): a band above the prompt rewrites your draft with the session haiku model into a short, stack-aware prompt (typo fixes, your real subagents, skills and MCP servers, one Done when line, no questions); you edit the rewrite, then Send or Undo. The catalog prefix is prompt-cached. Each Enhance click costs model usage on your account (1024 token cap). Requires Claude Code 2.1.300+.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonaigross@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/yonatangross/orchestkit.git",
+        "path": "mods/prompt-enhancer",
         "ref": "main"
       }
     }

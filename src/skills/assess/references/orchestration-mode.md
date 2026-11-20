@@ -1,7 +1,7 @@
 <!-- SHARED: keep in sync with ../../../verify/references/orchestration-mode.md -->
 # Orchestration Mode Selection
 
-Shared logic for choosing between Agent Teams and Task tool orchestration in assess/verify skills.
+Shared logic for choosing between Agent Teams and Agent tool orchestration in assess/verify skills.
 
 ## Environment Check
 
@@ -19,13 +19,14 @@ else:
 
 ## Decision Rules
 
+0. `/ork:verify` Phase 2 --> **Workflow** by default (`workflows/verify-dispatch.js`), and `/ork:assess` Phases 2 and 2.5 --> **Workflow** by default (`workflows/assess-fanout.js`); the rules below apply when either falls back to Agent Teams or the Agent tool.
 1. Full assessment/verification scope --> **Agent Teams mode** (GA since CC 2.1.33)
-2. Quick/single-dimension scope --> **Task tool mode**
-3. `ORCHESTKIT_FORCE_TASK_TOOL=1` --> **Task tool** (override)
+2. Quick/single-dimension scope --> **Agent tool mode**
+3. `ORCHESTKIT_FORCE_TASK_TOOL=1` --> **Agent tool** (override)
 
-## Agent Teams vs Task Tool
+## Agent Teams vs Agent Tool
 
-| Aspect | Task Tool (Star) | Agent Teams (Mesh) |
+| Aspect | Agent Tool (Star) | Agent Teams (Mesh) |
 |--------|------------------|-------------------|
 | Topology | All agents report to lead | Agents communicate with each other |
 | Finding correlation | Lead cross-references after completion | Agents share findings in real-time |
@@ -35,7 +36,7 @@ else:
 
 ## Fallback
 
-If Agent Teams encounters issues mid-execution, fall back to Task tool for remaining work. This is safe because both modes produce the same output format (dimensional scores 0-10).
+If Agent Teams encounters issues mid-execution, fall back to Agent tool for remaining work. This is safe because both modes produce the same output format (dimensional scores 0-10).
 
 ## Context Window Note
 

@@ -1,11 +1,9 @@
 ---
 name: debug-investigator
 description: "Debug specialist: systematic root cause analysis, execution path tracing, log and stack trace analysis."
-category: testing
 model: sonnet
 maxTurns: 30
 effort: medium
-context: inherit
 color: orange
 memory: local
 tools:
@@ -35,22 +33,13 @@ disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - fix-issue
   - errors
-  - remember
   - memory
 mcpServers: [memory, context7]
-taskTypes:
-  - debug
-keywords:
-  - "bug"
-  - "error"
-  - "exception"
-  - "crash"
-  - "debugging"
-  - "regression"
-  - "flaky"
-examplePrompts:
-  - "Investigate why the checkout flow fails intermittently"
-  - "Find the root cause of the memory leak in production"
+metadata:
+  category: "testing"
+  taskTypes: "debug"
+  keywords: "bug, error, exception, crash, debugging, regression, flaky"
+  examplePrompts: "Investigate why the checkout flow fails intermittently | Find the root cause of the memory leak in production"
 ---
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.
@@ -100,7 +89,6 @@ Don't suggest architectural changes unless they're directly relevant to the bug.
 </avoid_overengineering>
 
 ## MCP Tools (Optional — skip if not configured)
-- **Opus 4.8 adaptive thinking** — Complex multi-step reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - For persisting investigation context across sessions
 
 
@@ -364,6 +352,8 @@ The debug-investigator agent complements `/debug` by:
 Report using the standardized status protocol. Load: `Read("${CLAUDE_PLUGIN_ROOT}/shared/status-protocol.md")`.
 
 Your final output MUST include a `status` field: **DONE**, **DONE_WITH_CONCERNS**, **BLOCKED**, or **NEEDS_CONTEXT**. Never report DONE if you have concerns. Never silently produce work you are unsure about.
+
+Keep going when a step needs no input from the caller; stop and ask only when you can't continue without it, or before anything destructive (deleting data, force-pushing, changing anything outside the repository). Mark anything you couldn't confirm, and say where you looked.
 
 ## Peer Messaging
 

@@ -1,0 +1,8 @@
+{
+  "slug": "session-namer-test-guard",
+  "source": "docs/chore--dsp-34975-ork-namer-1001/index.html",
+  "title": "Session namer test guard",
+  "description": "Try the VITEST and NODE_ENV combinations that prevent the session namer from spawning during tests, then compare the behavior before and after the guard.",
+  "tags": ["hooks", "tests", "session-identity", "playground"],
+  "date": "2026-10-02"
+}

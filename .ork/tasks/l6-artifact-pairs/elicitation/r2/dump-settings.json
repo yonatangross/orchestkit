@@ -1,0 +1,3 @@
+{"hooks":{
+ "Elicitation":[{"hooks":[{"type":"command","command":"cat > ~/coding/yonatangross/orchestkit/.worktrees/l6-artifact-pairs/.ork/tasks/l6-artifact-pairs/elicitation/r2/payload-r2-Elicitation-$$.json"}]}],
+ "ElicitationResult":[{"hooks":[{"type":"command","command":"cat > ~/coding/yonatangross/orchestkit/.worktrees/l6-artifact-pairs/.ork/tasks/l6-artifact-pairs/elicitation/r2/payload-r2-ElicitationResult-$$.json"}]}]}}

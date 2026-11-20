@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One H1 per docs page: before and after</title>
+<meta name="description" content="Skill and agent pages on orchestkit.dev rendered two H1 headings. The page title stays the one H1 and the body heading renders as an H2.">
+<style>
+:root{--bg:#0f1115;--card:#171a21;--line:#2a2f3a;--ink:#e8eaf0;--mute:#9aa3b2;--ok:#3fb950;--bad:#f85149;--acc:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:900px;margin:0 auto;padding:32px 20px 64px}h1.page{font-size:26px;margin:0 0 6px}p.lead{color:var(--mute);margin:0 0 20px}
+.controls{display:flex;gap:8px;margin:0 0 16px}button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+.tree{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;font:14px/1.9 ui-monospace,monospace}
+.tag{display:inline-block;min-width:34px;text-align:center;border-radius:5px;padding:0 6px;margin-right:10px;font-weight:700}
+.h1{background:rgba(248,81,73,.18);color:var(--bad)}.h1ok{background:rgba(63,185,80,.18);color:var(--ok)}.h2{background:#222833;color:var(--mute)}
+.d1{padding-left:0}.d2{padding-left:24px}.d3{padding-left:48px}.verdict{margin:14px 0 0;font-weight:600}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;font-size:13px}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="One H1 per docs page, before and after"><meta property="og:description" content="Skill and agent pages rendered two H1 headings; the page title stays the one H1 and the SKILL.md body heading renders as an H2 with the same anchor."><meta property="og:url" content="https://orchestkit.dev/lab/fix--seo-one-h1.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="One H1 per docs page, before and after"><meta name="twitter:description" content="Skill and agent pages rendered two H1 headings; the page title stays the one H1 and the SKILL.md body heading renders as an H2 with the same anchor."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1 class="page">One H1 per docs page</h1>
+<p class="lead">Branch fix/seo-one-h1. The heading outline of /docs/reference/skills/brainstorm as a crawler reads it from the server HTML.</p>
+<div class="controls" role="group" aria-label="State">
+ <button id="b0" aria-pressed="false">Before (live, 15.11)</button>
+ <button id="b1" aria-pressed="true">After (this branch)</button>
+</div>
+<div class="tree" id="tree"></div>
+<p class="verdict" id="verdict"></p>
+<h2 style="font-size:16px;margin:24px 0 8px">Copy as prompt</h2>
+<pre id="prompt">Review fix/seo-one-h1 on orchestkit (SEO gaps row 7): components/content-h1.tsx maps an MDX body "# " heading to an H2 with the same anchor id, wired in app/docs/[[...slug]]/page.tsx; test __tests__/seo-pr-c-one-h1.test.tsx. After deploy, rerun seo-probe.py: h1 should read 1 on /docs/reference/skills, /docs/reference/skills/brainstorm and /docs/reference/agents.</pre>
+<button id="copy">Copy as prompt</button>
+</main>
+<script>
+const OUT={
+ before:[["h1","Brainstorm","page title (DocsTitle)",1],["h1","Brainstorm","SKILL.md body heading",1],["h2","Quick Start","",2],["h2","Phases","",2],["h3","Phase 1: Divergent","",3]],
+ after:[["h1","Brainstorm","page title (DocsTitle)",1],["h2","Brainstorm","SKILL.md body heading, now H2",2],["h2","Quick Start","",2],["h2","Phases","",2],["h3","Phase 1: Divergent","",3]]
+};
+let s="after";
+function draw(){
+ const t=document.getElementById("tree");t.textContent="";
+ for(const [lvl,txt,note,depth] of OUT[s]){
+  const row=document.createElement("div");row.className="d"+depth;
+  const tag=document.createElement("span");tag.className="tag "+(lvl==="h1"?(OUT[s].filter(r=>r[0]==="h1").length>1?"h1":"h1ok"):"h2");tag.textContent=lvl.toUpperCase();
+  row.appendChild(tag);row.appendChild(document.createTextNode(txt+(note?"   ("+note+")":"")));t.appendChild(row);
+ }
+ const n=OUT[s].filter(r=>r[0]==="h1").length;
+ const v=document.getElementById("verdict");v.textContent=n+" H1 on the page: "+(n===1?"pass":"fail");v.style.color=n===1?"var(--ok)":"var(--bad)";
+ document.getElementById("b0").setAttribute("aria-pressed",String(s==="before"));document.getElementById("b1").setAttribute("aria-pressed",String(s==="after"));
+}
+document.getElementById("b0").onclick=()=>{s="before";draw()};document.getElementById("b1").onclick=()=>{s="after";draw()};
+document.getElementById("copy").onclick=()=>navigator.clipboard.writeText(document.getElementById("prompt").textContent);
+draw();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

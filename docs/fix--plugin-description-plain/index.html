@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plugin description: before and after</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1d1d1b; background: #faf8f3; }
+  h1 { font-size: 22px; }
+  .card { border: 1px solid #d8d3c7; border-radius: 8px; padding: 16px; margin: 16px 0; background: #fff; }
+  .label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #6b665c; }
+  .before .text { color: #8a2d1f; }
+  .after .text { color: #1f5e3a; }
+  ul { padding-left: 20px; }
+  button { font: inherit; padding: 6px 12px; border: 1px solid #1d1d1b; background: #fff; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>The ork plugin description, before and after</h1>
+<p>Where it shows: the Claude plugin directory listing, <code>claude plugin details ork</code>, Cursor and the marketplace entry. Source: <code>manifests/ork.json</code>, copied by the build into 4 files.</p>
+
+<div class="card before">
+  <div class="label">Before</div>
+  <p class="text" id="before"></p>
+</div>
+<div class="card after">
+  <div class="label">After</div>
+  <p class="text" id="after">Skills, agents and hooks for Claude Code: 110 skills, 36 agents, 163 hooks for review, testing, security and memory. Hooks run on prompts and tool calls. Telemetry and webhooks are opt-in and off by default; by default some hooks call out through your own CLIs: gh on issue branches and on gh pr merge --delete-branch, and claude (haiku) to title each session.</p>
+</div>
+
+<h2>Why</h2>
+<ul>
+  <li>No long dash and no superlative ("The Complete").</li>
+  <li>The directory review tests that a description matches behavior. It now says the hooks run on prompts and tool calls, that telemetry and webhooks are opt-in, and which hooks call out by default through your own gh and claude CLIs (the README section "What OrchestKit observes" has the details).</li>
+  <li>The count tuple keeps the form <code>N skills, M agents, K hooks</code>, so <code>scripts/stamp-counts.sh</code> still stamps it.</li>
+</ul>
+
+<button id="copy">Copy the new description</button>
+<script>
+  document.getElementById('before').textContent =
+    'The Complete AI Development Toolkit ' + String.fromCharCode(0x2014) + ' 110 skills, 36 agents, 163 hooks for full-stack development.';
+  document.getElementById('copy').addEventListener('click', function () {
+    navigator.clipboard.writeText(document.getElementById('after').textContent);
+    this.textContent = 'Copied';
+  });
+</script>
+</body>
+</html>

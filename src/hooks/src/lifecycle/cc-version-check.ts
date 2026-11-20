@@ -2,10 +2,20 @@
  * CC Version Check — drift-warn hook (M130 #1487)
  *
  * Fires on SessionStart. Four branches:
- *   - Version unresolvable                    → additionalContext saying the check did NOT run
+ *   - Version unresolvable                    → systemMessage saying the check did NOT run
  *   - Below floor (< MIN_CC_VERSION)          → systemMessage warning to the user
- *   - Above latest-known (> LATEST_KNOWN_CC)  → additionalContext nudge to Claude with adoption pointer
+ *   - Above latest-known (> LATEST_KNOWN_CC)  → systemMessage adoption notice with pointers
  *   - In range                                → silent success
+ *
+ * Every notice goes to the PERSON (systemMessage) and none to the model
+ * (additionalContext), since a version notice is for the person, not the model.
+ * The two branches that used additionalContext put 282 and about 390 bytes into
+ * the model's context on every session that hit them.
+ *
+ * Registered SYNC in hooks.json, on purpose: an async hook's systemMessage is
+ * delivered to the model on the next turn and is not shown to the person (CC
+ * hooks docs, "How async hooks execute"). The work is a bounded read of the
+ * transcript prefix inside a 3 s budget, so running it inline costs little.
  *
  * The first branch is why this file changed (2026-08-28). It used to read
  * process.env.CLAUDE_CODE_VERSION and return outputSilentSuccess() when unset. CC does
@@ -26,7 +36,7 @@ import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, rea
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { HookContext, HookInput, HookResult } from '../types.js';
-import { outputSessionStartContext, outputSilentSuccess, outputWithNotification } from '../lib/common.js';
+import { outputSilentSuccess, outputWithNotification } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { LATEST_KNOWN_CC, MIN_CC_VERSION, compareCCVersions } from '../lib/cc-version-matrix.js';
 
@@ -107,24 +117,45 @@ function versionFromInstallPath(): string | null {
 }
 
 /**
+ * The Windows npm global install has no versioned path or launcher symlink to
+ * read; its version lives in the package manifest under %APPDATA% (#5114).
+ * Same weaker evidence as the install path: what is installed now.
+ */
+function versionFromWindowsNpm(): string | null {
+  const appData = process.env.APPDATA;
+  if (!appData) return null;
+  try {
+    const manifest = join(appData, 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'package.json');
+    if (!existsSync(manifest)) return null;
+    const { version } = JSON.parse(readFileSync(manifest, 'utf8')) as { version?: unknown };
+    return typeof version === 'string' && SEMVER_RE.test(version) ? version : null;
+  } catch {
+    return null; // silent: unreadable manifest is a miss, the caller reports it
+  }
+}
+
+/**
  * Resolve the running CC version, most authoritative source first.
  *
- * `CLAUDE_CODE_VERSION` stays the primary because it is the cheapest and the
- * documented contract, but it is NOT set in the hook environment on 2.1.250:
- * measured across every row of the local sessions.db, session-registrar recorded
- * cc_version NULL 3542 times out of 3542. This hook read the same var and returned
- * outputSilentSuccess(), so the floor warning and the adoption nudge have never
- * fired for anyone. Which is why the source list exists rather than one lookup.
+ * Order: transcript (what THIS session is running), then the install path the
+ * launcher resolves to now, then `CLAUDE_CODE_VERSION`. Env is cheapest and the
+ * documented contract, but cloud images can leave it stale (e.g. 2.1.42 while
+ * the CLI is 2.1.317; #5031). Preferring it first made every cloud SessionStart
+ * warn below-floor on the wrong witness. Locally the var is almost never set
+ * (session-registrar: 3542/3542 NULL), so the bug does not show on a workstation.
+ * When env disagrees with a higher-authority source, that source wins. When env
+ * is the ONLY source (cold start: no transcript stamp, no versions/ symlink),
+ * callers must not warn below-floor on it (the value is unconfirmed; #5031).
  */
 export function resolveRunningCC(input: HookInput): { version: string; source: string } | null {
-  const env = process.env.CLAUDE_CODE_VERSION;
-  if (env && SEMVER_RE.test(env)) return { version: env, source: 'env' };
-
   const fromTranscript = versionFromTranscript(input.transcript_path);
   if (fromTranscript) return { version: fromTranscript, source: 'transcript' };
 
-  const fromInstall = versionFromInstallPath();
+  const fromInstall = versionFromInstallPath() ?? versionFromWindowsNpm();
   if (fromInstall) return { version: fromInstall, source: 'install-path' };
+
+  const env = process.env.CLAUDE_CODE_VERSION;
+  if (env && SEMVER_RE.test(env)) return { version: env, source: 'env' };
 
   return null;
 }
@@ -137,18 +168,30 @@ function safeSessionId(raw: string): string {
   return cleaned || 'no-session';
 }
 
-function rateLimitOk(projectDir: string, sessionId: string): boolean {
-  const dir = join(projectDir, STATE_DIR_REL);
-  const flag = join(dir, `cc-version-check-${safeSessionId(sessionId)}.flag`);
-  if (existsSync(flag)) return false;
+function flagPath(projectDir: string, sessionId: string): string {
+  return join(projectDir, STATE_DIR_REL, `cc-version-check-${safeSessionId(sessionId)}.flag`);
+}
+
+/** Read-only: has this session already had its one real check? */
+function alreadyChecked(projectDir: string, sessionId: string): boolean {
+  return existsSync(flagPath(projectDir, sessionId));
+}
+
+/**
+ * Spend the once-per-session flag. Called only once the hook made a real decision
+ * (a confirmed version, or a visible could-not-resolve message), never on a silent
+ * pass over an unconfirmed env value (#5038): a later call with a transcript stamp
+ * must still be able to warn.
+ */
+function markChecked(projectDir: string, sessionId: string): void {
   try {
+    const dir = join(projectDir, STATE_DIR_REL);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    writeFileSync(flag, new Date().toISOString());
+    writeFileSync(flagPath(projectDir, sessionId), new Date().toISOString());
   } catch {
-    // If the flag file can't be written, fall through and let the hook fire — better
+    // If the flag file can't be written, the hook fires again next time — better
     // to nudge twice than to silently never warn at all on a transient FS issue.
   }
-  return true;
 }
 
 export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
@@ -156,22 +199,32 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
 
   const projectDir = input.project_dir || ctx.projectDir;
   const sessionId = input.session_id || 'no-session';
-  if (!rateLimitOk(projectDir, sessionId)) return outputSilentSuccess();
+  if (alreadyChecked(projectDir, sessionId)) return outputSilentSuccess();
 
   const resolved = resolveRunningCC(input);
   if (!resolved) {
+    markChecked(projectDir, sessionId);
     // Could-not-observe is its own outcome. The previous version returned
     // outputSilentSuccess() here, which is indistinguishable from "your version is
     // fine" — so a check that never once ran looked identical to a check that
     // passed, every session, for months. Say so instead of implying a verdict.
     ctx.log('cc-version-check', 'could not resolve the running CC version — check did NOT run');
-    return outputSessionStartContext(
+    return outputWithNotification(
       '[cc-version-check] Could not determine the running Claude Code version (no CLAUDE_CODE_VERSION, ' +
         'no versioned transcript record, no resolvable install path). The support-floor and adoption ' +
         'checks did NOT run this session. This is not a pass. Set ORK_NO_CC_VERSION_CHECK=1 to silence.',
+      undefined,
     );
   }
   const running = resolved.version;
+
+  // Env alone is unconfirmed (#5031). Any outcome that stays silent on it leaves the
+  // flag unset (#5038); every other outcome is a real decision and spends it.
+  const unconfirmedEnv = resolved.source === 'env';
+  const settle = (result: HookResult, silent: boolean): HookResult => {
+    if (!(unconfirmedEnv && silent)) markChecked(projectDir, sessionId);
+    return result;
+  };
 
   // Floor: prefer shared/cc-support.json (Part C SoT), fall back to MIN_CC_VERSION constant.
   const support = readSupportJson(projectDir);
@@ -179,23 +232,39 @@ export function ccVersionCheck(input: HookInput, ctx: HookContext = NOOP_CTX): H
   const matrixLatest = LATEST_KNOWN_CC;
 
   if (compareCCVersions(running, floor) < 0) {
+    // Env alone is unconfirmed (cloud cold start leaves a stale CLAUDE_CODE_VERSION
+    // with no transcript stamp and no versions/ symlink). Do not warn on it.
+    if (unconfirmedEnv) {
+      ctx.log(
+        'cc-version-check',
+        `running=${running} (via env, unconfirmed) < floor=${floor}: silent, no corroborating source`,
+      );
+      return settle(outputSilentSuccess(), true);
+    }
     ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) < floor=${floor} — warning user`);
-    return outputWithNotification(
-      `⚠ Claude Code ${running} is below OrchestKit's supported floor (${floor}). Some hooks and skills may no-op or error. See shared/rules/cc-support-policy.md.`,
-      undefined,
+    return settle(
+      outputWithNotification(
+        `⚠ Claude Code ${running} is below OrchestKit's supported floor (${floor}). Some hooks and skills may no-op or error. See shared/rules/cc-support-policy.md.`,
+        undefined,
+      ),
+      false,
     );
   }
 
   if (compareCCVersions(running, matrixLatest) > 0) {
-    ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) > matrix=${matrixLatest} — adoption nudge to Claude`);
-    return outputSessionStartContext(
-      `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
-        `New features may be available for adoption. Suggest /release-notes (CC 2.1.173+) for the upstream notes; ` +
-        `read skills/doctor/references/version-compatibility.md in this plugin; if that reference is unavailable, ` +
-        `review https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
+    ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) > matrix=${matrixLatest}, adoption notice to user`);
+    return settle(
+      outputWithNotification(
+        `[cc-version-check] Running CC ${running} — OrchestKit's feature matrix knows up to ${matrixLatest}. ` +
+          `New features may be available for adoption. Run /release-notes (CC 2.1.173+) for the upstream notes; ` +
+          `see skills/doctor/references/version-compatibility.md in this plugin, or ` +
+          `https://github.com/yonatangross/orchestkit/issues?q=is%3Aissue%20label%3Acc-adoption.`,
+        undefined,
+      ),
+      false,
     );
   }
 
   ctx.log('cc-version-check', `running=${running} (via ${resolved.source}) in [${floor}, ${matrixLatest}] — silent`);
-  return outputSilentSuccess();
+  return settle(outputSilentSuccess(), true);
 }

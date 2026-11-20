@@ -4,16 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CHANGELOG_ENTRIES,
   type ChangelogEntry,
-  type ChangelogSection,
 } from "@/lib/generated/changelog-data";
 import {
   TAG_BG,
-  SECTION_GLYPH,
+  type ReleaseGroup,
   formatChangelogDate,
+  groupReleaseSections,
   parseChangelogItem,
-  releaseMixMermaid,
 } from "@/lib/changelog-format";
-import { ChangelogMermaid } from "@/components/changelog-mermaid";
 
 const INITIAL_VISIBLE = 8;
 
@@ -22,13 +20,11 @@ function VersionRow({
   isLatest,
   position,
   total,
-  showDiagram,
 }: {
   entry: ChangelogEntry;
   isLatest: boolean;
   position: number;
   total: number;
-  showDiagram: boolean;
 }) {
   return (
     <article
@@ -57,11 +53,8 @@ function VersionRow({
         ) : null}
       </div>
       <div className="min-w-0 flex-1 space-y-5">
-        {showDiagram ? (
-          <ChangelogMermaid chart={releaseMixMermaid(entry)} />
-        ) : null}
-        {entry.sections.map((s, sectionIndex) => (
-          <SectionBlock key={`${s.type}-${sectionIndex}`} section={s} />
+        {groupReleaseSections(entry).map((group) => (
+          <SectionBlock key={group.category} group={group} />
         ))}
         {entry.compareUrl ? (
           <a
@@ -78,31 +71,35 @@ function VersionRow({
   );
 }
 
-function SectionBlock({ section }: { section: ChangelogSection }) {
+/** Heading, glyph and tag color all come from the legend's category table. */
+function SectionBlock({ group }: { group: ReleaseGroup }) {
   return (
     <div>
       <h3
-        className={`inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${TAG_BG[section.type]}`}
+        className={`inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${TAG_BG[group.category]}`}
       >
-        <span aria-hidden="true">{SECTION_GLYPH[section.type]}</span>
-        {section.heading}
+        <span aria-hidden="true">{group.glyph}</span>
+        {group.label}
+        <span className="font-mono tabular-nums opacity-70">
+          {group.items.length}
+        </span>
       </h3>
       <ul className="mt-2 space-y-3">
-        {section.items.map((item, i) => (
-          <ChangeItem key={i} raw={item} />
+        {group.items.map((item, i) => (
+          <ChangeItem key={i} raw={item} glyph={group.glyph} />
         ))}
       </ul>
     </div>
   );
 }
 
-function ChangeItem({ raw }: { raw: string }) {
+function ChangeItem({ raw, glyph }: { raw: string; glyph: string }) {
   const parsed = parseChangelogItem(raw);
   return (
     <li className="rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-3.5 py-3">
       <p className="text-[14px] leading-[1.5] text-fd-foreground">
         <span aria-hidden="true" className="mr-1.5">
-          {parsed.glyph}
+          {glyph}
         </span>
         {parsed.scope ? (
           <span className="mr-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-fd-primary">
@@ -180,13 +177,12 @@ export function ChangelogRail({
 
   const hiddenCount = CHANGELOG_ENTRIES.length - initialVisible;
   const latestVersion = CHANGELOG_ENTRIES[0]?.version;
-  const diagramVersions = new Set(
-    CHANGELOG_ENTRIES.slice(0, initialVisible).map((e) => e.version),
-  );
-  if (targetVersion) diagramVersions.add(targetVersion);
 
   return (
-    <div className="space-y-10" role="feed" aria-label="Changelog">
+    <div className="space-y-10">
+      {/* role=feed allows only article children (axe aria-required-children,
+          critical): the "older releases" button lives outside the feed. */}
+      <div className="space-y-10" role="feed" aria-label="Changelog">
       {visible.map((entry) => (
         <VersionRow
           key={entry.version}
@@ -196,9 +192,9 @@ export function ChangelogRail({
             CHANGELOG_ENTRIES.findIndex((e) => e.version === entry.version) + 1
           }
           total={CHANGELOG_ENTRIES.length}
-          showDiagram={!showAll && diagramVersions.has(entry.version)}
         />
       ))}
+      </div>
       {!showAll && hiddenCount > 0 ? (
         <button
           type="button"

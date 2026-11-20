@@ -5,7 +5,7 @@ description: "Product management frameworks for business cases, market analysis,
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
-> **Not directly invocable** — no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
+> **Not directly invocable**, no slash command and no model auto-selection. An agent loads it explicitly via `Read()`.
 
 <ContextualSkillSidebar slug="product-frameworks" />
 
@@ -49,39 +49,39 @@ As a [persona], I want [goal], so that [benefit].
 
 Financial analysis and market intelligence frameworks for investment decisions.
 
-- **`business-roi`** -- ROI, NPV, IRR, payback period calculations with Python examples
-- **`business-cost-benefit`** -- TCO analysis, build vs buy comparison, sensitivity analysis
-- **`market-tam-sam-som`** -- TAM/SAM/SOM market sizing with top-down and bottom-up methods
-- **`market-competitive`** -- Porter's Five Forces, SWOT, competitive landscape mapping
+- **`business-roi`**: ROI, NPV, IRR, payback period calculations with Python examples
+- **`business-cost-benefit`**: TCO analysis, build vs buy comparison, sensitivity analysis
+- **`market-tam-sam-som`**: TAM/SAM/SOM market sizing with top-down and bottom-up methods
+- **`market-competitive`**: Porter's Five Forces, SWOT, competitive landscape mapping
 
 ## Strategy & Prioritization
 
 Strategic decision frameworks and quantitative prioritization methods.
 
-- **`strategy-value-prop`** -- Value Proposition Canvas, JTBD framework, fit assessment
-- **`strategy-go-no-go`** -- Stage gate criteria, scoring template, decision thresholds
-- **`prioritize-rice`** -- RICE scoring with reach, impact, confidence, effort scales
-- **`prioritize-wsjf`** -- WSJF cost of delay, time criticality, MoSCoW method
-- **`prioritize-opportunity-cost`** -- Opportunity cost matrix, cost of delay analysis, trade-off flagging
+- **`strategy-value-prop`**: Value Proposition Canvas, JTBD framework, fit assessment
+- **`strategy-go-no-go`**: Stage gate criteria, scoring template, decision thresholds
+- **`prioritize-rice`**: RICE scoring with reach, impact, confidence, effort scales
+- **`prioritize-wsjf`**: WSJF cost of delay, time criticality, MoSCoW method
+- **`prioritize-opportunity-cost`**: Opportunity cost matrix, cost of delay analysis, trade-off flagging
 
 ## Metrics & OKRs
 
 Goal-setting and measurement frameworks for metrics-driven teams.
 
-- **`metrics-okr`** -- OKR structure, writing objectives and key results, examples
-- **`metrics-kpi-trees`** -- Revenue and product health KPI trees, North Star metric
-- **`metrics-leading-lagging`** -- Leading vs lagging indicators, balanced dashboards
-- **`metrics-instrumentation`** -- Metric definition template, event naming, alerting
-- **`metrics-experiment-design`** -- Experiment design, guardrail metrics, staged rollout plans
+- **`metrics-okr`**: OKR structure, writing objectives and key results, examples
+- **`metrics-kpi-trees`**: Revenue and product health KPI trees, North Star metric
+- **`metrics-leading-lagging`**: Leading vs lagging indicators, balanced dashboards
+- **`metrics-instrumentation`**: Metric definition template, event naming, alerting
+- **`metrics-experiment-design`**: Experiment design, guardrail metrics, staged rollout plans
 
 ## Research & Requirements
 
 User research methods and requirements documentation patterns.
 
-- **`research-personas`** -- User persona template, empathy maps, persona examples
-- **`research-journey-mapping`** -- Customer journey maps, service blueprints, experience curves
-- **`research-user-interviews`** -- Interview guides, usability testing, surveys, card sorting
-- **`research-requirements-prd`** -- PRD template, user stories, acceptance criteria, INVEST
+- **`research-personas`**: User persona template, empathy maps, persona examples
+- **`research-journey-mapping`**: Customer journey maps, service blueprints, experience curves
+- **`research-user-interviews`**: Interview guides, usability testing, surveys, card sorting
+- **`research-requirements-prd`**: PRD template, user stories, acceptance criteria, INVEST
 
 ## Output Templates
 
@@ -234,7 +234,7 @@ Operational Costs (Annual)
 +-- Security/compliance
 ```
 
-**Incorrect — Ignoring hidden costs and opportunity cost:**
+**Incorrect, Ignoring hidden costs and opportunity cost:**
 ```markdown
 ## Cost Analysis
 Total development cost: $500,000
@@ -242,7 +242,7 @@ Expected benefit: $1M over 3 years
 ROI: 100% - APPROVED
 ```
 
-**Correct — Comprehensive TCO with hidden costs:**
+**Correct, Comprehensive TCO with hidden costs:**
 ```markdown
 ## 3-Year TCO Analysis
 Development: $500,000
@@ -281,7 +281,7 @@ ROI = ($1,000,000 - $500,000) / $500,000 x 100% = 100%
 
 ## Net Present Value (NPV)
 
-Gold standard for project evaluation -- discounts future cash flows to present value.
+Gold standard for project evaluation, discounts future cash flows to present value.
 
 ```
 NPV = Sum(Cash Flow_t / (1 + r)^t) - Initial Investment
@@ -357,14 +357,14 @@ Payback Period = Initial Investment / Annual Cash Flow
 | Sunk cost fallacy | Evaluate future costs/benefits only |
 | Confirmation bias | Have skeptic review the case |
 
-**Incorrect — Using simple ROI without time value of money:**
+**Incorrect, Using simple ROI without time value of money:**
 ```markdown
 Investment: $500,000
 Total benefits over 5 years: $1,000,000
 ROI = ($1M - $500K) / $500K = 100% - APPROVED
 ```
 
-**Correct — Using NPV to account for time value:**
+**Correct, Using NPV to account for time value:**
 ```python
 npv = calculate_npv(
     initial_investment=500_000,
@@ -528,7 +528,7 @@ gh api repos/owner/repo/contributors --jq 'length'
 | Feature launches | Per announcement |
 | Full analysis | Quarterly |
 
-**Incorrect — Vague competitive assessment:**
+**Incorrect, Vague competitive assessment:**
 ```markdown
 ## Competitors
 - Company A: Big player, lots of features
@@ -536,7 +536,7 @@ gh api repos/owner/repo/contributors --jq 'length'
 - Company C: New entrant
 ```
 
-**Correct — Structured competitive analysis with SWOT:**
+**Correct, Structured competitive analysis with SWOT:**
 ```markdown
 ## Competitor: Company A
 
@@ -675,7 +675,7 @@ Conservative SOM: min($470M x 3%, $15M, $470M x 70% x 3%)
 | Single method | Cross-validate top-down and bottom-up |
 | Confusing TAM/SAM | TAM is total, SAM is your reach |
 
-**Incorrect — Unrealistic SOM without constraints:**
+**Incorrect, Unrealistic SOM without constraints:**
 ```markdown
 TAM: $10B
 SAM (our segment): $3B
@@ -684,7 +684,7 @@ SOM (10% market share): $300M
 This is achievable in 3 years!
 ```
 
-**Correct — SOM constrained by realistic factors:**
+**Correct, SOM constrained by realistic factors:**
 ```markdown
 SAM: $3B
 
@@ -783,9 +783,9 @@ Output (North Star): Weekly Active Teams
 
 ### Experiment Targeting
 
-- **Target input metrics** -- they are directly actionable
-- **Guard output metrics** -- they confirm the input metric change translates to real value
-- **Monitor adjacent inputs** -- ensure one input improvement does not cannibalize another
+- **Target input metrics**: they are directly actionable
+- **Guard output metrics**: they confirm the input metric change translates to real value
+- **Monitor adjacent inputs**: ensure one input improvement does not cannibalize another
 
 ## Pre-Launch Checklist
 
@@ -796,7 +796,7 @@ Output (North Star): Weekly Active Teams
 - [ ] Dashboard or alerts configured for guardrail metrics
 - [ ] Rollback procedure documented
 
-**Incorrect -- launching without guardrails:**
+**Incorrect, launching without guardrails:**
 ```markdown
 Experiment: New checkout flow
 Hypothesis: Will increase conversions
@@ -804,7 +804,7 @@ Plan: Ship to 100% of users on Monday
 Success: Conversions go up
 ```
 
-**Correct -- structured experiment with guardrails:**
+**Correct, structured experiment with guardrails:**
 ```markdown
 Experiment: New checkout flow
 Hypothesis: Reducing steps from 4 to 2 will increase
@@ -960,7 +960,7 @@ We believe [change] will cause [metric] to [improve by X%]
 4. 100% rollout
 ```
 
-**Incorrect — Inconsistent event naming:**
+**Incorrect, Inconsistent event naming:**
 ```json
 {
   "event": "UserSignup",
@@ -969,7 +969,7 @@ We believe [change] will cause [metric] to [improve by X%]
 }
 ```
 
-**Correct — Consistent object_action naming:**
+**Correct, Consistent object_action naming:**
 ```json
 {
   "event": "user_signed_up",
@@ -1070,13 +1070,13 @@ Baseline + target for each metric in the tree.
 
 ## Best Practices
 
-- **Keep trees 3 levels deep** -- deeper than that and it loses clarity
-- **Every metric has an owner** -- no orphan metrics
-- **Leading indicators at the leaves** -- actionable by teams
-- **Lagging indicators at the root** -- confirms outcomes
-- **Dashboard the tree** -- make it visible to the whole organization
+- **Keep trees 3 levels deep**: deeper than that and it loses clarity
+- **Every metric has an owner**: no orphan metrics
+- **Leading indicators at the leaves**: actionable by teams
+- **Lagging indicators at the root**: confirms outcomes
+- **Dashboard the tree**: make it visible to the whole organization
 
-**Incorrect — Flat metrics without hierarchy:**
+**Incorrect, Flat metrics without hierarchy:**
 ```markdown
 Q1 Goals:
 - Increase revenue
@@ -1084,7 +1084,7 @@ Q1 Goals:
 - Reduce churn
 ```
 
-**Correct — KPI tree with cause-effect relationships:**
+**Correct, KPI tree with cause-effect relationships:**
 ```markdown
 Revenue (Lagging)
 ├── New Revenue = Leads × Conv Rate (Leading)
@@ -1199,7 +1199,7 @@ Leading:
 - **Use lagging indicators** to validate that leading indicators actually predict outcomes
 - **Adjust leading indicators** when correlation breaks down
 
-**Incorrect — Only tracking lagging indicators:**
+**Incorrect, Only tracking lagging indicators:**
 ```markdown
 Monthly Review:
 - Revenue: $485K (missed $500K target)
@@ -1208,7 +1208,7 @@ Monthly Review:
 [Too late to fix - no early warning]
 ```
 
-**Correct — Paired leading + lagging indicators:**
+**Correct, Paired leading + lagging indicators:**
 ```markdown
 Weekly (Leading):
 - Active users: 12,500 → trend down, investigate
@@ -1321,7 +1321,7 @@ Individual OKRs (optional, aligns to team)
 | Static goals | Review and adjust quarterly |
 | No baselines | Establish current state before setting targets |
 
-**Incorrect — Outputs instead of outcomes:**
+**Incorrect, Outputs instead of outcomes:**
 ```markdown
 Objective: Build a great product
 
@@ -1331,7 +1331,7 @@ Key Results:
 - Hold 20 customer interviews
 ```
 
-**Correct — Outcome-focused key results:**
+**Correct, Outcome-focused key results:**
 ```markdown
 Objective: Become the #1 choice for enterprise teams
 
@@ -1372,7 +1372,7 @@ A 2x2 matrix for rapid feature sequencing based on expected value and required e
 
 | Quadrant | Action | Example |
 |----------|--------|---------|
-| **Do First** | Ship immediately -- high ROI | Fix broken onboarding step |
+| **Do First** | Ship immediately, high ROI | Fix broken onboarding step |
 | **Quick Win** | Batch into next sprint | Add CSV export button |
 | **Do Next** | Plan and resource properly | Platform migration |
 | **Consider** | Challenge whether to do at all | Redesign rarely-used admin page |
@@ -1418,7 +1418,7 @@ $X/month (quantified) + [qualitative strategic cost]
 
 ## Trade-Off Flagging Template
 
-When two options compete for the same resources, surface the trade-off explicitly for human decision-makers. Do not make the call -- present the data.
+When two options compete for the same resources, surface the trade-off explicitly for human decision-makers. Do not make the call, present the data.
 
 ```markdown
 ## Trade-Off: [Decision Title]
@@ -1449,12 +1449,12 @@ Human decides. Key factors to weigh:
 
 When features have dependencies or shared resources, use these sequencing rules:
 
-1. **Highest cost-of-delay first** -- unless blocked by dependencies
-2. **Unblock others early** -- a low-value enabler that unblocks 3 high-value items ships first
-3. **Reduce risk early** -- unknowns first, known work later (fail fast)
-4. **Batch small items** -- group Quick Wins into a single sprint to clear the backlog
+1. **Highest cost-of-delay first**: unless blocked by dependencies
+2. **Unblock others early**: a low-value enabler that unblocks 3 high-value items ships first
+3. **Reduce risk early**: unknowns first, known work later (fail fast)
+4. **Batch small items**: group Quick Wins into a single sprint to clear the backlog
 
-**Incorrect -- prioritizing by gut feel:**
+**Incorrect, prioritizing by gut feel:**
 ```markdown
 Priority list:
 1. AI search (CEO wants it)
@@ -1462,7 +1462,7 @@ Priority list:
 3. CSV import (seems easy)
 ```
 
-**Correct -- opportunity cost matrix with explicit trade-offs:**
+**Correct, opportunity cost matrix with explicit trade-offs:**
 ```markdown
 Priority list (by cost of delay):
 1. CSV import -- $30K/month blocked deals, 1 week effort (Do First)
@@ -1588,14 +1588,14 @@ Categorize features by customer satisfaction impact.
 | Analysis paralysis | Set time limits on scoring sessions |
 | Inconsistent scales | Document and share scoring guidelines |
 
-**Incorrect — RICE without documented assumptions:**
+**Incorrect, RICE without documented assumptions:**
 ```markdown
 Feature A: RICE = 8,000
 Feature B: RICE = 12,500
 Priority: B, then A
 ```
 
-**Correct — RICE with transparent scoring:**
+**Correct, RICE with transparent scoring:**
 ```markdown
 Feature B: Smart search with AI
 - Reach: 50,000 users/quarter (active searchers)
@@ -1718,11 +1718,11 @@ Qualitative prioritization for scope management.
 ## Practical Tips
 
 1. **Calibrate together**: Score several items as a team to align understanding
-2. **Revisit regularly**: Priorities shift -- rescore quarterly
+2. **Revisit regularly**: Priorities shift, rescore quarterly
 3. **Document assumptions**: Why did you give that Impact score?
 4. **Combine frameworks**: Use ICE for quick triage, RICE for final decisions
 
-**Incorrect — MoSCoW without viable Must-Have set:**
+**Incorrect, MoSCoW without viable Must-Have set:**
 ```markdown
 Must Have:
 - User auth, CRUD, search, export, AI features,
@@ -1731,7 +1731,7 @@ Must Have:
 [Product not viable with just Must-Have items]
 ```
 
-**Correct — Must-Have delivers viable product:**
+**Correct, Must-Have delivers viable product:**
 ```markdown
 Must Have (60% of effort):
 - User authentication
@@ -1884,14 +1884,14 @@ Discover -> Research -> Try -> Buy -> Use -> Share
 - **Connect to metrics**: Link journey stages to measurable KPIs
 - **Review after major feature launches**: Journeys change with the product
 
-**Incorrect — Journey map without pain points:**
+**Incorrect, Journey map without pain points:**
 ```markdown
 Stage: Onboarding
 Actions: User signs up, receives email, logs in
 Touchpoints: Website, email, app
 ```
 
-**Correct — Journey map with pain points and opportunities:**
+**Correct, Journey map with pain points and opportunities:**
 ```markdown
 Stage: Onboarding
 Actions: User signs up, waits for email (5 min delay), logs in
@@ -2031,7 +2031,7 @@ immediate value with minimal onboarding.
 - **Connect to metrics**: Link persona needs to measurable KPIs
 - **3-5 personas max**: Too many dilutes focus
 
-**Incorrect — Vague persona without goals:**
+**Incorrect, Vague persona without goals:**
 ```markdown
 Persona: Sarah
 Age: 35
@@ -2039,7 +2039,7 @@ Job: Marketing Manager
 Likes: Social media, coffee
 ```
 
-**Correct — Actionable persona with goals and pain points:**
+**Correct, Actionable persona with goals and pain points:**
 ```markdown
 Persona: DevOps Dana
 Quote: "I don't have time for tools that create more work than they save."
@@ -2202,12 +2202,12 @@ Scenario: Successful login with valid credentials
 | **Security** | All data encrypted at rest and in transit |
 | **Accessibility** | WCAG 2.1 AA compliant |
 
-**Incorrect — Vague user story without acceptance criteria:**
+**Incorrect, Vague user story without acceptance criteria:**
 ```markdown
 As a user, I want better reporting.
 ```
 
-**Correct — INVEST user story with acceptance criteria:**
+**Correct, INVEST user story with acceptance criteria:**
 ```markdown
 As a sales manager,
 I want to see my team's pipeline by stage,
@@ -2356,7 +2356,7 @@ Range: 0-100, Average: 68
 - Strategy: [Business consideration]
 ```
 
-**Incorrect — Leading questions that bias responses:**
+**Incorrect, Leading questions that bias responses:**
 ```markdown
 Interview Questions:
 - "Don't you think this feature would be useful?"
@@ -2364,7 +2364,7 @@ Interview Questions:
 - "You'd pay $50/month for this, right?"
 ```
 
-**Correct — Open-ended questions that uncover insights:**
+**Correct, Open-ended questions that uncover insights:**
 ```markdown
 Interview Questions:
 - "Walk me through the last time you [relevant activity]"
@@ -2494,14 +2494,14 @@ Is this a core differentiator?
 - Risk sharing is valuable
 - Neither build nor buy fits perfectly
 
-**Incorrect — Go/No-Go without scoring criteria:**
+**Incorrect, Go/No-Go without scoring criteria:**
 ```markdown
 Idea: Build AI feature
 Team: Excited about it
 Decision: GO
 ```
 
-**Correct — Systematic stage gate evaluation:**
+**Correct, Systematic stage gate evaluation:**
 ```markdown
 Gate 3: Business Case
 - [ ] ROI > 15% hurdle rate: YES (22%)
@@ -2521,7 +2521,7 @@ Decision: GO (>= 7.0 threshold)
 
 ## Jobs-to-be-Done (JTBD) Framework
 
-People don't buy products -- they hire them to do specific jobs.
+People don't buy products, they hire them to do specific jobs.
 
 ### JTBD Statement Format
 
@@ -2638,13 +2638,13 @@ so I can appear informed in morning meetings.
 | **Strategic alignment** | Every initiative serves the mission |
 | **Reversible decisions** | Prefer options that preserve flexibility |
 
-**Incorrect — Feature-focused instead of job-focused:**
+**Incorrect, Feature-focused instead of job-focused:**
 ```markdown
 Value Proposition:
 "Our app has AI, real-time sync, and dark mode"
 ```
 
-**Correct — JTBD-based value proposition:**
+**Correct, JTBD-based value proposition:**
 ```markdown
 Jobs-to-be-Done:
 When I'm commuting to work,
