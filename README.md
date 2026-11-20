@@ -137,7 +137,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->115<!--/ork--> Skills** | <!--ork:skills-core-->82<!--/ork--> in core `ork` (workflows, FastAPI, React 19, testing, security, database design) and <!--ork:skills-extras-->33<!--/ork--> opt-in reference skills in `ork-extras` (RAG, LangGraph, MCP, accessibility) — loaded on-demand, zero overhead |
+| **<!--ork:skills-->115<!--/ork--> Skills** | <!--ork:skills-core-->82<!--/ork--> in core `ork` (workflows, FastAPI, React 19, testing, security, database design) and <!--ork:skills-extras-->33<!--/ork--> opt-in reference skills in `ork-extras` (RAG, LangGraph, MCP, accessibility), loaded on-demand with zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
