@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quick lint, without the CI detour</title>
+<style>
+body{font:18px/1.6 system-ui,sans-serif;background:#101827;color:#edf2fa;max-width:850px;margin:4rem auto;padding:0 1.5rem}h1{line-height:1.15}button{font:inherit;padding:.6rem 1rem;border:1px solid #93c5fd;border-radius:.5rem;background:#233d61;color:white;cursor:pointer}table{width:100%;border-collapse:collapse;margin:2rem 0}th,td{text-align:left;padding:.7rem;border-bottom:1px solid #41516a}code{color:#93c5fd}#bar{height:24px;background:#60a5fa;min-width:3px}small{color:#bac7dc}a{color:#93c5fd}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Quick lint without the CI detour"><meta property="og:description" content="Measured pre-commit latency before and after deferring CI Meta and index-generation tests to CI, while retaining static analysis."><meta property="og:url" content="https://orchestkit.dev/lab/precommit-quick-lint.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Quick lint without the CI detour"><meta name="twitter:description" content="Measured pre-commit latency before and after deferring CI Meta and index-generation tests to CI, while retaining static analysis."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<p>Developer workflow / measured locally</p>
+<h1>Quick lint, without the CI detour</h1>
+<p>The lint orchestrator includes CI Meta and index-generation tests. Pre-commit now calls static analysis directly. CI keeps the full suite.</p>
+<button id="toggle" type="button">Show main</button>
+<h2 id="result" aria-live="polite">Branch median: 1.452 seconds</h2>
+<div id="bar" style="width:2.8%" aria-hidden="true"></div>
+<table>
+<thead><tr><th>Check</th><th>Pre-commit now</th><th>CI</th></tr></thead>
+<tbody>
+<tr><td>Static analysis</td><td>Kept</td><td>Kept</td></tr>
+<tr><td>CI Meta</td><td>Deferred to CI</td><td>Full directory</td></tr>
+<tr><td>Indexes</td><td>Deferred to CI</td><td>Full directory</td></tr>
+<tr><td>Focused staged-path guards</td><td>Unchanged</td><td>Unchanged</td></tr>
+</tbody>
+</table>
+<h2>Timing evidence</h2>
+<p>Main: 51.039, 51.896, 65.068 seconds. Branch: 1.546, 1.452, 1.423 seconds. Median reduction: 97.2%.</p>
+<p><small>Three sequential real hook invocations per revision, same checkout and staged text probe under src/hooks/. Python monotonic wall clock, output captured to files. No hook bypass or suite stubbing. Warm filesystem caches. These are measurements, not a simulated execution.</small></p>
+<p>Individual suite timings: static analysis 1.247s, CI Meta 44.123s, indexes 5.382s. All exited 0.</p>
+<p>Coverage: <code>.github/workflows/ci.yml:348</code> runs static analysis; <code>:970</code> runs the full orchestrator, including CI Meta and indexes. Pre-push coverage is unchanged.</p>
+<p>Try locally: <code>bash bin/git-hooks/pre-commit</code> with affected files staged.</p>
+<script>
+let main=false;
+document.getElementById('toggle').addEventListener('click',()=>{
+  main=!main;
+  document.getElementById('result').textContent=main?'Main median: 51.896 seconds':'Branch median: 1.452 seconds';
+  document.getElementById('bar').style.width=main?'100%':'2.8%';
+  document.getElementById('toggle').textContent=main?'Show branch':'Show main';
+});
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

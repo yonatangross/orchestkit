@@ -108,8 +108,10 @@ fi
 
 # ===== 7. Quick Lint Tests =====
 if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude-plugin/)"; then
-  if [[ -x "tests/run-all-tests.sh" ]]; then
+  if [[ -x "tests/ci/lint.sh" ]]; then
     echo -n "  Running quick lint tests... "
+    # The --lint orchestrator also runs CI Meta and index-generation tests.
+    # Keep commit-time lint static; CI runs the full orchestrator in ci.yml.
     # A hook inherits GIT_INDEX_FILE (absolute in a linked worktree) and can
     # inherit GIT_DIR / GIT_WORK_TREE. Several lint tests build throwaway git
     # repos (git init, git add -A); with that env leaked, their `git add` writes
@@ -118,9 +120,9 @@ if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude
     # (#3822 lane). The lint suite gets a scrubbed environment.
     if ! env -u GIT_INDEX_FILE -u GIT_DIR -u GIT_WORK_TREE -u GIT_PREFIX \
          -u GIT_COMMON_DIR -u GIT_OBJECT_DIRECTORY \
-         ./tests/run-all-tests.sh --lint >/dev/null 2>&1; then
+         ./tests/ci/lint.sh >/dev/null 2>&1; then
       echo "FAILED"
-      echo "    Run './tests/run-all-tests.sh --lint' for details"
+      echo "    Run './tests/ci/lint.sh' for details"
       ERRORS=$((ERRORS + 1))
     else
       echo "OK"
