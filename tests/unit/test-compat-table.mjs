@@ -50,8 +50,23 @@ check('hosts and their order are the site host-installs order', () => {
   assert.deepEqual(rows.map((r) => r.id), ids);
 });
 
-check('Claude Code skills = ork + ork-extras skill dirs', () => {
-  assert.equal(byId.claude.skills, dirs('plugins/ork/skills') + dirs('plugins/ork-extras/skills'));
+check('Claude Code skills = core ork skill dirs, extraSkills = ork-extras skill dirs', () => {
+  assert.equal(byId.claude.skills, dirs('plugins/ork/skills'));
+  assert.equal(byId.claude.extraSkills, dirs('plugins/ork-extras/skills'));
+});
+
+check('Cursor splits the same way: core ork, then the opt-in ork-extras plugin', () => {
+  assert.equal(byId.cursor.skills, dirs('plugins/ork/skills'));
+  assert.equal(byId.cursor.extraSkills, dirs('plugins/ork-extras/skills'));
+  for (const r of rows.filter((r) => !['claude', 'cursor'].includes(r.id))) assert.equal(r.extraSkills, null, r.id);
+});
+
+check('a core install is never shown the ork + ork-extras total (#5220 split)', () => {
+  const md = renderCompatMarkdown(rows);
+  const claudeLine = md.split('\n').find((l) => l.startsWith('| Claude Code '));
+  const { skills, extraSkills } = byId.claude;
+  assert.ok(claudeLine.includes(`| ${skills} + ${extraSkills} ork-extras |`), claudeLine);
+  assert.ok(!claudeLine.includes(`| ${skills + extraSkills} |`), claudeLine);
 });
 
 check('Codex skills = plugins/ork-codex/skills dirs, roles = roles/*.toml', () => {

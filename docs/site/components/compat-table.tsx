@@ -10,6 +10,7 @@ import { COMPAT_ROWS, type CompatRow } from "@/lib/generated/compat-data";
 
 const ISSUES = "https://github.com/yonatangross/orchestkit/issues";
 const CAPTION = "Compatibility: what OrchestKit runs in, per host. Generated from the pack manifests.";
+const EXTRAS_NOTE = "+ N ork-extras is the opt-in second plugin, installed on its own.";
 const ISSUES_NOTE =
 	"Open issues are counted once each host's issues are labelled; until then the column shows ?.";
 
@@ -24,6 +25,18 @@ function Unknown({ why }: { why: string }) {
 
 function count(v: number | null) {
 	return v === null ? <Unknown why="not measured yet" /> : v;
+}
+
+function skills(r: CompatRow, stacked = false) {
+	if (!r.extraSkills) return count(r.skills);
+	return (
+		<>
+			{count(r.skills)}{" "}
+			<span className={stacked ? "block whitespace-nowrap text-xs text-fd-muted-foreground" : "text-fd-muted-foreground"}>
+				+ {r.extraSkills} ork-extras
+			</span>
+		</>
+	);
 }
 
 function agents(r: CompatRow) {
@@ -83,7 +96,7 @@ export function CompatTable() {
 							</p>
 						) : null}
 						<p className="mt-1">
-							Skills {count(r.skills)} · Agents {agents(r)}
+							Skills {skills(r)} · Agents {agents(r)}
 						</p>
 						<p>Hooks {hooks(r)}</p>
 						<p className="text-fd-muted-foreground">
@@ -116,7 +129,7 @@ export function CompatTable() {
 										</span>
 									) : null}
 								</th>
-								<td>{count(r.skills)}</td>
+								<td>{skills(r, true)}</td>
 								<td>{agents(r)}</td>
 								<td>{hooks(r)}</td>
 								<td>{r.route}</td>
@@ -126,7 +139,9 @@ export function CompatTable() {
 					</tbody>
 				</ScrollTable>
 			</div>
-			<p className="text-sm text-fd-muted-foreground">{ISSUES_NOTE}</p>
+			<p className="text-sm text-fd-muted-foreground">
+				{EXTRAS_NOTE} {ISSUES_NOTE}
+			</p>
 		</div>
 	);
 }

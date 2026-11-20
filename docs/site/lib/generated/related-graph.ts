@@ -179,7 +179,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     },
     "/docs/getting-started/ork-extras": {
       "title": "ork-extras, the opt-in reference skills",
-      "inbound": 0
+      "inbound": 2
     },
     "/docs/getting-started/sandbox": {
       "title": "OrchestKit Sandbox and Test Mode: Try It Safely",
@@ -1438,7 +1438,8 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/foundations/agent-attribution": [],
     "/docs/foundations/choosing-a-plugin": [
       "/docs/getting-started/first-10-minutes",
-      "/docs/getting-started/installation"
+      "/docs/getting-started/installation",
+      "/docs/getting-started/ork-extras"
     ],
     "/docs/foundations/mcp-servers": [
       "/docs/foundations/choosing-a-plugin",
@@ -1517,6 +1518,7 @@ export const RELATED_GRAPH: RelatedGraphData = {
     "/docs/getting-started/installation": [
       "/docs/getting-started/configuration",
       "/docs/getting-started/hosts",
+      "/docs/getting-started/ork-extras",
       "/docs/getting-started/sandbox",
       "/docs/getting-started/superpowers",
       "/docs/guides/orchestkit-on-pi-codex-cursor"

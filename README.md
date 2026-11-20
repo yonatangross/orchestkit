@@ -65,8 +65,8 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Host | Skills | Agents | Hooks | Install | Needs |
 |---|---|---|---|---|---|
-| Claude Code | 115 | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
-| Cursor | 115 | 36 | not yet (#4004) | plugin (Settings) |  |
+| Claude Code | 82 + 33 ork-extras | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
+| Cursor | 82 + 33 ork-extras | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
 | Devin | 82 | ? | ? | plugin (git) |  |
 | OpenCode | 12 | ? | ? | skills.sh |  |
@@ -74,7 +74,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 | Pi | 82 | ? | not yet (#4004) | pi manifest |  |
 | Antigravity | 12 | ? | ? | .agents/skills |  |
 
-`?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.
+`+ N ork-extras` is the opt-in second plugin, installed on its own. `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.
 
 <!-- compat-table:end -->
 
@@ -133,15 +133,15 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 ## What You Get
 
-**One unified plugin, everything included.**
+**Core `ork`, plus opt-in `ork-extras` reference skills, from one marketplace.**
 
 | Component | Details |
 |-----------|---------|
-| **<!--ork:skills-->115<!--/ork--> Skills** | RAG patterns, FastAPI, React 19, testing, security, database design, ML integration — loaded on-demand, zero overhead |
+| **<!--ork:skills-->115<!--/ork--> Skills** | <!--ork:skills-core-->82<!--/ork--> in core `ork` (workflows, FastAPI, React 19, testing, security, database design) and <!--ork:skills-extras-->33<!--/ork--> opt-in reference skills in `ork-extras` (RAG, LangGraph, MCP, accessibility) — loaded on-demand, zero overhead |
 | **<!--ork:agents-->36<!--/ork--> Agents** | Specialized personas (backend-architect, frontend-dev, security-auditor) — route tasks to the right expert |
 | **<!--ork:hooks-->163<!--/ork--> Hooks** | Pre-commit checks, git protection, quality gates, browser safety — ship with confidence |
 
-All available in a single `/plugin install ork`. Skills load on-demand. Hooks work automatically.
+`/plugin install ork` gives the core skills, every agent and every hook. Add the reference skills with `/plugin install ork-extras@orchestkit` ([what moved](https://orchestkit.dev/docs/getting-started/ork-extras)). Skills load on-demand. Hooks work automatically.
 
 **[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
 
