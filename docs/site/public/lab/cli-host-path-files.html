@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'">
+  <title>What counts as a coding agent?</title>
+  <style>
+    :root { color-scheme: light; font: 16px/1.55 system-ui, sans-serif; color: #1e2927; background: #f5f5ee; }
+    * { box-sizing: border-box; }
+    main { width: min(55rem, calc(100% - 2rem)); margin: 0 auto; padding: clamp(2rem, 7vw, 5rem) 0 2rem; }
+    .eyebrow, h2 { font: 700 .76rem/1.4 ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; }
+    .eyebrow { color: #315b4c; }
+    h1 { font-size: clamp(2.1rem, 6vw, 3.5rem); line-height: 1.04; letter-spacing: -.055em; margin: .5rem 0 1rem; }
+    .intro { max-width: 62ch; color: #485653; margin-bottom: 2rem; }
+    .case { padding: clamp(1rem, 4vw, 1.6rem); background: #fff; border: 1px solid #cbd4cb; border-radius: 1rem; }
+    .controls, .comparison { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    button { font: inherit; font-weight: 650; text-align: left; color: #283c34; background: #f1f5f0; border: 1px solid #c7d4ca; border-radius: .55rem; padding: .65rem .85rem; cursor: pointer; }
+    button:hover { border-color: #315b4c; }
+    button[aria-pressed="true"] { color: white; background: #245845; border-color: #245845; }
+    button:focus-visible { outline: 3px solid #317760; outline-offset: 3px; }
+    .fixture { color: #485653; margin: 1rem 0; }
+    .terminal { border-radius: .65rem; padding: 1rem; background: #192724; color: #f1f7f1; }
+    .terminal h2 { margin: 0 0 .6rem; color: #b3d2c2; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font: .88rem/1.55 ui-monospace, monospace; }
+    .why { margin: 1rem 0 0; color: #485653; }
+    .note { color: #485653; font-size: .875rem; }
+    @media (max-width: 35rem) { .controls, .comparison { grid-template-columns: 1fr; } }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="What counts as a coding agent?"><meta property="og:description" content="Compare recorded CLI host detection for a directory and a linked executable named claude on PATH."><meta property="og:url" content="https://orchestkit.dev/lab/cli-host-path-files.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="What counts as a coding agent?"><meta name="twitter:description" content="Compare recorded CLI host detection for a directory and a linked executable named claude on PATH."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / CLI</p>
+    <h1>What counts as a coding agent?</h1>
+    <p class="intro">On Linux, execute permission on a directory means you can search it, not run it. A directory named <code>claude</code> fooled <code>orchestkit install</code> into printing Claude Code instructions.</p>
+  </header>
+  <section class="case" aria-labelledby="choose">
+    <h2 id="choose">Choose the entry named claude on PATH</h2>
+    <div class="controls">
+      <button type="button" id="directory" aria-pressed="true">Searchable directory</button>
+      <button type="button" id="linked" aria-pressed="false">Symlink to executable</button>
+    </div>
+    <div aria-live="polite" aria-atomic="true">
+      <p class="fixture"><code>claude</code> <span id="fixture">is a directory with mode 0755.</span></p>
+      <div class="comparison">
+        <section class="terminal">
+          <h2>Before</h2>
+          <pre>Claude Code: Paste in a terminal.</pre>
+        </section>
+        <section class="terminal">
+          <h2>After</h2>
+          <pre id="after">No coding agent found on PATH. OrchestKit installs into any of these:</pre>
+        </section>
+      </div>
+      <p class="why" id="why">The directory passes the permission check but is not a regular file, so detection skips it.</p>
+    </div>
+  </section>
+  <p class="note">Recorded first lines from the built CLI on Linux. Each run used an isolated PATH and exited successfully.</p>
+</main>
+<script>
+  const directory = document.getElementById('directory');
+  const linked = document.getElementById('linked');
+  const fixture = document.getElementById('fixture');
+  const after = document.getElementById('after');
+  const why = document.getElementById('why');
+  const directoryState = { fixture: fixture.textContent, after: after.textContent, why: why.textContent };
+  const linkedState = {
+    fixture: 'points to a regular file with mode 0755.',
+    after: 'Claude Code: Paste in a terminal.',
+    why: 'Detection follows the symlink. The target is a regular file and has execute permission, so it still counts.',
+  };
+  function show(isLinked) {
+    const state = isLinked ? linkedState : directoryState;
+    directory.setAttribute('aria-pressed', String(!isLinked));
+    linked.setAttribute('aria-pressed', String(isLinked));
+    fixture.textContent = state.fixture;
+    after.textContent = state.after;
+    why.textContent = state.why;
+  }
+  directory.addEventListener('click', () => show(false));
+  linked.addEventListener('click', () => show(true));
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
