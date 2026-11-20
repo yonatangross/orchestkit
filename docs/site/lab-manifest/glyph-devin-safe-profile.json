@@ -1,0 +1,11 @@
+{
+  "slug": "glyph-devin-safe-profile",
+  "source": "docs/feat--glyph-devin-safe-profile/index.html",
+  "title": "glyph devin-safe profile: same render, legible glyphs",
+  "description": "The Devin TUI renders the shade fills ▓▒░ as identical slabs and the waiting glyph ⏸ as a quote mark, so tokens.json gains a per-host profile mechanism: --profile devin-safe swaps fills to a pure-ASCII ramp (. : - = + * # @) and waiting to || while leaving box sets, arrows and emoji alone. This page renders a progress bar, sparkline and key-value rows under both vocabularies and simulates the defects it works around.",
+  "tags": [
+    "skills",
+    "glyph"
+  ],
+  "date": "2026-11-20"
+}
