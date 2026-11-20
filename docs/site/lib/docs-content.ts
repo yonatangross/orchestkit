@@ -11,7 +11,7 @@ import { source } from "@/lib/source";
 
 export function stripFrontmatter(raw: string): string {
 	// Remove a leading YAML frontmatter block (--- ... ---) if present.
-	const m = raw.match(/^---\n[\s\S]*?\n---\n?/);
+	const m = raw.match(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n)?/);
 	return m ? raw.slice(m[0].length) : raw;
 }
 

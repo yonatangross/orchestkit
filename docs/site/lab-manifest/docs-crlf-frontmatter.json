@@ -1,0 +1,8 @@
+{
+  "slug": "docs-crlf-frontmatter",
+  "source": "docs/fix--docs-crlf-frontmatter/index.html",
+  "title": "Docs Markdown, whatever the line endings",
+  "description": "Recorded /api/md output for one docs page saved with LF and with CRLF line endings, before and after the frontmatter fix.",
+  "tags": ["docs", "markdown", "agents"],
+  "date": "2026-11-20"
+}
