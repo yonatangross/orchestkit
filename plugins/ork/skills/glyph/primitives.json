@@ -85,6 +85,13 @@
     "status.diamond.filled":  "◆",
     "status.diamond.hollow":  "◇",
     "status.triangle.filled": "▶",
-    "status.triangle.hollow": "▷"
+    "status.triangle.hollow": "▷",
+
+    "fill.ascii.dot":   ".",
+    "fill.ascii.colon": ":",
+    "fill.ascii.eq":    "=",
+    "fill.ascii.star":  "*",
+    "fill.ascii.hash":  "#",
+    "fill.ascii.at":    "@"
   }
 }

@@ -3,10 +3,11 @@
 # Created: 2026-05-05
 
 # Render ASCII patterns from the design system tokens.
-# Usage: scripts/render-ascii.sh <pattern> [--set NAME] [--width N] [--label TEXT] [--values CSV]
+# Usage: scripts/render-ascii.sh <pattern> [--set NAME] [--profile NAME] [--width N] [--label TEXT] [--values CSV]
 # Patterns: box, progress-bar, sparkline, tree, key-value
 # Stubbed (returns 2): swimlane, comparison-table, blast-radius, reversibility-timeline, arrow-flow
 # Sets:     default, emphasis, title, soft, portable
+# Profiles: devin-safe (per-engine overrides in tokens.json profiles.*, applied over the set)
 #
 # key-value reads 5 or more `key|value` rows on stdin (or a built-in sample
 # when stdin is a TTY) and lays them out as a side-by-side key/value board,
@@ -24,6 +25,7 @@ command -v jq >/dev/null 2>&1 || { echo "jq required" >&2; exit 2; }
 PATTERN=""
 [ $# -gt 0 ] && { PATTERN="$1"; shift; }
 SET="default"
+PROFILE=""
 WIDTH=40
 WIDTH_PASSED=0
 MODE="auto"
@@ -33,6 +35,7 @@ VALUES=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --set)    SET="$2"; shift 2 ;;
+    --profile) PROFILE="$2"; shift 2 ;;
     --width)  WIDTH="$2"; WIDTH_PASSED=1; shift 2 ;;
     --mode)   MODE="$2"; shift 2 ;;
     --label)  LABEL="$2"; shift 2 ;;
@@ -51,6 +54,32 @@ H=$(g 'edge.h');     V=$(g 'edge.v')
 TEE_D=$(g 'junction.tee_d'); TEE_U=$(g 'junction.tee_u')
 TEE_R=$(g 'junction.tee_r'); TEE_L=$(g 'junction.tee_l')
 CROSS=$(g 'junction.cross')
+
+# Engine profile (tokens.json profiles.<name>): overrides fills and any
+# status icons the base vocabulary maps to engine-unsafe glyphs. Fills and
+# icon pairs are read once here; the render functions below consume them.
+PF_FULL="" PF_LOW="" PROFILE_ICONS=() PF_BARS=()
+if [ -n "$PROFILE" ]; then
+  jq -e --arg p "$PROFILE" '.profiles | objects | has($p)' "$TOKENS" >/dev/null \
+    || { echo "unknown profile: $PROFILE (no tokens.json profiles.$PROFILE)" >&2; exit 1; }
+  PF_FULL=$(jq -r --arg p "$PROFILE" '.profiles[$p].fills.full // empty' "$TOKENS")
+  PF_LOW=$(jq -r --arg p "$PROFILE" '.profiles[$p].fills.low // empty' "$TOKENS")
+  while IFS=$'\t' read -r base_icon prof_icon; do
+    PROFILE_ICONS+=("$base_icon" "$prof_icon")
+  done < <(jq -r --arg p "$PROFILE" '.icons.status as $b | (.profiles[$p].icons.status // {}) | to_entries[] | select($b[.key] != null) | [$b[.key], .value] | @tsv' "$TOKENS")
+  while IFS= read -r bar; do
+    PF_BARS+=("$bar")
+  done < <(jq -r --arg p "$PROFILE" '.profiles[$p].fills.bars[]?' "$TOKENS")
+fi
+
+apply_profile_icons() {
+  local s="$1" i
+  for ((i = 0; i < ${#PROFILE_ICONS[@]}; i += 2)); do
+    s="${s//${PROFILE_ICONS[i]}/${PROFILE_ICONS[i+1]}}"
+  done
+  printf '%s' "$s"
+}
+[ -n "$PROFILE" ] && LABEL=$(apply_profile_icons "$LABEL")
 
 repeat() { local s="$1" n="$2" out=""; while [ "$n" -gt 0 ]; do out="$out$s"; n=$((n-1)); done; printf '%s' "$out"; }
 
@@ -99,7 +128,9 @@ render_progress_bar() {
   local filled=$(( inner * pct / 100 ))
   local empty=$((inner - filled))
   local fill_char empty_char
-  if [ "$SET" = "portable" ]; then fill_char="#"; empty_char="-"; else fill_char="█"; empty_char="░"; fi
+  if [ -n "$PROFILE" ] && [ -n "$PF_FULL" ] && [ -n "$PF_LOW" ]; then
+    fill_char="$PF_FULL"; empty_char="$PF_LOW"
+  elif [ "$SET" = "portable" ]; then fill_char="#"; empty_char="-"; else fill_char="█"; empty_char="░"; fi
   printf '[%s%s] %d%%\n' "$(repeat "$fill_char" "$filled")" "$(repeat "$empty_char" "$empty")" "$pct"
 }
 
@@ -107,6 +138,7 @@ render_sparkline() {
   local vals="${VALUES:-1,2,3,4,5,6,7,8}"
   local bars=("▁" "▂" "▃" "▄" "▅" "▆" "▇" "█")
   [ "$SET" = "portable" ] && bars=("." "_" "-" "=" "+" "*" "#" "%")
+  [ ${#PF_BARS[@]} -eq 8 ] && bars=("${PF_BARS[@]}")
   local out=""
   IFS=',' read -ra arr <<< "$vals"
   local max=0 v
@@ -198,6 +230,10 @@ $input
 ROWS
   local n=${#keys[@]}
   [ "$n" -gt 0 ] || { echo "key-value: no rows on stdin (one key|value per line)" >&2; exit 1; }
+  if [ -n "$PROFILE" ]; then
+    local i
+    for ((i = 0; i < n; i++)); do vals[i]=$(apply_profile_icons "${vals[i]}"); done
+  fi
 
   # key-value caps at 72 columns by default (GH-4159); --width overrides.
   local kv_width=$WIDTH
