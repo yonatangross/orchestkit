@@ -41,6 +41,20 @@ useful signal in itself.
 5. **Test your changes** thoroughly
 6. **Submit a Pull Request** to the `main` branch
 
+### Docs-site setup
+
+From the repository root, install the docs-site dependencies with:
+
+```bash
+npm run setup --prefix docs/site
+```
+
+No token is required. This uses the same installer as CI and Vercel previews:
+if the private analytics package returns an authentication error, it installs
+the local no-op stub instead, preserving `package.json` and `package-lock.json`.
+With registry access, the real package is installed as usual. Vercel production
+still refuses the stub. Then run `npm run dev --prefix docs/site`.
+
 ### Your first pull request
 
 For a small first change, add a documentation scope example to the commit
