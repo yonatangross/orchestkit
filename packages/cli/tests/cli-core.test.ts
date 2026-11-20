@@ -1,3 +1,4 @@
+import { createServer } from "node:http";
 import { describe, expect, it } from "vitest";
 import {
 	HELP,
@@ -6,7 +7,7 @@ import {
 	run,
 } from "../src/cli-core.js";
 import { mcpConfig } from "../src/mcp-config.js";
-import { ApiError, createClient, readDoc, search } from "../src/api.js";
+import { ApiError, createClient, getJson, getMarkdown, readDoc, search } from "../src/api.js";
 
 // A stub origin: every command that touches the network is exercised against a
 // fetch stub, so the suite is hermetic and never depends on the live site.
@@ -129,6 +130,25 @@ describe("networked commands", () => {
 			restore();
 		}
 	});
+
+	it.each(["json", "markdown"] as const)("times out a stalled %s response body", async (format) => {
+		const server = createServer((_req, res) => {
+			res.writeHead(200, { "content-type": format === "json" ? "application/json" : "text/markdown" });
+			res.write(format === "json" ? '{"partial":' : "# Partial");
+		});
+		await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+		try {
+			const address = server.address();
+			if (!address || typeof address === "string") throw new Error("Expected TCP address");
+			const client = createClient({ baseUrl: `http://127.0.0.1:${address.port}`, timeoutMs: 100 });
+			const started = performance.now();
+			await expect(format === "json" ? getJson(client, "/") : getMarkdown(client, "/")).rejects.toMatchObject({ name: "AbortError" });
+			expect(performance.now() - started).toBeLessThan(1000);
+		} finally {
+			server.closeAllConnections();
+			await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+		}
+	}, 2000);
 
 	it("search formats hits and reports the remaining quota", async () => {
 		const restore = stubFetch(() =>
