@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quick lint, without the CI detour</title>
+<style>
+body{font:18px/1.6 system-ui,sans-serif;background:#101827;color:#edf2fa;max-width:850px;margin:4rem auto;padding:0 1.5rem}h1{line-height:1.15}button{font:inherit;padding:.6rem 1rem;border:1px solid #93c5fd;border-radius:.5rem;background:#233d61;color:white;cursor:pointer}table{width:100%;border-collapse:collapse;margin:2rem 0}th,td{text-align:left;padding:.7rem;border-bottom:1px solid #41516a}code{color:#93c5fd}#bar{height:24px;background:#60a5fa;min-width:3px}small{color:#bac7dc}a{color:#93c5fd}
+</style>
+</head>
+<body>
+<p>Developer workflow / measured locally</p>
+<h1>Quick lint, without the CI detour</h1>
+<p>The lint orchestrator includes CI Meta and index-generation tests. Pre-commit now calls static analysis directly. CI keeps the full suite.</p>
+<button id="toggle" type="button">Show main</button>
+<h2 id="result" aria-live="polite">Branch median: 1.452 seconds</h2>
+<div id="bar" style="width:2.8%" aria-hidden="true"></div>
+<table>
+<thead><tr><th>Check</th><th>Pre-commit now</th><th>CI</th></tr></thead>
+<tbody>
+<tr><td>Static analysis</td><td>Kept</td><td>Kept</td></tr>
+<tr><td>CI Meta</td><td>Deferred to CI</td><td>Full directory</td></tr>
+<tr><td>Indexes</td><td>Deferred to CI</td><td>Full directory</td></tr>
+<tr><td>Focused staged-path guards</td><td>Unchanged</td><td>Unchanged</td></tr>
+</tbody>
+</table>
+<h2>Timing evidence</h2>
+<p>Main: 51.039, 51.896, 65.068 seconds. Branch: 1.546, 1.452, 1.423 seconds. Median reduction: 97.2%.</p>
+<p><small>Three sequential real hook invocations per revision, same checkout and staged text probe under src/hooks/. Python monotonic wall clock, output captured to files. No hook bypass or suite stubbing. Warm filesystem caches. These are measurements, not a simulated execution.</small></p>
+<p>Individual suite timings: static analysis 1.247s, CI Meta 44.123s, indexes 5.382s. All exited 0.</p>
+<p>Coverage: <code>.github/workflows/ci.yml:348</code> runs static analysis; <code>:970</code> runs the full orchestrator, including CI Meta and indexes. Pre-push coverage is unchanged.</p>
+<p>Try locally: <code>bash bin/git-hooks/pre-commit</code> with affected files staged.</p>
+<script>
+let main=false;
+document.getElementById('toggle').addEventListener('click',()=>{
+  main=!main;
+  document.getElementById('result').textContent=main?'Main median: 51.896 seconds':'Branch median: 1.452 seconds';
+  document.getElementById('bar').style.width=main?'100%':'2.8%';
+  document.getElementById('toggle').textContent=main?'Show branch':'Show main';
+});
+</script>
+</body>
+</html>

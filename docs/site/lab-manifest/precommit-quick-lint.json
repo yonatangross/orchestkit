@@ -1,0 +1,8 @@
+{
+  "slug": "precommit-quick-lint",
+  "source": "docs/perf--precommit-quick-lint/index.html",
+  "title": "Quick lint without the CI detour",
+  "description": "Measured pre-commit latency before and after deferring CI Meta and index-generation tests to CI, while retaining static analysis.",
+  "tags": ["performance", "git-hooks", "ci"],
+  "date": "2026-11-20"
+}
