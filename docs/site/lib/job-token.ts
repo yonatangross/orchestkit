@@ -15,8 +15,9 @@ export type JobSpec = {
 	paths: string[];
 };
 
-export function encodeJobToken(spec: JobSpec): string {
-	return Buffer.from(JSON.stringify(spec), "utf8").toString("base64url");
+export function encodeJobToken(spec: JobSpec): string | null {
+	const token = Buffer.from(JSON.stringify(spec), "utf8").toString("base64url");
+	return token.length <= MAX_TOKEN_CHARS ? token : null;
 }
 
 export function decodeJobToken(token: string): JobSpec | null {
