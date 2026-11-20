@@ -113,11 +113,9 @@ describe("offline commands", () => {
 describe("networked commands", () => {
 	it("search formats hits and reports the remaining quota", async () => {
 		const restore = stubFetch(() =>
-			jsonResponse({
-				results: [
-					{ id: "1", url: "/docs/foundations/overview", title: "Overview" },
-				],
-			}),
+			jsonResponse([
+				{ id: "1", url: "/docs/foundations/overview", title: "Overview" },
+			]),
 		);
 		try {
 			const res = await run(["search", "overview", "--base-url", "https://example.test"], {
@@ -132,10 +130,23 @@ describe("networked commands", () => {
 	});
 
 	it("--json emits the raw array so scripts can pipe it", async () => {
-		const restore = stubFetch(() => jsonResponse({ results: [{ id: "1", url: "/x" }] }));
+		const restore = stubFetch(() => jsonResponse([{ id: "1", url: "/x" }]));
 		try {
 			const res = await run(["search", "x", "--json"], { version: "1.2.3" });
 			expect(JSON.parse(res.stdout)).toEqual([{ id: "1", url: "/x" }]);
+		} finally {
+			restore();
+		}
+	});
+
+	it("search reports no matches for an empty array", async () => {
+		const restore = stubFetch(() => jsonResponse([]));
+		try {
+			const res = await run(["search", "missing"], { version: "1.2.3" });
+			expect(res.exitCode).toBe(0);
+			expect(res.stdout).toBe(
+				"No matches. Try a broader query, or browse https://orchestkit.dev/llms.txt\n",
+			);
 		} finally {
 			restore();
 		}
@@ -192,7 +203,7 @@ describe("networked commands", () => {
 	});
 
 	it("search() reads the IETF RateLimit headers off the response", async () => {
-		const restore = stubFetch(() => jsonResponse({ results: [] }));
+		const restore = stubFetch(() => jsonResponse([]));
 		try {
 			const { rateLimit } = await search(
 				createClient({ baseUrl: "https://example.test" }),

@@ -1,0 +1,8 @@
+{
+  "slug": "cli-search-array-response",
+  "source": "docs/fix--cli-search-array-response/search-array-response.html",
+  "title": "CLI search: the array was already there",
+  "description": "Compare the broken object-property consumer with the fixed array consumer, alongside captured real CLI output.",
+  "tags": ["cli", "search", "testing"],
+  "date": "2026-11-20"
+}

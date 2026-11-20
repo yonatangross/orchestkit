@@ -145,11 +145,11 @@ export async function search(
 	limit: number,
 ): Promise<{ results: SearchHit[]; rateLimit: RateLimit }> {
 	const qs = new URLSearchParams({ query, limit: String(limit) });
-	const { data, rateLimit } = await getJson<{ results?: SearchHit[] }>(
+	const { data, rateLimit } = await getJson<SearchHit[]>(
 		client,
 		`/api/search?${qs}`,
 	);
-	return { results: data.results ?? [], rateLimit };
+	return { results: data, rateLimit };
 }
 
 export async function ask(
