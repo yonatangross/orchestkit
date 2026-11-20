@@ -196,8 +196,10 @@ These prompts are being matched INCORRECTLY:
 $failures
 
 Rules:
-- The description must be under 200 words
+- The description + when_to_use must total at most 260 bytes (parsed UTF-8 values), per Test 4b in tests/performance/test-token-overhead.sh
+- Keep the listing total within the down-only ceiling in tests/performance/skill-listing-ratchet.txt
 - Include WHAT the skill does AND WHEN to use it
+- Include a negative boundary (Do NOT use for...) to prevent false triggers
 - Write in third person (\"Use when...\", not \"I will...\")
 - Be specific about trigger keywords users might type
 - Don't add capabilities the skill doesn't have
