@@ -94,11 +94,12 @@ export function createClient(overrides: Partial<Client> = {}): Client {
 	};
 }
 
-async function request(
+async function request<T>(
 	client: Client,
 	path: string,
 	accept: string,
-): Promise<Response> {
+	readBody: (res: Response) => Promise<T>,
+): Promise<T> {
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), client.timeoutMs);
 	try {
@@ -106,7 +107,7 @@ async function request(
 			headers: { Accept: accept, "User-Agent": "orchestkit-cli" },
 			signal: controller.signal,
 		});
-		if (res.ok) return res;
+		if (res.ok) return await readBody(res);
 
 		const retryAfter = intHeader(res, "retry-after");
 		let problem: Problem = { status: res.status, title: res.statusText };
@@ -127,16 +128,20 @@ export async function getJson<T>(
 	client: Client,
 	path: string,
 ): Promise<{ data: T; rateLimit: RateLimit }> {
-	const res = await request(client, path, "application/json");
-	return { data: (await res.json()) as T, rateLimit: readRateLimit(res) };
+	return request(client, path, "application/json", async (res) => ({
+		data: (await res.json()) as T,
+		rateLimit: readRateLimit(res),
+	}));
 }
 
 export async function getMarkdown(
 	client: Client,
 	path: string,
 ): Promise<{ text: string; rateLimit: RateLimit }> {
-	const res = await request(client, path, "text/markdown");
-	return { text: await res.text(), rateLimit: readRateLimit(res) };
+	return request(client, path, "text/markdown", async (res) => ({
+		text: await res.text(),
+		rateLimit: readRateLimit(res),
+	}));
 }
 
 export async function search(
