@@ -166,6 +166,6 @@ tests/ci/test-fault-arms.sh                       Fault arms: 9 passed, 0 failed
 tests/ci/test-workflow-step-fault-arms.sh         Results: 26 passed, 0 failed
 ```
 
-Real-repo controls after the fixes: `bin/validate-counts.sh` "Validation PASSED", `bin/sync-skills.sh validate` and `--check-orphans` OK, `tests/ci/lint.sh` "6 passed, 0 failed, 0 warnings", `scripts/check-workflow-gates.sh` "All workflow gate labels exist.", `tests/indexes/test-index-generation.sh` SUCCESS, `actionlint` clean on the five edited workflows. The `npm test --quick` summary line is in the PR body.
+Real-repo controls after the fixes: `bin/validate-counts.sh` "Validation PASSED", `bin/sync-skills.sh validate` and `--check-orphans` OK, `tests/ci/lint.sh` "6 passed, 0 failed, 0 warnings", `scripts/check-workflow-gates.sh` "All workflow gate labels exist.", `tests/indexes/test-index-generation.sh` SUCCESS, `actionlint` clean on the five edited workflows. The `npm test -- --quick` summary line is in the PR body.
 
 Probe scripts and raw batch results: `$TMPDIR/gate-audit/{probes,results}` on the lane machine (not committed; the shipped probes under `tests/*/fault-arms/` are the same scripts with env-resolved roots).
