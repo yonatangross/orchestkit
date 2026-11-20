@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core ork and ork-extras skill counts, before and after</title>
+<meta name="description" content="Pick a host and an install and compare the skill count the docs showed before and after splitting core ork from the opt-in ork-extras plugin.">
+<style>
+  :root{--bg:#0f1117;--panel:#161922;--edge:#272b38;--ink:#e8eaf2;--dim:#9aa3b8;--ok:#4ade80;--bad:#f87171;--accent:#7dd3fc;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font-family:var(--mono);line-height:1.6}
+  main{max-width:56rem;margin-inline:auto}
+  h1{font-size:1.35rem;margin:0 0 .3rem}
+  .sub{color:var(--dim);margin:0 0 2rem;font-size:.85rem}
+  section{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:1.2rem 1.4rem;margin-block:1.1rem}
+  h2{font-size:.9rem;margin:0 0 .9rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  label{display:block;color:var(--dim);font-size:.8rem;margin-top:.6rem}
+  select{width:100%;background:#0b0d13;color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:.35rem .5rem;font-family:inherit}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .out{padding:.6rem .8rem;background:#0b0d13;border:1px solid var(--edge);border-radius:6px;font-size:.8rem;min-height:5rem}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  h3{font-size:.75rem;margin:0 0 .3rem;color:var(--dim);font-weight:400}
+  .big{font-size:1.1rem;color:var(--ink);display:block;margin-bottom:.3rem}
+</style>
+</head>
+<body><main>
+<h1>Core ork and ork-extras skill counts, before and after</h1>
+<p class="sub">Branch fix/compat-core-vs-extras-skills, 2026-11-20. Core ork ships 82 skills and the opt-in ork-extras plugin ships 33, but the docs showed 115 as what one install gives.</p>
+<section><h2>Pick a case</h2>
+<label for="host">Host</label>
+<select id="host"></select>
+<label for="install">What you installed</label>
+<select id="install">
+  <option value="core">ork only</option>
+  <option value="both">ork and ork-extras</option>
+</select>
+<div class="grid">
+  <div><h3>Before: the compat table said</h3><div class="out bad" id="before"></div></div>
+  <div><h3>Now: the compat table says</h3><div class="out ok" id="after"></div></div>
+</div>
+</section>
+<script>
+const CORE = 82, EXTRAS = 33;
+const HOSTS = [
+  { name: 'Claude Code', split: true },
+  { name: 'Cursor', split: true },
+  { name: 'Devin', split: false, skills: 82 },
+  { name: 'Pi', split: false, skills: 82 },
+  { name: 'OpenCode', split: false, skills: 12 },
+];
+const host = document.getElementById('host');
+const install = document.getElementById('install');
+host.replaceChildren(...HOSTS.map((h, i) => new Option(h.name, String(i))));
+function show() {
+  const h = HOSTS[Number(host.value)];
+  const both = install.value === 'both';
+  install.disabled = !h.split;
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  if (!h.split) {
+    before.innerHTML = '<span class="big">' + h.skills + '</span>No ork-extras plugin on this host.';
+    after.innerHTML = '<span class="big">' + h.skills + '</span>Unchanged.';
+    return;
+  }
+  const got = both ? CORE + EXTRAS : CORE;
+  before.innerHTML = '<span class="big">' + (CORE + EXTRAS) + '</span>' +
+    (both ? 'Right total, but it read as one install.' : 'You have ' + got + '. The table promised ' + (CORE + EXTRAS) + '.');
+  after.innerHTML = '<span class="big">' + CORE + ' + ' + EXTRAS + ' ork-extras</span>' +
+    'You have ' + got + (both ? ': core plus the opt-in plugin.' : '. Add the other ' + EXTRAS + ' with /plugin install ork-extras@orchestkit.');
+}
+host.addEventListener('change', show);
+install.addEventListener('change', show);
+show();
+</script>
+</main></body>
+</html>

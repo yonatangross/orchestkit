@@ -128,7 +128,7 @@ export const DOCS_SEARCH_INDEX: DocSearchEntry[] = [
   {
     "url": "/docs/foundations/choosing-a-plugin",
     "title": "Plugin Architecture",
-    "description": "OrchestKit ships as one unified plugin: everything loads on-demand with zero overhead."
+    "description": "OrchestKit ships as core ork plus the opt-in ork-extras reference skills: everything loads on-demand with zero overhead."
   },
   {
     "url": "/docs/foundations",
