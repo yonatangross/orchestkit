@@ -7274,6 +7274,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Render anatomy (the v3 reference shape)",
       "Box-Drawing Character Reference",
       "Set Conventions (D8: intent-driven naming)",
+      "Engine profiles",
       "Status Glyph Vocabulary",
       "Diagram Patterns",
       "Architecture Diagrams",
