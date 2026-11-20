@@ -43,6 +43,39 @@ describe('getCachedBranch — .git/HEAD parsing (#2948)', () => {
     expect(getCachedBranch(dir)).toBe('release/v8.77.1');
   });
 
+  it('reads the branch from a nested repository subdirectory', () => {
+    layoutRegularRepo('fix/subdirectory');
+    const nested = join(dir, 'src', 'nested');
+    mkdirSync(nested, { recursive: true });
+    expect(getCachedBranch(nested)).toBe('fix/subdirectory');
+  });
+
+  it('resolves relative gitdir pointers from the ancestor containing .git', () => {
+    const gitdir = join(dir, 'metadata');
+    mkdirSync(gitdir);
+    writeFileSync(join(gitdir, 'HEAD'), 'ref: refs/heads/fix/worktree\n');
+    const nested = join(dir, 'worktree', 'src', 'nested');
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(join(dir, 'worktree', '.git'), 'gitdir: ../metadata\n');
+    expect(getCachedBranch(nested)).toBe('fix/worktree');
+  });
+
+  it('keeps detached HEAD empty when reading from a subdirectory', () => {
+    layoutRegularRepo('main');
+    writeFileSync(join(dir, '.git', 'HEAD'), 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678\n');
+    const nested = join(dir, 'src');
+    mkdirSync(nested);
+    expect(getCachedBranch(nested)).toBe('');
+  });
+
+  it('does not fall back to a parent repo when the nearest .git is malformed', () => {
+    layoutRegularRepo('main');
+    const nested = join(dir, 'nested');
+    mkdirSync(nested);
+    writeFileSync(join(nested, '.git'), 'invalid pointer\n');
+    expect(getCachedBranch(nested)).toBe('unknown');
+  });
+
   it('follows a linked-worktree .git POINTER FILE to its gitdir', () => {
     // Worktree layout: <dir>/.git is a FILE containing "gitdir: <path>".
     const gitdir = join(dir, 'main-repo', '.git', 'worktrees', 'wt1');
