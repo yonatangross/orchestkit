@@ -5338,7 +5338,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scripts": [
         "analyze-impact.sh",
         "detect-plan-context.sh",
-        "find-living-plan.sh"
+        "find-living-plan.sh",
+        "resolve-base.sh"
       ]
     },
     "plugins": [

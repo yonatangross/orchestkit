@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>visualize-plan: count your branch, not the commits main never pulled</title>
+<meta name="description" content="Toggle before and after: with local main 40 commits behind origin, visualize-plan reported 41 commits and 842 files for a one-file branch. It now measures against origin/main.">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap;margin:8px 0}
+.dim{color:#8b93a1}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#58606e;margin:14px 0 4px}
+</style></head><body><main>
+<h1>visualize-plan: count your branch, not the commits main never pulled</h1>
+<p>A worktree rarely pulls its local <code>main</code>. <code>detect-plan-context.sh</code> and <code>analyze-impact.sh</code> diffed against that local branch, so every commit origin gained since then landed in your plan. Both now resolve the base through <code>resolve-base.sh</code>: <code>origin/main</code> first, the local branch when there is no remote, the remote default branch when there is no main, and the dev ref when the branch was cut from dev (#5194).</p>
+<div class="card">
+<fieldset>version
+<label><input type="radio" name="v" value="old"> before</label>
+<label><input type="radio" name="v" value="new" checked> this change</label>
+</fieldset>
+<h2>real run: one-file branch, local main 40 commits behind origin/main</h2>
+<div class="term" id="out"></div>
+<p id="note" class="dim"></p>
+</div>
+</main>
+<script>
+const RUNS={
+  old:{out:'Branch: feat/probe\nBase: main\nCommits: 41\nFiles: 842 (188 added, 642 modified, 12 deleted)\nLines: +31164 -12640',note:'40 of the 41 commits and 841 of the 842 files are upstream work.'},
+  new:{out:'Branch: feat/probe\nBase: origin/main\nCommits: 1\nFiles: 1 (1 added, 0 modified, 0 deleted)\nLines: +1 -0',note:'Only the branch\'s own commit and file.'}
+};
+function run(){
+  const r=RUNS[document.querySelector('input[name=v]:checked').value];
+  document.getElementById('out').textContent=r.out;
+  document.getElementById('note').textContent=r.note;
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+</body></html>
