@@ -1,0 +1,8 @@
+{
+  "slug": "install-git-hooks-shared-path",
+  "source": "docs/fix--install-git-hooks-shared-path/index.html",
+  "title": "Hook paths without broken links",
+  "description": "Real self-symlink and dangling-hook failures replaced by checkout-local core.hooksPath configuration, without modifying tracked hooks or global hook directories.",
+  "tags": ["git", "hooks", "worktree"],
+  "date": "2026-11-20"
+}
