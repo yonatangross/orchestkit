@@ -30,7 +30,10 @@ resolve_base_ref() {
   if dev=$(_plan_base_tracking_ref dev); then
     main_fork=$(git merge-base HEAD "${base}" 2>/dev/null || true)
     dev_fork=$(git merge-base HEAD "${dev}" 2>/dev/null || true)
-    if [ -n "${dev_fork}" ] && [ "${dev_fork}" != "${main_fork}" ]; then
+    # dev wins only when the branch left dev after it left main; a dev that
+    # main has moved past would otherwise pull main's newer commits in.
+    if [ -n "${dev_fork}" ] && [ "${dev_fork}" != "${main_fork}" ] &&
+      { [ -z "${main_fork}" ] || git merge-base --is-ancestor "${main_fork}" "${dev_fork}"; }; then
       base="${dev}"
     fi
   fi

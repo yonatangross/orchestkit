@@ -81,6 +81,17 @@ out="$(bash "${DETECT}")"
 expect_line "dev branch" "${out}" "Base: origin/dev"
 expect_line "dev branch" "${out}" "Commits: 1"
 
+# A dev that main has already moved past does not claim a branch cut from main.
+new_clone behind main
+git push -q origin main:dev
+commit_files up1 up2
+git push -q origin main
+git checkout -q -b feat/on-main origin/main
+commit_files mine1
+out="$(bash "${DETECT}")"
+expect_line "dev behind main" "${out}" "Base: origin/main"
+expect_line "dev behind main" "${out}" "Commits: 1"
+
 # No remote: the local main is all there is.
 git init -q --initial-branch=main "${WORK}/local"
 cd "${WORK}/local"
