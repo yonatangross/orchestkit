@@ -21,7 +21,21 @@
  */
 
 import { readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+
+function findGitEntry(start: string) {
+  let repoDir = resolve(start);
+  for (;;) {
+    try {
+      return { repoDir, stat: statSync(join(repoDir, '.git')) };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      const parent = dirname(repoDir);
+      if (parent === repoDir) throw error;
+      repoDir = parent;
+    }
+  }
+}
 
 /**
  * Read the current branch by parsing `.git/HEAD`.
@@ -39,12 +53,13 @@ import { join, resolve } from 'node:path';
  * `gitdir: <path>` rather than a directory.
  */
 export function readBranchFromHead(dir: string): string {
-  let gitDir = join(dir, '.git');
-  if (statSync(gitDir).isFile()) {
+  const { repoDir, stat } = findGitEntry(dir);
+  let gitDir = join(repoDir, '.git');
+  if (stat.isFile()) {
     const pointer = readFileSync(gitDir, 'utf8');
     const m = pointer.match(/^gitdir:\s*(.+)\s*$/m);
     if (!m) throw new Error('malformed .git pointer file');
-    gitDir = resolve(dir, m[1].trim());
+    gitDir = resolve(repoDir, m[1].trim());
   }
   const head = readFileSync(join(gitDir, 'HEAD'), 'utf8').trim();
   const ref = head.match(/^ref:\s*refs\/heads\/(.+)$/);
