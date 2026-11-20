@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Git hooks, in every checkout</title>
+<meta name="description" content="Recorded installer output before and after resolving Git's hooks directory in linked worktrees.">
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#f7f6f2;color:#202b35;font:16px/1.6 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:48px 24px}header{max-width:760px}.eyebrow{color:#456658;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.04em;line-height:1.1;margin:16px 0}p{color:#53606a}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{overflow-wrap:anywhere;font-size:.9em}.controls{display:flex;gap:8px;margin:28px 0 12px}button{font:inherit;font-weight:600;border:1px solid #a7b1ac;border-radius:8px;padding:10px 24px;color:#243b32;background:transparent;cursor:pointer}button[aria-pressed="true"]{background:#243b32;color:white;border-color:#243b32}button:focus-visible{outline:3px solid #3574a8;outline-offset:3px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}article{background:white;border:1px solid #d7ddd9;border-radius:12px;overflow:hidden}h2{font-size:18px;margin:0}.card-head{padding:18px 20px;border-bottom:1px solid #d7ddd9;display:flex;justify-content:space-between;gap:10px;align-items:center}.status{font-size:12px;font-weight:700;white-space:nowrap;padding:3px 9px;border-radius:20px;background:#e8f3ec;color:#245235}.status.bad{background:#fce9e6;color:#973425}pre{margin:0;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8;min-height:300px;color:#203a31}.note{font-size:13px;margin-top:20px}footer{margin-top:28px;border-top:1px solid #d7ddd9;padding-top:20px;font-size:14px}#summary{min-height:52px;margin:0} @media(max-width:650px){main{padding:28px 16px}.grid{grid-template-columns:1fr}pre{min-height:0;padding:16px}.card-head{padding:14px 16px}h2{font-size:16px}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Git hooks, in every checkout"><meta property="og:description" content="Recorded before and after installer output for linked worktrees and normal clones, with Git-resolved hooks paths and core.hooksPath support."><meta property="og:url" content="https://orchestkit.dev/lab/install-git-hooks-worktree.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Git hooks, in every checkout"><meta name="twitter:description" content="Recorded before and after installer output for linked worktrees and normal clones, with Git-resolved hooks paths and core.hooksPath support."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Installer regression / linked worktrees</div>
+    <h1>Git hooks, in every checkout.</h1>
+    <p>A linked worktree has a <code>.git</code> pointer file, not a directory. Installing into a hardcoded <code>.git/hooks</code> path fails. Let Git resolve the destination instead.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Installer version">
+    <button type="button" id="before" aria-pressed="true">Before</button>
+    <button type="button" id="after" aria-pressed="false">After</button>
+  </div>
+  <p id="summary" aria-live="polite">Before: the linked worktree exits 1. Normal checkouts already work.</p>
+  <div class="grid">
+    <article aria-labelledby="worktree-title">
+      <div class="card-head"><h2 id="worktree-title">Linked worktree</h2><span id="worktree-status" class="status bad">Exit 1</span></div>
+      <pre id="worktree-output">Installing git hooks...
+ln: failed to access '/tmp/wt-before/.git/hooks/commit-msg': Not a directory</pre>
+    </article>
+    <article aria-labelledby="clone-title">
+      <div class="card-head"><h2 id="clone-title">Normal clone</h2><span class="status">Exit 0</span></div>
+      <pre id="clone-output">Installing git hooks...
+  ✓ Installed commit-msg
+  ✓ Installed plugins-src-guard.sh
+  ✓ Installed pre-commit
+  ✓ Installed pre-push
+  ✓ Installed release-dist-paths.sh
+
+Git hooks installed successfully!
+Hooks mirror CI checks - fail fast locally.</pre>
+    </article>
+  </div>
+  <p class="note">Static evidence, not a live shell. Worktree output is from the real before/after runs. The normal-clone output is from the real after-run; the regression test also passed on a normal checkout before the fix.</p>
+  <footer><strong>The fix:</strong> <code>git rev-parse --path-format=absolute --git-path hooks</code>, then <code>mkdir -p</code>. Git also resolves relative and absolute <code>core.hooksPath</code> settings. Isolated regression coverage checks all five cases, including a missing hooks directory.</footer>
+</main>
+<script>
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  const output = document.getElementById('worktree-output');
+  const status = document.getElementById('worktree-status');
+  const summary = document.getElementById('summary');
+  const failure = output.textContent;
+  const success = document.getElementById('clone-output').textContent;
+  function show(fixed) {
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    output.textContent = fixed ? success : failure;
+    status.textContent = fixed ? 'Exit 0' : 'Exit 1';
+    status.classList.toggle('bad', !fixed);
+    summary.textContent = fixed ? 'After: both installers exit 0. Git resolves the hooks directory, including core.hooksPath.' : 'Before: the linked worktree exits 1. Normal checkouts already work.';
+  }
+  before.addEventListener('click', () => show(false));
+  after.addEventListener('click', () => show(true));
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
