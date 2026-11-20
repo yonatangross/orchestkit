@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'">
+<title>A broken snapshot is not a win</title>
+<meta name="description" content="perf-compare.sh now rejects a snapshot it cannot read with exit 2 and the file name, instead of scoring it as zero tokens and reporting an improvement.">
+<style>
+:root{color-scheme:dark;--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#b5a7ce;--accent:#c084fc;--ok:#86efac;--bad:#fca5a5}
+*{box-sizing:border-box}body{margin:0 auto;padding:40px 24px;max-width:1050px;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}h1{font-size:clamp(28px,5vw,46px);line-height:1.15;margin:12px 0}h2{font-size:18px;margin:0 0 12px}.eyebrow{color:var(--accent);font:12px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.lede{color:var(--muted);max-width:76ch}section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:20px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--border)}th{color:var(--muted);font-size:12px;text-transform:uppercase}code,pre{font-family:ui-monospace,monospace}code{font-size:.9em}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#0a0712;padding:14px;border:1px solid var(--border);border-radius:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.note{font-size:13px;color:var(--muted)}@media(max-width:700px){.grid{grid-template-columns:1fr}body{padding:24px 16px}}
+</style>
+</head>
+<body>
+<header><span class="eyebrow">OrchestKit / Perf snapshot regression evidence</span><h1>A broken snapshot is not a win</h1><p class="lede"><code>scripts/perf-compare.sh</code> compares two perf snapshots and exits 1 on a token regression. When a snapshot failed to parse, it used to read as zero tokens, so a truncated after-snapshot looked like a 100% improvement and passed. It now stops with an input error that names the file.</p></header>
+<section><h2>Same snapshots, before and after</h2><table><thead><tr><th>Input</th><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><td>valid before, truncated after (<code>{truncated</code>)</td><td class="bad"><code>-100 tokens (-100%) IMPROVEMENT</code>, exit 0</td><td class="ok"><code>Error: snapshot is not valid JSON: after.json</code>, exit 2</td></tr>
+<tr><td>truncated before, valid after</td><td class="bad"><code>+100 tokens (+0%) REGRESSION</code>, exit 1</td><td class="ok">input error naming the file, exit 2</td></tr>
+<tr><td>empty, <code>null</code> or array snapshot</td><td class="bad">read as 0 tokens, IMPROVEMENT, exit 0</td><td class="ok">input error naming the file, exit 2</td></tr>
+<tr><td>valid 100 to 101 tokens</td><td><code>REGRESSION</code>, exit 1</td><td class="ok"><code>REGRESSION</code>, exit 1</td></tr>
+<tr><td>valid 100 to 0 tokens</td><td><code>IMPROVEMENT</code>, exit 0</td><td class="ok"><code>IMPROVEMENT</code>, exit 0</td></tr>
+</tbody></table><p class="note">Recorded from real runs of the script on main and on the fix branch against the same fixture files.</p></section>
+<section><h2>Recorded output</h2><div class="grid"><div><h2 class="bad">Before</h2><pre>Total before:      100 tokens
+Total after:         0 tokens
+Delta:            -100 tokens  (-100%)  IMPROVEMENT
+Hooks before/after:  2 -&gt; 0
+exit=0</pre></div><div><h2 class="ok">After</h2><pre>Error: snapshot is not valid JSON: after.json (Expected property name or '}' in JSON at position 1 (line 1 column 2))
+exit=2</pre></div></div></section>
+<section><h2>Root cause and fix</h2><p class="lede"><code>read_scalars</code> ran <code>JSON.parse</code> with stderr discarded and fell back to <code>echo "0|0|unknown"</code>, so any parse failure became a zero-token snapshot. The reader now reports the file and exits 2 when the snapshot is not valid JSON, not an object, or has a token or hook count that is not a non-negative integer. Missing fields still read as 0, as before.</p><pre>Before fix: 8 failed, 4 passed (tests/unit/test-perf-compare.sh)
+After fix:  12 passed</pre></section>
+</body>
+</html>

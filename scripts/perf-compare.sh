@@ -7,7 +7,7 @@
 # Exit codes:
 #   0 — no regression (after ≤ before total tokens)
 #   1 — regression detected (after > before total tokens)
-#   2 — usage error / file not found
+#   2 — usage error / file not found / snapshot not readable
 
 set -euo pipefail
 
@@ -24,15 +24,33 @@ if [[ ! -f "$AFTER"  ]]; then echo "Error: after file not found: $AFTER"   >&2; 
 
 # ── Safe extraction via node with file path argument (no shell injection) ──────
 # node -e receives no user data inline; file paths are passed via process.argv
+# A snapshot that cannot be read is an input error, never a zero-token snapshot.
 read_scalars() {
   node -e "
-    const d = JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'));
+    const file = process.argv[1];
+    let d;
+    try {
+      d = JSON.parse(require('fs').readFileSync(file, 'utf8'));
+    } catch (err) {
+      console.error('Error: snapshot is not valid JSON: ' + file + ' (' + err.message + ')');
+      process.exit(2);
+    }
+    if (d === null || typeof d !== 'object' || Array.isArray(d)) {
+      console.error('Error: snapshot is not a JSON object: ' + file);
+      process.exit(2);
+    }
+    for (const key of ['totalTokensInjected', 'hookCount']) {
+      if (d[key] !== undefined && !(Number.isSafeInteger(d[key]) && d[key] >= 0)) {
+        console.error('Error: snapshot ' + key + ' is not a non-negative integer: ' + file);
+        process.exit(2);
+      }
+    }
     process.stdout.write([
       d.totalTokensInjected ?? 0,
       d.hookCount ?? 0,
       d.bucket ?? 'unknown'
     ].join('|'));
-  " -- "$1" 2>/dev/null || echo "0|0|unknown"
+  " -- "$1"
 }
 
 # Write per-category report using file paths — no inline JSON interpolation
@@ -59,8 +77,10 @@ print_category_breakdown() {
   " -- "$BEFORE" "$AFTER" 2>/dev/null || true
 }
 
-IFS='|' read -r B_TOKENS B_HOOKS B_BUCKET <<< "$(read_scalars "$BEFORE")"
-IFS='|' read -r A_TOKENS A_HOOKS A_BUCKET <<< "$(read_scalars "$AFTER")"
+B_SCALARS="$(read_scalars "$BEFORE")" || exit 2
+A_SCALARS="$(read_scalars "$AFTER")" || exit 2
+IFS='|' read -r B_TOKENS B_HOOKS B_BUCKET <<< "$B_SCALARS"
+IFS='|' read -r A_TOKENS A_HOOKS A_BUCKET <<< "$A_SCALARS"
 
 DELTA=$(( A_TOKENS - B_TOKENS ))
 PCT=0
