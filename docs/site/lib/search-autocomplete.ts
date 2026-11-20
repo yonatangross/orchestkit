@@ -15,6 +15,7 @@
 // the same query is still on screen.
 
 import { osaDistance } from "@/lib/search-suggest";
+import GithubSlugger, { slug } from "github-slugger";
 
 export type SuggestEntry = {
 	url: string;
@@ -38,13 +39,9 @@ function words(s: string): string[] {
 		.filter(Boolean);
 }
 
-/** github-slugger-style heading anchor (matches rehype-slug output). */
+/** Same slug algorithm as Fumadocs remark-heading. */
 export function anchorFor(heading: string): string {
-	return heading
-		.toLowerCase()
-		.replace(/[^\p{L}\p{N}\s-]/gu, "")
-		.trim()
-		.replace(/\s+/g, "-");
+	return slug(heading);
 }
 
 /** Every query token must prefix-match a word of `text`. */
@@ -142,7 +139,17 @@ export function suggestCompletions(
 		);
 
 	return scored.slice(0, max).map(({ entry, via, heading }) => {
-		const anchor = via === "heading" && heading ? `#${anchorFor(heading)}` : "";
+		let anchor = "";
+		if (via === "heading" && heading) {
+			const slugger = new GithubSlugger();
+			for (const text of entry.headings) {
+				const id = slugger.slug(text);
+				if (text === heading) {
+					anchor = `#${id}`;
+					break;
+				}
+			}
+		}
 		return {
 			url: `${entry.url}${anchor}`,
 			title: entry.title,

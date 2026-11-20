@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import GithubSlugger from "github-slugger";
+import { SEARCH_SUGGEST_INDEX } from "@/lib/generated/search-suggest-index";
 import {
 	anchorFor,
 	suggestCompletions,
@@ -80,6 +82,29 @@ describe("suggestCompletions", () => {
 });
 
 describe("anchorFor", () => {
+	it.each(["Bulk Entity Deletion (mcp__memory__delete_entities)", "Café & 東京", "foo.bar / baz", "Hello  world"])("matches heading ids for %s", (heading) => {
+		expect(anchorFor(heading)).toBe(new GithubSlugger().slug(heading));
+	});
+
+	it("links a real docs heading to its rendered id", () => {
+		const page = SEARCH_SUGGEST_INDEX.find((entry) => entry.url === "/docs/hooks/overview")!;
+		const heading = "SubagentStart / SubagentStop";
+		expect(page.headings).toContain(heading);
+		expect(suggestCompletions("subagentstart", [page])[0].url).toBe(`${page.url}#subagentstart--subagentstop`);
+	});
+
+	it("preserves inline code in the autocomplete index and heading href", () => {
+		const page = SEARCH_SUGGEST_INDEX.find((entry) => entry.url === "/docs/hooks/spotlights/memory-validator")!;
+		expect(page.headings).toContain("Bulk Entity Deletion (mcp__memory__delete_entities)");
+		expect(suggestCompletions("bulk entity", [page])[0].url).toBe(`${page.url}#bulk-entity-deletion-mcp__memory__delete_entities`);
+	});
+
+	it("deduplicates preceding heading slugs independently per call", () => {
+		const page = { url: "/docs/example", title: "Example", headings: ["Repeat", "Repeat!", "Repeat?"] };
+		expect(suggestCompletions("repeat?", [page])[0].url).toBe("/docs/example#repeat-2");
+		expect(suggestCompletions("repeat!", [page])[0].url).toBe("/docs/example#repeat-1");
+		expect(suggestCompletions("repeat?", [page])[0].url).toBe("/docs/example#repeat-2");
+	});
 	it("slugifies like github-slugger", () => {
 		expect(anchorFor("Blocking decisions")).toBe("blocking-decisions");
 		expect(anchorFor("What's new?")).toBe("whats-new");
