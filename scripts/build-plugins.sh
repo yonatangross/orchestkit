@@ -834,11 +834,10 @@ echo ""
 # ============================================================================
 echo -e "${BLUE}[8/10] Regenerating docs reference pages...${NC}"
 
-if [[ -x "$SCRIPT_DIR/build-docs.sh" ]]; then
-    bash "$SCRIPT_DIR/build-docs.sh" 2>/dev/null || echo -e "${YELLOW}  build-docs.sh failed, skipping${NC}"
-else
-    echo -e "${YELLOW}  build-docs.sh not found or not executable, skipping${NC}"
-fi
+bash "$SCRIPT_DIR/build-docs.sh" || {
+    echo "Error: reference docs generation failed; build aborted." >&2
+    exit 1
+}
 
 # Generate changelog timeline data
 if [[ -f "$SCRIPT_DIR/generate-changelog-data.js" ]]; then

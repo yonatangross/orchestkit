@@ -1207,8 +1207,9 @@ def generate_agents(agents_src: str, agents_out: str) -> int:
 
         # Index row — escape description for markdown table
         safe_desc = short_desc.replace("|", "\\|")
+        model_label = model or "\u2014"
         index_rows.append(
-            f"| [{title}](/docs/reference/agents/{slug}) | {model or '\u2014'} | {safe_desc} |"
+            f"| [{title}](/docs/reference/agents/{slug}) | {model_label} | {safe_desc} |"
         )
 
     # Write index page
