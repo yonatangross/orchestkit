@@ -176,6 +176,25 @@ describe("help and version flags", () => {
 });
 
 describe("networked commands", () => {
+	it("search preserves API page titles, headings and text snippets", async () => {
+		const restore = stubFetch(() =>
+			jsonResponse([
+				{ id: "1", url: "/docs/blocks", type: "page", content: "The 3 Building Blocks" },
+				{ id: "2", url: "/docs/blocks#parallel", type: "heading", content: "Parallel Agents" },
+				{ id: "3", url: "/docs/blocks#parallel", type: "text", content: "Multiple agents work simultaneously." },
+			]),
+		);
+		try {
+			const res = await run(["search", "parallel"], { version: "1.2.3" });
+			expect(res.exitCode).toBe(0);
+			expect(res.stdout).toContain("1. The 3 Building Blocks");
+			expect(res.stdout).toContain("2. Parallel Agents");
+			expect(res.stdout).toContain("3. Multiple agents work simultaneously.");
+		} finally {
+			restore();
+		}
+	});
+
 	it.each(["json", "markdown"] as const)("times out a stalled %s response body", async (format) => {
 		const server = createServer((_req, res) => {
 			res.writeHead(200, { "content-type": format === "json" ? "application/json" : "text/markdown" });

@@ -1,0 +1,8 @@
+{
+  "slug": "cli-search-real-titles",
+  "source": "docs/fix--cli-search-real-titles/search-real-titles.html",
+  "title": "CLI search: keep the words, not just the URLs",
+  "description": "Real before and after CLI search output, with regression coverage for page titles, headings and text snippets.",
+  "tags": ["cli", "search", "testing"],
+  "date": "2026-11-20"
+}

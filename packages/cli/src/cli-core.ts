@@ -124,7 +124,7 @@ function rateLimitNote(rl: RateLimit): string {
 }
 
 function formatSearch(
-	results: { url: string; title?: string; description?: string }[],
+	results: { url: string; title?: string; description?: string; content?: string }[],
 	rl: RateLimit,
 	baseUrl: string,
 ): string {
@@ -132,7 +132,7 @@ function formatSearch(
 		return "No matches. Try a broader query, or browse https://orchestkit.dev/llms.txt\n";
 	}
 	const lines = results.map((r, i) => {
-		const title = r.title ?? r.url;
+		const title = r.title ?? r.content ?? r.url;
 		const desc = r.description ? `\n     ${r.description}` : "";
 		return `  ${i + 1}. ${title}\n     ${baseUrl}${r.url}${desc}`;
 	});
