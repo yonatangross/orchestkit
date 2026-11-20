@@ -10,8 +10,9 @@ cp "$ROOT/bin/git-hooks/release-dist-paths.sh" "$fixture/bin/git-hooks/release-d
 cd "$fixture"
 git init -q
 printf '%s\n' '#!/bin/bash' 'exit 99' > tests/run-all-tests.sh
-printf '%s\n' '#!/bin/bash' 'touch lint-ran' 'exit "${LINT_STATUS:-0}"' > tests/ci/lint.sh
+printf '%s\n' '#!/bin/bash' 'touch lint-ran' 'printf "%s\n" "$CLAUDE_PROJECT_DIR" > lint-root' 'exit "${LINT_STATUS:-0}"' > tests/ci/lint.sh
 chmod +x tests/run-all-tests.sh tests/ci/lint.sh
+export CLAUDE_PROJECT_DIR=/nonexistent
 
 bash bin/git-hooks/pre-commit > output 2>&1
 [[ ! -e lint-ran ]]
@@ -23,6 +24,8 @@ bash bin/git-hooks/pre-commit > output 2>&1
 [[ -f lint-ran ]]
 grep -Fq 'Pre-commit validation passed' output
 echo 'PASS: affected paths run static lint without the full orchestrator'
+[[ "$(cd "$(cat lint-root)" && pwd -P)" == "$(pwd -P)" ]]
+echo 'PASS: static lint receives the current worktree instead of the inherited project root'
 
 if LINT_STATUS=1 bash bin/git-hooks/pre-commit > output 2>&1; then
   echo 'FAIL: static lint failure accepted'
