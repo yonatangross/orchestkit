@@ -1,0 +1,8 @@
+{
+  "slug": "hook-branch-subdirectory",
+  "source": "docs/fix-hook-branch-subdirectory/index.html",
+  "title": "The branch does not stop at src/",
+  "description": "A hook branch reader now finds the nearest Git entry from a repository subdirectory, preserving issue reminders without spawning Git.",
+  "tags": ["hooks", "git", "regression"],
+  "date": "2026-11-20"
+}

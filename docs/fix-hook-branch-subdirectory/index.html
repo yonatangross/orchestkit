@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'">
+<title>The branch does not stop at src/</title>
+<meta name="description" content="A hook branch reader now finds the nearest Git entry from a repository subdirectory, preserving issue reminders without spawning Git.">
+<style>
+:root{color-scheme:dark;--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#b5a7ce;--accent:#c084fc;--ok:#86efac;--bad:#fca5a5}
+*{box-sizing:border-box}body{margin:0 auto;padding:40px 24px;max-width:1050px;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}h1{font-size:clamp(28px,5vw,46px);line-height:1.15;margin:12px 0}h2{font-size:18px;margin:0 0 12px}.eyebrow{color:var(--accent);font:12px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.lede{color:var(--muted);max-width:76ch}section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:20px}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--border)}th{color:var(--muted);font-size:12px;text-transform:uppercase}code,pre{font-family:ui-monospace,monospace}code{font-size:.9em}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#0a0712;padding:14px;border:1px solid var(--border);border-radius:8px}.ok{color:var(--ok)}.bad{color:var(--bad)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.note{font-size:13px;color:var(--muted)}@media(max-width:700px){.grid{grid-template-columns:1fr}body{padding:24px 16px}}
+</style>
+</head>
+<body>
+<header><span class="eyebrow">OrchestKit / Hook regression evidence</span><h1>The branch does not stop at src/</h1><p class="lede">Same repository. Same branch. A different working directory used to hide the branch from hooks. The reader now walks to the nearest <code>.git</code> entry instead of assuming the project directory is the repository root.</p></header>
+<section><h2>Root and subdirectory agree</h2><table><thead><tr><th>Working directory</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td><code>repo/</code></td><td><code>fix/123-branch</code></td><td class="ok"><code>fix/123-branch</code></td></tr><tr><td><code>repo/src/nested/</code></td><td class="bad"><code>unknown</code></td><td class="ok"><code>fix/123-branch</code></td></tr></tbody></table><p class="note">Observed in a real temporary Git repository. Each invocation used a fresh process with cwd and CLAUDE_PROJECT_DIR set to the selected directory.</p></section>
+<section><h2>A real hook no longer loses its reminder</h2><p class="note"><code>issueReferenceChecker</code>, with production <code>buildContext()</code>, received <code>git commit -m fix</code>. These are recorded outputs, not a browser simulation.</p><div class="grid"><div><h2 class="bad">Before / subdirectory</h2><pre>{"continue":true,"suppressOutput":true}</pre><p class="note">No branch means no issue reminder.</p></div><div><h2 class="ok">After / root and subdirectory</h2><pre>{"continue":true,"suppressOutput":true,"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"Reminder: you're on branch `fix/123-branch` \u2014 include #123 in the commit message to link it to the issue."}}</pre><p class="note">The reminder is restored. The hook still does not block.</p></div></div></section>
+<section><h2>Small walk, unchanged boundaries</h2><p class="lede"><code>findGitEntry(start)</code> walks ancestors using filesystem reads only. Relative worktree pointers resolve from the repository directory. Detached HEAD stays empty. A malformed nearest Git entry stays an error rather than silently selecting a parent repository.</p><pre>Before fix: 3 failed | 10 passed (13)
+After fix:  4 test files passed / 141 tests passed
+Typecheck:  tsc --noEmit -p tsconfig.test.json (exit 0)</pre><p class="note">Sources: src/hooks/src/lib/git-head.ts and src/hooks/src/__tests__/lib/branch-from-head.test.ts. Hook bundles are release-owned and are not committed with this change.</p></section>
+</body>
+</html>
