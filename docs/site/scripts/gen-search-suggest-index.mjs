@@ -36,7 +36,11 @@ function walk(dir) {
 /** Strip inline markdown/MDX from a heading line: links keep their text,
  * code/emphasis markers and JSX tags are removed. */
 function cleanHeading(text) {
-	let out = text
+	const code = [];
+	let out = text.replace(/(`+)(.*?)\1/g, (_match, _ticks, value) => {
+		code.push(value.replace(/\s/g, " "));
+		return `\u0000${code.length - 1}\u0000`;
+	})
 		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
 		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
 	// Tags are stripped to a fixpoint: one /<[^>]+>/ pass can re-expose a tag
@@ -51,7 +55,8 @@ function cleanHeading(text) {
 		.replace(/</g, "")
 		.replace(/[`*_~]/g, "")
 		.replace(/\s+#+\s*$/, "")
-		.trim();
+		.trim()
+		.replace(/\u0000(\d+)\u0000/g, (_match, index) => code[Number(index)]);
 }
 
 /** ATX headings (h2-h6; h1 duplicates the page title) outside fenced code. */
