@@ -6,16 +6,9 @@
 # Usage: bash detect-plan-context.sh [issue_number]
 set -euo pipefail
 
-# Detect base branch
-BASE_BRANCH="main"
-if git rev-parse --verify dev &>/dev/null; then
-  # Check if current branch was created from dev
-  MERGE_BASE_MAIN=$(git merge-base HEAD main 2>/dev/null || echo "")
-  MERGE_BASE_DEV=$(git merge-base HEAD dev 2>/dev/null || echo "")
-  if [ -n "$MERGE_BASE_DEV" ] && [ "$MERGE_BASE_DEV" != "$MERGE_BASE_MAIN" ]; then
-    BASE_BRANCH="dev"
-  fi
-fi
+# shellcheck source=SCRIPTDIR/resolve-base.sh
+source "$(dirname "${BASH_SOURCE[0]}")/resolve-base.sh"
+BASE_BRANCH=$(resolve_base_ref)
 
 # Current branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")

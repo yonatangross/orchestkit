@@ -6,7 +6,9 @@
 # Usage: bash analyze-impact.sh [base_branch]
 set -euo pipefail
 
-BASE="${1:-main}"
+# shellcheck source=SCRIPTDIR/resolve-base.sh
+source "$(dirname "${BASH_SOURCE[0]}")/resolve-base.sh"
+BASE="${1:-$(resolve_base_ref)}"
 
 echo "=== IMPACT ANALYSIS ==="
 echo "Comparing: HEAD vs $BASE"
