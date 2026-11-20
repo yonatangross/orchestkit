@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bash hooks: the default timeout no longer drops the auto label</title>
+  <meta name="description" content="Before and after evidence that gh-label-enforcer's appended --label survives default-timeout-setter in the shipped Bash PreToolUse chain.">
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.6; }
+    body { max-width: 58rem; margin: 3rem auto; padding: 0 1rem; }
+    h1 { line-height: 1.2; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #888; padding: .7rem; text-align: left; vertical-align: top; }
+    pre { padding: 1rem; background: light-dark(#f1f5f9, #172033); overflow-x: auto; }
+    code { font-family: ui-monospace, monospace; }
+    section { margin-top: 2rem; }
+    :focus-visible { outline: 3px solid #3984cf; outline-offset: 4px; }
+  </style>
+</head>
+<body>
+<main>
+  <p>Bug evidence / Bash PreToolUse hooks</p>
+  <h1>The auto label now survives the default timeout.</h1>
+  <p><code>gh-label-enforcer</code> appends <code>--label</code> to a simple <code>gh issue create</code>. Later in the same chain, <code>default-timeout-setter</code> adds <code>timeout: 120000</code> when none is set. The dispatcher gave every hook the original input and kept only the last <code>updatedInput</code>, so the timeout rewrite replaced the labelled command while the label context still told the model it was added.</p>
+  <table>
+    <caption>Shipped <code>pretool/bash/sync-bash-dispatcher</code> entry, run through <code>bin/run-hook.mjs</code></caption>
+    <thead><tr><th scope="col">Bash tool input</th><th scope="col">Before: command sent</th><th scope="col">After: command sent</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">No timeout</th><td>no <code>--label</code> (timeout 120000)</td><td><code>--label bug</code> (timeout 120000)</td></tr>
+      <tr><th scope="row"><code>timeout: 30000</code></th><td><code>--label bug</code> (timeout 30000)</td><td><code>--label bug</code> (timeout 30000)</td></tr>
+    </tbody>
+  </table>
+  <section>
+    <h2>The change</h2>
+    <p>In <code>src/hooks/src/pretool/bash/sync-bash-dispatcher.ts</code>, each hook's <code>updatedInput</code> is applied on top of the current tool input, and the next hook receives that result. Fields no hook touches (for example <code>run_in_background</code>) are kept instead of being dropped by the timeout rewrite.</p>
+    <h2>Regression test</h2>
+    <pre>BEFORE  Tests  2 failed | 3 passed (5)
+  - "command": "gh issue create --title \"fix crash\" --body \"Repro attached\" --label bug",
+  + "command": "gh issue create --title \"fix crash\" --body \"Repro attached\"",
+AFTER   Tests  5 passed (5)</pre>
+    <p>The test runs the real hook chain (no mocks) for: no timeout, explicit timeout, extra input fields, an already labelled issue, and a compound command that must stay unrewritten.</p>
+  </section>
+  <section>
+    <h2>Reproduce from the repository root</h2>
+    <pre>npm --prefix src/hooks test -- src/__tests__/pretool/sync-bash-dispatcher-input-chain.test.ts</pre>
+    <p>This is a saved evidence page, not a live test runner.</p>
+  </section>
+</main>
+</body>
+</html>

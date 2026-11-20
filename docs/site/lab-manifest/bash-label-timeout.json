@@ -1,0 +1,8 @@
+{
+  "slug": "bash-label-timeout",
+  "source": "docs/fix--compose-bash-updated-input/index.html",
+  "title": "Bash hooks: the default timeout no longer drops the auto label",
+  "description": "Before and after evidence that the appended --label on gh issue create survives the default timeout in the shipped Bash PreToolUse chain.",
+  "tags": ["hooks", "bash", "gh", "bug"],
+  "date": "2026-11-20"
+}

@@ -163,16 +163,20 @@ function buildMergedResult(
  * 3. unified-advisory-dispatcher (context + input modifier)
  *
  * On first block: SHORT-CIRCUIT immediately.
- * On pass: merge additionalContext and updatedInput from all hooks.
+ * On pass: merge additionalContext; apply each updatedInput on top of the
+ * previous one and pass the result to the next hook.
  */
 export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const contextParts: string[] = [];
   const systemMessages: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
+  // Each hook sees the input as rewritten by the hooks before it, so a later
+  // modifier (default-timeout-setter) cannot undo an earlier one (gh-label-enforcer).
+  let currentInput = input;
 
   for (const hook of BASH_HOOKS) {
     try {
-      const result = hook.fn(input, ctx);
+      const result = hook.fn(currentInput, ctx);
 
       if (!result.continue) {
         ctx.log(HOOK_NAME, `${hook.name} blocked — short-circuiting`);
@@ -196,7 +200,11 @@ export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
       }
 
       if (result.hookSpecificOutput?.updatedInput) {
-        updatedInput = result.hookSpecificOutput.updatedInput as Record<string, unknown>;
+        updatedInput = {
+          ...currentInput.tool_input,
+          ...(result.hookSpecificOutput.updatedInput as Record<string, unknown>),
+        };
+        currentInput = { ...currentInput, tool_input: updatedInput };
         ctx.log(HOOK_NAME, `${hook.name}: updatedInput collected`);
       }
 
