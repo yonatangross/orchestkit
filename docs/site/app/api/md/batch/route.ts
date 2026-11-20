@@ -84,6 +84,16 @@ export async function POST(req: Request) {
 		url.searchParams.get("async") === "1";
 	if (prefersAsync) {
 		const token = encodeJobToken({ v: 1, kind: "md-batch", paths: paths as string[] });
+		if (token === null) {
+			return problemResponse(
+				{
+					title: "Async batch too large",
+					status: 400,
+					detail: "Split the paths into smaller batches or submit the request without async mode.",
+				},
+				rateLimitHeaders(rate),
+			);
+		}
 		const statusUrl = `/api/jobs/${token}`;
 		return Response.json(
 			{ job_id: token, status: "accepted", status_url: statusUrl },

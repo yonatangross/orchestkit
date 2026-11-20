@@ -4,7 +4,7 @@
 // Stateless async-job token codec — the contract behind POST /api/md/batch
 // `Prefer: respond-async` → 202 → GET /api/jobs/{token}.
 
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 import { decodeJobToken, encodeJobToken } from "@/lib/job-token";
 
 describe("job token codec", () => {
@@ -16,6 +16,7 @@ describe("job token codec", () => {
 		};
 		const token = encodeJobToken(spec);
 		expect(token).toMatch(/^[A-Za-z0-9_-]+$/);
+		assert(token !== null);
 		expect(decodeJobToken(token)).toEqual(spec);
 	});
 

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'">
+  <title>Markdown batch job token limit</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.55 system-ui, sans-serif; color: #ecf3f5; background: #10191f; }
+    * { box-sizing: border-box; }
+    main { width: min(46rem, calc(100% - 2rem)); margin: clamp(2rem, 9vw, 6rem) auto; }
+    h1 { font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1.08; letter-spacing: -.045em; margin: .55rem 0 1rem; }
+    p { color: #b6c9cf; }
+    .eyebrow { margin: 0; color: #87ddce; font: 700 .8rem ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; }
+    section { background: #18252c; border: 1px solid #435b62; border-radius: 1rem; padding: clamp(1rem, 4vw, 1.6rem); margin-top: 1.5rem; }
+    h2 { margin: 0 0 .4rem; font-size: 1.1rem; }
+    section p { margin: 0 0 1rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+    button { border: 1px solid #71988f; border-radius: .55rem; background: #243e40; color: #ecf3f5; padding: .6rem .8rem; font: inherit; cursor: pointer; }
+    button:hover:not(:disabled) { background: #335858; }
+    button:focus-visible { outline: 2px solid #87ddce; outline-offset: 3px; }
+    button:disabled { opacity: .65; cursor: wait; }
+    #result { display: block; min-height: 5.7rem; margin-top: 1rem; padding: .8rem; border-radius: .55rem; background: #10191f; color: #b5ece2; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .previous { padding-left: 1rem; border-left: 2px solid #71988f; margin-top: 1.5rem; }
+    .previous p { margin: 0; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Markdown batch job token limit"><meta property="og:description" content="Try normal async, oversized async, and synchronous requests against the live Markdown batch API."><meta property="og:url" content="https://orchestkit.dev/lab/docs-batch-token-limit.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Markdown batch job token limit"><meta name="twitter:description" content="Try normal async, oversized async, and synchronous requests against the live Markdown batch API."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">OrchestKit Lab / Docs API</p>
+      <h1>Every accepted job can be polled.</h1>
+      <p>Async Markdown batches encode their paths into the job ID. If that token would exceed 4,096 characters, the API now rejects the submission instead of handing back an unusable poll URL.</p>
+    </header>
+    <section aria-labelledby="live-title">
+      <h2 id="live-title">Try the live API</h2>
+      <p>Run a normal async job, or send the same 20 synthetic paths in async and synchronous modes.</p>
+      <div class="actions">
+        <button type="button" data-mode="normal">Normal async</button>
+        <button type="button" data-mode="oversized">Oversized async</button>
+        <button type="button" data-mode="sync">Oversized sync</button>
+      </div>
+      <output id="result" aria-label="API result">Choose a request to see its status here.</output>
+    </section>
+    <aside class="previous" aria-label="Previous behavior">
+      <h2>Before the fix</h2>
+      <p>The oversized async request returned <code>202</code> and a 4,594-character token. Polling it returned <code>404</code>.</p>
+    </aside>
+  </main>
+  <script>
+    const buttons = [...document.querySelectorAll("button[data-mode]")];
+    const result = document.querySelector("#result");
+    const longPaths = Array.from({ length: 20 }, (_, index) => "/docs/" + "a".repeat(160) + index);
+
+    async function run(mode) {
+      buttons.forEach(button => { button.disabled = true; });
+      result.textContent = "Sending request…";
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (mode !== "sync") headers.Prefer = "respond-async";
+        const paths = mode === "normal" ? ["/docs/getting-started/installation"] : longPaths;
+        const response = await fetch("/api/md/batch", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ paths }),
+        });
+        const body = await response.json();
+        const lines = ["POST /api/md/batch: " + response.status];
+        const location = response.headers.get("Location");
+        if (response.status === 202 && location?.startsWith("/api/jobs/")) {
+          const poll = await fetch(location);
+          const job = await poll.json();
+          lines.push("Job token: " + body.job_id.length + " characters");
+          lines.push("GET poll URL: " + poll.status + " (" + (job.status === "completed" ? "completed" : job.title) + ")");
+        } else if (response.ok) {
+          lines.push("Results returned inline: " + body.results.length);
+        } else {
+          lines.push(location ? "Location: present" : "Location: absent");
+          lines.push(body.detail ?? body.title ?? "Unexpected API response.");
+        }
+        result.textContent = lines.join("\n");
+      } catch (error) {
+        result.textContent = "The API request could not be completed: " + error.message;
+      } finally {
+        buttons.forEach(button => { button.disabled = false; });
+      }
+    }
+
+    buttons.forEach(button => button.addEventListener("click", () => run(button.dataset.mode)));
+  </script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
