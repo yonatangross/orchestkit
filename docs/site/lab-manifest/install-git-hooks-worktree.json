@@ -1,0 +1,8 @@
+{
+  "slug": "install-git-hooks-worktree",
+  "source": "docs/fix--install-git-hooks-worktree/index.html",
+  "title": "Git hooks, in every checkout",
+  "description": "Recorded before and after installer output for linked worktrees and normal clones, with Git-resolved hooks paths and core.hooksPath support.",
+  "tags": ["git", "hooks", "worktree"],
+  "date": "2026-11-20"
+}
