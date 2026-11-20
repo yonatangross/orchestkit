@@ -408,16 +408,19 @@ if [[ "$RUN_UNIT" == "true" ]]; then
         echo -e "  ${CYAN}Vitest runs in dedicated CI job (hook-typescript-tests) — skipping here${NC}"
     elif [[ -d "$PROJECT_ROOT/src/hooks/node_modules" ]]; then
         echo -e "${BOLD}${CYAN}TYPESCRIPT HOOK TESTS (vitest)${NC}"
-        # silent: best-effort — arch probe only; a missing node falls through to the mismatch SKIP path
-        VITEST_NODE_ARCH=$(node -p "process.arch" 2>/dev/null || true)
-        VITEST_HAS_ARM64="false"
-        VITEST_HAS_X64="false"
-        if [[ -d "$PROJECT_ROOT/src/hooks/node_modules/@rollup/rollup-darwin-arm64" ]]; then VITEST_HAS_ARM64="true"; fi
-        if [[ -d "$PROJECT_ROOT/src/hooks/node_modules/@rollup/rollup-darwin-x64" ]]; then VITEST_HAS_X64="true"; fi
-
-        if [[ "$VITEST_NODE_ARCH" == "arm64" && "$VITEST_HAS_ARM64" != "true" ]] || \
-           [[ "$VITEST_NODE_ARCH" == "x64" && "$VITEST_HAS_X64" != "true" ]]; then
-            echo -e "${YELLOW}SKIP: Node architecture ($VITEST_NODE_ARCH) mismatch with installed modules${NC}"
+        # silent: best-effort; the load probe below reports a missing node as a failure.
+        VITEST_NODE_PLATFORM=$(node -p 'process.platform + "/" + process.arch' 2>/dev/null || echo "unknown")
+        if ! VITEST_PROBE=$(cd "$PROJECT_ROOT/src/hooks" && node --input-type=module -e '
+            import { createRequire } from "node:module";
+            import { pathToFileURL } from "node:url";
+            const require = createRequire(import.meta.url);
+            let bundler;
+            try { bundler = require.resolve("rolldown"); }
+            catch { bundler = require.resolve("rollup"); }
+            await import(pathToFileURL(bundler).href);
+        ' 2>&1); then
+            echo -e "${YELLOW}SKIP: Hook bundler failed to load ($VITEST_NODE_PLATFORM)${NC}"
+            echo "$VITEST_PROBE"
             echo -e "${YELLOW}      Run 'cd src/hooks && rm -rf node_modules && npm i' to fix${NC}"
             echo "TypeScript Hook Tests (vitest):SKIP" >> "$RESULTS_FILE"
         else
