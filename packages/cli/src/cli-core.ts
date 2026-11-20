@@ -63,6 +63,10 @@ export type ParsedArgs = {
 
 class UsageError extends Error {}
 
+function isOptionToken(value: string): boolean {
+	return value.startsWith("--") || value === "-h" || value === "-v";
+}
+
 export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
 	let limit = 5;
@@ -76,16 +80,15 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 		else if (arg === "--version" || arg === "-v") version = true;
 		else if (arg === "--limit" || arg === "--base-url") {
 			const value = argv[i + 1];
-			if (value === undefined || value.startsWith("--") || value === "-h" || value === "-v") {
+			if (value === undefined || isOptionToken(value)) {
 				throw new UsageError(`${arg} requires a value.`);
 			}
 			i++;
 			if (arg === "--limit") {
-				const next = Number.parseInt(value, 10);
-				if (!/^[+-]?\d+$/.test(value.trim()) || !Number.isFinite(next)) {
+				if (!/^[+-]?\d+$/.test(value)) {
 					throw new UsageError("--limit requires an integer.");
 				}
-				limit = Math.min(Math.max(next, 1), 50);
+				limit = Math.min(Math.max(Number(value), 1), 50);
 			} else {
 				baseUrl = value;
 			}

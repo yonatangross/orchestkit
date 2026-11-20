@@ -50,7 +50,7 @@ describe("parseArgs", () => {
 		expect(parseArgs(["search", "x", "--limit", "-3"]).limit).toBe(1);
 	});
 
-	it.each(["abc", "3abc", ""])("rejects an invalid --limit value (%j)", (value) => {
+	it.each(["abc", "3abc", "", " 3 "])("rejects an invalid --limit value (%j)", (value) => {
 		expect(() => parseArgs(["search", "x", "--limit", value])).toThrow(
 			"--limit requires an integer",
 		);
