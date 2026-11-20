@@ -1,0 +1,12 @@
+{
+  "slug": "perf-compare-unreadable-snapshot",
+  "source": "docs/fix--perf-compare-unreadable-snapshot/index.html",
+  "title": "A broken snapshot is not a win",
+  "description": "perf-compare.sh now rejects a snapshot it cannot read with exit 2 and the file name, instead of scoring it as zero tokens and reporting an improvement.",
+  "tags": [
+    "scripts",
+    "perf",
+    "regression"
+  ],
+  "date": "2026-11-20"
+}
