@@ -1,0 +1,11 @@
+{
+  "slug": "detect-plan-context-gh-timeout",
+  "source": "docs/fix--detect-plan-context-gh-timeout/index.html",
+  "title": "An unbounded gh call can hang skill load",
+  "description": "Pick how gh issue view behaves and see how long detect-plan-context.sh waits for the issue title, before and after the bounded-lookup fix.",
+  "tags": [
+    "visualize-plan",
+    "skills"
+  ],
+  "date": "2026-11-20"
+}
