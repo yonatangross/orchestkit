@@ -1,0 +1,13 @@
+{
+  "slug": "5336-guard-failclosed",
+  "source": "docs/fix--5336-guard-failclosed/guard-failclosed.html",
+  "title": "The npm-ci guard stops guessing what bash will do",
+  "description": "Seventeen Vercel findings reduced to three mechanisms: the guard's rebuilt shell parser read a different command than bash ran. Variable indirection, redirect divergence, and quoting or splitting all now fail closed. Pick an attack shape and compare the old and new verdicts.",
+  "tags": [
+    "hooks",
+    "security",
+    "bash-pretool",
+    "5336"
+  ],
+  "date": "2026-11-21"
+}

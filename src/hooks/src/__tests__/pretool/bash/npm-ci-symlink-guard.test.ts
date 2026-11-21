@@ -851,6 +851,172 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
+  // Vercel Security Review row 17 (#5336): each shape below reproduced a live bypass against the
+  // pre-fix guard. Two placements: the install lands in a directory the reading missed, or a cd the
+  // reader believes succeeded fails in bash so a relative --prefix installs under the stayed-behind
+  // cwd while the guard probes a decoy.
+  describe('directory divergences bash and the reader disagree on (#5336)', () => {
+    it.each([
+      ['a ${x:-dir} default in the cd operand', 'cd ${x:-/lw}>log; npm ci'],
+      ['a ${x:-dir} default without the redirect', 'cd ${x:-/lw}; npm ci'],
+      ['a ${d:-dir} default when d is unset', 'd=; cd ${d:-/lw}; npm ci'],
+      ['a skipped reassignment after ||', 'd=/lw; true || d=/wt; cd $d; npm ci'],
+      ['a reassignment inside a subshell', 'd=/lw; (d=/wt); cd $d; npm ci'],
+      ['a declare -n nameref', 'declare -n ref=d; d=/lw; cd $ref; npm ci'],
+      ['a builtin-prefixed pushd', 'builtin pushd /lw; npm ci'],
+      ['a command-prefixed cd', 'command cd /lw; npm ci'],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('a relative cd resolved through CDPATH', () => {
+      expect(decision('CDPATH=/lw; cd sub; npm ci', linksAt('/lw/sub/node_modules'))).toBe('deny');
+    });
+
+    it('a cleared variable drops the operand: bash runs cd HOME', () => {
+      const home = process.env.HOME ?? '';
+      expect(decision('d=/lw; d=; cd $d; npm ci', linksAt(`${home}/node_modules`))).toBe('deny');
+    });
+
+    // The fabricated cd: bash refuses the extra operands (or the redirection fails) and stays in
+    // /wt, so `npm ci --prefix rel` empties /wt/rel while the old reader probed the decoy dir.
+    describe('a cd bash refuses, run from a linked relative prefix', () => {
+      const relLinked = linksAt('/wt/rel/node_modules');
+      it.each([
+        ['a quoted # operand', "cd /decoy '#x'; npm ci --prefix rel"],
+        ['a double-quoted # operand', 'cd /decoy "#x"; npm ci --prefix rel'],
+        ['an escaped blank inside the operand', 'cd /decoy\\ x; npm ci --prefix rel'],
+        ['an fd dup between two operands', 'cd /decoy 3>&2 extra; npm ci --prefix rel'],
+        ['a bare >& between two operands', 'cd /decoy >&2 extra; npm ci --prefix rel'],
+        ['a quoted fd number before the redirect', "cd /decoy '3'>x; npm ci --prefix rel"],
+        ['a double-quoted fd number', 'cd /decoy "3">x; npm ci --prefix rel'],
+        ['a quoted fd dup with an operand after', "cd /decoy '2'>&1 extra; npm ci --prefix rel"],
+        ['an IFS split of the variable', 'IFS=x; d=decxoy; cd $d; npm ci --prefix rel'],
+        ['a variable holding two paths', 'd="/decoy /wt"; cd $d; npm ci --prefix rel'],
+        ['a failing input redirect', 'cd /decoy <missing; npm ci --prefix rel'],
+        ['a failing numbered input redirect', 'cd /decoy 3<missing; npm ci --prefix rel'],
+      ])('%s: blocked', (_name, command) => {
+        expect(['deny', 'ask']).toContain(decision(command, relLinked));
+      });
+    });
+
+    it.each([
+      ['cd /decoy extra; npm ci --prefix rel'],
+      ["cd /decoy '#x'; npm ci --prefix rel"],
+      ['cd /decoy 3>&2 extra; npm ci --prefix rel'],
+      ['IFS=x; d=decxoy; cd $d; npm ci --prefix rel'],
+      ['builtin pushd /lw; npm ci'],
+      ['CDPATH=/lw; cd sub; npm ci'],
+      ['declare -n ref=d; d=/lw; cd $ref; npm ci'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, nothingLinked)).toBeUndefined();
+    });
+  });
+
+  describe('directory divergences a second review round found (#5336)', () => {
+    describe('a redirect operator read as a cd operand', () => {
+      it.each([
+        // `&>`/`&>>` is one operator: `cd /lw &>log` enters /lw, and the `&` is
+        // not an argument bash refuses on.
+        ['an &> redirect', 'cd /lw &>log; npm ci', '/lw/node_modules'],
+        ['an >& redirect', 'cd /lw >&log; npm ci', '/lw/node_modules'],
+        ['an &>> append redirect', 'cd /lw &>>log; npm ci', '/lw/node_modules'],
+      ])('%s: denied', (_name, command, link) => {
+        expect(decision(command, linksAt(link))).toBe('deny');
+      });
+    });
+
+    // An escaped blank keeps the word open, so `#42` is text inside the
+    // operand, not the start of a comment.
+    it('an escaped blank before a # operand', () => {
+      expect(decision('cd /lw/Fix\\ #42; npm ci', linksAt('/lw/Fix #42/node_modules'))).toBe('deny');
+    });
+
+    describe('a subshell that must not write into the parent', () => {
+      it.each([
+        // `(CDPATH=/tmp)` leaves the parent's CDPATH=/lw, so `cd sub` lands in /lw/sub.
+        ['a CDPATH change', 'CDPATH=/lw; (CDPATH=/tmp); cd sub; npm ci', '/lw/sub/node_modules'],
+        // `(d=/decoy)` leaves d unset, so `cd $d` runs bare cd into HOME.
+        ['a leaked assignment', 'HOME=/home/u; unset d; (d=/decoy); cd $d; npm ci', '/home/u/node_modules'],
+      ])('%s: denied', (_name, command, link) => {
+        expect(decision(command, linksAt(link))).toBe('deny');
+      });
+    });
+
+    describe('field splitting the shell does not perform', () => {
+      it.each([
+        // A `;` inside quotes is data: printf prints it, no cd runs, and the
+        // prefix stays under /wt.
+        ['a quoted ; is not a command boundary', "printf '%s' 'x; cd /decoy; x'; npm ci --prefix rel", '/wt/rel/node_modules'],
+        // `IFS=` is empty, not the default: `--prefix $p` keeps "/lw x" whole.
+        ['an empty IFS disables splitting', 'IFS=; p="/lw x"; npm ci --prefix $p', '/lw x/node_modules'],
+        // A double-quoted expansion never splits: `"$p"` is one operand.
+        ['a quoted expansion is one operand', 'p="/lw x"; npm ci --prefix "$p"', '/lw x/node_modules'],
+      ])('%s: denied', (_name, command, link) => {
+        expect(decision(command, linksAt(link))).toBe('deny');
+      });
+    });
+
+    it('a ${var:-dir} default over a set-but-unknown variable', () => {
+      // `d` was assigned twice, so the reader cannot know it holds /lw; bash
+      // uses that value, not the default.
+      expect(decision('d=/decoy; d=/lw; cd ${d:-/decoy}; npm ci', linked)).toBe('deny');
+    });
+
+    it('a command-local CDPATH applies to its own cd', () => {
+      expect(decision('CDPATH=/lw cd sub; npm ci', linksAt('/lw/sub/node_modules'))).toBe('deny');
+    });
+
+    it('a command-local HOME applies to a bare cd', () => {
+      expect(decision('HOME=/lw cd; npm ci', linked)).toBe('deny');
+    });
+
+    describe('the third review round (#5336)', () => {
+      // A `#` inside a comment starts no quote: the install on the next line
+      // must still be read, not swallowed into a quoted span.
+      it('an apostrophe inside a comment does not swallow the next line', () => {
+        expect(decision("cd /lw # don't rebuild\nnpm ci", linked)).toBe('deny');
+      });
+
+      it('an empty unquoted expansion drops the operand even with IFS=', () => {
+        expect(decision('HOME=/home/u; IFS=; p=; cd $p; npm ci', linksAt('/home/u/node_modules'))).toBe('deny');
+      });
+
+      it('a command-local HOME does not apply to a tilde operand', () => {
+        const home = process.env.HOME ?? '';
+        expect(decision('HOME=/tmp/h cd ~; npm ci', linksAt(`${home}/node_modules`))).toBe('deny');
+      });
+
+      it('a marked default under --prefix still probes the fallback', () => {
+        expect(decision('d=/a; d=/b; npm ci --prefix ${d:-/lw}', linked)).toBe('deny');
+      });
+
+      it('a quoted fallback holding a space decodes as the real directory', () => {
+        expect(decision('d=/a; d=; cd "${d:-/lw wt}"; npm ci', linksAt('/lw wt/node_modules'))).toBe('deny');
+      });
+
+      it('a plus expansion over a possibly-unset var keeps the empty outcome', () => {
+        expect(decision('HOME=/home/u; false || d=/x; cd ${d:+/lw}; npm ci', linksAt('/home/u/node_modules'))).toBe('deny');
+      });
+
+      it('a plus expansion denies on the alternate, not on past values', () => {
+        expect(decision('d=/old; d=/new; cd ${d:+/lw}; npm ci', linked)).toBe('deny');
+      });
+    });
+
+    it.each([
+      ["cd /lw '&>'log; npm ci"],
+      ["printf '%s' 'x; cd /decoy; x'; npm ci --prefix rel"],
+      ['IFS=; p="/lw x"; npm ci --prefix $p'],
+      ['p="/lw x"; npm ci --prefix "$p"'],
+      ['CDPATH=/lw cd sub; npm ci'],
+      ['CDPATH=/lw; (CDPATH=/tmp); cd sub; npm ci'],
+      ['HOME=/home/u; unset d; (d=/decoy); cd $d; npm ci'],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, nothingLinked)).toBeUndefined();
+    });
+  });
+
   describe('the other spellings npm accepts for a clean install', () => {
     it.each([
       ['install-ci-test'],
