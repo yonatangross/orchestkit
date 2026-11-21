@@ -5,6 +5,29 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.16.0](https://github.com/yonatangross/orchestkit/compare/v10.15.1...v10.16.0) (2026-11-21)
+
+
+### Features
+
+* **glyph:** add the devin-safe profile for engines that render shade fills as slabs ([#5323](https://github.com/yonatangross/orchestkit/issues/5323)) ([55c71bb](https://github.com/yonatangross/orchestkit/commit/55c71bb1c884136c8da2fdb21b304b89264aec21))
+
+
+### Bug Fixes
+
+* **agents:** raise ci-cd and frontend maxTurns to 85 ([#5299](https://github.com/yonatangross/orchestkit/issues/5299)) ([c53a3ea](https://github.com/yonatangross/orchestkit/commit/c53a3ea1366c831f8545de5fbb382381be072f98))
+* **build:** preserve reference docs on generator failure ([#5301](https://github.com/yonatangross/orchestkit/issues/5301)) ([9d0ac3f](https://github.com/yonatangross/orchestkit/commit/9d0ac3f28aaa98de4a73f44784b86b8e00f80093))
+* **cli:** ignore directories during host detection ([#5319](https://github.com/yonatangross/orchestkit/issues/5319)) ([875a5ab](https://github.com/yonatangross/orchestkit/commit/875a5ab741782c160cc9e94fa31b76dfdca55f0d))
+* **cli:** treat --help and --version as flags after a command ([#5318](https://github.com/yonatangross/orchestkit/issues/5318)) ([5c2048a](https://github.com/yonatangross/orchestkit/commit/5c2048adb03958508d9e09ada156ce30beb512c5))
+* **docs:** match search autocomplete anchors to github-slugger ([#5321](https://github.com/yonatangross/orchestkit/issues/5321)) ([609a1c6](https://github.com/yonatangross/orchestkit/commit/609a1c698bf606216eba09fcc15e88bdbe744f45))
+* **docs:** reject oversized async batch tokens ([#5322](https://github.com/yonatangross/orchestkit/issues/5322)) ([fe6c0ac](https://github.com/yonatangross/orchestkit/commit/fe6c0ac90883d906a5b8e177d4fefd314ca46a99))
+* **docs:** strip YAML frontmatter from CRLF doc bodies ([#5326](https://github.com/yonatangross/orchestkit/issues/5326)) ([1d6bc97](https://github.com/yonatangross/orchestkit/commit/1d6bc97582902c662f1c34e7c8e0761f9f570646))
+* **hooks:** keep auto label when default timeout is applied ([#5315](https://github.com/yonatangross/orchestkit/issues/5315)) ([46a0c3f](https://github.com/yonatangross/orchestkit/commit/46a0c3fef536b07be2fefa2f79f826235c32bdf5))
+* **scripts:** reject unreadable perf snapshots in perf-compare ([#5328](https://github.com/yonatangross/orchestkit/issues/5328)) ([f5cebba](https://github.com/yonatangross/orchestkit/commit/f5cebba33d3271f3b3833232c044f436035668f4))
+* **tests:** prevent prepush ESM fixture from invoking import ([#5303](https://github.com/yonatangross/orchestkit/issues/5303)) ([07912bd](https://github.com/yonatangross/orchestkit/commit/07912bd899443d0826ef61a344de180b89a0c483))
+* **tests:** probe hook bundler loading on the current platform ([#5310](https://github.com/yonatangross/orchestkit/issues/5310)) ([49442d3](https://github.com/yonatangross/orchestkit/commit/49442d3187ef983667436be89e93251669390100))
+* **verify:** refused evidence gates report BLOCKED, not WAIVED ([#5330](https://github.com/yonatangross/orchestkit/issues/5330)) ([263bde0](https://github.com/yonatangross/orchestkit/commit/263bde0e1702216fb467e1203ea88fe0cd0a46a3))
+
 ## [10.15.1](https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1) (2026-11-19)
 
 
