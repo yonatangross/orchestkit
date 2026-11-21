@@ -385,12 +385,28 @@ function expandVars(word: string, vars: Vars): string {
     // A nameref chain may cycle (`declare -n r=r`): stop following it after a few hops.
     return depth < 8 ? lookupVar(value.slice(NAMEREF.length), depth + 1) ?? '' : '';
   };
+  // A var assigned twice is set-but-unknown: its current value cannot be read
+  // off the command, so `:-`/`-`/`:+` over it cannot be answered either. The
+  // operand is marked dynamic and carries the name and the arg so every
+  // candidate bash could land on is probed (reviews on #5336).
+  const isUnknown = (n: string, depth = 0): boolean => {
+    const v = vars.get(n);
+    if (v === null) return true;
+    if (typeof v === 'string' && v.startsWith(NAMEREF)) return depth < 8 && isUnknown(v.slice(NAMEREF.length), depth + 1);
+    return false;
+  };
   return word.replace(
     /\$\{(\w+)(:?[-+])([^}]*)\}|\$\{(\w+)\}|\$(\w+)/g,
     (whole, n1: string | undefined, op: string | undefined, arg: string | undefined, n2: string | undefined, n3: string | undefined) => {
       const name = n1 ?? n2 ?? n3 ?? '';
       const value = lookupVar(name);
       if (op !== undefined) {
+        if (isUnknown(name)) {
+          // `${n+word}` only asks whether n is set, and an unknown value still
+          // counts as set; the other three forms read the value itself.
+          if (op === '+') return arg ?? '';
+          return `${DYNAMIC}${name}${DYNAMIC}${arg ?? ''}`;
+        }
         // ${n-word}/${n:-word} use word when n is unset (:- also when empty);
         // ${n+word}/${n:+word} use word when n is set (:+ also nonempty).
         const nonEmpty = value !== undefined && value !== '';
@@ -1102,12 +1118,22 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         dirShaky = true;
         seen.push(beforeCd);
         seen.push(resolveDir(beforeCd, op, cdHome));
-        const name = /^\$\{?(\w+)\}?$/.exec(op)?.[1];
+        // A parameter form over a set-but-unknown var arrives as `DYNAMIC name
+        // DYNAMIC arg`: bash may land on any value the var held or on the arg,
+        // so every candidate joins the probe list.
+        const dynParts = op.startsWith(DYNAMIC) ? op.slice(1).split(DYNAMIC) : null;
+        const name = dynParts === null ? /^\$\{?(\w+)\}?$/.exec(op)?.[1] : /^\w+/.exec(dynParts[0] ?? '')?.[0];
         if (name !== undefined) {
           // An empty expansion drops the operand: `cd` alone goes to the home directory.
           dir = cdHome;
           seen.push(cdHome);
           for (const v of varsAll.get(name) ?? []) {
+            cdArgs.push(v);
+            seen.push(resolveDir(beforeCd, v, cdHome));
+          }
+        }
+        for (const v of dynParts?.slice(1) ?? []) {
+          if (v !== '') {
             cdArgs.push(v);
             seen.push(resolveDir(beforeCd, v, cdHome));
           }

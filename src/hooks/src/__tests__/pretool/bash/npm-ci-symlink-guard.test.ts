@@ -957,6 +957,12 @@ describe('command shapes the reader must follow to the install', () => {
       });
     });
 
+    it('a ${var:-dir} default over a set-but-unknown variable', () => {
+      // `d` was assigned twice, so the reader cannot know it holds /lw; bash
+      // uses that value, not the default.
+      expect(decision('d=/decoy; d=/lw; cd ${d:-/decoy}; npm ci', linked)).toBe('deny');
+    });
+
     it('a command-local CDPATH applies to its own cd', () => {
       expect(decision('CDPATH=/lw cd sub; npm ci', linksAt('/lw/sub/node_modules'))).toBe('deny');
     });
