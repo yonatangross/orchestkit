@@ -40,11 +40,49 @@ FILES_TOTAL=$((FILES_ADDED + FILES_MODIFIED + FILES_DELETED))
 # Line counts
 LINES=$(git diff --numstat "${BASE_BRANCH}...HEAD" 2>/dev/null | awk '{a+=$1; r+=$2} END {printf "+%d -%d", a, r}' || echo "+0 -0")
 
-# Issue title (if gh available and issue detected)
+# Issue title (if gh available and issue detected). The call is bounded at
+# 5s and falls back to no title: a gh that stalls on the network or an auth
+# prompt must not hold the skill open. macOS ships no `timeout` binary, so
+# the bound is a poll loop, not coreutils and not a watchdog subshell. The
+# lookup writes a temp file, not the caller's output pipe, so no descriptor
+# a gh child or grandchild inherits can hold the caller open, and no helper
+# process exists that could outlive the bound. The title is published only
+# when the lookup exits cleanly: a killed or failed call keeps the issue
+# number and discards whatever partial bytes it wrote. Cleanup kills the
+# whole process group, not an enumerated list, so a pgrep error exit can
+# never silently strand a descendant.
 ISSUE_TITLE=""
-if [ -n "$ISSUE_REF" ] && command -v gh &>/dev/null; then
+if [ -n "$ISSUE_REF" ] && command -v gh >/dev/null; then
   ISSUE_NUM="${ISSUE_REF#\#}"
-  ISSUE_TITLE=$(gh issue view "$ISSUE_NUM" --json title -q '.title' 2>/dev/null || echo "")
+  # silent: known-noise -- no writable temp dir skips the optional title, never the whole run
+  _title_tmp=$(mktemp "${TMPDIR:-/tmp}/dpc-title.XXXXXX" 2>/dev/null) || _title_tmp=""
+  if [ -n "$_title_tmp" ]; then
+    # Job control puts the lookup in its own process group (pgid == pid), so
+    # the deadline kill takes the whole tree atomically.
+    {
+      set -m
+      # silent: best-effort
+      gh issue view "$ISSUE_NUM" --json title -q '.title' >"$_title_tmp" 2>/dev/null &
+      _pid=$!
+      _deadline=$((SECONDS + 5))
+      # silent: known-noise -- liveness probe, the kill -0 exit code is the signal
+      while kill -0 "$_pid" 2>/dev/null; do
+        if [ "$SECONDS" -ge "$_deadline" ]; then
+          # silent: known-noise -- the group may already be gone
+          kill -KILL -- -"$_pid" 2>/dev/null || kill -KILL "$_pid" 2>/dev/null || true
+          break
+        fi
+        sleep 0.1
+      done
+      set +m
+      # silent: known-noise -- nonzero wait is the no-title case handled below
+      if wait "$_pid" 2>/dev/null; then
+        ISSUE_TITLE=$(cat "$_title_tmp")
+      fi
+      # silent: known-noise -- group redirect hides monitor-mode job notices only
+    } 2>/dev/null
+    rm -f "$_title_tmp"
+  fi
 fi
 
 # Output structured context

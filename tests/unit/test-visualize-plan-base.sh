@@ -111,6 +111,111 @@ out="$(bash "${DETECT}")"
 expect_line "default branch" "${out}" "Base: origin/master"
 expect_line "default branch" "${out}" "Commits: 1"
 
+# A gh that hangs must not stall the script: the call is bounded at 5s and
+# falls back to no issue context (the gap filed from #5194's thread). The
+# nested helper wants 7s and leaves a completion marker when it lives - the
+# caller must return near 5s AND the marker must stay absent past the point
+# it would have been written, proving the descendant died with the lookup.
+# pgrep is stubbed to exit 3 (fatal error, not "no match") so any cleanup
+# that enumerated the tree would silently strand the helper; the group
+# kill must not need enumeration at all.
+git checkout -q -b fix/plan-5194
+mkdir -p "${WORK}/ghbin"
+cat > "${WORK}/ghbin/gh" <<'EOF'
+#!/usr/bin/env bash
+( sleep 7; touch "$MARKER" ) &
+sleep 60
+EOF
+cat > "${WORK}/ghbin/pgrep" <<'EOF'
+#!/usr/bin/env bash
+exit 3
+EOF
+chmod +x "${WORK}/ghbin/gh" "${WORK}/ghbin/pgrep"
+rm -f "${WORK}/nested-done"
+start=${SECONDS}
+out="$(MARKER="${WORK}/nested-done" PATH="${WORK}/ghbin:${PATH}" bash "${DETECT}")"
+elapsed=$((SECONDS - start))
+if [[ "${elapsed}" -lt 7 ]]; then
+  pass "hung gh bounded at ${elapsed}s despite nested helper holding stdout"
+else
+  fail "hung gh stalled ${elapsed}s (nested helper outlived the deadline)"
+fi
+expect_line "hung gh" "${out}" "Issue: #5194"
+if [[ "${out}" == *"Issue Title:"* ]]; then
+  fail "hung gh: a title line was printed"
+else
+  pass "hung gh: no title line"
+fi
+# The helper's write fires at 7s when it lives. Wait past that point, then
+# the marker must still be absent - a live descendant would have left it.
+sleep 4
+if [[ -e "${WORK}/nested-done" ]]; then
+  fail "hung gh: nested helper survived the kill and completed its write"
+else
+  pass "hung gh: nested helper died with the lookup (marker never written)"
+fi
+rm -f "${WORK}/ghbin/pgrep"
+
+# A partial title followed by a stall is discarded: a killed lookup must not
+# publish truncated bytes next to the issue number.
+cat > "${WORK}/ghbin/gh" <<'EOF'
+#!/usr/bin/env bash
+printf 'partial title'
+sleep 60
+EOF
+start=${SECONDS}
+out="$(PATH="${WORK}/ghbin:${PATH}" bash "${DETECT}")"
+elapsed=$((SECONDS - start))
+if [[ "${elapsed}" -lt 7 ]]; then
+  pass "partial-title gh bounded at ${elapsed}s"
+else
+  fail "partial-title gh stalled ${elapsed}s"
+fi
+expect_line "partial gh" "${out}" "Issue: #5194"
+if [[ "${out}" == *"Issue Title:"* || "${out}" == *"partial title"* ]]; then
+  fail "partial gh: truncated bytes were published"
+else
+  pass "partial gh: truncated bytes discarded"
+fi
+
+# No writable temp dir: the optional title lookup skips itself and the rest
+# of the context still prints with exit 0 (mktemp failure must not abort).
+cat > "${WORK}/ghbin/gh" <<'EOF'
+#!/usr/bin/env bash
+echo "stubbed title"
+EOF
+start=${SECONDS}
+out="$(TMPDIR=/nonexistent-dir-xyz PATH="${WORK}/ghbin:${PATH}" bash "${DETECT}")"
+rc=$?
+elapsed=$((SECONDS - start))
+if [[ "${rc}" -eq 0 ]]; then
+  pass "missing TMPDIR: exited 0 in ${elapsed}s"
+else
+  fail "missing TMPDIR: exited ${rc}"
+fi
+expect_line "no TMPDIR" "${out}" "Issue: #5194"
+if [[ "${out}" == *"Issue Title:"* ]]; then
+  fail "no TMPDIR: a title line was printed"
+else
+  pass "no TMPDIR: title skipped, context intact"
+fi
+
+# A fast gh still lands the title on the same code path, and promptly - the
+# bound must not cost its whole timeout on the success path.
+cat > "${WORK}/ghbin/gh" <<'EOF'
+#!/usr/bin/env bash
+echo "stubbed title"
+EOF
+start=${SECONDS}
+out="$(PATH="${WORK}/ghbin:${PATH}" bash "${DETECT}")"
+elapsed=$((SECONDS - start))
+expect_line "fast gh" "${out}" "Issue Title: stubbed title"
+if [[ "${elapsed}" -lt 2 ]]; then
+  pass "fast gh returned promptly at ${elapsed}s"
+else
+  fail "fast gh took ${elapsed}s (bound cost bled into the success path)"
+fi
+
 if [[ "${FAILED}" -gt 0 ]]; then
   echo "✗ ${FAILED} visualize-plan base check(s) failed"
   exit 1
