@@ -684,6 +684,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.16.0](https://github.com/yonatangross/orchestkit/compare/v10.15.1...v10.16.0)** · 2026-11-21
+
+- **glyph:** add the devin-safe profile for engines that render shade fills as slabs (#5323)
+- **agents:** raise ci-cd and frontend maxTurns to 85 (#5299)
+- **build:** preserve reference docs on generator failure (#5301)
+- **cli:** ignore directories during host detection (#5319)
+- **cli:** treat --help and --version as flags after a command (#5318)
+- …and 8 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.15.1](https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1)** · 2026-11-19
 
 - **memory-lens:** show no recall line, context to the model only (#5296)
@@ -737,15 +746,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **[v10.10.8](https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8)** · 2026-11-09
 
 - **release:** fetch mcp-publisher through the authenticated API (#5162)
-
-**[v10.10.7](https://github.com/yonatangross/orchestkit/compare/v10.10.6...v10.10.7)** · 2026-11-09
-
-- **ci-sentinel:** match the skill to the locked-down dispatch (#5156)
-- **ci-sentinel:** say every failed check, and pin the playbook copy (#5159)
-- **deps-dev:** bump @biomejs/biome (#5153)
-- **deps-dev:** bump @sanity/client (#5154)
-- **deps:** bump @anthropic-ai/sdk (#5151)
-- …and 4 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
