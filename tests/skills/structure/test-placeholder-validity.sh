@@ -133,6 +133,7 @@ dead="$(python3 - <<'PY'
 import os, re, glob
 doc = re.compile(r'<[a-z-]+>')
 cpr = re.compile(r'\$\{CLAUDE_PLUGIN_ROOT\}/skills/([^\s"\'`)\]]+)')
+dbl = re.compile(r'\$\{\{CLAUDE_[A-Z_]+\}\}')
 sdir = re.compile(r'\$\{CLAUDE_SKILL_DIR\}/([^\s"\'`)\]]+)')
 SUB = r'(?:(?:\.{2}/)+|(?:references|rules|scripts|checklists|assets|workflows|examples)/)'
 rel_read = re.compile(r'Read\(\s*["\'](' + SUB + r'[^"\')]+)["\']')
@@ -165,6 +166,8 @@ for f in glob.glob("src/**/*", recursive=True):
     sdir_base = skill_dir_of(f)
     is_skill_md = sdir_base is not None and os.path.basename(f) == "SKILL.md" and os.path.dirname(f) == sdir_base
     for i, line in enumerate(lines, 1):
+        if f.endswith(".md") and dbl.search(line):
+            hits.append(f"{f}:{i}\tdoubled-brace CLAUDE_* variable is never substituted")
         for m in cpr.finditer(line):
             rel = m.group(1)
             if skip(rel):

@@ -5187,7 +5187,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "verify",
     "description": "Grades work for merge: runs unit, integration and E2E suites plus security and type checks, scores 0-10 with a VERIFIED vs CLAIMED manifest. Use when deciding if work can ship. Not for adding missing tests (use cover).",
     "version": "4.7.0",
-    "sha256": "527e25acbfe39db63a04ee0b27f78ce06c4e939324a5cc1e6651708ad36e2467",
+    "sha256": "4a339218b135226f675c584eef63f3361bee6df00025b330f5e834ee06031617",
     "author": "OrchestKit",
     "tags": [
       "verification",

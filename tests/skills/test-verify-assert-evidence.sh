@@ -131,6 +131,14 @@ N=$(awk '/COULD-NOT-OBSERVE/{n++} END{print n+0}' "$SKILL")
 if [[ "$N" -ge 4 ]]; then echo "  ✓ SKILL.md names COULD-NOT-OBSERVE at every verdict site ($N)"; PASS=$((PASS + 1)); else echo "  ✗ SKILL.md names COULD-NOT-OBSERVE only $N times (need >= 4)"; FAIL=$((FAIL + 1)); fi
 if grep -q 'assert-evidence.sh' "$SKILL"; then echo "  ✓ SKILL.md invokes assert-evidence.sh"; PASS=$((PASS + 1)); else echo "  ✗ SKILL.md does not invoke assert-evidence.sh"; FAIL=$((FAIL + 1)); fi
 
+echo "Refused gate (#5172)"
+MANIFEST="$REPO_ROOT/src/skills/verify/references/verification-manifest.md"
+CLAUDE_MD="$REPO_ROOT/src/skills/verify/references/claude-code.md"
+if grep -qF '${{CLAUDE_' "$SKILL" "$CLAUDE_MD"; then echo "  ✗ verify docs use the doubled-brace form, which Claude Code never substitutes"; FAIL=$((FAIL + 1)); else echo "  ✓ no doubled-brace CLAUDE_* variable in verify docs"; PASS=$((PASS + 1)); fi
+if grep -qF 'GATE = "${CLAUDE_SKILL_DIR}/scripts/assert-evidence.sh"' "$SKILL"; then echo "  ✓ SKILL.md calls the gate through the single-brace skill-dir variable"; PASS=$((PASS + 1)); else echo "  ✗ SKILL.md does not call the gate through the single-brace skill-dir variable"; FAIL=$((FAIL + 1)); fi
+if grep -qi 'gate refused' "$SKILL" && grep -qi 'gate refused' "$MANIFEST"; then echo "  ✓ SKILL.md and manifest name the refused gate as COULD-NOT-OBSERVE"; PASS=$((PASS + 1)); else echo "  ✗ refused-gate case missing from SKILL.md or verification-manifest.md"; FAIL=$((FAIL + 1)); fi
+if grep -qi 'never be WAIVED' "$MANIFEST" && grep -qi 'never be WAIVED' "$SKILL"; then echo "  ✓ the test-evidence gate is never WAIVED"; PASS=$((PASS + 1)); else echo "  ✗ never-WAIVED rule missing from SKILL.md or verification-manifest.md"; FAIL=$((FAIL + 1)); fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

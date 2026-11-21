@@ -328,7 +328,16 @@ if (!te) {
 	tests = { outcome: "PENDING", exitCode: null, summaryLine: "" };
 	reasons.push("PENDING-TESTS: run scripts/assert-evidence.sh; EVIDENCE with exit 0 and a summary showing at least one passing test and no failures gives capIfTestsPass, anything else is BLOCKED");
 } else {
-	tests = { outcome: String(te.outcome || "COULD-NOT-OBSERVE"), exitCode: typeof te.exitCode === "number" ? te.exitCode : null, summaryLine: String(te.summaryLine || "") };
+	// #5172: a denied or errored gate call arrives as {refused: reason}, not an
+	// outcome. The caller cannot run another Bash call to classify the refusal
+	// (the refused tool class may refuse that too), so the mapping lives here.
+	// The reason arrives as structured data and keeps its quotes and newlines
+	// verbatim; no shell serialization is involved.
+	if (typeof te.refused === "string" && te.refused.length > 0) {
+		tests = { outcome: "COULD-NOT-OBSERVE", exitCode: null, summaryLine: `gate refused: ${te.refused}` };
+	} else {
+		tests = { outcome: String(te.outcome || "COULD-NOT-OBSERVE"), exitCode: typeof te.exitCode === "number" ? te.exitCode : null, summaryLine: String(te.summaryLine || "") };
+	}
 	if (tests.outcome !== "EVIDENCE") lower("BLOCKED", `Tests: ${tests.outcome}, no grade from an unobserved run`);
 	else if (tests.exitCode !== 0) lower("BLOCKED", `Tests: EVIDENCE with exit ${tests.exitCode === null ? "unknown (pass exitCode from the EXIT= marker)" : tests.exitCode}`);
 	else if (typeof te.summaryLine !== "string" || !/\b[1-9]\d*\s+(tests?\s+)?(passed|passing)\b/i.test(te.summaryLine) || /\b[1-9]\d*\s+(tests?\s+)?(failed|failing|errors?)\b/i.test(te.summaryLine))
