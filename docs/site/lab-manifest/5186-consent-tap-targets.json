@@ -1,0 +1,13 @@
+{
+  "slug": "5186-consent-tap-targets",
+  "source": "docs/fix--5186-consent-tap-targets/consent-tap-targets.html",
+  "title": "Consent banner: 44 px tap targets that do not bleed",
+  "description": "Issue #5186 gave the privacy link a 44 px hit area with py-3.5 -my-3.5, and Devin Review caught the overlap: at 390 px a tap inside the padded link lands on Allow analytics. Compare the padded link with the real inline-flex min-h-11 box, and measure both hit areas in the DOM.",
+  "tags": [
+    "site",
+    "a11y",
+    "tap-targets",
+    "5186"
+  ],
+  "date": "2026-11-21"
+}

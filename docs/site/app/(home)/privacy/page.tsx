@@ -4,7 +4,7 @@ import { ContentPage } from "@/components/content-page";
 import { ORG, SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
-	title: "Privacy",
+	title: "Privacy notice",
 	description: `How the ${SITE.name} documentation site and plugin handle data. No accounts, no PII sold, analytics are anonymous.`,
 	alternates: { canonical: `${SITE.domain}/privacy` },
 };
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
 	return (
 		<ContentPage
-			title="Privacy"
+			title="Privacy notice"
 			path="/privacy"
 			lead="OrchestKit is an open-source developer tool. There are no user accounts, and no personal data is sold or shared with advertisers."
 		>
