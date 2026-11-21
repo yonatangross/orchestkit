@@ -772,6 +772,32 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
+  describe("an ANSI-C $'...' directory (#5198)", () => {
+    // bash expands escapes inside $'...', so $'/L\'x' is the path /L'x: the reader must hand
+    // the decoded directory to the probe, not the quoted text, or the install is allowed.
+    it("the shape from the issue: an escaped apostrophe in a $'...' prefix", () => {
+      const result = npmCiSymlinkGuard(bash("npm ci --prefix $'/L\\'x'"), NOOP_CTX, linksAt("/L'x/node_modules"));
+      expect(denied(result)).toBe(true);
+    });
+
+    it.each([
+      ['a hex escape inside the path', "npm ci --prefix $'/l\\x77'"],
+      ['an octal escape inside the path', "npm ci --prefix $'/l\\167'"],
+      ['a glued ANSI-C piece', "npm ci --prefix /l$'\\x77'"],
+      ['a cd target in ANSI-C quotes', "cd $'/l\\x77' && npm ci"],
+    ])('%s: denied', (_name, command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it.each([
+      ["npm ci --prefix $'/L\\'x'"],
+      ["npm ci --prefix $'/l\\x77'"],
+      ["npm install --prefix $'/l\\x77'"],
+    ])('control: %s is quiet', (command) => {
+      expect(decision(command, nothingLinked)).toBeUndefined();
+    });
+  });
+
   describe('a cd with options', () => {
     it.each([
       ['cd -P'],
