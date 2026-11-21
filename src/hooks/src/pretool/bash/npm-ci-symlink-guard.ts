@@ -153,9 +153,13 @@ function readAnsiC(text: string, start: number): { value: string; end: number } 
  * reads them. It ends at an unquoted blank, at an unquoted `<` or `>` (a redirection is not part of
  * the word next to it) or at a character of `stops`.
  */
-function readWord(text: string, start: number, stops: string): { value: string; end: number } {
+function readWord(text: string, start: number, stops: string): { value: string; end: number; hasExpand: boolean; splits: boolean } {
   let cur = '';
   let i = start;
+  // Whether bash expands anything in this word, and whether an expansion sits
+  // outside all quoting so its result splits on IFS (reviews on #5336).
+  let hasExpand = false;
+  let splits = false;
   while (i < text.length) {
     const c = text[i];
     if (/\s/.test(c) || c === '<' || c === '>' || stops.includes(c)) break;
@@ -171,6 +175,7 @@ function readWord(text: string, start: number, stops: string): { value: string; 
           if (text[i + 1] !== '\n') cur += text[i + 1];
           i += 2;
         } else {
+          if (text[i] === '$' || text[i] === '`') hasExpand = true;
           cur += text[i++];
         }
       }
@@ -186,11 +191,15 @@ function readWord(text: string, start: number, stops: string): { value: string; 
       if (text[i + 1] !== '\n') cur += text[i + 1];
       i += 2;
     } else {
+      if (c === '$' || c === '`') {
+        hasExpand = true;
+        splits = true;
+      }
       cur += c;
       i++;
     }
   }
-  return { value: cur, end: i };
+  return { value: cur, end: i, hasExpand, splits };
 }
 
 /** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
@@ -211,8 +220,8 @@ const DQ_ESCAPABLE = '$`"\\\n';
  * character. Quote characters of the other kind stay in the word, so
  * "a'b" is a'b and '/L\z' is /L\z.
  */
-function shellWords(segment: string): string[] {
-  const words: string[] = [];
+function shellWords(segment: string): Array<{ value: string; hasExpand: boolean; splits: boolean }> {
+  const words: Array<{ value: string; hasExpand: boolean; splits: boolean }> = [];
   let i = 0;
   // Where the last word ended, where it began in the segment (a quoted fd number is not one),
   // and whether the next word is the target of a redirection.
@@ -225,10 +234,18 @@ function shellWords(segment: string): string[] {
       i++;
       continue;
     }
+    if (c === '&' && segment[i + 1] === '>') {
+      // `&>`/`&>>` redirects both streams as one operator: the `&` is part of
+      // the redirection, not an argument, and the target word is not either.
+      i++;
+      while (i < segment.length && (segment[i] === '<' || segment[i] === '>')) i++;
+      dropNext = true;
+      continue;
+    }
     if (c === '<' || c === '>') {
       // A redirection: the operator, an fd number glued before it, and its target word are not arguments.
       // The fd number must be unquoted digits: `'3'>x` keeps `3` as an argument (row 17, #59).
-      if (lastEnd === i && lastStart !== -1 && /^\d/.test(segment[lastStart]) && /^\d+$/.test(words[words.length - 1] ?? '')) {
+      if (lastEnd === i && lastStart !== -1 && /^\d/.test(segment[lastStart]) && /^\d+$/.test(words[words.length - 1]?.value ?? '')) {
         words.pop();
       }
       while (i < segment.length && (segment[i] === '<' || segment[i] === '>')) i++;
@@ -240,7 +257,7 @@ function shellWords(segment: string): string[] {
     i = word.end;
     if (dropNext) dropNext = false;
     else {
-      words.push(word.value);
+      words.push({ value: word.value, hasExpand: word.hasExpand, splits: word.splits });
       lastEnd = i;
       lastStart = wStart;
     }
@@ -360,19 +377,19 @@ const NAMEREF = '\u0002';
 
 function expandVars(word: string, vars: Vars): string {
   if (!word.includes('$')) return word;
-  const valueOf = (name: string, depth = 0): string | undefined => {
+  const lookupVar = (name: string, depth = 0): string | undefined => {
     const value = vars.get(name);
     if (typeof value !== 'string') return undefined;
     // A nameref holds the name of another variable; its expansion is that variable's value.
     if (!value.startsWith(NAMEREF)) return value;
     // A nameref chain may cycle (`declare -n r=r`): stop following it after a few hops.
-    return depth < 8 ? valueOf(value.slice(NAMEREF.length), depth + 1) ?? '' : '';
+    return depth < 8 ? lookupVar(value.slice(NAMEREF.length), depth + 1) ?? '' : '';
   };
   return word.replace(
     /\$\{(\w+)(:?[-+])([^}]*)\}|\$\{(\w+)\}|\$(\w+)/g,
     (whole, n1: string | undefined, op: string | undefined, arg: string | undefined, n2: string | undefined, n3: string | undefined) => {
       const name = n1 ?? n2 ?? n3 ?? '';
-      const value = valueOf(name);
+      const value = lookupVar(name);
       if (op !== undefined) {
         // ${n-word}/${n:-word} use word when n is unset (:- also when empty);
         // ${n+word}/${n:+word} use word when n is set (:+ also nonempty).
@@ -421,23 +438,91 @@ function setVar(vars: Vars, all: Map<string, Set<string>>, name: string, value: 
  */
 function cutAtComment(segment: string): string {
   let quote: string | null = null;
+  // A `#` opens a comment only at a word boundary. An escaped blank keeps the
+  // word open, so `cd /lw/Fix\ #42` holds two words and a `#` operand, not a
+  // comment, and `\#` inside a word is literal text (reviews on #5336).
+  let wordStart = true;
   for (let i = 0; i < segment.length; i++) {
     const c = segment[i];
     if (quote === "'") {
       if (c === "'") quote = null;
+      wordStart = false;
     } else if (c === '\\') {
       i++;
+      wordStart = false;
     } else if (quote === '"') {
       if (c === '"') quote = null;
+      wordStart = false;
     } else if (c === "'" || c === '"') {
       quote = c;
-    } else if (c === '#' && (i === 0 || /[ \t;&|()]/.test(segment[i - 1]))) {
+      // A quote may open or sit inside a word; either way the word is open.
+      wordStart = false;
+    } else if (/[ \t;&|()]/.test(c)) {
       // The shell's blank is space and tab: a carriage return, a non-breaking or
-      // ideographic space does not open a comment, and neither does a quoted #.
-      return segment.slice(0, i);
+      // ideographic space does not close a word, and neither does a quoted #.
+      wordStart = true;
+    } else if (c === '#') {
+      if (wordStart) return segment.slice(0, i);
+      wordStart = false;
+    } else {
+      wordStart = false;
     }
   }
   return segment;
+}
+
+/**
+ * Split a command into segments only at separators the shell sees outside
+ * quotes: `;`, newline, `|`, `&&`, `||`, and a background `&` that is not part
+ * of a `>&`, `<&` or `&>` redirection. A `;` inside quotes is data, not a
+ * command boundary (`printf '%s' 'x; cd /decoy; x'` is one command); text that
+ * later runs as a script is re-read by nestedScripts (reviews on #5336).
+ * Backticks and `$( )` are not quote-contexts here on purpose: their contents
+ * still run, so splitting inside them keeps the coverage it had.
+ */
+function splitTopLevel(text: string): string[] {
+  const segments: string[] = [];
+  let cur = '';
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === "'") {
+      const end = text.indexOf("'", i + 1);
+      if (end === -1) {
+        cur += text.slice(i);
+        break;
+      }
+      cur += text.slice(i, end + 1);
+      i = end + 1;
+    } else if (c === '"') {
+      const start = i;
+      i++;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === '\\' && i + 1 < text.length && DQ_ESCAPABLE.includes(text[i + 1])) i++;
+        i++;
+      }
+      if (i < text.length) i++;
+      cur += text.slice(start, i);
+    } else if (c === '$' && text[i + 1] === "'") {
+      const ansi = readAnsiC(text, i + 2);
+      cur += text.slice(i, ansi.end);
+      i = ansi.end;
+    } else if (c === '\\' && i + 1 < text.length) {
+      cur += text.slice(i, i + 2);
+      i += 2;
+    } else if (c === ';' || c === '\n' || c === '|' || (c === '&' && text[i - 1] !== '<' && text[i - 1] !== '>' && text[i + 1] !== '>')) {
+      segments.push(cur);
+      cur = '';
+      // `||` and `&&` are one separator each.
+      if ((c === '|' || c === '&') && text[i + 1] === c) i++;
+      i++;
+    } else {
+      cur += c;
+      i++;
+    }
+  }
+  segments.push(cur);
+  return segments;
 }
 
 /** A segment whose command is cd or pushd (after assignments and `builtin`/`command`). */
@@ -897,7 +982,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
   // A subshell runs in a copy of the shell: a cd and an assignment inside it end
   // when it closes. Each '(' saves the directory and the variables (#55).
   const saved: Array<{ dir: string; vars: Vars }> = [];
-  for (const raw of command.split(/&&|\|\||[;|\n]|(?<![<>])&(?![>])/)) {
+  for (const raw of splitTopLevel(command)) {
     let segment = raw.trim();
     const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
     segment = segment.slice(opens).trim();
@@ -905,7 +990,12 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     let closes = 0;
     while (closes < segment.length && segment[segment.length - 1 - closes] === ')') closes++;
     segment = segment.slice(0, segment.length - closes).trim();
-    for (let n = 0; n < opens; n++) saved.push({ dir, vars: varsNow });
+    for (let n = 0; n < opens; n++) {
+      saved.push({ dir, vars: varsNow });
+      // The subshell's variable map is a copy: an assignment or a CDPATH change
+      // inside it must not leak into the parent shell (reviews on #5336).
+      varsNow = new Map(varsNow);
+    }
     const restore = () => {
       for (let n = 0; n < closes; n++) {
         const s = saved.pop();
@@ -923,13 +1013,13 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     // words the shell keeps whenever this reader splits finer than the shell.
     if (CD_SEGMENT.test(segment)) segment = cutAtComment(segment);
     const rawWords = shellWords(segment);
-    const assigned = assignmentsOf(rawWords);
+    const assigned = assignmentsOf(rawWords.map((w) => w.value));
     if (assigned !== null) {
       // `declare -n r=x` makes r a nameref: expanding $r gives x's value, not "x" (#53).
       const isNameref =
         rawWords.length > 0 &&
-        DECLARE_WORDS.has(rawWords[0]) &&
-        rawWords.slice(1).some((w) => /^-[a-zA-Z]*n[a-zA-Z]*$/.test(w));
+        DECLARE_WORDS.has(rawWords[0].value) &&
+        rawWords.slice(1).some((w) => /^-[a-zA-Z]*n[a-zA-Z]*$/.test(w.value));
       for (const [name, value] of assigned) {
         const expanded = expandVars(value, varsNow);
         setVar(varsNow, varsAll, name, isNameref && /^[A-Za-z_]\w*$/.test(expanded) ? NAMEREF + expanded : expanded);
@@ -939,11 +1029,15 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     }
     // Variables first: `cd $d` with d="a b" splits on IFS into `cd a b` (#36, #51).
     const ifsValue = varsNow.get('IFS');
-    const ifs = typeof ifsValue === 'string' && ifsValue !== '' ? ifsValue : ' \t\n';
+    // An unset IFS defaults to space-tab-newline; an explicit `IFS=` is EMPTY
+    // and disables word splitting, it does not reset the default (#5336).
+    const ifs = typeof ifsValue === 'string' ? ifsValue : ' \t\n';
     const ifsSplit = new RegExp(`[${ifs.replace(/[\\\-\]^[]/g, '\\$&')}]+`);
     const words = rawWords.flatMap((w) => {
-      const ex = expandVars(w, varsNow);
-      const pieces = /[$\u0001]/.test(w) ? ex.split(ifsSplit).filter(Boolean) : [ex];
+      const ex = w.hasExpand ? expandVars(w.value, varsNow) : w.value;
+      // Only an unquoted expansion splits on IFS: `cd "$d"` is one operand
+      // even when $d holds blanks, and `IFS=` turns splitting off entirely.
+      const pieces = w.splits && ifs !== '' ? ex.split(ifsSplit).filter(Boolean) : [ex];
       return pieces.flatMap((p) => {
         const parts = braceExpand(p);
         return parts.length === 1 && parts[0] === p ? parts : parts.filter((x) => x !== '');
@@ -958,12 +1052,25 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     const cdOperands = cdWord ? words.slice(cdIdx + 1).filter((a) => !CD_OPTIONS.has(a)) : [];
     if (cdWord) {
       const beforeCd = dir;
+      // `NAME=x cd sub` applies NAME to this one command and does not persist:
+      // `CDPATH=/lw cd sub` resolves through /lw without leaking it into later
+      // reads, and `HOME=/h cd` goes to /h (reviews on #5336).
+      let cdVars = varsNow;
+      if (cdIdx > 0) {
+        cdVars = new Map(varsNow);
+        for (const a of words.slice(0, cdIdx)) {
+          const m = /^(\w+)=(.*)$/s.exec(a);
+          if (m !== null) cdVars.set(m[1], expandVars(m[2], varsNow));
+        }
+      }
+      const cdHomeValue = cdVars.get('HOME');
+      const cdHome = typeof cdHomeValue === 'string' ? cdHomeValue : home;
       // Quotes, expansions and redirections around a cd are the shapes bash and this
       // reader disagree about (row 17); an operand count other than one is a cd bash
       // refuses (too many arguments) or a bare `cd`, which goes to the home directory.
       if (cdOperands.length !== 1 || /['"\\$`<>|#{}]/.test(segment)) dirShaky = true;
       if (cdOperands.length === 0) {
-        if (words[cdIdx] === 'cd') dir = home;
+        if (words[cdIdx] === 'cd') dir = cdHome;
         seen.push(dir);
         restore();
         continue;
@@ -972,7 +1079,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         // The operands may also be one quoted directory that holds blanks: probe the
         // joined form and the directory that stays if bash refuses (#38, #57, #58).
         seen.push(beforeCd);
-        seen.push(resolveDir(beforeCd, cdOperands.join(' '), home));
+        seen.push(resolveDir(beforeCd, cdOperands.join(' '), cdHome));
         restore();
         continue;
       }
@@ -984,7 +1091,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         // mark the parse shaky and probe the stayed-behind directory too.
         dirShaky = true;
         seen.push(beforeCd);
-        dir = resolveDir(beforeCd, op, home);
+        dir = resolveDir(beforeCd, op, cdHome);
         seen.push(dir);
         restore();
         continue;
@@ -994,27 +1101,27 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         // lands is not knowable one way.
         dirShaky = true;
         seen.push(beforeCd);
-        seen.push(resolveDir(beforeCd, op, home));
+        seen.push(resolveDir(beforeCd, op, cdHome));
         const name = /^\$\{?(\w+)\}?$/.exec(op)?.[1];
         if (name !== undefined) {
           // An empty expansion drops the operand: `cd` alone goes to the home directory.
-          dir = home;
-          seen.push(home);
+          dir = cdHome;
+          seen.push(cdHome);
           for (const v of varsAll.get(name) ?? []) {
             cdArgs.push(v);
-            seen.push(resolveDir(beforeCd, v, home));
+            seen.push(resolveDir(beforeCd, v, cdHome));
           }
         }
         restore();
         continue;
       }
-      dir = resolveDir(dir, op, home);
+      dir = resolveDir(dir, op, cdHome);
       // CDPATH: a relative cd may resolve under a CDPATH entry instead of the cwd (#37).
-      const cdpath = varsNow.get('CDPATH');
-      if (!isAbsolute(expandHome(op, home)) && typeof cdpath === 'string' && cdpath !== '') {
+      const cdpath = cdVars.get('CDPATH');
+      if (!isAbsolute(expandHome(op, cdHome)) && typeof cdpath === 'string' && cdpath !== '') {
         dirShaky = true;
         for (const entry of cdpath.split(':')) {
-          if (entry !== '') seen.push(resolveDir(resolveDir(beforeCd, entry, home), op, home));
+          if (entry !== '') seen.push(resolveDir(resolveDir(beforeCd, entry, cdHome), op, cdHome));
         }
       }
       seen.push(dir);
