@@ -52,14 +52,16 @@ describe("AnalyticsConsentBanner", () => {
 	});
 
 	// #5186: 44 px touch targets at 390 px. text-xs leading-4 is a 16 px line, so
-	// inline-flex with min-h-11 reserves a real 44 px box in the layout, so the
-	// tap area cannot reach into the buttons below it. The buttons carry
-	// min-h-11 up to the sm breakpoint.
-	it("gives the Privacy notice link a real 44 px hit area", () => {
+	// inline-flex with min-h-11 reserves a real 44 px box on a phone, so the
+	// tap area cannot reach into the buttons below it. At sm the banner is a
+	// single row and the e2e slim spec caps the card at 80 px, so the link
+	// drops back to the 20 px line height there.
+	it("gives the Privacy notice link a real 44 px hit area on a phone", () => {
 		render(<AnalyticsConsentBanner />);
 		const link = screen.getByRole("link", { name: "Privacy notice" });
 		expect(link.className).toContain("inline-flex");
 		expect(link.className).toContain("min-h-11");
+		expect(link.className).toContain("sm:min-h-5");
 		expect(link.className).not.toContain("-my-3.5");
 	});
 
