@@ -63,7 +63,7 @@ export function AnalyticsConsentBanner() {
 					session replay on reference docs; Decline stops the count too.{" "}
 					<Link
 						href="/privacy"
-						className="font-medium text-fd-card-foreground underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
+						className="-my-3.5 py-3.5 font-medium text-fd-card-foreground underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-primary"
 					>
 						Privacy notice
 					</Link>

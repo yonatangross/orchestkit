@@ -51,6 +51,24 @@ describe("AnalyticsConsentBanner", () => {
 		expect(link.className).toContain("underline");
 	});
 
+	// #5186: 44 px touch targets at 390 px. text-xs leading-4 is a 16 px line, so
+	// 14 px of padding each side reaches 44; the negative margin keeps the line's
+	// look. The buttons carry min-h-11 up to the sm breakpoint.
+	it("gives the Privacy notice link a 44 px hit area without changing the line", () => {
+		render(<AnalyticsConsentBanner />);
+		const link = screen.getByRole("link", { name: "Privacy notice" });
+		expect(link.className).toContain("py-3.5");
+		expect(link.className).toContain("-my-3.5");
+	});
+
+	it("keeps Decline and Allow at a 44 px tap target on a phone", () => {
+		render(<AnalyticsConsentBanner />);
+		for (const name of ["Decline", "Allow analytics"]) {
+			const button = screen.getByRole("button", { name });
+			expect(button.className).toContain("min-h-11");
+		}
+	});
+
 	it("renders exactly one banner", () => {
 		render(<AnalyticsConsentBanner />);
 		expect(screen.getAllByRole("region", { name: "Analytics consent" })).toHaveLength(1);
