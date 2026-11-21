@@ -101,6 +101,17 @@ const CARD_RUNTIME = `
     });
     return pre;
   }
+  // The only window allowed to hand the view its data is the frame that embedded
+  // it: e.source must be window.parent, and e.origin must be a host the CSP
+  // frame-ancestors list (or a local development page) could embed us under.
+  // Vercel Security Review finding 01M7QBX6YNMP8Y8KWS2XWX0YZJ: without this a
+  // hostile page could postMessage a render payload whose copy field differed
+  // from the commands on display and plant anything on the clipboard.
+  var TRUSTED_PARENT=/^https:\\/\\/([a-z0-9-]+\\.)?(chatgpt\\.com|claude\\.ai|orchestkit\\.dev|orchestkit\\.yonyon\\.ai)$|^https?:\\/\\/(localhost|127\\.0\\.0\\.1|[a-z0-9-]+\\.localhost)(:[0-9]+)?$/;
+  // The origin the host messages arrived from; outbound replies aim there once
+  // it is known (the initial ui/initialize still uses "*", the standard handshake).
+  var hostOrigin="*";
+  function trusted(e){return e.source===window.parent&&TRUSTED_PARENT.test(e.origin);}
   // Ask the host to send a follow-up message (OpenAI Apps SDK, or MCP Apps ui/message).
   // The frame itself makes no request; the host decides what to do with the message.
   function askHost(text){
@@ -108,15 +119,16 @@ const CARD_RUNTIME = `
     if(window.parent&&window.parent!==window){tell(window.parent,{jsonrpc:"2.0",id:2,method:"ui/message",params:{role:"user",content:{type:"text",text:text}}});return true;}
     return false;
   }
-  function tell(parent,message){parent.postMessage(message,"*");}
-  function reportSize(){try{tell(window.parent,{jsonrpc:"2.0",method:"ui/notifications/size-changed",params:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}});}catch(e){}}
+  function tell(parent,message){parent.postMessage(message,hostOrigin);}
+  function reportSize(){try{tell(window.parent,{jsonrpc:"2.0",method:"ui/notifications/size-changed",params:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}});}catch(e){void e;}}
   function start(render){
     render(window.openai&&window.openai.toolOutput);
     window.addEventListener("message",function(e){
+      if(!trusted(e))return;
       var d=e.data;if(!d||typeof d!=="object")return;
-      if(d.type==="ui-lifecycle-iframe-render-data"){render(d.payload&&d.payload.toolOutput);reportSize();}
-      else if(d.method==="ui/notifications/tool-result"){render(d.params&&d.params.structuredContent);reportSize();}
-      else if(d.id===1&&d.result){tell(window.parent,{jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}});reportSize();}
+      if(d.type==="ui-lifecycle-iframe-render-data"){hostOrigin=e.origin;render(d.payload&&d.payload.toolOutput);reportSize();}
+      else if(d.method==="ui/notifications/tool-result"){hostOrigin=e.origin;render(d.params&&d.params.structuredContent);reportSize();}
+      else if(d.id===1&&d.result){hostOrigin=e.origin;tell(window.parent,{jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}});reportSize();}
     });
     if(window.parent&&window.parent!==window){tell(window.parent,{jsonrpc:"2.0",id:1,method:"ui/initialize",params:{appInfo:{name:document.title,version:"1.0.0"},appCapabilities:{},protocolVersion:"2026-01-26"}});}
   }
@@ -201,6 +213,29 @@ export const INSTALL_PICKER_HTML = page(
 	"OrchestKit install picker",
 	`
   var data=null;
+  // The clipboard gets exactly the commands on display, joined to one line. A
+  // wire-sent copy field that could differ from them is not read (#5337).
+  function copyText(h){return h.commands.join(" && ");}
+  // Only the fields the view uses, and only when their types match: a wire
+  // payload with a copy field, extra keys or wrong types loses them.
+  function cleanHost(h){
+    if(!h||typeof h!=="object"||typeof h.id!=="string"||typeof h.name!=="string"||!Array.isArray(h.commands))return null;
+    var commands=h.commands.filter(function(c){return typeof c==="string";});
+    if(!commands.length)return null;
+    var then=null;
+    if(h.then&&typeof h.then==="object"&&Array.isArray(h.then.commands)){
+      var tc=h.then.commands.filter(function(c){return typeof c==="string";});
+      if(tc.length)then={label:String(h.then.label||""),commands:tc,prompt:h.then.prompt===true};
+    }
+    return {id:h.id,name:h.name,what:String(h.what||""),where:String(h.where||""),commands:commands,prompt:h.prompt===true,copyLabel:typeof h.copyLabel==="string"?h.copyLabel:undefined,then:then,docsUrl:typeof h.docsUrl==="string"?h.docsUrl:undefined};
+  }
+  function clean(d){
+    if(!d||typeof d!=="object"||!Array.isArray(d.hosts))return null;
+    var hosts=d.hosts.map(cleanHost).filter(Boolean);
+    if(!hosts.length)return null;
+    var selected=hosts.some(function(h){return h.id===d.selected;})?d.selected:hosts[0].id;
+    return {hosts:hosts,selected:selected};
+  }
   function hostById(id){for(var i=0;i<data.hosts.length;i++){if(data.hosts[i].id===id)return data.hosts[i];}return data.hosts[0];}
   function paint(id){
     var h=hostById(id);var out=document.getElementById("out");out.textContent="";
@@ -208,7 +243,7 @@ export const INSTALL_PICKER_HTML = page(
     out.appendChild(el("p","lead",h.where));
     out.appendChild(commandBlock(h.commands,h.prompt));
     var status=el("p","status");status.setAttribute("role","status");
-    out.appendChild(copyButton(h.copy,status,h.copyLabel||"Copy command"));
+    out.appendChild(copyButton(copyText(h),status,h.copyLabel||"Copy command"));
     out.appendChild(status);
     if(h.then){out.appendChild(el("h2","",h.then.label));out.appendChild(commandBlock(h.then.commands,h.then.prompt));}
     var docs=link(h.docsUrl,h.name+" install page \\u2192");
@@ -216,20 +251,21 @@ export const INSTALL_PICKER_HTML = page(
   }
   function render(d){
     root.textContent="";
-    if(!d||typeof d!=="object"||!Array.isArray(d.hosts)||!d.hosts.length){root.appendChild(el("p","muted","Waiting for install data from the host…"));return;}
-    data=d;
+    var cleaned=clean(d);
+    if(!cleaned){root.appendChild(el("p","muted","Waiting for install data from the host…"));return;}
+    data=cleaned;
     root.appendChild(el("h1","","Install OrchestKit"));
     var fs=el("fieldset","");fs.appendChild(el("legend","","Pick where you work"));
     var seg=el("div","seg");
-    d.hosts.forEach(function(h){
-      var input=document.createElement("input");input.type="radio";input.name="host";input.id="host-"+h.id;input.value=h.id;input.checked=(h.id===d.selected);
+    data.hosts.forEach(function(h){
+      var input=document.createElement("input");input.type="radio";input.name="host";input.id="host-"+h.id;input.value=h.id;input.checked=(h.id===data.selected);
       input.addEventListener("change",function(){if(input.checked)paint(h.id);});
       var label=el("label","",h.name);label.htmlFor=input.id;
       seg.appendChild(input);seg.appendChild(label);
     });
     fs.appendChild(seg);root.appendChild(fs);
     var out=el("div","");out.id="out";root.appendChild(out);
-    paint(d.selected);
+    paint(data.selected);
   }
   start(render);
 `,

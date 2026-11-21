@@ -1,0 +1,12 @@
+{
+  "slug": "5337-mcp-ui-origin",
+  "source": "docs/fix--5337-mcp-ui-origin/mcp-ui-origin.html",
+  "title": "#5337: install picker trusts only its embedding frame",
+  "description": "The MCP install picker accepted render data from any window and could copy a field the display never showed. The listener now requires e.source === window.parent plus a frame-ancestors origin allowlist, validates the host schema, and derives the clipboard text from the commands on screen.",
+  "tags": [
+    "security",
+    "mcp",
+    "docs-site"
+  ],
+  "date": "2026-11-21"
+}
