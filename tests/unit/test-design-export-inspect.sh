@@ -117,7 +117,7 @@ run "legacy tar.gz without project/" 0 "$SANDBOX/legacy-incomplete.tar.gz"
 expect_field status incomplete
 
 echo "▶ hostile or wrong input"
-for bad in traversal.zip absolute.zip backslash.zip symlink.zip lying-size.zip stored-lying-size.zip clash.zip duplicate.zip tar-traversal.tar.gz tar-link.tar.gz tar-negative-size.tar.gz plain.txt; do
+for bad in traversal.zip absolute.zip backslash.zip symlink.zip lying-size.zip stored-lying-size.zip clash.zip duplicate.zip deep-name.zip long-name.zip tar-deep-name.tar.gz tar-traversal.tar.gz tar-link.tar.gz tar-negative-size.tar.gz plain.txt; do
   run "$bad refused" 1 "$SANDBOX/$bad"
   # A refused archive leaves nothing behind in its output folder.
   if [[ -d "$SANDBOX/out-$RUN_N" ]]; then

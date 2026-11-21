@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archive names get a ceiling before they get a check</title>
+<meta name="description" content="Vercel finding #32: a crafted export name made the clash check do quadratic prefix work. Slide the name depth to see the old cost explode and the capped reader refuse long before it.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(2rem,5vw,3.2rem); line-height:1.1; max-width:750px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:760px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  label { display:block; font-weight:650; margin-bottom:10px; }
+  input[type="range"] { width:100%; max-width:520px; }
+  .meter { display:flex; align-items:center; gap:12px; margin:10px 0; }
+  .meter .tag { width:130px; font-weight:650; }
+  .bar { height:20px; border-radius:4px; background:var(--line); }
+  .bar.bad { background:var(--bad); }
+  .bar.good { background:var(--good); }
+  .val { font-variant-numeric:tabular-nums; min-width:170px; }
+  #verdict { font-weight:650; }
+  code { font-family:ui-monospace,monospace; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">design-to-code / archive reader</div>
+    <h1>The check that cost more than the file.</h1>
+    <p>Finding #32 on the Vercel dashboard: <code>inspect-export.mjs</code> accepted archive names of any depth, then its name-clash check rebuilt every prefix with <code>slice/join</code>. A deeply nested GNU long name inside a tiny .tar.gz cost quadratic CPU and stalled the import. The fix caps name bytes (512) and depth (32) in <code>safeName</code>, and the clash check now grows one running prefix instead of rebuilding each level.</p>
+  </header>
+
+  <section>
+    <h2>Slide the entry-name depth</h2>
+    <p class="muted">The bars model the clash check on one name: OLD = sum of rebuilt prefixes, NEW = one running prefix after the cap. Real exports sit near depth 3.</p>
+    <label for="depth">name depth: <span id="depthVal">3</span> components</label>
+    <input type="range" id="depth" min="1" max="200" value="3">
+    <div class="meter"><span class="tag">OLD slice/join</span><div class="bar bad" id="oldBar" style="width:2px"></div><span class="val" id="oldVal"></span></div>
+    <div class="meter"><span class="tag">NEW running prefix</span><div class="bar good" id="newBar" style="width:2px"></div><span class="val" id="newVal"></span></div>
+    <p id="verdict" aria-live="polite"></p>
+  </section>
+
+  <section>
+    <h2>What the reader does now</h2>
+    <p id="outcome" class="muted"></p>
+  </section>
+
+  <footer>Playground for the fix to finding #32 / issue #5338. The shipped file is src/skills/design-to-code/scripts/inspect-export.mjs (and its generated copy under plugins/).</footer>
+</main>
+<script>
+const depth = document.getElementById('depth');
+const MAX_DEPTH = 32, MAX_BYTES = 512;
+function fmt(n) { return n.toLocaleString('en-US'); }
+function update() {
+  const d = +depth.value;
+  document.getElementById('depthVal').textContent = d;
+  const part = 16; // assume ~16-byte components for the model
+  const nameLen = d * (part + 1);
+  const oldCost = d * (d + 1) / 2 * part;       // chars copied by slice/join
+  const newCost = nameLen;                        // chars walked once
+  document.getElementById('oldVal').textContent = fmt(oldCost) + ' chars';
+  document.getElementById('newVal').textContent = fmt(newCost) + ' chars';
+  document.getElementById('oldBar').style.width = Math.min(100, oldCost / 3000) + 'px';
+  document.getElementById('newBar').style.width = Math.min(100, newCost / 300) + 'px';
+  const refused = d > MAX_DEPTH || nameLen > MAX_BYTES;
+  document.getElementById('verdict').textContent = refused
+    ? 'Refused at the door: depth or bytes past the cap, clash check never runs.'
+    : 'Accepted: inside the caps, the new check walks the name once.';
+  document.getElementById('outcome').textContent = refused
+    ? `depth ${d} > ${MAX_DEPTH} (or ${fmt(nameLen)} > ${MAX_BYTES} bytes): the entry is refused before any prefix work. exit 1, nothing written.`
+    : `depth ${d}, ~${fmt(nameLen)} bytes: name passes the caps and the running-prefix check touches it once.`;
+}
+depth.addEventListener('input', update);
+update();
+</script>
+</body>
+</html>
