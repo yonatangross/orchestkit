@@ -37,6 +37,11 @@ import { gunzipSync, inflateRawSync } from 'node:zlib';
 const MAX_ENTRIES = 2000;
 const MAX_TOTAL_BYTES = 200 * 1024 * 1024;
 const MAX_INPUT_BYTES = 200 * 1024 * 1024;
+// Deep or huge entry names are an attack on the clash check below, not a
+// legitimate layout: each prefix of a name was rebuilt with slice/join, so a
+// name of depth D cost O(D^2) work. Capping both bounds every later pass.
+const MAX_NAME_BYTES = 512;
+const MAX_NAME_DEPTH = 32;
 
 class Refused extends Error {}
 
@@ -67,7 +72,10 @@ function safeName(raw) {
   }
   const parts = raw.split('/').filter((p) => p !== '' && p !== '.');
   if (parts.includes('..')) throw new Refused(`entry name leaves the archive: ${raw}`);
-  return parts.join('/');
+  if (parts.length > MAX_NAME_DEPTH) throw new Refused(`entry name is too deep (> ${MAX_NAME_DEPTH} folders)`);
+  const name = parts.join('/');
+  if (Buffer.byteLength(name, 'utf8') > MAX_NAME_BYTES) throw new Refused(`entry name is too long (> ${MAX_NAME_BYTES} bytes)`);
+  return name;
 }
 
 // Two entries with one name, or a name that is both a file and a folder of
@@ -79,10 +87,11 @@ function refuseNameClashes(names) {
     seen.add(name);
   }
   for (const name of names) {
-    const parts = name.split('/');
-    for (let i = 1; i < parts.length; i += 1) {
-      const parent = parts.slice(0, i).join('/');
-      if (seen.has(parent)) throw new Refused(`an entry is both a file and a folder: ${parent}`);
+    // Grow the prefix instead of slice/join per level: same lookups, one pass.
+    let prefix = '';
+    for (const part of name.split('/')) {
+      if (seen.has(prefix)) throw new Refused(`an entry is both a file and a folder: ${prefix}`);
+      prefix = prefix === '' ? part : `${prefix}/${part}`;
     }
   }
 }

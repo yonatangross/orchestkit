@@ -1,0 +1,13 @@
+{
+  "slug": "5338-archive-name-caps",
+  "source": "docs/fix--5338-archive-name-caps/archive-name-caps.html",
+  "title": "Archive names get a ceiling before they get a check",
+  "description": "Vercel finding #32: a deeply nested export name made the clash check do quadratic slice/join work inside the 200 MB cap. The fix caps name bytes and depth in safeName and walks one running prefix. Slide the depth to watch the old cost explode.",
+  "tags": [
+    "skills",
+    "security",
+    "design-to-code",
+    "5338"
+  ],
+  "date": "2026-11-21"
+}

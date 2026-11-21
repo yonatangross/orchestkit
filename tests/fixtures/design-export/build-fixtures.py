@@ -87,6 +87,13 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     make_zip("duplicate.zip", [("page.html", HTML), ("page.html", "<html>other</html>")])
 
+# attack on the clash check: a name deeper or longer than the caps must be
+# refused before any prefix work, even when it arrives as a GNU long name
+make_zip("deep-name.zip", [("/".join(["d"] * 40) + "/page.html", HTML)])
+make_zip("long-name.zip", [("n" * 600 + ".html", HTML)])
+with tarfile.open(os.path.join(box, "tar-deep-name.tar.gz"), "w:gz") as t:
+    add(t, "/".join(["d"] * 40) + "/page.html", HTML)
+
 # a tar header with a negative size, which would send a naive reader backwards
 header = bytearray(512)
 header[0:1] = b"x"
