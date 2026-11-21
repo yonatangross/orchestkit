@@ -163,6 +163,21 @@ await test('Tests outcome other than EVIDENCE is BLOCKED', async () => {
   const { result } = await run({ args: { effort: 'medium', testEvidence: { outcome: 'COULD-NOT-OBSERVE' } } });
   assert.equal(result.verdictCap, 'BLOCKED');
 });
+await test('a refused gate call classifies in the caller to COULD-NOT-OBSERVE + BLOCKED (#5172)', async () => {
+  // Inert stub: every Bash invocation is refused, so there is no script exit code
+  // and no classifier the caller could run - the refusal must arrive as structured
+  // data after a single attempted gate call. Quotes, backslashes and newlines in the
+  // reason must survive verbatim (it rides the caller's own JSON encoder).
+  const reason = 'PreToolUse hook: policy "lane-allowlist" denied\nnext line: path C:\\tmp\\x';
+  // Simulate the real wire: the caller serializes the arg, dispatch parses it.
+  const testEvidence = JSON.parse(JSON.stringify({ refused: reason }));
+  const { result } = await run({ args: { effort: 'medium', testEvidence } });
+  assert.equal(result.tests.outcome, 'COULD-NOT-OBSERVE');
+  assert.equal(result.tests.exitCode, null);
+  assert.ok(!('score' in result.tests));
+  assert.equal(result.tests.summaryLine, `gate refused: ${reason}`);
+  assert.equal(result.verdictCap, 'BLOCKED');
+});
 await test('probe C: EVIDENCE with a non-zero exit is BLOCKED', async () => {
   const { result } = await run({ args: { effort: 'medium', testEvidence: { outcome: 'EVIDENCE', exitCode: 1, summaryLine: '3 failed, 211 passed' } } });
   assert.equal(result.verdictCap, 'BLOCKED');
