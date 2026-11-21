@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consent banner: 44 px tap targets that do not bleed</title>
+<meta name="description" content="The privacy link got a 44 px hit area by padding, and Devin Review caught the overlap: taps near the bottom of the padded link hit Allow analytics. Compare padding bleed with the real inline-flex box at 390 px.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(2rem,5vw,3.2rem); line-height:1.1; max-width:750px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:760px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  .columns { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  article { min-width:0; padding:20px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .before { border-top:4px solid var(--bad); }
+  .after { border-top:4px solid var(--good); }
+  .phone { width:390px; max-width:100%; margin:18px auto 0; border:1px solid var(--line); border-radius:10px; background:#fafafa; min-height:180px; position:relative; overflow:hidden; }
+  .banner { position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; border:2px solid var(--ink); border-radius:8px; background:#fff; padding:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); font-size:12px; }
+  .banner p { margin:0; line-height:16px; }
+  .row { display:flex; gap:8px; align-self:flex-end; }
+  .consent-btn { min-height:44px; padding:8px 16px; border:1px solid var(--ink); border-radius:6px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
+  .consent-btn.primary { background:var(--ink); color:#fff; }
+  .hitzone { outline:2px dashed var(--bad); outline-offset:0; }
+  .hitzone-good { outline:2px dashed var(--good); }
+  a.padded { padding:14px 0; margin:-14px 0; font-weight:600; }
+  a.boxed { display:inline-flex; min-height:44px; align-items:center; white-space:nowrap; font-weight:600; }
+  .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .controls button { min-height:44px; padding:8px 16px; border:1px solid var(--ink); border-radius:6px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
+  .controls button[aria-pressed="true"] { background:var(--ink); color:#fff; }
+  #verdict, .verdict { font-weight:650; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  @media(max-width:680px) { .columns { grid-template-columns:1fr; } main { padding:28px 18px 48px; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Consent banner: 44 px tap targets that do not bleed"><meta property="og:description" content="Issue #5186 gave the privacy link a 44 px hit area with py-3.5 -my-3.5, and Devin Review caught the overlap: at 390 px a tap inside the padded link lands on Allow analytics. Compare the padded link with the real inline-flex min-h-11 box, and measure both hit areas in the DOM."><meta property="og:url" content="https://orchestkit.dev/lab/5186-consent-tap-targets.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Consent banner: 44 px tap targets that do not bleed"><meta name="twitter:description" content="Issue #5186 gave the privacy link a 44 px hit area with py-3.5 -my-3.5, and Devin Review caught the overlap: at 390 px a tap inside the padded link lands on Allow analytics. Compare the padded link with the real inline-flex min-h-11 box, and measure both hit areas in the DOM."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Consent banner / tap targets</div>
+    <h1>Padding is not a box.</h1>
+    <p>Issue #5186 needed a 44 px hit area on the banner's privacy link. The first pass added <code>py-3.5 -my-3.5</code>: padding reached 44 px, negative margin hid it from the layout. At 390 px the clickable box bled into the consent buttons below it, and a tap near the bottom of the link landed on <em>Allow analytics</em>. The fix is a real box: <code>inline-flex min-h-11 items-center</code>, so the layout reserves the 44 px instead of stealing it from the next row.</p>
+  </header>
+
+  <section>
+    <h2>Tap near the bottom of the link</h2>
+    <p class="muted">Click anywhere inside the banner. The dashed outline marks the link's hit area; the readout says which control actually received the tap.</p>
+    <div class="columns">
+      <article class="before">
+        <h2>Before: padded link</h2>
+        <div class="phone" data-mode="before">
+          <div class="banner">
+            <p>We count page views without cookies. Allow analytics adds a cookie and session replay; Decline stops the count too.
+              <a href="#" class="padded hitzone" data-role="link">Privacy notice</a></p>
+            <div class="row">
+              <button class="consent-btn">Decline</button>
+              <button class="consent-btn primary">Allow analytics</button>
+            </div>
+          </div>
+        </div>
+        <p class="verdict" data-role="verdict">&nbsp;</p>
+      </article>
+      <article class="after">
+        <h2>After: real 44 px box</h2>
+        <div class="phone" data-mode="after">
+          <div class="banner">
+            <p>We count page views without cookies. Allow analytics adds a cookie and session replay; Decline stops the count too.
+              <a href="#" class="boxed hitzone hitzone-good" data-role="link">Privacy notice</a></p>
+            <div class="row">
+              <button class="consent-btn">Decline</button>
+              <button class="consent-btn primary">Allow analytics</button>
+            </div>
+          </div>
+        </div>
+        <p class="verdict" data-role="verdict">&nbsp;</p>
+      </article>
+    </div>
+    <p class="muted">Both columns use the real DOM: in Before, hit testing inside the dashed area can return a button, because the button sits above the padding. In After, the box reserves its own space, so every tap inside it reaches the link.</p>
+  </section>
+
+  <section>
+    <h2>Measure the link</h2>
+    <div class="controls">
+      <button type="button" data-measure="before" aria-pressed="false">Measure Before link</button>
+      <button type="button" data-measure="after" aria-pressed="false">Measure After link</button>
+    </div>
+    <p id="verdict" aria-live="polite">&nbsp;</p>
+  </section>
+
+  <footer>Playground for PR #5335 (issue #5186). The shipped component is docs/site/components/analytics-consent-banner.tsx.</footer>
+</main>
+<script>
+for (const phone of document.querySelectorAll('.phone')) {
+  const verdict = phone.parentElement.querySelector('[data-role="verdict"]');
+  phone.addEventListener('click', (e) => {
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    let what = 'page background';
+    if (t && t.closest && t.closest('.consent-btn')) what = 'button: ' + t.closest('.consent-btn').textContent;
+    else if (t && t.dataset && t.dataset.role === 'link') what = 'link: Privacy notice';
+    else if (t && t.closest && t.closest('a')) what = 'link: ' + t.closest('a').textContent;
+    verdict.textContent = 'tap went to ' + what;
+  });
+}
+for (const btn of document.querySelectorAll('[data-measure]')) {
+  btn.addEventListener('click', () => {
+    for (const b of document.querySelectorAll('[data-measure]')) b.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-pressed', 'true');
+    const link = document.querySelector('.phone[data-mode="' + btn.dataset.measure + '"] [data-role="link"]');
+    const r = link.getBoundingClientRect();
+    const mode = btn.dataset.measure === 'before' ? 'Before' : 'After';
+    document.getElementById('verdict').textContent =
+      mode + ' link hit area: ' + Math.round(r.width) + ' x ' + Math.round(r.height) + ' px' +
+      (r.height >= 44 ? ' (44 px reached)' : ' (under 44 px)');
+  });
+}
+for (const a of document.querySelectorAll('a[data-role="link"]')) {
+  a.addEventListener('click', (e) => e.preventDefault());
+}
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
