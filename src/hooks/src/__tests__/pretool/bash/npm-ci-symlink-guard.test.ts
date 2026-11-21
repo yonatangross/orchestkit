@@ -1017,6 +1017,31 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
+  describe('directory divergences a third review round found (#5336)', () => {
+    it.each([
+      ["d=/ok; echo ${d:-'x'}; cd /lw; npm ci"],
+      ['d=/ok; echo ${d:-"x"}; cd /lw; npm ci'],
+    ])('%s: denied', (command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('CDPATH still resolves a hidden operand like .worktrees', () => {
+      expect(decision('CDPATH=/lw; cd .worktrees; npm ci', linksAt('/lw/.worktrees/node_modules'))).toBe('deny');
+    });
+
+    it('a standalone HOME assignment moves the tilde operand', () => {
+      expect(decision('HOME=/builds; cd ~/proj; npm ci', linksAt('/builds/proj/node_modules'))).toBe('deny');
+    });
+
+    it('a quoted default before the brace does not hide the install under --prefix', () => {
+      expect(decision("d=/ok; echo ${d:-'x'}; npm ci --prefix rel", linksAt('/wt/rel/node_modules'))).toBe('deny');
+    });
+
+    it.each([['CDPATH=/lw; cd ./sub; npm ci'], ['CDPATH=/lw; cd ../up; npm ci']])('control: %s does not search CDPATH', (command) => {
+      expect(decision(command, linksAt('/lw/sub/node_modules', '/lw/up/node_modules'))).toBeUndefined();
+    });
+  });
+
   describe('the other spellings npm accepts for a clean install', () => {
     it.each([
       ['install-ci-test'],
