@@ -375,7 +375,7 @@ const VAR_VALUE_MAX = 4096;
  */
 const NAMEREF = '\u0002';
 
-function expandVars(word: string, vars: Vars): string {
+function expandVars(word: string, vars: Vars, maybeUnset?: Set<string>): string {
   if (!word.includes('$')) return word;
   const lookupVar = (name: string, depth = 0): string | undefined => {
     const value = vars.get(name);
@@ -401,10 +401,12 @@ function expandVars(word: string, vars: Vars): string {
       const name = n1 ?? n2 ?? n3 ?? '';
       const value = lookupVar(name);
       if (op !== undefined) {
-        if (isUnknown(name)) {
-          // `${n+word}` only asks whether n is set, and an unknown value still
-          // counts as set; the other three forms read the value itself.
-          if (op === '+') return arg ?? '';
+        if (isUnknown(name) || maybeUnset?.has(name) === true) {
+          // `${n+word}`/`${n:+word}` never read n's value: set(-nonempty) gives
+          // the arg, otherwise nothing. An assignment sitting in a skipped
+          // branch means the variable may also be unset, so the empty outcome
+          // stays a candidate while its past values never become operands.
+          if (op === '+' || op === ':+') return `${DYNAMIC}${DYNAMIC}${arg ?? ''}`;
           return `${DYNAMIC}${name}${DYNAMIC}${arg ?? ''}`;
         }
         // ${n-word}/${n:-word} use word when n is unset (:- also when empty);
@@ -496,10 +498,17 @@ function cutAtComment(segment: string): string {
  * Backticks and `$( )` are not quote-contexts here on purpose: their contents
  * still run, so splitting inside them keeps the coverage it had.
  */
-function splitTopLevel(text: string): string[] {
-  const segments: string[] = [];
+function splitTopLevel(text: string): Array<{ text: string; conditional: boolean }> {
+  const segments: Array<{ text: string; conditional: boolean }> = [];
   let cur = '';
   let i = 0;
+  // A segment after `||`, `&&`, `|` or `&` may not run (or runs in a subshell
+  // whose assignments die with it), so its writes do not prove set-ness.
+  let conditional = false;
+  // An unquoted `#` at a word boundary is a comment through end of line: quote
+  // characters inside it start nothing, so `cd d # don't` must not swallow the
+  // commands on the next line into a quoted span (reviews on #5336).
+  let wordStart = true;
   while (i < text.length) {
     const c = text[i];
     if (c === "'") {
@@ -510,6 +519,7 @@ function splitTopLevel(text: string): string[] {
       }
       cur += text.slice(i, end + 1);
       i = end + 1;
+      wordStart = false;
     } else if (c === '"') {
       const start = i;
       i++;
@@ -519,25 +529,60 @@ function splitTopLevel(text: string): string[] {
       }
       if (i < text.length) i++;
       cur += text.slice(start, i);
+      wordStart = false;
     } else if (c === '$' && text[i + 1] === "'") {
       const ansi = readAnsiC(text, i + 2);
       cur += text.slice(i, ansi.end);
       i = ansi.end;
+      wordStart = false;
+    } else if (c === '$' && text[i + 1] === '{') {
+      // ${...} is one word: a `#` or `;` inside its expansion is the
+      // parameter's own text, never a comment or a command boundary.
+      let depth = 1;
+      let j = i + 2;
+      while (j < text.length && depth > 0) {
+        if (text[j] === '{') depth++;
+        else if (text[j] === '}') depth--;
+        else if (text[j] === "'") {
+          const q = text.indexOf("'", j + 1);
+          j = q === -1 ? text.length : q + 1;
+        } else if (text[j] === '"') {
+          j++;
+          while (j < text.length && text[j] !== '"') {
+            if (text[j] === '\\' && j + 1 < text.length && DQ_ESCAPABLE.includes(text[j + 1])) j++;
+            j++;
+          }
+          if (j < text.length) j++;
+        } else if (text[j] === '\\' && j + 1 < text.length) {
+          j++;
+        }
+        j++;
+      }
+      cur += text.slice(i, j);
+      i = j;
+      wordStart = false;
     } else if (c === '\\' && i + 1 < text.length) {
       cur += text.slice(i, i + 2);
       i += 2;
+      wordStart = false;
+    } else if (c === '#' && wordStart) {
+      while (i < text.length && text[i] !== '\n') i++;
     } else if (c === ';' || c === '\n' || c === '|' || (c === '&' && text[i - 1] !== '<' && text[i - 1] !== '>' && text[i + 1] !== '>')) {
-      segments.push(cur);
+      segments.push({ text: cur, conditional });
       cur = '';
+      conditional = c === '|' || c === '&';
       // `||` and `&&` are one separator each.
       if ((c === '|' || c === '&') && text[i + 1] === c) i++;
       i++;
+      wordStart = true;
     } else {
+      // Inside a word only space, tab and the subshell parens open a boundary.
+      wordStart = /[ \t()]/.test(c);
       cur += c;
       i++;
     }
   }
-  segments.push(cur);
+  segments.push({ text: cur, conditional });
   return segments;
 }
 
@@ -994,12 +1039,40 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
   let dirShaky = false;
   let varsNow: Vars = new Map();
   const varsAll = new Map<string, Set<string>>();
+  // Variables whose every assignment sits in a conditional or piped segment:
+  // they may be unset at the expansion, so `+`/`:+` forms keep the empty
+  // outcome and `-`/`:-` keep the default alongside the value (round 3).
+  const maybeUnset = new Set<string>();
   let dir = cwd;
   // A subshell runs in a copy of the shell: a cd and an assignment inside it end
   // when it closes. Each '(' saves the directory and the variables (#55).
   const saved: Array<{ dir: string; vars: Vars }> = [];
-  for (const raw of splitTopLevel(command)) {
-    let segment = raw.trim();
+  // Unpack a `DYNAMIC name DYNAMIC arg` expansion: the variable's history plus
+  // the arg are the directories bash could use. An empty name (the `+`/`:+`
+  // forms) contributes only the arg; the variable's past values never become
+  // operands there (reviews on #5336).
+  const dynamicCandidates = (v: string): string[] | null => {
+    if (!v.includes(DYNAMIC)) return null;
+    const parts = v.split(DYNAMIC);
+    if (parts.length < 3 || parts[0] !== '') return null;
+    const out: string[] = [];
+    if (parts[1] !== '') out.push(...(varsAll.get(parts[1]) ?? []));
+    for (const a of parts.slice(2)) if (a !== '') out.push(a);
+    return out;
+  };
+  const probeDir = (base: string, v: string): void => {
+    // A marked expansion resolves to one of its candidates; a plain value is
+    // one candidate itself. Tildes read the shell's HOME, never a
+    // command-local one (`HOME=/h cd ~` expands before the assignment).
+    const cands = dynamicCandidates(v);
+    if (cands !== null) dirShaky = true;
+    for (const c of cands ?? [v]) {
+      cdArgs.push(c);
+      seen.push(resolveDir(base, c, home));
+    }
+  };
+  for (const rawSeg of splitTopLevel(command)) {
+    let segment = rawSeg.text.trim();
     const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
     segment = segment.slice(opens).trim();
     // Counted from the end: a regex for a trailing run rescans the whole run from each of its starts.
@@ -1037,8 +1110,12 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         DECLARE_WORDS.has(rawWords[0].value) &&
         rawWords.slice(1).some((w) => /^-[a-zA-Z]*n[a-zA-Z]*$/.test(w.value));
       for (const [name, value] of assigned) {
-        const expanded = expandVars(value, varsNow);
+        const expanded = expandVars(value, varsNow, maybeUnset);
         setVar(varsNow, varsAll, name, isNameref && /^[A-Za-z_]\w*$/.test(expanded) ? NAMEREF + expanded : expanded);
+        // An assignment in a conditional or piped segment may not have run; an
+        // unconditional one proves the variable is set.
+        if (rawSeg.conditional) maybeUnset.add(name);
+        else maybeUnset.delete(name);
       }
       restore();
       continue;
@@ -1050,10 +1127,12 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     const ifs = typeof ifsValue === 'string' ? ifsValue : ' \t\n';
     const ifsSplit = new RegExp(`[${ifs.replace(/[\\\-\]^[]/g, '\\$&')}]+`);
     const words = rawWords.flatMap((w) => {
-      const ex = w.hasExpand ? expandVars(w.value, varsNow) : w.value;
+      const ex = w.hasExpand ? expandVars(w.value, varsNow, maybeUnset) : w.value;
       // Only an unquoted expansion splits on IFS: `cd "$d"` is one operand
       // even when $d holds blanks, and `IFS=` turns splitting off entirely.
-      const pieces = w.splits && ifs !== '' ? ex.split(ifsSplit).filter(Boolean) : [ex];
+      // An unquoted expansion that produces nothing drops the whole operand
+      // (`cd $p` with p empty is bare `cd` into HOME) whether or not IFS is set.
+      const pieces = !w.splits ? [ex] : ex === '' ? [] : ifs === '' ? [ex] : ex.split(ifsSplit).filter(Boolean);
       return pieces.flatMap((p) => {
         const parts = braceExpand(p);
         return parts.length === 1 && parts[0] === p ? parts : parts.filter((x) => x !== '');
@@ -1076,11 +1155,14 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         cdVars = new Map(varsNow);
         for (const a of words.slice(0, cdIdx)) {
           const m = /^(\w+)=(.*)$/s.exec(a);
-          if (m !== null) cdVars.set(m[1], expandVars(m[2], varsNow));
+          if (m !== null) cdVars.set(m[1], expandVars(m[2], varsNow, maybeUnset));
         }
       }
       const cdHomeValue = cdVars.get('HOME');
       const cdHome = typeof cdHomeValue === 'string' ? cdHomeValue : home;
+      // A command-local HOME that cannot be read still lands bare `cd` in one
+      // of its candidates.
+      if (typeof cdHomeValue === 'string' && cdHomeValue.includes(DYNAMIC)) probeDir(beforeCd, cdHomeValue);
       // Quotes, expansions and redirections around a cd are the shapes bash and this
       // reader disagree about (row 17); an operand count other than one is a cd bash
       // refuses (too many arguments) or a bare `cd`, which goes to the home directory.
@@ -1101,53 +1183,61 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       }
       const op = cdOperands[0];
       cdArgs.push(op);
+      if (isDynamicWord(op) || op.includes('{')) {
+        // An expansion the reader cannot follow, or literal text: where the shell
+        // lands is not knowable one way. Decode marked expansions first so a
+        // quoted fallback holding a blank is not read as a literal directory.
+        dirShaky = true;
+        seen.push(beforeCd);
+        seen.push(resolveDir(beforeCd, op, home));
+        // A parameter form over a set-but-unknown var arrives as `DYNAMIC name
+        // DYNAMIC arg`: bash may land on any value the var held or on the arg.
+        // The `+`/`:+` forms carry an empty name and only the arg plus the
+        // empty outcome.
+        const dynParts = op.startsWith(DYNAMIC) ? op.slice(1).split(DYNAMIC) : null;
+        const name = dynParts === null ? /^\$\{?(\w+)\}?$/.exec(op)?.[1] : dynParts[0] || undefined;
+        if (name !== undefined || dynParts !== null) {
+          // An empty expansion drops the operand: `cd` alone goes to the home directory.
+          dir = cdHome;
+          seen.push(cdHome);
+          if (name !== undefined) {
+            for (const v of varsAll.get(name) ?? []) {
+              cdArgs.push(v);
+              seen.push(resolveDir(beforeCd, v, home));
+            }
+          }
+        }
+        for (const v of dynParts?.slice(1) ?? []) {
+          if (v !== '') {
+            cdArgs.push(v);
+            seen.push(resolveDir(beforeCd, v, home));
+          }
+        }
+        restore();
+        continue;
+      }
       if (op.includes(' ') || op.includes('\t')) {
         // Expansion pieces were already split on IFS, so a blank inside the one
         // operand is a quoted name like "/my wt". The shell may still refuse it:
         // mark the parse shaky and probe the stayed-behind directory too.
         dirShaky = true;
         seen.push(beforeCd);
-        dir = resolveDir(beforeCd, op, cdHome);
+        dir = resolveDir(beforeCd, op, home);
         seen.push(dir);
         restore();
         continue;
       }
-      if (isDynamicWord(op) || op.includes('{')) {
-        // An expansion the reader cannot follow, or literal text: where the shell
-        // lands is not knowable one way.
-        dirShaky = true;
-        seen.push(beforeCd);
-        seen.push(resolveDir(beforeCd, op, cdHome));
-        // A parameter form over a set-but-unknown var arrives as `DYNAMIC name
-        // DYNAMIC arg`: bash may land on any value the var held or on the arg,
-        // so every candidate joins the probe list.
-        const dynParts = op.startsWith(DYNAMIC) ? op.slice(1).split(DYNAMIC) : null;
-        const name = dynParts === null ? /^\$\{?(\w+)\}?$/.exec(op)?.[1] : /^\w+/.exec(dynParts[0] ?? '')?.[0];
-        if (name !== undefined) {
-          // An empty expansion drops the operand: `cd` alone goes to the home directory.
-          dir = cdHome;
-          seen.push(cdHome);
-          for (const v of varsAll.get(name) ?? []) {
-            cdArgs.push(v);
-            seen.push(resolveDir(beforeCd, v, cdHome));
-          }
-        }
-        for (const v of dynParts?.slice(1) ?? []) {
-          if (v !== '') {
-            cdArgs.push(v);
-            seen.push(resolveDir(beforeCd, v, cdHome));
-          }
-        }
-        restore();
-        continue;
-      }
-      dir = resolveDir(dir, op, cdHome);
-      // CDPATH: a relative cd may resolve under a CDPATH entry instead of the cwd (#37).
+      dir = resolveDir(dir, op, home);
+      // CDPATH: a relative cd may resolve under a CDPATH entry instead of the cwd
+      // (#37). Bash never consults it for operands that start with `.`.
       const cdpath = cdVars.get('CDPATH');
-      if (!isAbsolute(expandHome(op, cdHome)) && typeof cdpath === 'string' && cdpath !== '') {
+      if (!isAbsolute(expandHome(op, home)) && !op.startsWith('.') && typeof cdpath === 'string' && cdpath !== '') {
         dirShaky = true;
         for (const entry of cdpath.split(':')) {
-          if (entry !== '') seen.push(resolveDir(resolveDir(beforeCd, entry, cdHome), op, cdHome));
+          if (entry === '') continue;
+          for (const e of dynamicCandidates(entry) ?? [entry]) {
+            seen.push(resolveDir(resolveDir(beforeCd, e, home), op, home));
+          }
         }
       }
       seen.push(dir);
@@ -1170,8 +1260,9 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       while (start < words.length && words[start].startsWith('-')) {
         const option = words[start++];
         if (wrapper === 'env' && (option === '-C' || option === '--chdir') && start < words.length) {
-          cdArgs.push(words[start]);
-          cmdDir = resolveDir(cmdDir, words[start++], home);
+          const envDir = words[start++];
+          probeDir(cmdDir, envDir);
+          cmdDir = resolveDir(cmdDir, envDir, home);
           seen.push(cmdDir);
         } else if (valueOptions.has(option) && start < words.length) {
           start++;
@@ -1201,10 +1292,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         else sub = t;
       }
     }
-    if (prefix !== null) {
-      cdArgs.push(prefix);
-      seen.push(resolveDir(cmdDir, prefix, home));
-    }
+    if (prefix !== null) probeDir(cmdDir, prefix);
     if (commandIsDynamic && !commandIsNpm) {
       // The command word is a variable or substitution the reader cannot resolve. A clean-install
       // word after it is the shape of `$NPM ci`: not certain, so it is recorded, not denied.

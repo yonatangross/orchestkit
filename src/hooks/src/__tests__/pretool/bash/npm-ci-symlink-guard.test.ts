@@ -971,6 +971,39 @@ describe('command shapes the reader must follow to the install', () => {
       expect(decision('HOME=/lw cd; npm ci', linked)).toBe('deny');
     });
 
+    describe('the third review round (#5336)', () => {
+      // A `#` inside a comment starts no quote: the install on the next line
+      // must still be read, not swallowed into a quoted span.
+      it('an apostrophe inside a comment does not swallow the next line', () => {
+        expect(decision("cd /lw # don't rebuild\nnpm ci", linked)).toBe('deny');
+      });
+
+      it('an empty unquoted expansion drops the operand even with IFS=', () => {
+        expect(decision('HOME=/home/u; IFS=; p=; cd $p; npm ci', linksAt('/home/u/node_modules'))).toBe('deny');
+      });
+
+      it('a command-local HOME does not apply to a tilde operand', () => {
+        const home = process.env.HOME ?? '';
+        expect(decision('HOME=/tmp/h cd ~; npm ci', linksAt(`${home}/node_modules`))).toBe('deny');
+      });
+
+      it('a marked default under --prefix still probes the fallback', () => {
+        expect(decision('d=/a; d=/b; npm ci --prefix ${d:-/lw}', linked)).toBe('deny');
+      });
+
+      it('a quoted fallback holding a space decodes as the real directory', () => {
+        expect(decision('d=/a; d=; cd "${d:-/lw wt}"; npm ci', linksAt('/lw wt/node_modules'))).toBe('deny');
+      });
+
+      it('a plus expansion over a possibly-unset var keeps the empty outcome', () => {
+        expect(decision('HOME=/home/u; false || d=/x; cd ${d:+/lw}; npm ci', linksAt('/home/u/node_modules'))).toBe('deny');
+      });
+
+      it('a plus expansion denies on the alternate, not on past values', () => {
+        expect(decision('d=/old; d=/new; cd ${d:+/lw}; npm ci', linked)).toBe('deny');
+      });
+    });
+
     it.each([
       ["cd /lw '&>'log; npm ci"],
       ["printf '%s' 'x; cd /decoy; x'; npm ci --prefix rel"],
