@@ -1,0 +1,12 @@
+{
+  "slug": "vercel-build-cuts",
+  "source": "docs/chore--site-vercel-build-cuts/vercel-build-cuts.html",
+  "title": "Vercel Build Cuts for the Docs Site",
+  "description": "Try a push and see whether Vercel builds it: bot branches have deployments off, main always builds, and other branches build a preview only when the commit message asks for [preview] and docs/site changed.",
+  "tags": [
+    "ci",
+    "vercel",
+    "cost"
+  ],
+  "date": "2026-11-21"
+}

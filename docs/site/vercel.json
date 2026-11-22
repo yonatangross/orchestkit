@@ -2,14 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
-      "main": true
+      "main": true,
+      "release-please--**": false,
+      "dependabot/**": false
     }
   },
   "github": {
     "silent": true,
     "autoJobCancelation": true
   },
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- .",
+  "ignoreCommand": "bash scripts/vercel-ignore.sh",
   "installCommand": "bash scripts/vercel-install.sh",
   "crons": [{ "path": "/api/indexnow", "schedule": "0 6 * * *" }]
 }
