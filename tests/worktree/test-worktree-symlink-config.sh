@@ -219,6 +219,7 @@ fi
 echo ""
 echo "=== 7. reclaim preserves paths containing spaces ==="
 FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/ork-reclaim.XXXXXX")
+FIXTURE=$(cd "$FIXTURE" && pwd -P)
 git init -q "$FIXTURE/main repo"
 git -C "$FIXTURE/main repo" -c user.name=Test -c user.email=test@example.invalid \
     -c commit.gpgsign=false commit -qm initial --allow-empty
