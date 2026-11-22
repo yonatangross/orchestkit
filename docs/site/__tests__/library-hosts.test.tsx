@@ -27,11 +27,11 @@ describe("per-host line (generated from the manifests)", () => {
     expect(line).not.toContain("Claude Code only");
   });
 
-  it("Devin shows ? and no count", () => {
-    expect(LIBRARY_HOSTS.devin.skills).toBeNull();
+  it("Devin ships the run's skills and agents; only some hooks run (measured 22.11)", () => {
+    expect(LIBRARY_HOSTS.devin.skills).not.toBeNull();
     const line = hostLine("devin") ?? "";
-    expect(line).toContain("?");
-    expect(line).not.toMatch(/\d/);
+    expect(line).toContain("all 7 skills and 4 agents of this run ship");
+    expect(line).toContain("only some of this run's 9 hooks run on Devin");
   });
 
   it("the starter hosts and Pi each get a generated line", () => {
@@ -50,14 +50,18 @@ describe("on: marks", () => {
     expect(hook && onHosts(hook)).toEqual(["Claude Code"]);
   });
 
-  it("implement is on Claude Code, Cursor, Codex and Pi, never on Devin", () => {
+  it("implement ships on every ork-capable host, never on OpenCode", () => {
     const item = find("skill", "implement");
     const hosts = item ? onHosts(item) : [];
-    expect(hosts).toContain("Claude Code");
-    expect(hosts).toContain("Cursor");
-    expect(hosts).toContain("Codex");
-    expect(hosts).toContain("Pi");
-    expect(hosts).not.toContain("Devin");
+    expect(hosts).toEqual([
+      "Claude Code",
+      "Cursor",
+      "Codex",
+      "Devin",
+      "Muse Code",
+      "Pi",
+      "Antigravity",
+    ]);
   });
 
   it("every list row carries its mark in the server HTML", () => {

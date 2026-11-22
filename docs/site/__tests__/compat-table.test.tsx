@@ -27,9 +27,9 @@ describe("CompatTable", () => {
 
 	it("shows ? with a spoken reason for an unknown number, never 0", () => {
 		render(<CompatTable />);
-		const devin = screen.getByRole("rowheader", { name: "Devin" }).closest("tr") as HTMLElement;
-		expect(within(devin).getAllByText("?").length).toBeGreaterThan(0);
-		expect(within(devin).getAllByText("not measured yet").length).toBeGreaterThan(0);
+		const pi = screen.getByRole("rowheader", { name: "Pi" }).closest("tr") as HTMLElement;
+		expect(within(pi).getAllByText("?").length).toBeGreaterThan(0);
+		expect(within(pi).getAllByText("not measured yet").length).toBeGreaterThan(0);
 		const cells = [...document.querySelectorAll("tbody td:last-child")].map((c) => c.textContent);
 		expect(cells.every((t) => !/^\s*0\s*$/.test(t ?? ""))).toBe(true);
 	});
@@ -44,9 +44,14 @@ describe("CompatTable", () => {
 		}
 	});
 
-	it("never prints none; tracked hooks read not yet with the issue (looks review 16.11)", () => {
-		const { container } = render(<CompatTable />);
-		expect(container.textContent).not.toMatch(/\bnone\b/);
+	it("prints none only where a host was measured at zero (audit 22.11)", () => {
+		render(<CompatTable />);
+		for (const name of ["OpenCode", "Muse Code", "Antigravity"]) {
+			const row = screen.getByRole("rowheader", { name: rowName(name) }).closest("tr") as HTMLElement;
+			expect(within(row).getAllByText("none").length).toBeGreaterThan(0);
+		}
+		const pi = screen.getByRole("rowheader", { name: rowName("Pi") }).closest("tr") as HTMLElement;
+		expect(pi.textContent).not.toContain("none");
 		const cursor = screen.getByRole("rowheader", { name: rowName("Cursor") }).closest("tr") as HTMLElement;
 		expect(cursor.textContent).toContain("not yet");
 		expect(within(cursor).getByRole("link", { name: /#4004/ }).getAttribute("href")).toContain("/issues/4004");
