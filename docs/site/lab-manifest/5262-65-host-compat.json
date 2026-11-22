@@ -1,0 +1,8 @@
+{
+  "slug": "5262-65-host-compat",
+  "source": "docs/chore--5262-65-host-compat/host-compat-measured.html",
+  "title": "Host compatibility, measured",
+  "description": "Devin, Antigravity, Muse and OpenCode rows of the compatibility table filled in from live binary reads, replacing every ? with a measured count, a measured none, or a partial hooks count.",
+  "tags": ["docs", "compatibility", "hosts", "measurement"],
+  "date": "2026-11-22"
+}
