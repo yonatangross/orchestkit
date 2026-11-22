@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Hook timing: strict inputs, resilient records</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101923;color:#e8eef5;line-height:1.55}
+*{box-sizing:border-box}body{margin:0;padding:40px 24px}main{max-width:1100px;margin:auto}.eyebrow{color:#75dacb;font-size:12px;letter-spacing:.15em;text-transform:uppercase}h1{font-size:clamp(25px,4vw,38px);line-height:1.2;margin:12px 0}h2{font-size:18px;margin:0 0 12px}.intro,.hint{color:#a8bacb}.intro{max-width:780px;margin-bottom:28px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#172431;border:1px solid #354858;border-radius:14px;padding:22px;margin-bottom:20px}label{display:block;font-weight:600;margin:12px 0 7px}input,select,textarea,button{font:inherit;color:inherit;background:#0d1721;border:1px solid #50677c;border-radius:7px;padding:10px;width:100%}textarea,input,pre{font-family:ui-monospace,monospace;font-size:14px}textarea{resize:vertical;min-height:170px;line-height:1.6}input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid #75dacb;outline-offset:3px}.hint{font-size:13px;margin:8px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;min-height:180px;line-height:1.7}.before{border-top:3px solid #eeac83}.after{border-top:3px solid #75dacb}.pill{display:inline-block;border:1px solid #50677c;border-radius:20px;padding:3px 11px;font-size:12px;margin-bottom:12px}.bad{color:#ffc3a1}.good{color:#8de7d8}footer{color:#a8bacb;font-size:13px}code{color:#bfe4ff}@media(max-width:700px){.grid{grid-template-columns:1fr}body{padding:24px 14px}.card{padding:16px}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Hook timing: strict inputs, resilient records"><meta property="og:description" content="Compare before and after argument validation and JSONL record filtering with editable timing fixtures."><meta property="og:url" content="https://orchestkit.dev/lab/analyze-hook-timing-args.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Hook timing: strict inputs, resilient records"><meta name="twitter:description" content="Compare before and after argument validation and JSONL record filtering with editable timing fixtures."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<div class="eyebrow">OrchestKit / script regression lab</div>
+<h1>Strict inputs. Resilient timing reports.</h1>
+<p class="intro">Compare the original and fixed <code>analyze-hook-timing.mjs</code> parser and record filter. Bad arguments now fail explicitly. Non-object JSONL records no longer interrupt a report.</p>
+<section class="card" aria-labelledby="inputs-title">
+<h2 id="inputs-title">Try a timing report</h2>
+<div class="grid"><div>
+<label for="args">Command arguments</label><input id="args" value="--top 2" spellcheck="false">
+<p class="hint">Enter arguments only. Whitespace and single or double quotes are supported; no shell expansion.</p>
+<label for="preset">JSONL fixture</label><select id="preset"><option value="valid">Valid hook records</option><option value="mixed">Mixed: null, primitives, array, malformed JSON</option><option value="invalid">Only invalid records</option><option value="empty">Empty file</option></select>
+<p class="hint">Try <code>--top abc</code>, <code>--top -1</code>, <code>--hook --top 5</code>, or <code>--hook beta</code>.</p>
+</div><div><label for="jsonl">Editable JSONL lines</label><textarea id="jsonl" spellcheck="false" aria-label="Editable JSONL lines"></textarea><p class="hint">Each line is parsed separately. Changes update both results immediately.</p></div></div>
+</section>
+<div class="grid" aria-live="polite">
+<section class="card before"><h2>Before / permissive parsing</h2><span class="pill" id="before-status"></span><pre id="before"></pre></section>
+<section class="card after"><h2>After / validated inputs</h2><span class="pill" id="after-status"></span><pre id="after"></pre></section>
+</div>
+<footer>This local simulation mirrors argument parsing, JSONL filtering, median-duration sorting and row selection. It summarizes selected hook counts instead of rendering the full percentile table. Total entries includes skipped lines, matching the script. Nothing is uploaded.</footer>
+</main>
+<script>
+const argsInput = document.querySelector('#args');
+const jsonl = document.querySelector('#jsonl');
+const preset = document.querySelector('#preset');
+const valid = ['alpha', 'beta', 'gamma'].map((hook, i) => JSON.stringify({hook, duration_ms:30-i*10})).join('\n');
+const invalid = 'null\n5\n"x"\n[]\n{broken';
+const fixtures = {valid, mixed:invalid+'\n'+valid, invalid, empty:''};
+const usage = 'Usage: node scripts/analyze-hook-timing.mjs [--hook <name>] [--top <positive integer>]';
+function tokenize(text) {
+  const tokens = [];
+  let value = '', quote = null, started = false;
+  for (const c of text) {
+    if (quote) {
+      if (c === quote) quote = null;
+      else value += c;
+    } else if (c === '"' || c === "'") { quote = c; started = true; }
+    else if (/\s/.test(c)) {
+      if (started) tokens.push(value);
+      value = ''; started = false;
+    } else { value += c; started = true; }
+  }
+  if (quote) throw new Error('Close the quoted argument to run the simulation.');
+  if (started) tokens.push(value);
+  return tokens;
+}
+function simulate(args, fixed) {
+  let filterHook = null, topN = null;
+  const exit = (code, text) => ({code, text});
+  for (let i = 0; i < args.length; i++) {
+    if (fixed) {
+      if (args[i] !== '--hook' && args[i] !== '--top') continue;
+      const value = args[i+1];
+      let error = null;
+      if (!value || value.startsWith('--') || (args[i] === '--hook' && value.startsWith('-'))) error = `${args[i]} needs a value.`;
+      else if (args[i] === '--top' && (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value)))) error = '--top must be a positive integer.';
+      if (error) return exit(2, error+'\n'+usage);
+      if (args[i] === '--hook') filterHook = args[++i];
+      else topN = Number(args[++i]);
+    } else {
+      if (args[i] === '--hook' && args[i+1]) filterHook = args[++i];
+      else if (args[i] === '--top' && args[i+1]) topN = parseInt(args[++i], 10);
+    }
+  }
+  const lines = jsonl.value.split('\n').filter(Boolean);
+  if (!lines.length) return exit(1, 'hook-timing.jsonl is empty.');
+  const byHook = new Map();
+  for (const line of lines) {
+    let entry;
+    try { entry = JSON.parse(line); } catch { continue; }
+    if (fixed && (entry === null || typeof entry !== 'object' || Array.isArray(entry))) continue;
+    if (entry === null) return exit(1, "TypeError: Cannot read properties of null (reading 'hook')");
+    const name = entry.hook;
+    if (!name || (filterHook && name !== filterHook)) continue;
+    if (!byHook.has(name)) byHook.set(name, []);
+    byHook.get(name).push(entry);
+  }
+  if (!byHook.size) return exit(1, filterHook ? `No entries found for hook "${filterHook}".` : 'No valid entries found in hook-timing.jsonl.');
+  function median(entries) {
+    const sorted = entries.map(e => typeof e.duration_ms === 'number' ? e.duration_ms : NaN).filter(v => !isNaN(v)).sort((a,b) => a-b);
+    if (!sorted.length) return 0;
+    const mid = (sorted.length-1)/2;
+    return (sorted[Math.floor(mid)]+sorted[Math.ceil(mid)])/2;
+  }
+  const rows = [...byHook].sort((a,b) => (median(b[1]) || 0)-(median(a[1]) || 0));
+  const display = topN ? rows.slice(0, topN) : rows;
+  return exit(0, `Entries: ${lines.length} total, ${byHook.size} distinct hooks\n\nSelected hooks (slowest median first):\n`+display.map(([name, entries]) => `${String(name).padEnd(14)} ${entries.length} record(s)`).join('\n'));
+}
+function render() {
+  for (const side of ['before', 'after']) {
+    let result;
+    try { result = simulate(tokenize(argsInput.value), side === 'after'); }
+    catch (error) { result = {code:'input', text:error.message}; }
+    document.getElementById(side).textContent = result.text;
+    const status = document.getElementById(side+'-status');
+    status.textContent = `Exit ${result.code}${result.code === 0 ? ' / report ready' : ' / error'}`;
+    status.className = 'pill '+(result.code === 0 ? 'good' : 'bad');
+  }
+}
+preset.addEventListener('change', () => { jsonl.value = fixtures[preset.value]; render(); });
+argsInput.addEventListener('input', render);
+jsonl.addEventListener('input', render);
+jsonl.value = valid;
+render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
