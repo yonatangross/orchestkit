@@ -25,10 +25,25 @@ let filterHook = null;
 let topN = null;
 
 for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--hook' && args[i + 1]) {
+  if (args[i] !== '--hook' && args[i] !== '--top') continue;
+  const value = args[i + 1];
+  let error = null;
+  if (!value || value.startsWith('--')) {
+    error = `${args[i]} needs a value.`;
+  } else if (args[i] === '--top' && (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) <= 0)) {
+    error = '--top must be a positive integer.';
+  } else if (args[i] === '--hook' && value.startsWith('-')) {
+    error = '--hook needs a value, not a flag.';
+  }
+  if (error) {
+    console.error(error);
+    console.error('Usage: node scripts/analyze-hook-timing.mjs [--hook <name>] [--top <positive integer>]');
+    process.exit(2);
+  }
+  if (args[i] === '--hook') {
     filterHook = args[++i];
-  } else if (args[i] === '--top' && args[i + 1]) {
-    topN = parseInt(args[++i], 10);
+  } else {
+    topN = Number(args[++i]);
   }
 }
 
@@ -68,6 +83,7 @@ for (const line of lines) {
     continue; // skip malformed lines
   }
 
+  if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) continue;
   const name = entry.hook;
   if (!name) continue;
   if (filterHook && name !== filterHook) continue;
