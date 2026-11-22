@@ -1,0 +1,8 @@
+{
+  "slug": "cli-reject-unknown-options",
+  "source": "docs/fix--cli-reject-unknown-options/index.html",
+  "title": "OrchestKit CLI: explicit arguments",
+  "description": "Compare real CLI output, exit codes and request URLs for unknown options, extra arguments and valid commands.",
+  "tags": ["cli"],
+  "date": "2026-11-22"
+}
