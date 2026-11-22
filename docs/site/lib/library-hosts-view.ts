@@ -20,8 +20,8 @@ function ships(set: string[] | "all" | null, name: string): boolean {
 }
 
 /**
- * Hosts a list row is on, from the manifests. Hooks run in Claude Code only.
- * Devin has no verified source yet, so it is never named here.
+ * Hosts a list row is on, from the manifests. Hooks run in Claude Code only:
+ * Devin's partial hook overlap is surfaced in hostLine, not on a hook's badge.
  */
 export function onHosts(item: LibraryItem): string[] {
   const names: string[] = [];
@@ -48,7 +48,7 @@ function count(shipped: number, total: number, noun: string): string {
 
 /**
  * The line under the terminal for one host, every number computed from the
- * manifests. Claude Code has none (the run is its own). Devin shows `?`.
+ * manifests. Claude Code has none (the run is its own).
  */
 export function hostLine(id: HostKey): string | null {
   if (id === "claude") return null;
@@ -79,6 +79,7 @@ export function hostLine(id: HostKey): string | null {
     }
   }
   if (sets.hooks === "none") parts.push(`this run's ${RUN_HOOKS} hooks do not load on ${name}`);
+  if (sets.hooks === "partial") parts.push(`only some of this run's ${RUN_HOOKS} hooks run on ${name}`);
   return `On ${name}: ${parts.join("; ")}.`;
 }
 

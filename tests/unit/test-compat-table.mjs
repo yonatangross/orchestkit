@@ -92,23 +92,34 @@ check('Devin skills = the skill dirs .devin-plugin/plugin.json declares (claims 
   assert.equal(byId.devin.skills, dirs(manifest.skills.replace(/^\.\//, '')));
 });
 
-check('an unknown number renders "?", never 0 (Devin agents and hooks are not declared)', () => {
-  assert.equal(byId.devin.agents, null);
+check('an unknown number renders "?", never 0 (Pi agents are unmeasured)', () => {
+  assert.equal(byId.pi.agents, null);
   const md = renderCompatMarkdown(rows);
-  const devinLine = md.split('\n').find((l) => l.startsWith('| Devin '));
-  assert.ok(devinLine, 'Devin row missing');
-  assert.ok(devinLine.includes('| ? |'), `Devin row should show ?: ${devinLine}`);
-  assert.ok(!/\| 0 \|/.test(devinLine), `Devin row must not show 0: ${devinLine}`);
+  const piLine = md.split('\n').find((l) => l.startsWith('| Pi '));
+  assert.ok(piLine, 'Pi row missing');
+  assert.ok(piLine.includes('| ? |'), `Pi row should show ?: ${piLine}`);
+  assert.ok(!/\| 0 \|/.test(piLine), `Pi row must not show 0: ${piLine}`);
 });
 
-check('"none" never appears: unread numbers are ?, tracked gaps are "not yet (#N)" (looks review 16.11)', () => {
+check('Devin agents = ork agents dir, hooks = entries on Devin-supported events (#5262)', () => {
+  assert.equal(byId.devin.agents, readdirSync(join(root, 'plugins/ork/agents')).filter((n) => n.endsWith('.md')).length);
+  assert.match(String(byId.devin.hooks), /^\d+ of \d+$/);
+});
+
+check('"none" appears only where a host was measured empty (docs/audits/host-support-2026-11-22.md)', () => {
   const md = renderCompatMarkdown(rows);
-  assert.ok(!/\| none \|/.test(md), 'a cell reads "none"');
   for (const id of ['cursor', 'codex', 'pi']) {
     assert.equal(byId[id].hooks, 'not yet');
     assert.equal(byId[id].hooksIssue, 4004);
   }
-  for (const id of ['opencode', 'muse', 'pi', 'agy']) assert.equal(byId[id].agents, null, `${id} agents`);
+  for (const id of ['muse', 'agy', 'opencode']) assert.equal(byId[id].hooks, 'none', `${id} hooks`);
+  assert.equal(byId.agy.agents, readdirSync(join(root, 'plugins/ork/agents')).filter((n) => n.endsWith('.md')).length, 'agy agents');
+  for (const id of ['muse', 'opencode']) assert.equal(byId[id].agents, 'none', `${id} agents`);
+  assert.equal(byId.pi.agents, null, 'pi agents unmeasured');
+  for (const line of md.split('\n').filter((l) => l.startsWith('| '))) {
+    if (/\| none \|/.test(line)) continue;
+    assert.ok(!/\| 0 \|/.test(line), `a measured empty must read "none", not 0: ${line}`);
+  }
 });
 
 for (const file of ['README.md', 'docs/site/content/docs/guides/orchestkit-on-pi-codex-cursor.mdx']) {

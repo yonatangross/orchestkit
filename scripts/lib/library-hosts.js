@@ -13,9 +13,13 @@
 //             (ork and ork-extras). Hook scripts are not registered there.
 //   codex     plugins/ork-codex/skills (ork-<name>) and plugins/ork-codex/roles (4 roles).
 //   pi        package.json pi.skills (plugins/ork/skills)
-//   muse, opencode, agy   the skills.sh starter list in docs/site/lib/host-installs.ts
-//   devin     NOT read: the site's "76 of 107" has no manifest source, so its sets stay null
-//             until one `devin plugins info ork` read verifies a count.
+//   muse, agy   plugins/ork sets: both import the Claude Code plugin (measured
+//               2026-11-22: `muse plugins inspect ork` capabilities.skills lists every skill,
+//               `agy plugin list` "Source: claude-code"). opencode: the skills.sh starter
+//               list in docs/site/lib/host-installs.ts.
+//   devin     plugins/ork sets, measured 2026-11-22 on devin 3000.14.30821: the plugin
+//             cache (git-subdir plugins/ork) holds skills/, agents/ and hooks/hooks.json;
+//             hooks land on Devin's 9 supported events (58 of 103 entries) -> 'partial'.
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -92,17 +96,19 @@ function buildLibraryHosts(root) {
 
   const starter = [...new Set(starterSkills(root))].sort();
 
+  const ork = pluginSets(root, 'plugins/ork');
   const sorted = (set) => [...set].sort();
   return {
-    // hooks: 'claude' means the library's hooks run there; 'none' means the pack registers none.
+    // hooks: 'claude' all run; 'partial' a measured subset runs (Devin, 9 of 31 events);
+    // 'none' the pack registers none; 'unknown' unmeasured.
     claude: { skills: 'all', agents: 'all', hooks: 'claude' },
     cursor: { skills: sorted(cursor.skills), agents: sorted(cursor.agents), hooks: 'none' },
     codex: { skills: codexSkills, agents: [], roles: codexRoles, hooks: 'none' },
-    devin: { skills: null, agents: null, hooks: 'unknown' },
+    devin: { skills: ork.skills, agents: ork.agents, hooks: 'partial' },
     opencode: { skills: starter, agents: [], hooks: 'none' },
-    muse: { skills: starter, agents: [], hooks: 'none' },
+    muse: { skills: ork.skills, agents: [], hooks: 'none' },
     pi: { skills: piSkills, agents: [], hooks: 'none' },
-    agy: { skills: starter, agents: [], hooks: 'none' },
+    agy: { skills: ork.skills, agents: ork.agents, hooks: 'none' },
   };
 }
 

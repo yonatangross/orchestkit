@@ -43,9 +43,10 @@ check('the committed LIBRARY_HOSTS equals what the manifests say now', () => {
   assert.deepEqual(committed, JSON.parse(JSON.stringify(fresh)));
 });
 
-check('Devin is not shown: its sets are null until one real read verifies them', () => {
-  assert.equal(committed.devin.skills, null);
-  assert.equal(committed.devin.agents, null);
+check('Devin ships the whole ork pack, hooks partially (measured 2026-11-22, #5262)', () => {
+  assert.ok(Array.isArray(committed.devin.skills) && committed.devin.skills.length > 0);
+  assert.ok(Array.isArray(committed.devin.agents) && committed.devin.agents.length > 0);
+  assert.equal(committed.devin.hooks, 'partial');
 });
 
 check('codex ships skills as ork-<name> and four roles', () => {
@@ -70,7 +71,7 @@ check('every skill or agent a host claims is a library item', () => {
 check('the generator builds on a partial tree (no manifests): empty sets, no throw', () => {
   const empty = buildLibraryHosts(join(root, 'does-not-exist'));
   assert.deepEqual(empty.cursor.skills, []);
-  assert.equal(empty.devin.skills, null);
+  assert.deepEqual(empty.devin.skills, []);
 });
 
 console.log(failed === 0 ? 'all ok' : `${failed} failed`);

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host compatibility, measured</title>
+<style>
+  :root { --bg:#f7f4ec; --ink:#222; --mute:#6b665c; --rule:#d9d3c4; --card:#fffdf7; --a1:#2f6f8f; --a2:#9a3f6b; --a4:#3d7a45; }
+  :root.dark { --bg:#15140f; --ink:#e8e4da; --mute:#9a9486; --rule:#34312a; --card:#1d1b16; --a1:#7cc0de; --a2:#e08ab6; --a4:#8fce96; }
+  body { background:var(--bg); color:var(--ink); font:15px/1.6 Georgia, "Iowan Old Style", serif; margin:0; padding:36px 20px; }
+  main { max-width:860px; margin:0 auto; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .verdict { font-size:17px; margin:0 0 24px; }
+  .sub { color:var(--mute); font-size:13px; margin-bottom:28px; }
+  .card { background:var(--card); border:1px solid var(--rule); padding:16px 18px; }
+  .hosts { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .hosts button { font:inherit; font-size:13px; background:var(--card); color:var(--ink); border:1px solid var(--rule); padding:6px 14px; cursor:pointer; }
+  .hosts button.on { border-color:var(--a1); color:var(--a1); font-weight:600; }
+  .grid { display:grid; grid-template-columns:110px 1fr; gap:8px 18px; font-size:15px; }
+  .k { color:var(--mute); font-size:13px; }
+  .measured { color:var(--a4); font-weight:600; }
+  .none { color:var(--a2); }
+  .partial { color:var(--a1); font-weight:600; }
+  .note { color:var(--mute); font-size:13px; margin-top:14px; }
+  code { font:13px ui-monospace, Menlo, monospace; }
+  #theme { position:fixed; top:14px; right:14px; font:inherit; font-size:13px; background:var(--card); color:var(--ink); border:1px solid var(--rule); padding:3px 8px; }
+</style>
+</head>
+<body>
+<button id="theme" type="button">dark</button>
+<main>
+<h1>Host compatibility, measured</h1>
+<p class="verdict">Four of the eight hosts were unmeasured. All four are now read from live binaries, and two install routes changed because the real one carries the whole pack.</p>
+<div class="sub">Measured 2026-11-22: devin 3000.14.30821, agy 1.5.14, opencode 1.19.6, muse 1.4.25. Evidence: docs/audits/host-support-2026-11-22.md. Pick a host.</div>
+
+<div class="hosts" id="hosts"></div>
+<div class="card">
+  <div class="grid" id="grid"></div>
+  <div class="note" id="note"></div>
+</div>
+</main>
+<script>
+const ROWS = [
+  { id:'devin', name:'Devin', skills:'82', agents:'36', hooks:'58 of 103', hookCls:'partial', route:'plugin (git)',
+    note:'The cached plugin bundle holds skills/, agents/ and hooks/hooks.json. Devin fires 9 of the 31 lifecycle events ork registers, so 58 of 103 hook entries run. `devin plugins info` needs login; counts were read from the installed cache instead.' },
+  { id:'agy', name:'Antigravity', skills:'82', agents:'36', hooks:'none', hookCls:'none', route:'plugin (claude-code)',
+    note:'`agy plugin list` shows ork imported from claude-code with all skills, and `agy agents` lists all 36 ork-* agents. No hooks component is listed while hq-ext shows its 8, so hooks is a measured zero.' },
+  { id:'muse', name:'Muse Code', skills:'82', agents:'none', hooks:'none', hookCls:'none', route:'plugin (muse)',
+    note:'`muse plugins inspect ork` lists every skill in capabilities.skills, the whole set loads. hooks: [] is a positive empty, and the plugin model has no agents capability at all.' },
+  { id:'opencode', name:'OpenCode', skills:'12', agents:'none', hooks:'none', hookCls:'none', route:'skills.sh',
+    note:'`opencode debug skill` auto-loads ~/.agents/skills where the starter installs. Full set is loadable via skills.paths, but the documented route gives 12. Agent files and plugin hooks need OpenCode formats; the pack registers none.' },
+  { id:'pi', name:'Pi', skills:'82', agents:'?', hooks:'not yet (#4004)', hookCls:'', route:'pi manifest',
+    note:'Unchanged: Pi was already measured for skills, agents stay unmeasured, hooks are tracked by #4004.' },
+];
+
+const hosts = document.getElementById('hosts');
+const grid = document.getElementById('grid');
+const note = document.getElementById('note');
+
+function cls(v){ return v==='none' ? 'none' : v==='?' ? '' : 'measured'; }
+function render(id){
+  const r = ROWS.find(x=>x.id===id);
+  document.querySelectorAll('.hosts button').forEach(b=>b.classList.toggle('on', b.dataset.id===id));
+  grid.innerHTML =
+    `<div class="k">skills</div><div class="${cls(r.skills)}">${r.skills}</div>`+
+    `<div class="k">agents</div><div class="${cls(r.agents)}">${r.agents}</div>`+
+    `<div class="k">hooks</div><div class="${r.hookCls}">${r.hooks}</div>`+
+    `<div class="k">install</div><div><code>${r.route}</code></div>`;
+  note.textContent = r.note;
+}
+ROWS.forEach(r=>{
+  const b = document.createElement('button');
+  b.textContent = r.name; b.dataset.id = r.id;
+  b.onclick = ()=>render(r.id);
+  hosts.appendChild(b);
+});
+render('devin');
+
+document.getElementById('theme').onclick = function(){
+  document.documentElement.classList.toggle('dark');
+  this.textContent = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+};
+</script>
+</body>
+</html>

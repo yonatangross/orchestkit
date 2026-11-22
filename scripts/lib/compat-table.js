@@ -28,9 +28,9 @@ const ROUTE = {
   codex: 'ork-codex pack',
   devin: 'plugin (git)',
   opencode: 'skills.sh',
-  muse: '.agents/skills',
+  muse: 'plugin (muse)',
   pi: 'pi manifest',
-  agy: '.agents/skills',
+  agy: 'plugin (claude-code)',
 };
 
 function hostOrder(root) {
@@ -77,12 +77,45 @@ function ccFloor(root) {
 
 const size = (set) => (Array.isArray(set) ? set.length : null);
 
-// A cell says "none" only where a manifest positively says so; nothing here does yet. Hooks that a
-// tracked issue will bring are "not yet" with the issue number (approved mockup); every other
-// number no manifest gives is null ("?"). Outside looks review 16.11: "none" read as a measured zero.
+// A cell says "none" only where a host was positively measured and nothing registers.
+// Measured 2026-11-22 (docs/audits/host-support-2026-11-22.md): `muse plugins inspect ork`
+// shows capabilities.hooks: [] and no agents capability at all; `agy plugin list` lists no
+// hooks component for ork (hq-ext shows its 8, so agy does count them); opencode's agent and
+// plugin-hook surfaces take its own formats and the pack ships none. Hooks that a tracked
+// issue will bring are "not yet" with the issue number (approved mockup); every other number
+// no manifest gives is null ("?"). Outside looks review 16.11: "none" read as a measured zero.
 const HOOKS_NOT_YET = { cursor: 4004, codex: 4004, pi: 4004 };
-// Agents: only Cursor's marketplace (ork, ork-extras) and Codex's roles are read from a pack.
-const AGENTS_READ = new Set(['cursor', 'codex']);
+const HOOKS_MEASURED_NONE = new Set(['muse', 'agy', 'opencode']);
+const AGENTS_MEASURED_NONE = new Set(['muse', 'opencode']);
+// Agents: Cursor's marketplace (ork, ork-extras), Codex's roles, Devin's and Antigravity's
+// claude-code plugin import all come from a pack. Devin is read in its own branch below.
+const AGENTS_READ = new Set(['cursor', 'codex', 'agy']);
+
+// The lifecycle events a devin session fires, from its config schema (~/.config/devin/config.json),
+// measured on devin 3000.14.30821. Entries on other events are never invoked.
+const DEVIN_HOOK_EVENTS = new Set([
+  'Notification', 'PermissionRequest', 'PostToolUse', 'PreToolUse',
+  'SessionEnd', 'SessionStart', 'Stop', 'SubagentStop', 'UserPromptSubmit',
+]);
+
+// "58 of 103": the hooks.json entries that land on Devin's supported events, read live.
+function devinHooks(root) {
+  try {
+    const hooks = JSON.parse(
+      fs.readFileSync(path.join(root, 'plugins/ork/hooks/hooks.json'), 'utf8'),
+    ).hooks;
+    let total = 0;
+    let supported = 0;
+    for (const [event, groups] of Object.entries(hooks)) {
+      const n = groups.reduce((acc, g) => acc + (Array.isArray(g.hooks) ? g.hooks.length : 0), 0);
+      total += n;
+      if (DEVIN_HOOK_EVENTS.has(event)) supported += n;
+    }
+    return total ? `${supported} of ${total}` : null;
+  } catch {
+    return null;
+  }
+}
 
 function skillNames(dir) {
   try {
@@ -116,16 +149,16 @@ function buildCompatRows(root) {
       }
       const skillsDir = manifest && typeof manifest.skills === 'string' ? manifest.skills.replace(/^\.\//, '') : null;
       row.skills = skillsDir ? countDirs(path.join(root, skillsDir)) : null;
-      row.agents = null;
-      row.hooks = null;
+      row.agents = countFiles(path.join(root, 'plugins/ork/agents'), '.md');
+      row.hooks = devinHooks(root);
     } else {
       // Only Cursor installs ork-extras as its own plugin; a skills.sh starter is one install.
       const extra = id === 'cursor' && Array.isArray(s.skills) ? s.skills.filter((n) => extrasNames.has(n)).length : 0;
       row.skills = Array.isArray(s.skills) ? s.skills.length - extra : null;
       row.extraSkills = extra || null;
       row.roles = Array.isArray(s.roles) && s.roles.length ? s.roles.length : null;
-      row.agents = AGENTS_READ.has(id) && !row.roles ? size(s.agents) : null;
-      row.hooks = HOOKS_NOT_YET[id] ? 'not yet' : null;
+      row.agents = AGENTS_READ.has(id) && !row.roles ? size(s.agents) : AGENTS_MEASURED_NONE.has(id) ? 'none' : null;
+      row.hooks = HOOKS_NOT_YET[id] ? 'not yet' : HOOKS_MEASURED_NONE.has(id) ? 'none' : null;
       row.hooksIssue = HOOKS_NOT_YET[id] || null;
     }
     return row;
@@ -156,7 +189,7 @@ function renderCompatMarkdown(rows) {
     lines.push(`| ${r.name} | ${skillsCell(r)} | ${agents} | ${hooksCell(r)} | ${r.route} | ${needs} |`);
   }
   lines.push('');
-  lines.push('`+ N ork-extras` is the opt-in second plugin, installed on its own. `?` means not measured yet, never zero. `not yet` means a tracked issue will bring it.');
+  lines.push('`+ N ork-extras` is the opt-in second plugin, installed on its own. `?` means not measured yet, never zero. `none` is a measured zero: the host was read and the pack registers nothing there. `not yet` means a tracked issue will bring it. Devin hooks are the hooks.json entries that land on the events Devin fires.');
   return lines.join('\n');
 }
 

@@ -23,7 +23,8 @@ function Unknown({ why }: { why: string }) {
 	);
 }
 
-function count(v: number | null) {
+function count(v: number | "none" | string | null) {
+	if (v === "none") return <span className="text-fd-muted-foreground">none</span>;
 	return v === null ? <Unknown why="not measured yet" /> : v;
 }
 
