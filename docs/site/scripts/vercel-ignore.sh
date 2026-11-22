@@ -3,6 +3,8 @@
 # Runs from docs/site. Exit 1 = build, exit 0 = skip.
 #
 #   main            always builds.
+#   unknown ref     builds: when Vercel does not expose VERCEL_GIT_COMMIT_REF
+#                   to this step, failing toward a build is the safe answer.
 #   other branches  skipped, unless the head commit message contains [preview].
 #                   A requested preview builds when docs/site changed since the
 #                   branch's last successful deployment ($VERCEL_GIT_PREVIOUS_SHA).
@@ -12,14 +14,14 @@
 # vercel.json git.deploymentEnabled turns their deployments off.
 #
 # Request a preview:  git commit --allow-empty -m "chore: request preview [preview]" && git push
-set -uo pipefail
+set -euo pipefail
 
 ref="${VERCEL_GIT_COMMIT_REF:-}"
 msg="${VERCEL_GIT_COMMIT_MESSAGE:-}"
 prev="${VERCEL_GIT_PREVIOUS_SHA:-}"
 
-if [ "$ref" = "main" ]; then
-	echo "vercel-ignore: main always builds"
+if [ -z "$ref" ] || [ "$ref" = "main" ]; then
+	echo "vercel-ignore: build (ref=${ref:-unknown}, main always builds, unknown fails toward building)"
 	exit 1
 fi
 
