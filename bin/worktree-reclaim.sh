@@ -50,7 +50,7 @@ if ! git rev-parse --show-toplevel > /dev/null; then
 fi
 # The main worktree, not whichever worktree we happen to be standing in. This
 # is the SYMLINK SOURCE: the one checkout that holds the real installed trees.
-MAIN=$(git worktree list --porcelain | sed -n 's/^worktree //p' | sed -n '1p')
+MAIN=$(git worktree list --porcelain | sed -n '/^worktree /{s/^worktree //p;q;}')
 
 # Resolve the canonical-list script next to THIS file, not under $MAIN. The two
 # ship together, but the main worktree is routinely parked on a branch that
@@ -71,7 +71,9 @@ fi
 DIR_LIST=$("$CONFIG_SCRIPT" --list)
 DIRS=()
 while IFS= read -r dir; do
-    [[ -n "$dir" ]] && DIRS+=("$dir")
+    if [[ -n "$dir" ]]; then
+        DIRS+=("$dir")
+    fi
 done <<< "$DIR_LIST"
 
 if [[ -z "$DIR_LIST" ]]; then
