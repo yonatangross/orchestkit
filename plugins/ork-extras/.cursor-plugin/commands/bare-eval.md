@@ -175,6 +175,8 @@ Workflow({ name: "ork:skill-fitness",
 
 Treat it as a **template**, not a verbatim script — adapt the `SKILLS` list and rubric per use. Cost is real (~50k tokens/skill; scoring all ~112 is ~6M tokens), so pass an explicit batch via `args`. Static-first: run `conformance-check.mjs` (zero tokens) to pre-filter, then this harness for the judgment grep can't make.
 
+**Refused workflow rule:** if the Workflow call is refused, errors or is unavailable, the scorecard's first line reads `skill-fitness workflow not run (<refused|error|unavailable>: <reason>)` and the run reports only the static `conformance-check.mjs` findings, never a fitness ranking, because the per-skill scorers and synthesis in skill-fitness.js did not run.
+
 ## Holdout Bake-Off Grading
 
 The holdout-promotion gate grades a **champion** and a **challenger** SKILL.md over the same sealed holdout via bare-mode forked graders — the canonical consumer of the determinism contract above: identical grader + identical `ork-rubric/1.0` + identical sealed set, with `CLAUDE_CODE_FORK_SUBAGENT=1` so the only variable is the version under test. Both `--bare` constraints apply (requires `ANTHROPIC_API_KEY`, bills tokens directly → on-demand / CI only). Run it with `bash tests/evals/scripts/run-skill-eval.sh --holdout-promote <skill>`.

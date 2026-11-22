@@ -94,6 +94,8 @@ Workflow(
 
 **Fallback (Workflow tool unavailable, or Agent Teams debate mode):** launch the generators with the Agent tool, all in ONE message. These run at each agent's own frontmatter effort, because the Agent tool has no per-call effort; say so in the Phase 2 output.
 
+**Refused workflow rule:** if the Workflow call is refused, errors or is unavailable, the Phase 2 output's first line reads `Phase 2: brainstorm-diverge workflow not run (<refused|error|unavailable>: <reason>), fell back to <Agent Teams|Agent tool>`; the generators ran at their own frontmatter effort, not `low`, and a short pool is named as such, because the `minIdeas` top-up and `reasons` ledger in brainstorm-diverge.js did not run.
+
 ```python
 Agent(subagent_type="ork:workflow-architect", prompt="...", run_in_background=True)
 Agent(subagent_type="ork:security-auditor", prompt="...", run_in_background=True)

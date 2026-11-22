@@ -57,13 +57,22 @@ for pair in "verify:verify-dispatch" "assess:assess-fanout" "review-pr:review-fa
     fi
 done
 
-# Fallback disclosure and cap in verify.
+# Every by-name call site must disclose a refused launch (#5200): a report that
+# shows the fan-out's output when the workflow never ran reads as a fabricated
+# report. Each skill names its workflow in a 'not run' line somewhere under it.
+for pair in "verify:verify-dispatch" "assess:assess-fanout" "review-pr:review-fanout" \
+            "review-pr:rule-check" "cover:heal-loop" "bare-eval:skill-fitness" \
+            "audit-full:audit-full-mapreduce" "brainstorm:brainstorm-diverge"; do
+    skill="${pair%%:*}"; wfname="${pair##*:}"
+    if grep -rq --include="*.md" "$wfname workflow not run" "$SKILLS_DIR/$skill"; then
+        pass "$skill discloses a refused ork:$wfname"
+    else
+        fail "$skill lacks a '$wfname workflow not run' disclosure"
+    fi
+done
+
+# Fallback cap in verify.
 verify_md="$SKILLS_DIR/verify/SKILL.md"
-if grep -q "verify-dispatch workflow not run" "$verify_md"; then
-    pass "verify SKILL.md has the fallback disclosure line"
-else
-    fail "verify SKILL.md lacks 'verify-dispatch workflow not run' disclosure line"
-fi
 if grep -q "IMPROVEMENTS RECOMMENDED at most" "$verify_md"; then
     pass "verify SKILL.md caps the verdict on fallback"
 else

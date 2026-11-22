@@ -360,6 +360,8 @@ Workflow(
 
 **Fan-out rule:** a single pass is never a fallback when the selected failure handling runs the heal loop. Each tier with failures goes through the heal-loop Workflow call; if it does not run, end the run as BLOCKED and say why. "Generate only" skips the heal loop, so it is not a violation.
 
+**Refused workflow rule:** a heal-loop call that is refused, errors or is unavailable is named before the run ends BLOCKED, `heal-loop workflow not run (<refused|error|unavailable>: <reason>)`, and no tier's failures are reported as healed or handled, because the counted diagnose/repair loop in heal-loop.js did not run.
+
 **The iteration bound is enforced by the script, not by instruction.** `heal-loop.js`
 runs a real counted loop clamped to `[2, 3]`: each iteration spawns a diagnose agent that
 actually executes the test command and returns structured pass/fail plus the verbatim
