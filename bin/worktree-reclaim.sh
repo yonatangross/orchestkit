@@ -50,7 +50,7 @@ if ! git rev-parse --show-toplevel > /dev/null; then
 fi
 # The main worktree, not whichever worktree we happen to be standing in. This
 # is the SYMLINK SOURCE: the one checkout that holds the real installed trees.
-MAIN=$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')
+MAIN=$(git worktree list --porcelain | sed -n 's/^worktree //p' | sed -n '1p')
 
 # Resolve the canonical-list script next to THIS file, not under $MAIN. The two
 # ship together, but the main worktree is routinely parked on a branch that
@@ -68,9 +68,13 @@ if [[ ! -x "$CONFIG_SCRIPT" ]]; then
     exit 1
 fi
 
-mapfile -t DIRS < <("$CONFIG_SCRIPT" --list)
+DIR_LIST=$("$CONFIG_SCRIPT" --list)
+DIRS=()
+while IFS= read -r dir; do
+    [[ -n "$dir" ]] && DIRS+=("$dir")
+done <<< "$DIR_LIST"
 
-if [[ ${#DIRS[@]} -eq 0 ]]; then
+if [[ -z "$DIR_LIST" ]]; then
     echo "Error: $CONFIG_SCRIPT --list returned nothing; refusing to no-op." >&2
     exit 1
 fi
@@ -84,7 +88,7 @@ total_freed=0
 linked=0
 skipped=0
 
-while read -r wt; do
+while IFS= read -r wt; do
     [[ "$wt" == "$MAIN" ]] && continue
     name=$(basename "$wt")
 
@@ -123,7 +127,7 @@ while read -r wt; do
             linked=$((linked + 1))
         fi
     done
-done < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
+done < <(git worktree list --porcelain | sed -n 's/^worktree //p')
 
 echo
 echo "links:    $linked"
