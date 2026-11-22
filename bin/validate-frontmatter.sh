@@ -22,15 +22,21 @@ NC='\033[0m'
 
 ERRORS=0
 
-declare -A FIELDS=()
+FIELD_KEYS=()
+FIELD_VALUES=()
+FIELD_COUNT=0
 
 # Parse each file once, preserving multiline values with NUL delimiters.
 load_fields() {
   local file="$1"
   local key value
-  FIELDS=()
+  FIELD_KEYS=()
+  FIELD_VALUES=()
+  FIELD_COUNT=0
   while IFS= read -r -d '' key && IFS= read -r -d '' value; do
-    FIELDS["$key"]="$value"
+    FIELD_KEYS[FIELD_COUNT]="$key"
+    FIELD_VALUES[FIELD_COUNT]="$value"
+    FIELD_COUNT=$((FIELD_COUNT + 1))
   done < <(node -e '
     const { parseYamlFrontmatter } = require(process.argv[1]);
     const fs = require("fs");
@@ -45,9 +51,14 @@ load_fields() {
 }
 
 get_field() {
-  local field="$2"
-  [[ -n "${FIELDS[$field]+present}" ]] || return 1
-  printf '%s\n' "${FIELDS[$field]}"
+  local field="$2" i
+  for ((i = 0; i < FIELD_COUNT; i++)); do
+    if [[ "${FIELD_KEYS[i]}" == "$field" ]]; then
+      printf '%s\n' "${FIELD_VALUES[i]}"
+      return 0
+    fi
+  done
+  return 1
 }
 
 # ===== Agent Validation =====
