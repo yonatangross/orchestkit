@@ -79,6 +79,7 @@ export function hostLine(id: HostKey): string | null {
     }
   }
   if (sets.hooks === "none") parts.push(`this run's ${RUN_HOOKS} hooks do not load on ${name}`);
+  if (sets.hooks === "partial") parts.push(`only some of this run's ${RUN_HOOKS} hooks run on ${name}`);
   return `On ${name}: ${parts.join("; ")}.`;
 }
 
