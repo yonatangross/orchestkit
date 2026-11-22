@@ -1,6 +1,6 @@
 ---
 name: business-case
-compatibility: "Claude Code 2.1.277+"
+compatibility: "Claude Code 2.1.327+"
 description: "ROI, NPV, IRR, payback and TCO for investment decisions. Use when building a financial justification, cost-benefit or build-vs-buy analysis."
 user-invocable: false
 disable-model-invocation: false

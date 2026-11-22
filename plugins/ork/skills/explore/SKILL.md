@@ -1,7 +1,7 @@
 ---
 name: explore
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.327+. Requires memory MCP server."
 description: "Multi-angle codebase exploration by parallel agents: structure, data flow, architecture, health. Use to map an unfamiliar repo. NOT for task research files (use create-research)."
 argument-hint: "[topic-or-feature] [--render=markdown|json-render|both] [--effort=low|medium|high]"
 context: fork

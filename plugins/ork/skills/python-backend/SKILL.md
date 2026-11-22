@@ -1,7 +1,7 @@
 ---
 name: python-backend
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Async Python: asyncio TaskGroup, FastAPI dependencies and middleware, SQLAlchemy 2.0 async sessions, pool tuning. Not for the API contract (use api-design)."
 user-invocable: false
 disable-model-invocation: false

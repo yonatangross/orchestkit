@@ -4,7 +4,7 @@ description: "Re-checks a create-research file when a claim is challenged or the
 argument-hint: "<research file> [follow-up]"
 user-invocable: true
 allowed-tools: "Bash Read Write Grep Glob Agent"
-compatibility: "Claude Code 2.1.277+. Node 22+."
+compatibility: "Claude Code 2.1.327+. Node 22+."
 metadata:
   version: "1.0.0"
   author: "OrchestKit"

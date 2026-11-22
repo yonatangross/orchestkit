@@ -1,7 +1,7 @@
 ---
 name: product-analytics
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "A/B test evaluation, cohort retention, funnels and significance. Use when analyzing experiments, feature adoption or conversion drop-offs."
 user-invocable: false
 disable-model-invocation: false

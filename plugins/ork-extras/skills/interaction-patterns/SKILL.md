@@ -1,7 +1,7 @@
 ---
 name: interaction-patterns
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "UI interaction patterns: skeleton loading, infinite scroll, progressive disclosure, modal/drawer/inline selection, drag-and-drop, tab overflow, toasts. Use when implementing loading states, pagination, overlays, reorderable lists, or notifications."
 user-invocable: false
 metadata:

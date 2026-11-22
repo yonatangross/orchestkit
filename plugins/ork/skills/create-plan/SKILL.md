@@ -4,7 +4,7 @@ description: "Writes an implementation plan file (.ork/tasks/TASK/NN-plan-SLUG.m
 argument-hint: "<task> [slug]"
 user-invocable: true
 allowed-tools: "Bash Read Write Grep Glob"
-compatibility: "Claude Code 2.1.277+. Node 22+."
+compatibility: "Claude Code 2.1.327+. Node 22+."
 metadata:
   version: "1.0.0"
   author: "OrchestKit"

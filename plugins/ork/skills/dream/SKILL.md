@@ -1,7 +1,7 @@
 ---
 name: dream
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires: memory skill."
+compatibility: "Claude Code 2.1.327+. Requires: memory skill."
 description: "Formerly dream, now memory dream. Use when /ork:dream is typed to tidy and prune memory entries. Removed 2027-01-31."
 argument-hint: "[--dry-run]"
 user-invocable: true

@@ -1,7 +1,7 @@
 ---
 name: react-server-components-framework
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Next.js 16+ with React Server Components: App Router, Cache Components, streaming SSR, Server Actions. Use when building server-first Next.js apps."
 user-invocable: false
 disable-model-invocation: false

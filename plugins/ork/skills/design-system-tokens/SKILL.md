@@ -1,7 +1,7 @@
 ---
 name: design-system-tokens
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "W3C design tokens: global, alias and component tiers, OKLCH color, Style Dictionary, dark mode. Use when creating token files or theme systems."
 user-invocable: false
 targets:
