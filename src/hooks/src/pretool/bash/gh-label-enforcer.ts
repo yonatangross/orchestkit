@@ -17,7 +17,7 @@ import {
   outputPreToolAdvisory,
 } from '../../lib/common.js';
 import { isCompoundCommand } from '../../lib/normalize-command.js';
-import { hasExplicitRepoTarget, inferIssueLabel } from '../../lib/gh-command.js';
+import { hasExplicitRepoTarget, hasGhCreateFlag, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -36,7 +36,7 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   }
 
   // Check if --label or -l flag is present
-  const hasLabel = /--label\s+\S+|-l\s+\S+/.test(command);
+  const hasLabel = hasGhCreateFlag(command, '--label', '-l');
 
   if (hasLabel) {
     return outputSilentSuccess();

@@ -55,6 +55,33 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each([
+    '--milestone bug', '--milestone=bug', '--milestone="help wanted"',
+    "-m 'help wanted'", '-mbug', '-m=bug',
+    '--milestone help\\ wanted',
+    '--body "say \\"hello\\"" --milestone=bug',
+  ])('recognizes argv flag %s', (option) => {
+    ghMilestoneEnforcer(createBashInput(`gh issue create --title "Fix crash" ${option}`), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '--body "ls -m output"',
+    "--title '--milestone bug'",
+    '--body "--milestone=bug"',
+    '--body "-mbug"',
+    '--body "--milestone"',
+    '-- --milestone bug',
+    '--milestone ""',
+    '--milestone',
+    '--title "unterminated',
+    '',
+  ])('does not treat payload or missing values as flags: %s', (option) => {
+    ghMilestoneEnforcer(createBashInput(`gh issue create ${option}`), testCtx);
+    expect(outputAllowWithContext).toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     testCtx = createTestContext();
     vi.clearAllMocks();

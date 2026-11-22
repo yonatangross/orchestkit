@@ -14,7 +14,7 @@ import {
   outputSilentSuccess,
   outputAllowWithContext,
 } from '../../lib/common.js';
-import { hasExplicitRepoTarget } from '../../lib/gh-command.js';
+import { hasExplicitRepoTarget, hasGhCreateFlag } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -30,7 +30,7 @@ export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CT
   }
 
   // Check if --milestone or -m flag is present
-  const hasMilestone = /--milestone\s+\S+|-m\s+\S+/.test(command);
+  const hasMilestone = hasGhCreateFlag(command, '--milestone', '-m');
 
   if (hasMilestone) {
     return outputSilentSuccess();

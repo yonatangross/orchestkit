@@ -63,6 +63,33 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it.each([
+    '--label bug', '--label=bug', '--label="help wanted"',
+    "-l 'help wanted'", '-lbug', '-l=bug',
+    '--label help\\ wanted',
+    '--body "say \\"hello\\"" --label=bug',
+  ])('recognizes argv flag %s', (option) => {
+    ghLabelEnforcer(createBashInput(`gh issue create --title "Fix crash" ${option}`), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '--body "ls -l output"',
+    "--title '--label bug'",
+    '--body "--label=bug"',
+    '--body "-lbug"',
+    '--body "--label"',
+    '-- --label bug',
+    '--label ""',
+    '--label',
+    '--title "unterminated',
+    '',
+  ])('does not treat payload or missing values as flags: %s', (option) => {
+    const result = ghLabelEnforcer(createBashInput(`gh issue create ${option}`), testCtx);
+    expect(result.hookSpecificOutput?.updatedInput?.command).toMatch(/ --label (bug|chore)$/);
+  });
+
   beforeEach(() => {
     testCtx = createTestContext();
     vi.clearAllMocks();

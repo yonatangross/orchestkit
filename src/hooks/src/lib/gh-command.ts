@@ -25,6 +25,74 @@ export function hasExplicitRepoTarget(command: string): boolean {
   return /(^|[\s;|&])(--repo|-R)[=\s]+\S+/.test(command) || /(^|[\s;|&])GH_REPO=\S+/.test(command);
 }
 
+/** Read literal shell words without splitting quoted argument payloads. */
+function shellWords(command: string): (string | null)[] {
+  const words: (string | null)[] = [];
+  let word = '';
+  let started = false;
+  let quote = '';
+  const flush = () => {
+    if (started) words.push(word);
+    word = '';
+    started = false;
+  };
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    if (ch === '\\' && quote !== "'") {
+      const next = command[i + 1];
+      if (next === undefined) return [];
+      if (!quote || /["\\$`\n]/.test(next)) {
+        i++;
+        if (next !== '\n') { word += next; started = true; }
+        continue;
+      }
+    }
+    if (quote) {
+      if (ch === quote) quote = '';
+      else word += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      started = true;
+    } else if (/\s|[;&|()<>]/.test(ch)) {
+      flush();
+      if (!/[^\S\n]/.test(ch)) words.push(null);
+    } else {
+      word += ch;
+      started = true;
+    }
+  }
+  if (quote) return [];
+  flush();
+  return words;
+}
+
+/** Detect a valued flag on gh issue/pr create, not inside another argument. */
+export function hasGhCreateFlag(command: string, long: string, short: string): boolean {
+  const words = shellWords(command);
+  const valuedOptions = new Set([
+    '--assignee', '--body', '--body-file', '--label', '--milestone', '--project',
+    '--recover', '--template', '--title', '--repo', '--base', '--head', '--reviewer',
+    '-a', '-b', '-F', '-l', '-m', '-p', '-T', '-t', '-R', '-B', '-H', '-r',
+  ]);
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'gh' || !['issue', 'pr'].includes(words[i + 1] ?? '') || words[i + 2] !== 'create') continue;
+    for (i += 3; i < words.length && words[i] !== null && words[i] !== '--'; i++) {
+      const word = words[i] ?? '';
+      if (word === long || word === short) {
+        const value = words[++i];
+        if (value && !value.startsWith('-')) return true;
+      } else if (word.startsWith(`${long}=`)) {
+        if (word.length > long.length + 1) return true;
+      } else if (word.startsWith(short) && word !== short) {
+        if (word.slice(short.length).replace(/^=/, '')) return true;
+      } else if (valuedOptions.has(word)) {
+        i++;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Ordered, first-match-wins. docs outranks bug so "fix typo in README"
  * lands as docs, not bug.
