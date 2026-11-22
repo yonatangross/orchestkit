@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { HookInput } from '../../types.js';
+import type { HookInput, HookResult } from '../../types.js';
 
 vi.mock('../../lib/task-integration.js', () => ({
   getTaskByAgent: vi.fn().mockReturnValue(undefined),
@@ -26,7 +26,7 @@ import { multiStepTaskNudge } from '../../prompt/multi-step-task-nudge.js';
 import { taskExistenceGate } from '../../pretool/task/task-existence-gate.js';
 import { agentTaskAutoRegister } from '../../posttool/task/agent-task-auto-register.js';
 import { registerTask } from '../../lib/task-integration.js';
-import { claimTaskNudge } from '../../lib/task-nudge-gate.js';
+import { claimTaskNudge, claimTaskNudgeForInput } from '../../lib/task-nudge-gate.js';
 
 const QUALIFYING =
   'Fix the docs counts, add a drift gate, then rebuild the plugins and verify CI passes';
@@ -55,9 +55,19 @@ function base(extra: Record<string, unknown>): HookInput {
   return { session_id: sid, project_dir: projectDir, ...extra } as unknown as HookInput;
 }
 
-const prompt = () => multiStepTaskNudge(base({ tool_name: '', prompt: QUALIFYING, tool_input: {} }));
-const pre = () =>
-  taskExistenceGate(base({ tool_name: 'Agent', tool_input: { subagent_type: 'security-auditor' } }));
+/** A dispatcher hook plus the claim its dispatcher makes when the text is delivered. */
+function delivered(result: HookResult, input: HookInput): HookResult {
+  if (speaks(result)) claimTaskNudgeForInput(input);
+  return result;
+}
+const prompt = () => {
+  const input = base({ tool_name: '', prompt: QUALIFYING, tool_input: {} });
+  return delivered(multiStepTaskNudge(input), input);
+};
+const pre = () => {
+  const input = base({ tool_name: 'Agent', tool_input: { subagent_type: 'security-auditor' } });
+  return delivered(taskExistenceGate(input), input);
+};
 const post = () =>
   agentTaskAutoRegister(
     base({ tool_name: 'Agent', tool_input: { subagent_type: 'security-auditor', description: 'x' } }),

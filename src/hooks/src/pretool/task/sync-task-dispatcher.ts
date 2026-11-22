@@ -24,12 +24,15 @@ import { agentRegistryValidator } from './agent-registry-validator.js';
 import { spawnIntentLogger } from './spawn-intent-logger.js';
 import { toolInvocationLinter } from '../tool-invocation-linter.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { claimTaskNudgeForInput } from '../../lib/task-nudge-gate.js';
 
 const HOOK_NAME = 'sync-task-dispatcher';
 
 interface TaskHookConfig {
   name: string;
   fn: (input: HookInput, ctx: HookContext) => HookResult;
+  /** This hook's text is the shared task nudge: claim it once nothing can discard it. */
+  spendsTaskNudge?: boolean;
 }
 
 /**
@@ -49,7 +52,7 @@ const TASK_HOOKS: TaskHookConfig[] = [
   // fable-spend-consent: escalates explicit fable model pins to a user
   // permission prompt ($10/$50 per MTok is a deliberate spend decision).
   { name: 'fable-spend-consent', fn: fableSpendConsent },
-  { name: 'task-existence-gate', fn: taskExistenceGate },
+  { name: 'task-existence-gate', fn: taskExistenceGate, spendsTaskNudge: true },
   // task-agent-advisor: suggests curated ork agents for ad-hoc names (#706).
   { name: 'task-agent-advisor', fn: taskAgentAdvisor },
   // agent-registry-validator: the target must EXIST. Runs after the advisor so
@@ -72,7 +75,7 @@ const TASK_HOOKS: TaskHookConfig[] = [
  * On pass: merge additionalContext from all hooks.
  */
 export function syncTaskDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  const contextParts: string[] = [];
+  const collected: Array<{ hook: TaskHookConfig; context: string }> = [];
 
   for (const hook of TASK_HOOKS) {
     try {
@@ -95,7 +98,7 @@ export function syncTaskDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
 
       const context = extractContext(result);
       if (context) {
-        contextParts.push(context);
+        collected.push({ hook, context });
         ctx.log(HOOK_NAME, `${hook.name}: additionalContext collected`);
       }
     } catch (error) {
@@ -103,6 +106,12 @@ export function syncTaskDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
       ctx.log(HOOK_NAME, `${hook.name} failed: ${msg}`, 'warn');
     }
   }
+
+  // No hook blocked or escalated, so the text will be delivered. Claim now: a
+  // parallel spawn that lost the exclusive claim drops its copy of the nudge.
+  const contextParts = collected
+    .filter(({ hook }) => !hook.spendsTaskNudge || claimTaskNudgeForInput(input))
+    .map(({ context }) => context);
 
   if (contextParts.length === 0) {
     ctx.log(HOOK_NAME, 'All hooks silent');

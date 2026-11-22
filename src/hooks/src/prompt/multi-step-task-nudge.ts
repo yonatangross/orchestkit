@@ -39,7 +39,7 @@ import { outputPromptContext, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { getSessionStorageDir } from '../lib/paths.js';
 import { safeIdentifier } from '../lib/safe-fs.js';
-import { claimTaskNudge } from '../lib/task-nudge-gate.js';
+import { taskNudgeAvailable, taskNudgeEligible } from '../lib/task-nudge-gate.js';
 
 const HOOK_NAME = 'multi-step-task-nudge';
 
@@ -48,8 +48,9 @@ const MIN_PROMPT_LENGTH = 40;
 
 /**
  * EXPLICIT ask: the operator is talking about task/todo organisation itself.
- * Never throttled — rate-limiting the literal request is how visual-style-nudge
- * measured 4 silenced explicit asks in one session before its bypass existed.
+ * It bypasses the one-per-session limit, because rate-limiting the literal
+ * request is how visual-style-nudge measured 4 silenced explicit asks in one
+ * session before its bypass existed. It still needs a session id and no task.
  */
 const EXPLICIT_RE = /\b(?:todo list|task list|todos?\b|taskcreate|organi[sz]e (?:our|the|this) (?:session|work))/i;
 
@@ -94,8 +95,8 @@ function counterPath(sessionId: string): string {
 /**
  * Advances the per-session qualifying-prompt counter, the Stop-side
  * "qualifying prompts seen" denominator (task-completion-check reads it).
- * Telemetry only: whether text is injected is decided by claimTaskNudge, once
- * per session across all three task-tracking hooks.
+ * Telemetry only: whether text is injected is decided by the task nudge gate,
+ * once per session across all three task-tracking hooks.
  */
 function recordQualifyingPrompt(sessionId: string): void {
   const path = counterPath(sessionId);
@@ -116,8 +117,8 @@ function nudgeText(): string {
   return (
     '[task-nudge] This prompt reads as 3+ step work and no task list exists yet this session. ' +
     "If TaskCreate is in this session's tool set, open one now (TaskCreate per step, then " +
-    'TaskUpdate(status=in_progress/completed) as you go); otherwise disregard. This is the ' +
-    'only task-tracking reminder you will get this session.'
+    'TaskUpdate(status=in_progress/completed) as you go); otherwise disregard. Unprompted ' +
+    'task-tracking reminders stop after this one for the session.'
   );
 }
 
@@ -151,9 +152,13 @@ export function multiStepTaskNudge(
   // work even in sessions that already have tasks or already got their nudge.
   recordQualifyingPrompt(sessionId);
 
-  // At most one task-tracking nudge per session across all three hooks, and
-  // none once the session has a task (claimTaskNudge checks both).
-  if (!claimTaskNudge(sessionId, projectDir)) return outputSilentSuccess();
+  // Use the raw id: the 'unknown-session' fallback names only the counter file
+  // and must never reach the shared nudge gate. An explicit ask passes the
+  // once-per-session limit. The dispatcher spends the nudge on delivery.
+  const canSpeak = explicit
+    ? taskNudgeEligible(input.session_id, projectDir)
+    : taskNudgeAvailable(input.session_id, projectDir);
+  if (!canSpeak) return outputSilentSuccess();
 
   ctx.log(HOOK_NAME, `fired (explicit=${explicit})`);
   return outputPromptContext(nudgeText());

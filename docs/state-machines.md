@@ -169,11 +169,13 @@ OrchestKit hooks run as short-lived Node.js subprocesses invoked by Claude Code 
 
 * **Files**: `src/hooks/src/prompt/multi-step-task-nudge.ts`, `src/hooks/src/lib/task-usage-signal.ts`, `src/hooks/src/stop/task-completion-check.ts`
 * **State space**:
-  * Prompt counter `${sessionStorageDir}/${safeSid}-task-nudge.count` (`0 -> 1 -> 2 -> 3 ...`).
+  * Prompt counter `${sessionStorageDir}/${safeSid}-task-nudge.count` (`0 -> 1 -> 2 -> 3 ...`), telemetry only.
+  * Shared nudge marker `${sessionStorageDir}/${safeSid}-task-nudge.sent` (`absent -> present`, exclusive create).
   * Stop telemetry state `${sessionStorageDir}/${safeSid}-task-outcome.state` (`'' -> 'false' -> 'true'` or `'' -> 'true'`).
 * **Invariants**:
   1. `${safeSid}-task-outcome.state` is monotonic: once `'true'` is written, no further `session_task_usage` events are appended for that session (`prev !== now && prev !== 'true'`).
-  2. Non-explicit multi-step nudges fire at ordinal 1 (`mode: 'full'`), throttle until `DOWNGRADE_AFTER` (default 3, `mode: 'final'`), and stay silent for `n > DOWNGRADE_AFTER`.
+  2. Across the prompt, pre-Agent and post-Agent task hooks, at most one unprompted nudge is delivered per session. The marker is written only when the text is delivered, so a nudge dropped by a permission ask or the prompt token budget stays unspent.
+  3. An explicit todo or task-list ask bypasses the marker. No nudge fires without a session id or once the session has a task.
 
 ### SM-11: PID File Lock and Deferred Debt Ledger
 

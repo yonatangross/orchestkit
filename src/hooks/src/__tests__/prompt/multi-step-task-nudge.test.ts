@@ -18,11 +18,19 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
 import {
-  multiStepTaskNudge,
+  multiStepTaskNudge as undeliveredNudge,
   isMultiStepShaped,
   qualifyingPromptCount,
 } from '../../prompt/multi-step-task-nudge.js';
+import { claimTaskNudgeForInput } from '../../lib/task-nudge-gate.js';
 import { sessionHasTasks } from '../../lib/task-usage-signal.js';
+
+/** The hook, plus the claim its dispatcher makes when the text is delivered. */
+function multiStepTaskNudge(input: HookInput): ReturnType<typeof undeliveredNudge> {
+  const result = undeliveredNudge(input);
+  if (fired(result)) claimTaskNudgeForInput(input);
+  return result;
+}
 
 let dir: string;
 let projectDir: string;
@@ -54,12 +62,12 @@ function prompt(text: string, sid = `s-${session}`): HookInput {
   } as unknown as HookInput;
 }
 
-function fired(r: ReturnType<typeof multiStepTaskNudge>): boolean {
+function fired(r: ReturnType<typeof undeliveredNudge>): boolean {
   const out = r.hookSpecificOutput as { additionalContext?: string } | undefined;
   return typeof out?.additionalContext === 'string' && out.additionalContext.length > 0;
 }
 
-function contextOf(r: ReturnType<typeof multiStepTaskNudge>): string {
+function contextOf(r: ReturnType<typeof undeliveredNudge>): string {
   const hso = (r as { hookSpecificOutput?: { additionalContext?: string } }).hookSpecificOutput;
   return hso?.additionalContext ?? '';
 }
@@ -131,12 +139,12 @@ describe('multiStepTaskNudge', () => {
     expect(fired(multiStepTaskNudge(prompt(QUALIFYING)))).toBe(true);
   });
 
-  it('EXPLICIT: the operator complaint that motivated this hook fires once', () => {
+  it('EXPLICIT: the operator complaint that motivated this hook is never throttled (#3733)', () => {
     // Verbatim from the 2026-08-01 session (typo included). "todo" makes it explicit.
     const complaint =
       'its really annoying that somestiems we use todo and sometimes we dont to organize oru session better...';
     expect(fired(multiStepTaskNudge(prompt(complaint)))).toBe(true);
-    expect(fired(multiStepTaskNudge(prompt(complaint)))).toBe(false); // once per session
+    expect(fired(multiStepTaskNudge(prompt(complaint)))).toBe(true);
   });
 
   it('stays quiet on short prompts', () => {
@@ -166,11 +174,11 @@ describe('multiStepTaskNudge', () => {
     expect(fired(multiStepTaskNudge(prompt(QUALIFYING, 'a')))).toBe(false);
   });
 
-  it('nudge text is conditional on TaskCreate and says it is the only reminder', () => {
+  it('nudge text is conditional on TaskCreate and says unprompted reminders stop', () => {
     const first = contextOf(multiStepTaskNudge(prompt(QUALIFYING)));
     expect(first).toContain('[task-nudge]');
     expect(first).toContain("If TaskCreate is in this session's tool set");
-    expect(first).toContain('only task-tracking reminder');
+    expect(first).toContain('Unprompted task-tracking reminders stop');
   });
 
   it('a TaskCreated before the nudge silences it, counter keeps advancing', () => {

@@ -86,6 +86,10 @@ in your shell, or in the `env` block of your Claude Code settings, to get it. Pu
 own wording in a file and point `ORK_VISUAL_STYLE_NUDGE_FILE` at it if you want a
 specific style.
 
+Upgrading: `ORK_TASK_NUDGE_MAX_UNANSWERED` is gone and has no effect, so you can delete
+it from your shell. The task hooks now send one unprompted reminder per session, and an
+explicit todo-list ask still gets an answer.
+
 ## Copy as prompt
 
 Paste this into Claude Code to get your pick on the next answer.

@@ -68,6 +68,7 @@ import { handoffInjector } from './handoff-injector.js';
 import { executorRouteNudge } from './executor-route-nudge.js';
 import { visualStyleNudge } from './visual-style-nudge.js';
 import { multiStepTaskNudge } from './multi-step-task-nudge.js';
+import { claimTaskNudgeForInput } from '../lib/task-nudge-gate.js';
 // M140 G3 (#1790) — synchronous /goal tracking and budget brake
 import { goalTracker } from './goal-tracker.js';
 // M119 PR-2 (#1794 follow-up) — deferred worktree advisory delivery
@@ -105,7 +106,7 @@ interface PromptHookConfig {
   /** If true, budget/noise filters cannot omit this context from the response. */
   mustDeliverContext?: boolean;
   /** Called only after the final dispatcher response contains this context. */
-  onContextDelivered?: (result: HookResult) => void;
+  onContextDelivered?: (result: HookResult, input: HookInput) => void;
   /**
    * Shrink this hook's context to the given room, or return null to drop it
    * this turn (#4922). Only hooks that can keep the undelivered part for a
@@ -168,7 +169,15 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'visual-style-nudge', fn: visualStyleNudge, producesContext: true },
   // 3+ step work with no task list — advisory TaskCreate re-anchor. Goes
   // permanently silent for the session after the first TaskCreated event.
-  { name: 'multi-step-task-nudge', fn: multiStepTaskNudge, producesContext: true },
+  // The shared one-per-session nudge is spent only if the budget keeps the text.
+  {
+    name: 'multi-step-task-nudge',
+    fn: multiStepTaskNudge,
+    producesContext: true,
+    onContextDelivered: (_result, hookInput) => {
+      claimTaskNudgeForInput(hookInput);
+    },
+  },
   // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 
@@ -468,7 +477,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   const acknowledgeDeliveredContexts = (): void => {
     for (const { hook, result } of deliveredContexts) {
       try {
-        hook.onContextDelivered?.(result);
+        hook.onContextDelivered?.(result, input);
       } catch (error) {
         ctx.log(HOOK_NAME, `${hook.name}: failed to acknowledge delivered context: ${error}`, 'warn');
       }

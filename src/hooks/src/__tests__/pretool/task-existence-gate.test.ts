@@ -29,6 +29,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { taskExistenceGate } from '../../pretool/task/task-existence-gate.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
+import { claimTaskNudgeForInput } from '../../lib/task-nudge-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -155,10 +156,12 @@ describe('task-existence-gate', () => {
   });
 
   describe('once per session', () => {
-    test('second spawn in the same session gets no nudge', () => {
+    test('second spawn in the same session gets no nudge after the first was delivered', () => {
       mockGetTaskByAgent.mockReturnValue(undefined);
-      taskExistenceGate(createAgentInput('security-auditor'), testCtx);
+      const first = createAgentInput('security-auditor');
+      taskExistenceGate(first, testCtx);
       expect(outputWithContext).toHaveBeenCalledTimes(1);
+      expect(claimTaskNudgeForInput(first)).toBe(true); // what sync-task-dispatcher does
 
       vi.clearAllMocks();
       mockGetTaskByAgent.mockReturnValue(undefined);

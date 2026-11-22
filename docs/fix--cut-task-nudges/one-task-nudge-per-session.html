@@ -92,20 +92,20 @@
       <tr><th>Hook</th><th>Event</th><th>Before</th><th>After</th></tr>
       <tr><td><code>[task-nudge]</code> multi-step-task-nudge</td><td>UserPromptSubmit</td>
           <td>Throttled by a per-session counter: full nudge on the 1st qualifying prompt, a final conditional line on the 3rd, silent after. Silent once the session has a task.</td>
-          <td>Counter still advances. Text is sent only if it wins the shared claim.</td></tr>
+          <td>Counter still advances. Text needs the shared nudge unspent, and it is spent only when the dispatcher delivers it. An explicit todo-list ask bypasses the limit.</td></tr>
       <tr><td><code>[Task Tracking]</code> task-existence-gate</td><td>PreToolUse (Agent)</td>
           <td>Nudges on every non-exempt spawn whose agent type has no registered task, even if the session already has a task.</td>
-          <td>Same condition, then must win the shared claim.</td></tr>
+          <td>Same condition, then needs the shared nudge unspent. A later permission ask discards the text and leaves it unspent.</td></tr>
       <tr><td><code>[Auto-Task]</code> agent-task-auto-register</td><td>PostToolUse (Agent)</td>
           <td>Registers the agent, then nudges unless the agent is background.</td>
-          <td>Registers the agent every time. Nudge text must win the shared claim.</td></tr>
+          <td>Registers each eligible agent (a named, non-exempt type with no registration yet). Nudge text must win the shared claim.</td></tr>
     </table>
-    <p class="note">The claim is an exclusive-create marker file named <code>&lt;session&gt;-task-nudge.sent</code>. Two hooks racing cannot both win. No nudge once the session has a task, none without a session id, and none on any filesystem error (fail closed).</p>
+    <p class="note">The claim is an exclusive-create marker file named <code>&lt;session&gt;-task-nudge.sent</code>. It is written when the text is delivered, so a dropped nudge stays unspent. Parallel Agent spawns cannot both win. No nudge once the session has a task, none without a session id, and none on any filesystem error (fail closed).</p>
   </div>
 
   <div class="panel">
     <h2>03 / Not changed, and one limit</h2>
-    <p class="note" style="margin-top:0">Unchanged: <code>registerTask</code> still runs on every post call, and the qualifying-prompt counter read by the Stop hook still advances. Limit: hook input has no tool list, so a session without <code>TaskCreate</code> (such as the desktop app) still gets the one reminder. Its wording is conditional on the tool being available. This page simulates the logic from the diff and its tests; it does not run the hooks.</p>
+    <p class="note" style="margin-top:0">Unchanged: <code>registerTask</code> still runs for every eligible agent, and the qualifying-prompt counter read by the Stop hook still advances. Limit: hook input has no tool list, so a session without <code>TaskCreate</code> (such as the desktop app) still gets the one reminder. Its wording is conditional on the tool being available. This page simulates the logic from the diff and its tests; it does not run the hooks.</p>
   </div>
 
   <div class="panel">
