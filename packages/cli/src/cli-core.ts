@@ -77,6 +77,7 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 	let help = false;
 	let version = false;
 	let baseUrl: string | undefined;
+	let unknownOption: string | undefined;
 
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i] as string;
@@ -102,7 +103,7 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 			} else {
 				baseUrl = value;
 			}
-		} else if (arg.startsWith("-")) throw new UsageError(`Unknown option "${arg}".`);
+		} else if (arg.startsWith("-")) unknownOption ??= arg;
 		else positional.push(arg);
 	}
 
@@ -112,6 +113,7 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 	if (help) command = "help";
 	else if (version) command = "version";
 	else command = positional.shift() ?? "help";
+	if (unknownOption && !help && !version) throw new UsageError(`Unknown option "${unknownOption}".`);
 	if (all && !help && !version && command !== "install") throw new UsageError('Unknown option "--all".');
 	return { command, positional, limit, json, all, baseUrl, help, version };
 }

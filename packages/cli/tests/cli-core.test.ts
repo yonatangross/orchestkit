@@ -183,6 +183,8 @@ describe("help and version flags", () => {
 		["--help", "--version"],
 		["--version", "--help"],
 		["--help", "--all"],
+		["search", "hooks", "--limt", "3", "--help"],
+		["search", "hooks", "--help", "--limt", "3"],
 	])("%j prints help without running the command", async (...argv) => {
 		const restore = forbidFetch();
 		try {
@@ -202,6 +204,9 @@ describe("help and version flags", () => {
 		["read", "foundations/overview", "--version"],
 		["search", "--json", "x", "-v"],
 		["--version", "--all"],
+		["search", "hooks", "--limt", "3", "--version"],
+		["search", "hooks", "--version", "--limt", "3"],
+		["search", "hooks", "--limt", "3", "-v"],
 	])("%j prints the version without running the command", async (...argv) => {
 		const restore = forbidFetch();
 		try {
