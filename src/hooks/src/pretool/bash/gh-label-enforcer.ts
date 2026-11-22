@@ -13,7 +13,6 @@
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
   outputPreToolAdvisory,
 } from '../../lib/common.js';
 import { isCompoundCommand } from '../../lib/normalize-command.js';
@@ -94,5 +93,5 @@ discard the earlier segments without running them.)`;
   // PR creation: WARN (advisory)
   const context = 'Consider adding --label to categorize this PR (bug, enhancement, chore, docs).';
   ctx.log('gh-label-enforcer', 'Advisory: gh pr create without --label');
-  return outputAllowWithContext(context);
+  return outputPreToolAdvisory(context);
 }

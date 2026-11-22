@@ -31,16 +31,12 @@ vi.mock('../../lib/common.js', async () => {
       stopReason: msg,
       hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: msg },
     })),
-    outputAllowWithContext: vi.fn((ctx: string) => ({
-      continue: true,
-      suppressOutput: true,
-      hookSpecificOutput: { additionalContext: ctx, hookEventName: 'PreToolUse' },
-    })),
+    outputPreToolAdvisory: vi.fn(actual.outputPreToolAdvisory),
   };
 });
 
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
-import { outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny, outputPreToolAdvisory } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
@@ -63,6 +59,16 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it.each([
+    'gh pr create --title x --body "ls -l output"',
+    'gh pr create --title x',
+  ])('advises without granting permission: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('--label');
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
   it.each([
     'gh pr create --label docs && gh issue create --title x',
     'gh pr create --title y && gh issue create --title x',
@@ -88,7 +94,7 @@ describe('gh-label-enforcer', () => {
   ])('silently preserves reviewed input: %s', (command) => {
     const result = ghLabelEnforcer(createBashInput(command), testCtx);
     expect(outputSilentSuccess).toHaveBeenCalled();
-    expect(outputAllowWithContext).not.toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
   });
 
@@ -100,7 +106,7 @@ describe('gh-label-enforcer', () => {
   ])('recognizes argv flag %s', (option) => {
     ghLabelEnforcer(createBashInput(`gh issue create --title "Fix crash" ${option}`), testCtx);
     expect(outputSilentSuccess).toHaveBeenCalled();
-    expect(outputAllowWithContext).not.toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -250,7 +256,7 @@ describe('gh-label-enforcer', () => {
       const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputAllowWithContext).not.toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     });
   });
 
@@ -296,7 +302,7 @@ describe('gh-label-enforcer', () => {
       const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputAllowWithContext).toHaveBeenCalled();
+      expect(outputPreToolAdvisory).toHaveBeenCalled();
       expect(outputDeny).not.toHaveBeenCalled();
     });
 
@@ -304,7 +310,7 @@ describe('gh-label-enforcer', () => {
       const input = createBashInput('gh pr create --title "My PR"');
       ghLabelEnforcer(input, testCtx);
 
-      const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
+      const ctxCall = vi.mocked(outputPreToolAdvisory).mock.calls[0][0];
       expect(ctxCall).toContain('--label');
     });
 
@@ -326,7 +332,7 @@ describe('gh-label-enforcer', () => {
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
-      expect(outputAllowWithContext).not.toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     });
 
     it('returns silent success for gh pr create with -l shorthand', () => {

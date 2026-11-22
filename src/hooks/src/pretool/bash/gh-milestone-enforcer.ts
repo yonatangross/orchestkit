@@ -12,7 +12,7 @@
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
+  outputPreToolAdvisory,
 } from '../../lib/common.js';
 import { hasExplicitRepoTarget, getGhCreateCommands } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
@@ -39,5 +39,5 @@ export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CT
 
   const context = 'No --milestone set. Consider assigning to a milestone for sprint tracking.';
   ctx.log('gh-milestone-enforcer', 'Advisory: gh issue create without --milestone');
-  return outputAllowWithContext(context);
+  return outputPreToolAdvisory(context);
 }
