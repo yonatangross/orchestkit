@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>The 20 tests hiding in plain sight | OrchestKit Lab</title>
+<meta name="description" content="Discovery now agrees with the skills CI runner: 82 shell tests plus 20 Node tests, all 102 visible. A measured before and after.">
+<style>
+:root{color-scheme:dark;--bg:#0f1419;--panel:#171e25;--edge:#303d47;--ink:#eef2ef;--muted:#a5b4bd;--mint:#9be8c3;--amber:#edbd83;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:40px 32px 64px}.masthead{display:flex;justify-content:space-between;border-bottom:1px solid var(--edge);padding-bottom:18px;font:12px var(--mono);letter-spacing:.1em;color:var(--muted)}.brand{color:var(--mint)}.eyebrow{font:12px var(--mono);text-transform:uppercase;letter-spacing:.16em;color:var(--mint);margin:40px 0 18px}h1{font:clamp(38px,5.5vw,64px)/1.05 Georgia,serif;letter-spacing:-.035em;max-width:850px;margin:0}h1 em{font-weight:400;color:var(--mint)}.lede{max-width:740px;color:var(--muted);font-size:18px;margin:22px 0 32px}code{font: .86em var(--mono);overflow-wrap:anywhere}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{border:1px solid var(--edge);border-radius:12px;background:var(--panel);padding:24px}.card.after{border-color:#477560}.label{display:flex;justify-content:space-between;align-items:center;font:12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.pill{border:1px solid var(--edge);padding:4px 8px;border-radius:20px;font-size:10px;letter-spacing:.02em}.after .pill{color:var(--mint);border-color:#477560}.number{font:76px/1 var(--mono);letter-spacing:-.08em;margin:22px 0 14px}.before .number{color:var(--amber)}.after .number{color:var(--mint)}.number small{font:14px system-ui;color:var(--muted);letter-spacing:0;margin-left:16px}.meter{height:8px;background:#0b1014;border-radius:8px;overflow:hidden;display:flex}.shell{width:80.392%;background:#7b909e}.node{width:19.608%;background:var(--mint)}.legend{font:12px var(--mono);color:var(--muted);margin:12px 0 20px}.terminal{font:12px/1.8 var(--mono);background:#0c1115;border-radius:6px;padding:14px;color:#c6d3da}.terminal span{color:var(--mint)}h2{font-size:22px;letter-spacing:-.025em;margin:0}section.roster{margin-top:36px}.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:16px}.section-head p{color:var(--muted);font:12px var(--mono);margin:0}.roster ol{list-style:none;counter-reset:tests;display:grid;grid-template-columns:1fr 1fr;gap:0 28px;padding:0;margin:0}.roster li{counter-increment:tests;border-top:1px solid var(--edge);padding:10px 0;display:flex;gap:12px;align-items:baseline;font:11px/1.5 var(--mono);overflow-wrap:anywhere}.roster li:before{content:counter(tests,decimal-leading-zero);color:#78918a;font-size:10px;min-width:18px}.source{margin-top:28px;border-top:1px solid var(--edge);padding-top:24px;display:grid;grid-template-columns:1fr 1.5fr;gap:30px}.source p{color:var(--muted);font-size:14px;margin:10px 0}.source a{color:var(--mint);text-underline-offset:4px}.source pre{white-space:pre-wrap;font:12px/1.8 var(--mono);margin:0;color:#cfdbd7}.note{color:var(--muted);font:12px/1.7 var(--mono);border-top:1px solid var(--edge);padding-top:20px;margin-top:24px}@media(max-width:720px){main{padding:24px 18px 40px}.comparison,.source,.roster ol{grid-template-columns:1fr}.masthead{font-size:10px}.eyebrow{margin-top:28px}.card{padding:20px}.section-head{display:block}.section-head p{margin-top:8px}.roster li{font-size:11px}.number{font-size:64px}}
+</style>
+</head>
+<body><main>
+<header class="masthead"><span class="brand">ORCHESTKIT / LAB</span><span>ENGINEERING NOTE · TEST DISCOVERY</span></header>
+<p class="eyebrow">One roster. Two file types.</p>
+<h1>The 20 tests hiding<br><em>in plain sight.</em></h1>
+<p class="lede">CI already ran them. Our discovery script did not list them. Now <code>discover-tests.sh</code> sees the same skill tests as the CI runner, including every <code>.mjs</code> test.</p>
+<div class="comparison" aria-label="Before and after skill test discovery">
+<section class="card before"><div class="label">Before <span class="pill">Shell only</span></div><div class="number">82<small>tests listed</small></div><div class="meter" aria-label="82 of 102 CI tests visible"><span class="shell"></span></div><p class="legend">82 shell · 20 Node tests missing</p><div class="terminal">$ bash scripts/ci/discover-tests.sh tests/skills<br>…<br>Total: 82 tests</div></section>
+<section class="card after"><div class="label">After <span class="pill">Matches CI</span></div><div class="number">102<small>tests listed</small></div><div class="meter" aria-label="All 102 CI tests visible"><span class="shell"></span><span class="node"></span></div><p class="legend">82 shell + 20 Node · no missing tests</p><div class="terminal">$ bash scripts/ci/discover-tests.sh tests/skills<br>…<br><span>Total: 102 tests</span></div></section>
+</div>
+<section class="roster"><div class="section-head"><h2>Now on the list</h2><p>20 .mjs files / paths relative to tests/skills/</p></div>
+<ol>
+<li>structure/test-agent-no-version-snapshot.mjs</li>
+<li>structure/test-allowed-tools-consistency.mjs</li>
+<li>structure/test-auto-routing-benchmark.mjs</li>
+<li>structure/test-design-ship-bundle-source.mjs</li>
+<li>structure/test-docs-site-drift.mjs</li>
+<li>structure/test-emulate-ports.mjs</li>
+<li>structure/test-fork-skills-have-no-hooks.mjs</li>
+<li>structure/test-haiku-docs-4716.mjs</li>
+<li>structure/test-hook-reference-integrity.mjs</li>
+<li>structure/test-review-pr-runs-inline.mjs</li>
+<li>structure/test-skill-claims-resolve.mjs</li>
+<li>structure/test-skill-preapproval-inventory.mjs</li>
+<li>structure/test-skill-reachability.mjs</li>
+<li>structure/test-targets-floor-agreement.mjs</li>
+<li>structure/test-task-tool-availability.mjs</li>
+<li>structure/test-test-discovery.mjs</li>
+<li>structure/test-testing-e2e-backtick-refs.mjs</li>
+<li>structure/test-upstream-version-drift.mjs</li>
+<li>structure/test-workflow-skills-run-inline.mjs</li>
+<li>triggering/test-fire-cases.mjs</li>
+</ol></section>
+<section class="source"><div><h2>CI is the source of truth</h2><p><a href="https://github.com/yonatangross/orchestkit/blob/c7d808cf88d72c18c47ee5fa9d61e4efd126fa75/.github/workflows/ci.yml#L904-L937">ci.yml · agent-skill-tests</a><br>Agents &amp; Skills → Run skill tests</p><p>The runner selects shell and Node tests by directory. This fix changes visibility, not which tests CI executes.</p></div><div class="terminal"><pre># .github/workflows/ci.yml
+bash scripts/ci/run-tests.sh tests/skills --verbose
+
+# Default discovery in both scripts
+test-*.sh + test-*.mjs
+
+# Regression: derive the roster from the CI runner
+node tests/ci/test-discover-tests.mjs
+PASS: discovery matches all 102 CI skill tests</pre></div></section>
+<p class="note">Measured on this fix branch: 82 → 102. Static evidence, not a live test runner. Count, category and pattern modes are covered by the regression test; discovery remains compatible with Bash 3.2 syntax.</p>
+</main></body></html>

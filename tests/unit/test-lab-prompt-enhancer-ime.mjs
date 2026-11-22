@@ -34,9 +34,11 @@ const PAGES = [
 function pageScript(file) {
   const page = readFileSync(join(root, file), 'utf8');
   const afterMain = page.slice(page.indexOf('</main>'));
-  const scriptMatch = /<script>([\s\S]*?)<\/script>/.exec(afterMain);
-  assert.ok(scriptMatch, `${file} must keep its inline script after </main>`);
-  return scriptMatch[1];
+  const openTag = '<script>';
+  const start = afterMain.indexOf(openTag);
+  const end = start === -1 ? -1 : afterMain.indexOf('</script>', start);
+  assert.ok(end !== -1, `${file} must keep its inline script after </main>`);
+  return afterMain.slice(start + openTag.length, end);
 }
 let source = '';
 

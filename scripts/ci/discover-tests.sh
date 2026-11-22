@@ -44,15 +44,26 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Find all test scripts
+TEST_FILES=()
+TEST_COUNT=0
 if [[ -d "$TEST_DIR" ]]; then
-  mapfile -t TEST_FILES < <(find "$TEST_DIR" -name "$PATTERN" -type f | sort)
+  if [[ "$PATTERN" == "test-*.sh" ]]; then
+    FOUND="$(find "$TEST_DIR" \( -name "test-*.sh" -o -name "test-*.mjs" \) -type f | sort)"
+  else
+    FOUND="$(find "$TEST_DIR" -name "$PATTERN" -type f | sort)"
+  fi
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
+    TEST_FILES+=("$file")
+    TEST_COUNT=$((TEST_COUNT + 1))
+  done < <(printf '%s\n' "$FOUND")
 else
   echo "Directory not found: $TEST_DIR"
   exit 1
 fi
 
 if [[ "$COUNT_ONLY" == "true" ]]; then
-  echo "${#TEST_FILES[@]}"
+  echo "$TEST_COUNT"
   exit 0
 fi
 
@@ -63,43 +74,43 @@ if [[ "$BY_CATEGORY" == "true" ]]; then
   echo ""
 
   # Group by parent directory
-  declare -A CATEGORIES
-  for test_file in "${TEST_FILES[@]}"; do
-    category=$(dirname "$test_file" | sed "s|^$TEST_DIR/||")
-    if [[ -z "${CATEGORIES[$category]:-}" ]]; then
-      CATEGORIES[$category]=0
-    fi
-    CATEGORIES[$category]=$((CATEGORIES[$category] + 1))
-  done
+  CATEGORY_COUNT=0
 
   # Print by category
-  for category in $(echo "${!CATEGORIES[@]}" | tr ' ' '\n' | sort); do
-    count=${CATEGORIES[$category]}
+  while IFS= read -r directory; do
+    [[ -n "$directory" ]] || continue
+    CATEGORY_COUNT=$((CATEGORY_COUNT + 1))
+    category="${directory#"$TEST_DIR/"}"
+    count=0
+    for test_file in ${TEST_FILES[@]+"${TEST_FILES[@]}"}; do
+      if [[ "$(dirname "$test_file")" == "$directory" ]]; then
+        count=$((count + 1))
+      fi
+    done
     echo -e "${GREEN}$category${NC}: $count tests"
 
     # List tests in this category
-    for test_file in "${TEST_FILES[@]}"; do
-      file_category=$(dirname "$test_file" | sed "s|^$TEST_DIR/||")
-      if [[ "$file_category" == "$category" ]]; then
+    for test_file in ${TEST_FILES[@]+"${TEST_FILES[@]}"}; do
+      if [[ "$(dirname "$test_file")" == "$directory" ]]; then
         echo "  - $(basename "$test_file")"
       fi
     done
     echo ""
-  done
+  done < <(for test_file in ${TEST_FILES[@]+"${TEST_FILES[@]}"}; do dirname "$test_file"; done | sort -u)
 
   echo -e "${BLUE}----------------------------------------${NC}"
-  echo -e "Total: ${GREEN}${#TEST_FILES[@]}${NC} tests in ${GREEN}${#CATEGORIES[@]}${NC} categories"
+  echo -e "Total: ${GREEN}${TEST_COUNT}${NC} tests in ${GREEN}${CATEGORY_COUNT}${NC} categories"
 else
   echo -e "${BLUE}========================================${NC}"
   echo -e "${BLUE}  Discovered Tests in $TEST_DIR${NC}"
   echo -e "${BLUE}========================================${NC}"
   echo ""
 
-  for test_file in "${TEST_FILES[@]}"; do
+  for test_file in ${TEST_FILES[@]+"${TEST_FILES[@]}"}; do
     echo "$test_file"
   done
 
   echo ""
   echo -e "${BLUE}----------------------------------------${NC}"
-  echo -e "Total: ${GREEN}${#TEST_FILES[@]}${NC} tests"
+  echo -e "Total: ${GREEN}${TEST_COUNT}${NC} tests"
 fi

@@ -5,6 +5,7 @@ import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import {
   extractEditedFiles,
   extractScopeFragments,
@@ -12,6 +13,8 @@ import {
   subagentScopeAuditor,
 } from '../../subagent-stop/subagent-scope-auditor.js';
 import { NOOP_CTX } from '../../lib/context.js';
+
+const assistantTranscript = fileURLToPath(new URL('../fixtures/scope-audit-assistant.jsonl', import.meta.url));
 
 describe('subagent-scope-auditor — pure logic', () => {
   let tmp: string;
@@ -38,6 +41,14 @@ describe('subagent-scope-auditor — pure logic', () => {
       ].join('\n');
       writeFileSync(p, lines, 'utf8');
       expect(extractEditedFiles(p)).toEqual(['/a.ts', '/c.ts']);
+    });
+
+    test('extracts edit targets from assistant content blocks, ignoring reads', () => {
+      expect(extractEditedFiles(assistantTranscript)).toEqual([
+        '/workspace/src/auth/login.ts',
+        '/workspace/src/billing/rates.ts',
+        '/workspace/src/shipping/labels.ts',
+      ]);
     });
   });
 
@@ -105,6 +116,14 @@ describe('subagent-scope-auditor — pure logic', () => {
       expect(ctx).toContain('[subagent-scope-auditor]');
       expect(ctx).toContain('billing/rates.ts');
       expect(ctx).not.toContain('login.py'); // in-scope
+    });
+
+    test('flags only out-of-scope edits in an assistant transcript', () => {
+      const result = subagentScopeAuditor({ agent_transcript_path: assistantTranscript } as never);
+      const context = (result.hookSpecificOutput as { additionalContext?: string })?.additionalContext;
+      expect(context).toContain('Agent edited 2 file(s)');
+      expect(context).toContain('/workspace/src/billing/rates.ts');
+      expect(context).toContain('/workspace/src/shipping/labels.ts');
     });
   });
 });

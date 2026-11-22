@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--discover-tests-skill-tests/index.html",
+  "lab_slug": "discover-tests-skill-tests",
+  "purpose": "PR playground: show all 102 skill tests selected by CI, including the 20 Node tests previously missing from discovery"
+}

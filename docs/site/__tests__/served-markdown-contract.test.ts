@@ -68,6 +68,22 @@ async function twin(slug: string): Promise<Response> {
 	});
 }
 
+describe("the full docs index keeps its dedicated text route", () => {
+	it.each([
+		["browser", "/docs/llms.txt", BROWSER, "text/html"],
+		["Markdown Accept", "/docs/llms.txt", BROWSER, "text/markdown"],
+		["ClaudeBot", "/docs/llms.txt", BOT, "*/*"],
+		["agent mode", "/docs/llms.txt?mode=agent", BROWSER, "text/html"],
+	])(
+		"passes %s requests through without rewriting",
+		async (_client, path, ua, accept) => {
+			const res = await middleware(req(path, ua, accept));
+			expect(res?.headers.get("x-middleware-rewrite")).toBeNull();
+			expect(res?.headers.get("x-middleware-next")).toBe("1");
+		},
+	);
+});
+
 // ------------------------------------------------------- GAP 1: frontmatter
 
 describe("every served Markdown surface opens with a frontmatter block", () => {

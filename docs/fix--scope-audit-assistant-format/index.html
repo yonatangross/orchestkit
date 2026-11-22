@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:">
+  <title>Scope audit: catch edits in assistant transcripts</title>
+  <style>
+    :root{color-scheme:light dark;--page:#f5f7fb;--surface:#fff;--ink:#182133;--muted:#49586c;--line:#b9c6da;--accent:#1746a2}
+    @media(prefers-color-scheme:dark){:root{--page:#141a25;--surface:#1d2737;--ink:#edf2fc;--muted:#bed0ec;--line:#526786;--accent:#a9c5ff}}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--page);color:var(--ink);font:1rem/1.55 system-ui,sans-serif}
+    main{max-width:48rem;margin:auto;padding:clamp(2rem,7vw,4rem) 1rem}
+    h1{font-size:clamp(1.75rem,5vw,2.75rem);line-height:1.12;max-width:22ch;margin:.4rem 0 1rem}
+    h2{font-size:1.15rem;margin:0 0 .5rem}
+    p{margin:0 0 1rem}
+    .label{color:var(--accent);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
+    .muted{color:var(--muted)}
+    .panel{background:var(--surface);border:1px solid var(--line);border-radius:.8rem;padding:clamp(1rem,4vw,1.5rem);margin:1rem 0}
+    fieldset{border:0;margin:0;padding:0}
+    legend{font-weight:700;margin-bottom:.5rem}
+    input{accent-color:var(--accent)}
+    label{display:inline-block;padding:.25rem .6rem .25rem 0;cursor:pointer}
+    pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0 0;color:var(--ink);font-size:.9rem}
+    code{overflow-wrap:anywhere}
+    ul{margin:0;padding-left:1.25rem}
+  </style>
+</head>
+<body>
+  <main>
+    <p class="label">SubagentStop / Scope audit</p>
+    <h1>Catch edits in assistant transcripts</h1>
+    <p class="muted">Switch versions to compare captured output from the same transcript. The audit advises the parent session; it does not block or undo edits.</p>
+    <section class="panel" aria-labelledby="fixture-title">
+      <h2 id="fixture-title">Transcript inputs</h2>
+      <ul>
+        <li>In scope: <code>src/auth/login.ts</code></li>
+        <li>Edited outside scope: <code>src/billing/rates.ts</code> and <code>src/shipping/labels.ts</code></li>
+        <li>Read only: <code>src/config.ts</code></li>
+      </ul>
+    </section>
+    <section class="panel" aria-labelledby="output-title">
+      <h2 id="output-title">Captured hook output (reflowed)</h2>
+      <fieldset>
+        <legend>Build version</legend>
+        <label><input type="radio" name="version" value="before" checked> Before fix</label>
+        <label><input type="radio" name="version" value="after"> After fix</label>
+      </fieldset>
+      <div aria-live="polite">
+        <p id="verdict" class="label">No advisory</p>
+        <pre id="output">{"continue":true,"suppressOutput":true}</pre>
+      </div>
+    </section>
+    <p class="muted">Previously the parser read only a top-level <code>tool_use</code> field. It now also reads <code>tool_use</code> blocks in assistant <code>message.content</code>.</p>
+  </main>
+  <script>
+    const output = document.getElementById('output');
+    const verdict = document.getElementById('verdict');
+    const before = output.textContent;
+    const after = `[subagent-scope-auditor] Agent edited 2 file(s) that don't match its spawn prompt's scope:
+  - /workspace/src/billing/rates.ts
+  - /workspace/src/shipping/labels.ts
+Review whether these edits were intended. Advisory \u2014 changes are already applied.`;
+    for (const radio of document.querySelectorAll('input[name="version"]')) {
+      radio.addEventListener('change', () => {
+        const fixed = radio.value === 'after';
+        verdict.textContent = fixed ? 'Advisory: 2 files' : 'No advisory';
+        output.textContent = fixed ? after : before;
+      });
+    }
+  </script>
+</body>
+</html>
