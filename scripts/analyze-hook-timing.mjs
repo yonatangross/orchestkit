@@ -28,12 +28,10 @@ for (let i = 0; i < args.length; i++) {
   if (args[i] !== '--hook' && args[i] !== '--top') continue;
   const value = args[i + 1];
   let error = null;
-  if (!value || value.startsWith('--')) {
+  if (!value || value.startsWith('--') || (args[i] === '--hook' && value.startsWith('-'))) {
     error = `${args[i]} needs a value.`;
-  } else if (args[i] === '--top' && (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) <= 0)) {
+  } else if (args[i] === '--top' && (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value)))) {
     error = '--top must be a positive integer.';
-  } else if (args[i] === '--hook' && value.startsWith('-')) {
-    error = '--hook needs a value, not a flag.';
   }
   if (error) {
     console.error(error);

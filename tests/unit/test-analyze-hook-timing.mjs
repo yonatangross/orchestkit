@@ -28,13 +28,14 @@ function check(name, fn) {
 
 try {
   writeFileSync(path, fixture);
-  for (const args of [['--top'], ['--hook'], ['--hook', '--top', '5'], ['--top', '--hook', 'alpha'], ...['abc', '0', '-1', '1.5', '2x', 'Infinity', '', '9007199254740992'].map(value => ['--top', value])]) {
+  for (const args of [['--top'], ['--hook'], ['--hook', '--top', '5'], ['--hook', '-x'], ['--top', '--hook', 'alpha'], ...['abc', '0', '-1', '01', '1.5', '2x', 'Infinity', '', '9007199254740992'].map(value => ['--top', value])]) {
     check(`reject ${JSON.stringify(args)}`, () => {
       const result = run(args);
       assert.notEqual(result.status, 0, 'must exit non-zero');
       assert.match(result.stderr, /--(?:top|hook)/);
       assert.match(result.stderr, /Usage:/);
       assert.equal(result.stdout, '');
+      if (args[1] === '-1') assert.match(result.stderr, /must be a positive integer/);
     });
   }
   check('valid top and hook filters', () => {
