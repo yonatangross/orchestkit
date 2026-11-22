@@ -88,6 +88,7 @@ export function getGhCreateCommand(command: string, long: string, short: string)
     const word = words[i];
     if (word === null) { executable = true; continue; }
     if (executable && /^[A-Za-z_][A-Za-z0-9_]*=/.test(word)) continue;
+    if (executable && /(?:^|\/)(?:env|command)$/.test(word)) continue;
     const isExecutable = executable;
     executable = false;
     const kind = words[i + 1];

@@ -55,6 +55,11 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each(['env FOO=1', 'command', 'VAR=val'])('enforces a missing flag through %s', (prefix) => {
+    const result = ghMilestoneEnforcer(createBashInput(`${prefix} gh issue create --title "Fix crash"`), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+  });
+
   it.each([
     'git commit -m "Document gh issue create --milestone bug"',
     'git commit -m "Document gh issue create"',
