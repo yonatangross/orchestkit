@@ -1,0 +1,4 @@
+{
+  "serves": ["packages/cli/src/cli-core.ts"],
+  "description": "Built CLI before and after argument validation, using a local logging HTTP fixture."
+}
