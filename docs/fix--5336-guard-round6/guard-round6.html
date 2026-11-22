@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The npm-ci guard stops multiplying homes</title>
+<meta name="description" content="A sixth review round found HOME tilde candidates could grow without bound, assignment lists read stale homes, and elif conditions leaked conditional state into real branches. All three are verified, bounded, and fail closed. Pick an attack shape and compare the verdicts.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; --warn:#8a5b00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--bad); }
+  h1 { font-size:clamp(2rem,5vw,3.2rem); line-height:1.1; max-width:780px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:760px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  .mech { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 22px; }
+  .mech button { border:1px solid var(--line); background:#fff; border-radius:8px; padding:10px 14px; font:600 .9rem ui-monospace,monospace; cursor:pointer; color:var(--ink); text-align:left; }
+  .mech button[aria-pressed="true"] { border-color:var(--ink); box-shadow:0 2px 0 var(--ink); }
+  .cmd { display:block; background:#0f1d20; color:#d8e6dd; border-radius:8px; padding:16px 18px; font:600 .95rem/1.5 ui-monospace,monospace; overflow-x:auto; margin:14px 0; }
+  .verdicts { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:14px 0; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:14px 16px; background:#fff; }
+  .card b { display:block; font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .card .v { font-size:1.4rem; font-weight:750; }
+  .card.allow .v { color:var(--bad); }
+  .card.deny .v { color:var(--good); }
+  .card.ask .v { color:var(--warn); }
+  .why { font-size:.92rem; color:var(--muted); margin-top:6px; }
+  code { font-family:ui-monospace,monospace; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  td.c { font-family:ui-monospace,monospace; font-size:.85rem; }
+  .denytxt { color:var(--good); font-weight:700; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">hooks / npm-ci symlink guard / follow-up 2</div>
+    <h1>The guard stops multiplying homes.</h1>
+    <p>Review found three more tilde-path divergences after the last round merged: HOME tilde candidates multiplied without bound on repeated assignments, an assignment list expanded later tildes against a stale home, and an <code>elif</code> condition holding <code>&&</code> or <code>||</code> marked every following branch assignment conditional. Each was reproduced, verified against bash, and closed at the mechanism.</p>
+  </header>
+
+  <section>
+    <h2>Pick an attack shape</h2>
+    <p class="muted">Each shape either grew the candidate set without bound or hid the real destination from the probe. HOME in these runs is the shell's own home.</p>
+    <div class="mech" id="shapes"></div>
+    <code class="cmd" id="cmd"></code>
+    <div class="verdicts">
+      <div class="card" id="bashCard"><b>bash really does</b><div class="v" id="bashV"></div><p class="why" id="bashWhy"></p></div>
+      <div class="card allow" id="oldCard"><b>guard after #5342</b><div class="v" id="oldV"></div><p class="why" id="oldWhy"></p></div>
+      <div class="card" id="newCard"><b>guard after this PR</b><div class="v" id="newV"></div><p class="why" id="newWhy"></p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What changed</h2>
+    <table>
+      <tr><th>Mechanism</th><th>What bash does</th><th>What the reader did</th><th>Now</th></tr>
+      <tr><td class="c">candidate growth</td><td><code>HOME=~/x</code> nests one deeper each time; homes stay a single chain</td><td>expanded each new tilde against every candidate, multiplying them until the reader stalled</td><td class="denytxt">deny</td></tr>
+      <tr><td class="c">last-wins</td><td><code>HOME=/a; HOME=/b</code> leaves HOME at /b: one value, fully known</td><td>marked any second assignment a conflict, which fed the unbounded growth</td><td class="denytxt">deny</td></tr>
+      <tr><td class="c">assignment order</td><td>an assignment list runs left to right; <code>HOME=/a; HOME=~/b</code> lands on /a/b</td><td>expanded every tilde in the list against the home from before the command</td><td class="denytxt">deny</td></tr>
+      <tr><td class="c">elif state leak</td><td>an <code>elif</code> line ends at <code>then</code>; <code>&&</code> inside the condition is done with it</td><td>kept the conditional flag through the whole if-body, so real branch assignments looked skipped</td><td class="denytxt">deny</td></tr>
+    </table>
+  </section>
+
+  <footer>Playground for the second follow-up to merged #5340 and #5342 (issue #5336). The shipped file is src/hooks/src/pretool/bash/npm-ci-symlink-guard.ts; every shape here is a committed regression test.</footer>
+</main>
+<script>
+const SHAPES = [
+  { cmd: "HOME=/a; HOME=/b; HOME=~/h0; HOME=~/h1; ... x40; cd ~/p; npm ci", bash: "cd into one nested path /b/h0/h1/...", bWhy: "each tilde reads the home the previous assignment left", old: "allow", oWhy: "candidate set multiplied past the read budget and the parse gave up", now: "deny", nWhy: "candidates capped; the chain stays one line and lands on the linked dir", link: "/b/h0/h1/.../p/node_modules" },
+  { cmd: "false || HOME=/a; false || HOME=/b; HOME=~/h0; ... x40; cd ~/p; npm ci", bash: "home may be unset, /a, /b, or any nested chain under them", bWhy: "conditional assignments keep every home the variable ever held reachable", old: "allow", oWhy: "the same multiplication blew the budget; the probe never ran", now: "ask", nWhy: "the capped set cannot prove the landing, so the uncertain path asks near the link", link: "~/p/node_modules" },
+  { cmd: "HOME=/a; HOME=~/b; cd ~/p; npm ci", bash: "cd into /a/b/p", bWhy: "the second assignment's tilde sees the home the first one set", old: "allow", oWhy: "expanded ~/b against the inherited home and probed <home>/b/p", now: "deny", nWhy: "assignments refresh tilde homes left to right", link: "/a/b/p/node_modules" },
+  { cmd: "if c1; then HOME=/a; elif c2 && c3; then HOME=/b; fi; cd ~/p; npm ci", bash: "home is /a, /b, or inherited", bWhy: "each branch may run; the && stays inside the elif condition", old: "allow", oWhy: "the && leaked conditional state so the branches looked skipped", now: "deny", nWhy: "elif conditions no longer leak; every reachable home is probed", link: "/b/p/node_modules" },
+];
+const shapes = document.getElementById('shapes');
+const cmd = document.getElementById('cmd');
+const setCard = (id, v, why, cls) => { const c = document.getElementById(id); c.className = 'card ' + cls; c.querySelector('.v').textContent = v; c.querySelector('.why').textContent = why; };
+SHAPES.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = (i + 1) + ' / ' + s.cmd.slice(0, 26) + (s.cmd.length > 26 ? '...' : '');
+  b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => {
+    shapes.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    cmd.textContent = '$ ' + s.cmd + '    # linked: ' + s.link;
+    document.getElementById('bashV').textContent = s.bash;
+    document.getElementById('bashWhy').textContent = s.bWhy;
+    document.getElementById('bashCard').className = 'card';
+    setCard('oldCard', s.old, s.oWhy, 'allow');
+    setCard('newCard', s.now, s.nWhy, s.now === 'deny' ? 'deny' : 'ask');
+  });
+  shapes.appendChild(b);
+});
+shapes.querySelector('button').click();
+</script>
+</body>
+</html>

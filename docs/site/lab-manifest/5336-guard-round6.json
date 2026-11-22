@@ -1,0 +1,13 @@
+{
+  "slug": "5336-guard-round6",
+  "source": "docs/fix--5336-guard-round6/guard-round6.html",
+  "title": "The npm-ci guard stops multiplying homes",
+  "description": "A sixth review round found HOME tilde candidates could grow without bound, assignment lists read stale homes, and elif conditions leaked conditional state into real branches. All three are verified, bounded, and fail closed. Pick an attack shape and compare the verdicts.",
+  "tags": [
+    "hooks",
+    "security",
+    "bash-pretool",
+    "5336"
+  ],
+  "date": "2026-11-22"
+}
