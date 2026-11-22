@@ -49,6 +49,8 @@ const STANDALONE_MD_PAGES = new Set(["/pricing", "/api-policy"]);
 
 function mdTarget(pathname: string): string | null {
 	if (pathname === "/" || pathname === "/index.md") return "/api/md";
+	// This index already serves Markdown-formatted text, not a docs page.
+	if (pathname === "/docs/llms.txt") return null;
 	// Strip a trailing `.md` so /docs/x.md and /docs/x resolve identically.
 	const clean = pathname.endsWith(".md") ? pathname.slice(0, -3) : pathname;
 	if (clean === "/docs" || clean === "/docs/") return "/api/md";

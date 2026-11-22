@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>The full page index, for every client</title>
+<meta name="description" content="Captured HTTP responses for the Full page index linked from /llms.txt, before and after the routing fix.">
+<style>
+  :root { color-scheme: light; font: 16px/1.55 system-ui, sans-serif; color: #192c29; background: #f4f6f3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  main { margin: auto; max-width: 60rem; padding: clamp(2rem, 7vw, 5rem) clamp(1rem, 4vw, 2rem); }
+  .kicker { text-transform: uppercase; letter-spacing: .14em; color: #365b51; font-weight: 700; font-size: .76rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -.04em; line-height: 1.08; margin: .55rem 0 1rem; }
+  h2 { font-size: 1.1rem; margin: 0; }
+  p { max-width: 65ch; color: #3c524c; }
+  label { font-size: .9rem; font-weight: 650; margin-right: .5rem; }
+  select { background: #fff; color: inherit; font: inherit; border: 1px solid #708881; border-radius: .5rem; padding: .45rem .7rem; }
+  select:focus-visible { outline: 3px solid #267a67; outline-offset: 3px; }
+  .controls { margin-top: 2rem; }
+  .command { color: #2d4d44; background: #e6ece8; padding: .9rem 1rem; border-radius: .5rem; }
+  pre { font-size: .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .results { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  article { padding: 1rem; border: 1px solid #ccd8d0; border-radius: .75rem; background: #fff; }
+  article header { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+  .status { font-size: .8rem; font-weight: 700; border-radius: 2rem; padding: .2rem .65rem; color: #18503f; background: #e3f1e8; }
+  .error { color: #882e23; background: #f9e8e5; }
+  .note { margin-top: 1.5rem; font-size: .9rem; }
+  @media (max-width: 38rem) { .results { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">OrchestKit Docs / HTTP replay</div>
+    <h1>The full page index, for every client.</h1>
+    <p>The Full page index link in <code>/llms.txt</code> now reaches the same documentation feed whether or not the client asks for Markdown.</p>
+  </header>
+  <div class="controls">
+    <label for="client">Request</label>
+    <select id="client">
+      <option value="markdown">Accept: text/markdown</option>
+      <option value="bot">ClaudeBot</option>
+      <option value="mode">Agent mode</option>
+      <option value="ordinary">Ordinary curl</option>
+    </select>
+  </div>
+  <div aria-live="polite">
+    <pre class="command"><code id="command">curl -H 'Accept: text/markdown' "$ORIGIN/docs/llms.txt"</code></pre>
+    <div class="results">
+      <article>
+        <header><h2>Before</h2><span class="status error" id="before-status">404 Not Found</span></header>
+        <pre id="before-body">text/markdown; charset=utf-8
+
+# Not found</pre>
+      </article>
+      <article>
+        <header><h2>After</h2><span class="status">200 OK</span></header>
+        <pre>text/plain; charset=utf-8
+
+# OrchestKit Documentation</pre>
+      </article>
+    </div>
+  </div>
+  <p class="note">Recorded status, content type, and first body line from local Next.js requests. This replay does not make network requests. Set <code>ORIGIN</code> to your running docs server to try a request yourself.</p>
+</main>
+<script>
+  const options = {
+    markdown: "-H 'Accept: text/markdown' ",
+    bot: "-A 'ClaudeBot/1.0' ",
+    mode: "",
+    ordinary: "",
+  };
+  document.getElementById("client").addEventListener("change", ({ target }) => {
+    const ordinary = target.value === "ordinary";
+    const query = target.value === "mode" ? "?mode=agent" : "";
+    document.getElementById("command").textContent = 'curl ' + options[target.value] + '"$ORIGIN/docs/llms.txt' + query + '"';
+    const status = document.getElementById("before-status");
+    status.textContent = ordinary ? "200 OK" : "404 Not Found";
+    status.classList.toggle("error", !ordinary);
+    document.getElementById("before-body").textContent = ordinary
+      ? "text/plain; charset=utf-8\n\n# OrchestKit Documentation"
+      : "text/markdown; charset=utf-8\n\n# Not found";
+  });
+</script>
+</body>
+</html>
