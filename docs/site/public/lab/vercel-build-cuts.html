@@ -27,13 +27,13 @@ code{background:#0f131b;padding:1px 5px;border-radius:5px}
 <label for="ref">Branch</label><input id="ref" value="feat/new-page">
 <label for="msg">Head commit message</label><input id="msg" value="feat(site): new page">
 <div class="row"><input type="checkbox" id="changed" checked><label for="changed" style="margin:0">docs/site changed since last deploy</label></div>
-<div class="row"><input type="checkbox" id="prev" checked><label for="prev" style="margin:0">Previous deploy SHA is known</label></div>
+<div class="row"><input type="checkbox" id="prev" checked><label for="prev" style="margin:0">Previous deploy SHA is usable in the checkout<br><small>(a SHA Vercel supplied that is absent from the shallow clone counts as missing)</small></label></div>
 </section>
 <section class="card">
 <div id="verdict">…</div><div id="why"></div>
 <ol id="steps">
 <li data-s="1">Branch is release-please--** or dependabot/**: deployment disabled</li>
-<li data-s="2">Branch is main: always build</li>
+<li data-s="2">Branch is main or the ref is unknown: build (main always builds, unknown fails toward building)</li>
 <li data-s="3">No [preview] in the commit message: skip</li>
 <li data-s="4">No usable previous SHA: build</li>
 <li data-s="5">docs/site unchanged: skip</li>
@@ -51,7 +51,7 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const [r,m,c,p]=
 function glob(ref){return ref.startsWith('release-please--')||ref.startsWith('dependabot/')}
 function decide(){const ref=$('ref').value.trim(),msg=$('msg').value;
  if(glob(ref))return[1,'off','No deployment','vercel.json turns deployments off for this branch.'];
- if(ref==='main')return[2,'go','Build','main always builds.'];
+ if(ref==='main'||!ref)return[2,'go','Build',ref==='main'?'main always builds.':'The ref is unknown (system env may not be exposed), so it fails toward building.'];
  if(!msg.includes('[preview]'))return[3,'skip','Skip','Add [preview] to the commit message to build a preview.'];
  if(!$('prev').checked)return[4,'go','Build','A preview was requested and there is no previous SHA to compare.'];
  if(!$('changed').checked)return[5,'skip','Skip','A preview was requested but docs/site has not changed.'];
