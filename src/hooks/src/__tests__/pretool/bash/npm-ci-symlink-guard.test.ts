@@ -1042,6 +1042,25 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
+  describe('directory divergences found on the follow-up review (#5336)', () => {
+    const home = process.env.HOME ?? '/root';
+    it.each([
+      // A skipped `then` assignment leaves HOME unchanged; a taken one moves `~`.
+      ['if false; then HOME=/decoy; fi; cd ~/p; npm ci', `${home}/p/node_modules`],
+      ['if true; then HOME=/lw; fi; cd ~/p; npm ci', '/lw/p/node_modules'],
+      // Conflicting assignments keep the last one; every held value is a candidate.
+      ['HOME=/a; HOME=/b; cd ~/p; npm ci', '/b/p/node_modules'],
+      // `$HOME` and `~/` on the right expand against the home already in effect.
+      ['HOME=$HOME; cd ~/p; npm ci', `${home}/p/node_modules`],
+      ['HOME=~/builds; cd ~/p; npm ci', `${home}/builds/p/node_modules`],
+      // A loop body and a case pattern body both stay conditional.
+      ['for x in a; do cd /lw; done; npm ci', '/lw/node_modules'],
+      ['case x in y) d=/lw;; esac; cd $d; npm ci', '/lw/node_modules'],
+    ])('%s: denied', (command, link) => {
+      expect(decision(command, linksAt(link))).toBe('deny');
+    });
+  });
+
   describe('the other spellings npm accepts for a clean install', () => {
     it.each([
       ['install-ci-test'],
