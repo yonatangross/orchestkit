@@ -31,10 +31,16 @@ const HOOK_NAME = 'subagent-stop/subagent-scope-auditor';
 
 const MAX_OUT_OF_SCOPE_LINES = 8;
 
+interface TranscriptToolUse {
+  type?: string;
+  name?: string;
+  input?: { file_path?: string };
+}
+
 // Transcript line shape (JSONL — one JSON object per line)
 interface TranscriptLine {
   type?: string;
-  tool_use?: { name?: string; input?: { file_path?: string } };
+  tool_use?: TranscriptToolUse;
   message?: { content?: unknown };
   // Spawn prompt lives on the first user-message line; we sniff the content.
 }
@@ -53,6 +59,14 @@ function extractEditedFiles(transcriptPath: string): string[] {
   }
   const seen = new Set<string>();
   const ordered: string[] = [];
+  const recordEdit = (tool: TranscriptToolUse | undefined) => {
+    const name = tool?.name;
+    const filePath = tool?.input?.file_path;
+    if (name !== 'Write' && name !== 'Edit' && name !== 'MultiEdit') return;
+    if (typeof filePath !== 'string' || !filePath || seen.has(filePath)) return;
+    seen.add(filePath);
+    ordered.push(filePath);
+  };
   for (const raw of content.split('\n')) {
     if (!raw.trim()) continue;
     let parsed: TranscriptLine;
@@ -61,13 +75,12 @@ function extractEditedFiles(transcriptPath: string): string[] {
     } catch {
       continue;
     }
-    const toolName = parsed.tool_use?.name;
-    const filePath = parsed.tool_use?.input?.file_path;
-    if (!toolName || !filePath) continue;
-    if (!['Write', 'Edit', 'MultiEdit'].includes(toolName)) continue;
-    if (!seen.has(filePath)) {
-      seen.add(filePath);
-      ordered.push(filePath);
+    recordEdit(parsed.tool_use);
+    const blocks = parsed.message?.content;
+    if (parsed.type === 'assistant' && Array.isArray(blocks)) {
+      for (const block of blocks as TranscriptToolUse[]) {
+        if (block?.type === 'tool_use') recordEdit(block);
+      }
     }
   }
   return ordered;

@@ -1,0 +1,8 @@
+{
+  "slug": "scope-audit-assistant-format",
+  "source": "docs/fix--scope-audit-assistant-format/index.html",
+  "title": "Scope audit: catch edits in assistant transcripts",
+  "description": "Compare the SubagentStop hook output before and after it reads file edits from assistant message blocks.",
+  "tags": ["hooks", "subagents", "bugfix"],
+  "date": "2026-11-22"
+}
