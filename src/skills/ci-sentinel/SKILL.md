@@ -1,7 +1,7 @@
 ---
 name: ci-sentinel
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires: ci-debug skill."
+compatibility: "Claude Code 2.1.327+. Requires: ci-debug skill."
 description: "Formerly ci-sentinel, now ci-debug sweep. Use when /ork:ci-sentinel is typed to install or check the red-PR sweep. Removed 2027-01-31."
 argument-hint: "[install|status|enable|disable]"
 user-invocable: true

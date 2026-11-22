@@ -1,7 +1,7 @@
 ---
 name: memory
 license: MIT
-compatibility: "Claude Code 2.1.277+. Remember and search need a memory MCP server."
+compatibility: "Claude Code 2.1.327+. Remember and search need a memory MCP server."
 description: "Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream (consolidate stale memory files). Use when storing, finding or cleaning up what was learned or decided."
 argument-hint: "[remember|search|dream] [text, query or flags]"
 context: inherit

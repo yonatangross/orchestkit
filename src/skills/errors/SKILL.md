@@ -1,7 +1,7 @@
 ---
 name: errors
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.327+. Requires memory MCP server."
 description: "Claude Code session error triage: categorizes network, auth, model, tool and permission errors, finds prior occurrences, suggests recovery. Use when a session hits errors or failures."
 context: inherit
 user-invocable: false

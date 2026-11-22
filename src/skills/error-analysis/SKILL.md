@@ -1,7 +1,7 @@
 ---
 name: error-analysis
 license: MIT
-compatibility: "Claude Code 2.1.277+. Needs Langfuse credentials in env or an exported traces JSONL."
+compatibility: "Claude Code 2.1.327+. Needs Langfuse credentials in env or an exported traces JSONL."
 description: "Clusters real LLM traces (Langfuse or JSONL) into a confirmed failure taxonomy with counts, then proposes pass/fail evals. Use to learn what to measure before writing evals. Not for CI failures."
 context: fork
 # user-typed commands stay interactive; CC >= 2.1.218 backgrounds forks by default (#3093)

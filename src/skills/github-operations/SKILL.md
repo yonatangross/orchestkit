@@ -1,7 +1,7 @@
 ---
 name: github-operations
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires gh CLI."
+compatibility: "Claude Code 2.1.327+. Requires gh CLI."
 description: "gh CLI and REST patterns for issues, PRs, milestones and Projects v2. Use when managing GitHub issues, PRs or projects."
 user-invocable: false
 metadata:
