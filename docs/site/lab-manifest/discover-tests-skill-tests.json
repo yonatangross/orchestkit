@@ -1,0 +1,8 @@
+{
+  "slug": "discover-tests-skill-tests",
+  "source": "docs/fix--discover-tests-skill-tests/index.html",
+  "title": "The 20 tests hiding in plain sight",
+  "description": "Skill test discovery now matches CI: 82 shell tests plus 20 Node tests, all 102 visible. A measured before and after with the full recovered roster.",
+  "tags": ["ci", "testing", "skills"],
+  "date": "2026-11-22"
+}
