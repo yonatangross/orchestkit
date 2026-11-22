@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One task-tracking nudge per session</title>
+<meta name="description" content="Three hooks could each tell the model to use task tracking. They now share one per-session claim: the first to fire may nudge, the rest stay silent.">
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#2a2f3a; --fg:#e6e8ee; --mut:#98a0b0; --bad:#f0716b; --ok:#5bd18b; --acc:#7aa7ff; --warn:#e6b450; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; }
+  main { max-width:980px; margin:0 auto; padding:28px 18px 60px; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  h2 { font-size:15px; margin:0 0 8px; color:var(--mut); font-weight:600; letter-spacing:.03em; text-transform:uppercase; }
+  p.lead { color:var(--mut); margin:0 0 22px; max-width:70ch; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  button { background:#232838; color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font:inherit; cursor:pointer; }
+  button:hover { border-color:var(--acc); }
+  button.reset { margin-left:auto; color:var(--mut); }
+  label { color:var(--mut); font-size:14px; display:inline-flex; gap:6px; align-items:center; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px) { .cols { grid-template-columns:1fr; } }
+  .col h3 { margin:0 0 4px; font-size:17px; }
+  .col .sub { color:var(--mut); font-size:13px; margin-bottom:10px; }
+  .before h3 { color:var(--bad); } .after h3 { color:var(--ok); }
+  .score { font-size:34px; font-weight:700; line-height:1; margin:6px 0 10px; }
+  .before .score { color:var(--bad); } .after .score { color:var(--ok); }
+  ol.log { list-style:none; margin:0; padding:0; min-height:60px; }
+  ol.log li { display:flex; gap:8px; padding:6px 8px; border-radius:6px; margin-bottom:4px; background:#12151b; border-left:3px solid var(--line); font-size:13.5px; }
+  ol.log li.nudge { border-left-color:var(--bad); }
+  .after ol.log li.nudge { border-left-color:var(--ok); }
+  ol.log li .tag { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--mut); min-width:132px; }
+  ol.log li .res { flex:1; }
+  ol.log li.quiet .res { color:var(--mut); }
+  code { font-family:ui-monospace,Menlo,monospace; font-size:12.5px; background:#12151b; padding:1px 5px; border-radius:4px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; }
+  th,td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; }
+  .note { color:var(--mut); font-size:13px; margin-top:8px; }
+  #copied { color:var(--ok); font-size:13px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="One task-tracking nudge per session"><meta property="og:description" content="Three hooks could each tell the model to use task tracking. They now share one per-session claim, so the first may nudge and the other two stay silent."><meta property="og:url" content="https://orchestkit.dev/lab/one-task-nudge-per-session.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="One task-tracking nudge per session"><meta name="twitter:description" content="Three hooks could each tell the model to use task tracking. They now share one per-session claim, so the first may nudge and the other two stay silent."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>One task-tracking nudge per session</h1>
+  <p class="lead">Three hooks could each tell the model to use task tracking. Before, each decided alone. After, they share one per-session claim: the first hook to fire may nudge, the other two stay silent. Click through a session below and watch both versions react to the same events.</p>
+
+  <div class="panel">
+    <h2>01 / Drive a session</h2>
+    <div class="row">
+      <button id="bPrompt">Prompt that reads as 3+ step work</button>
+      <button id="bSpawn">Spawn an agent (pre, then post)</button>
+      <button id="bTask">Model creates a task</button>
+      <button class="reset" id="bReset">Reset session</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label><input type="checkbox" id="cBg"> background agent</label>
+      <label><input type="checkbox" id="cNoSid"> no session id</label>
+      <label><input type="checkbox" id="cFsErr"> marker file not writable</label>
+      <label>agent type
+        <select id="sType" style="background:#232838;color:#e6e8ee;border:1px solid #2a2f3a;border-radius:6px;padding:4px">
+          <option>security-auditor</option>
+          <option>database-engineer</option>
+          <option>Explore</option>
+        </select>
+      </label>
+    </div>
+    <p class="note"><code>Explore</code> is on the exempt list in both agent hooks, so it never nudges in either version. Agent types are registered locally on their first <code>PostToolUse</code>, so a second spawn of the same type finds a task and stays quiet in both versions.</p>
+  </div>
+
+  <div class="cols">
+    <section class="panel col before">
+      <h3>Before</h3>
+      <div class="sub">Each hook decides alone</div>
+      <div class="score" id="nBefore">0</div>
+      <div class="sub">nudges that reached the model</div>
+      <ol class="log" id="logBefore"></ol>
+    </section>
+    <section class="panel col after">
+      <h3>After</h3>
+      <div class="sub">One shared claim per session</div>
+      <div class="score" id="nAfter">0</div>
+      <div class="sub">nudges that reached the model</div>
+      <ol class="log" id="logAfter"></ol>
+    </section>
+  </div>
+
+  <div class="panel">
+    <h2>02 / What each hook does</h2>
+    <table>
+      <tr><th>Hook</th><th>Event</th><th>Before</th><th>After</th></tr>
+      <tr><td><code>[task-nudge]</code> multi-step-task-nudge</td><td>UserPromptSubmit</td>
+          <td>Throttled by a per-session counter: full nudge on the 1st qualifying prompt, a final conditional line on the 3rd, silent after. Silent once the session has a task.</td>
+          <td>Counter still advances. Text is sent only if it wins the shared claim.</td></tr>
+      <tr><td><code>[Task Tracking]</code> task-existence-gate</td><td>PreToolUse (Agent)</td>
+          <td>Nudges on every non-exempt spawn whose agent type has no registered task, even if the session already has a task.</td>
+          <td>Same condition, then must win the shared claim.</td></tr>
+      <tr><td><code>[Auto-Task]</code> agent-task-auto-register</td><td>PostToolUse (Agent)</td>
+          <td>Registers the agent, then nudges unless the agent is background.</td>
+          <td>Registers the agent every time. Nudge text must win the shared claim.</td></tr>
+    </table>
+    <p class="note">The claim is an exclusive-create marker file named <code>&lt;session&gt;-task-nudge.sent</code>. Two hooks racing cannot both win. No nudge once the session has a task, none without a session id, and none on any filesystem error (fail closed).</p>
+  </div>
+
+  <div class="panel">
+    <h2>03 / Not changed, and one limit</h2>
+    <p class="note" style="margin-top:0">Unchanged: <code>registerTask</code> still runs on every post call, and the qualifying-prompt counter read by the Stop hook still advances. Limit: hook input has no tool list, so a session without <code>TaskCreate</code> (such as the desktop app) still gets the one reminder. Its wording is conditional on the tool being available. This page simulates the logic from the diff and its tests; it does not run the hooks.</p>
+  </div>
+
+  <div class="panel">
+    <h2>04 / Take it with you</h2>
+    <div class="row">
+      <button id="bCopy">Copy this session as a prompt</button>
+      <span id="copied"></span>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var DOWNGRADE_AFTER = 3, THROTTLE_EVERY = 6;
+  var EXEMPT = { 'Explore': 1 };
+  var s;
+  function fresh() {
+    s = { events: [], hasTask: false, promptCount: 0, registered: {}, claimed: false,
+          before: { n: 0, log: [] }, after: { n: 0, log: [] } };
+  }
+  fresh();
+
+  function opts() {
+    return { bg: byId('cBg').checked, noSid: byId('cNoSid').checked, fsErr: byId('cFsErr').checked, type: byId('sType').value };
+  }
+  function byId(i) { return document.getElementById(i); }
+
+  function push(side, tag, text, nudged) {
+    s[side].log.push({ tag: tag, text: text, nudged: nudged });
+    if (nudged) s[side].n += 1;
+  }
+
+  // After: shared claim. True once per session, never with tasks, no sid, or fs error.
+  function claim(o) {
+    if (o.noSid) return false;
+    if (s.hasTask) return false;
+    if (o.fsErr) return false;
+    if (s.claimed) return false;
+    s.claimed = true;
+    return true;
+  }
+
+  function onPrompt(o) {
+    s.promptCount += 1;
+    var seen = s.promptCount - 1, n = s.promptCount;
+    // Before: counter-based throttle, silenced by an existing task.
+    var fireB = null;
+    if (n > DOWNGRADE_AFTER) fireB = null;
+    else if (n === DOWNGRADE_AFTER) fireB = 'final conditional line';
+    else if (seen % THROTTLE_EVERY === 0) fireB = 'full nudge';
+    if (s.hasTask) fireB = null;
+    if (fireB) push('before', '[task-nudge]', 'Prompt #' + n + ': ' + fireB, true);
+    else push('before', '[task-nudge]', 'Prompt #' + n + ': silent', false);
+    // After: counter advanced above, then the claim decides.
+    if (claim(o)) push('after', '[task-nudge]', 'Prompt #' + n + ': nudge (wins the claim)', true);
+    else push('after', '[task-nudge]', 'Prompt #' + n + ': silent (' + why(o) + ')', false);
+  }
+
+  function why(o) {
+    if (o.noSid) return 'no session id';
+    if (s.hasTask) return 'session has a task';
+    if (o.fsErr) return 'marker not writable, fails closed';
+    return 'already claimed';
+  }
+
+  function onSpawn(o) {
+    var t = o.type;
+    if (EXEMPT[t]) {
+      push('before', '[Task Tracking]', t + ': exempt agent, silent', false);
+      push('before', '[Auto-Task]', t + ': exempt agent, silent', false);
+      push('after', '[Task Tracking]', t + ': exempt agent, silent', false);
+      push('after', '[Auto-Task]', t + ': exempt agent, silent', false);
+      return;
+    }
+    // PreToolUse: both versions only reach the nudge when the type is unregistered and the agent is not background.
+    // The pre hook exempts background agents; the post hook registers then skips the nudge for them.
+    var alreadyReg = !!s.registered[t];
+    if (o.bg) {
+      push('before', '[Task Tracking]', t + ': background agent, silent', false);
+      push('after', '[Task Tracking]', t + ': background agent, silent', false);
+    } else if (alreadyReg) {
+      push('before', '[Task Tracking]', t + ': task already registered, silent', false);
+      push('after', '[Task Tracking]', t + ': task already registered, silent', false);
+    } else {
+      push('before', '[Task Tracking]', t + ': no task for agent, nudge', true);
+      if (claim(o)) push('after', '[Task Tracking]', t + ': nudge (wins the claim)', true);
+      else push('after', '[Task Tracking]', t + ': silent (' + why(o) + ')', false);
+    }
+    // PostToolUse
+    if (alreadyReg) {
+      push('before', '[Auto-Task]', t + ': already registered, silent', false);
+      push('after', '[Auto-Task]', t + ': already registered, silent', false);
+    } else {
+      s.registered[t] = true; // registerTask runs in both versions
+      if (o.bg) {
+        push('before', '[Auto-Task]', t + ': registered, background so silent', false);
+        push('after', '[Auto-Task]', t + ': registered, background so silent', false);
+      } else {
+        push('before', '[Auto-Task]', t + ': registered, nudge', true);
+        if (claim(o)) push('after', '[Auto-Task]', t + ': registered, nudge (wins the claim)', true);
+        else push('after', '[Auto-Task]', t + ': registered, silent (' + why(o) + ')', false);
+      }
+    }
+  }
+
+  function render() {
+    ['before', 'after'].forEach(function (side) {
+      var ol = byId(side === 'before' ? 'logBefore' : 'logAfter');
+      ol.innerHTML = '';
+      s[side].log.forEach(function (e) {
+        var li = document.createElement('li');
+        li.className = e.nudged ? 'nudge' : 'quiet';
+        var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = e.tag;
+        var res = document.createElement('span'); res.className = 'res'; res.textContent = e.text;
+        li.appendChild(tag); li.appendChild(res); ol.appendChild(li);
+      });
+      byId(side === 'before' ? 'nBefore' : 'nAfter').textContent = s[side].n;
+    });
+  }
+
+  byId('bPrompt').onclick = function () { s.events.push('prompt'); onPrompt(opts()); render(); };
+  byId('bSpawn').onclick = function () { var o = opts(); s.events.push('spawn ' + o.type + (o.bg ? ' (background)' : '')); onSpawn(o); render(); };
+  byId('bTask').onclick = function () {
+    s.events.push('task created'); s.hasTask = true;
+    push('before', 'TaskCreate', 'Session now has a task (only the prompt hook goes silent)', false);
+    push('after', 'TaskCreate', 'Session now has a task (all three hooks go silent)', false);
+    render();
+  };
+  byId('bReset').onclick = function () { fresh(); byId('copied').textContent = ''; render(); };
+  byId('bCopy').onclick = function () {
+    var o = opts();
+    var txt = 'Task-nudge simulation, ' + s.events.length + ' events: ' + (s.events.join(' > ') || 'none') + '.\n' +
+      'Before: ' + s.before.n + ' nudges reached the model. After: ' + s.after.n + '.\n' +
+      'Flags: background=' + o.bg + ', no session id=' + o.noSid + ', marker not writable=' + o.fsErr + '.\n' +
+      'Rule under test: at most one task-tracking nudge per session across task-existence-gate, agent-task-auto-register and multi-step-task-nudge, via claimTaskNudge in lib/task-nudge-gate.ts.';
+    function done() { byId('copied').textContent = 'Copied'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { byId('copied').textContent = txt; });
+    else byId('copied').textContent = txt;
+  };
+  render();
+})();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
