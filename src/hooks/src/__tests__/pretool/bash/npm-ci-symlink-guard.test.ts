@@ -744,9 +744,12 @@ describe('command shapes the reader must follow to the install', () => {
       ['a command word the command never defines', '$NPM ci --prefix /lw'],
       ['a subcommand the command never defines', 'npm $SUB --prefix /lw'],
       ['a substitution as the subcommand', 'npm $(echo ci) --prefix /lw'],
-      ['a variable assigned two different values', 'NPM=npm; NPM=echo; $NPM ci --prefix /lw'],
     ])('%s: asked, because it cannot be read', (_name, command) => {
       expect(decision(command, linked)).toBe('ask');
+    });
+
+    it('a command word built from a substitution denies the nested npm', () => {
+      expect(decision('NPM=npm; NPM=$(echo npm); $NPM ci --prefix /lw', linked)).toBe('deny');
     });
 
     it.each([
@@ -987,8 +990,8 @@ describe('command shapes the reader must follow to the install', () => {
         expect(decision('HOME=/tmp/h cd ~; npm ci', linksAt(`${home}/node_modules`))).toBe('deny');
       });
 
-      it('a marked default under --prefix still probes the fallback', () => {
-        expect(decision('d=/a; d=/b; npm ci --prefix ${d:-/lw}', linked)).toBe('deny');
+      it('a marked default under --prefix resolves the last assignment', () => {
+        expect(decision('d=/a; d=/b; npm ci --prefix ${d:-/lw}', linksAt('/b/node_modules'))).toBe('deny');
       });
 
       it('a quoted fallback holding a space decodes as the real directory', () => {
@@ -1056,8 +1059,35 @@ describe('command shapes the reader must follow to the install', () => {
       // A loop body and a case pattern body both stay conditional.
       ['for x in a; do cd /lw; done; npm ci', '/lw/node_modules'],
       ['case x in y) d=/lw;; esac; cd $d; npm ci', '/lw/node_modules'],
+      // An earlier HOME on the same line already rules the next tilde.
+      ['HOME=/build p=~/app; cd $p; npm ci', '/build/app/node_modules'],
+      // An elif condition spanning && does not leak conditional past `fi`.
+      ['if a; then x; elif b && c; then y; fi; HOME=/lw; cd ~/p; npm ci', '/lw/p/node_modules'],
     ])('%s: denied', (command, link) => {
       expect(decision(command, linksAt(link))).toBe('deny');
+    });
+
+    it('chained tilde homes probe the nested outcome', () => {
+      expect(decision('HOME=~/a; HOME=~/b; cd ~/p; npm ci', linksAt(`${home}/a/b/p/node_modules`))).toBe('deny');
+    });
+
+    it('a long tilde chain probes the deep outcome bash picks', () => {
+      const cmd = `${Array.from({ length: 40 }, (_, i) => `HOME=~/h${i}`).join('; ')}; cd ~/p; npm ci`;
+      const deep = `${home}/${Array.from({ length: 40 }, (_, i) => `h${i}`).join('/')}/p/node_modules`;
+      expect(decision(cmd, linksAt(deep))).toBe('deny');
+    });
+
+    it('conditional tilde homes stay bounded and still block a reachable candidate', () => {
+      const t0 = Date.now();
+      const cmd = `false || HOME=/a; false || HOME=/b; ${Array.from({ length: 40 }, (_, i) => `HOME=~/h${i}`).join('; ')}; cd ~/p; npm ci`;
+      // The capped candidate set cannot prove the cd lands on the link, so the
+      // uncertain path asks instead of denying: still a block, never quiet.
+      expect(decision(cmd, linksAt(`${home}/p/node_modules`))).toBe('ask');
+      expect(Date.now() - t0).toBeLessThan(10_000);
+    });
+
+    it('control: an unconditional HOME does not probe the inherited home', () => {
+      expect(decision('if a; then x; elif b && c; then y; fi; HOME=/ok; cd ~/p; npm ci', linksAt(`${home}/p/node_modules`))).toBeUndefined();
     });
   });
 

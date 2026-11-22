@@ -415,6 +415,9 @@ function expandVars(word: string, vars: Vars, maybeUnset?: Set<string>): string 
         if (op === '-' || op === ':-') return value !== undefined && (op === '-' || nonEmpty) ? value : arg ?? '';
         return nonEmpty || (op === '+' && value !== undefined) ? arg ?? '' : '';
       }
+      // A plain expansion of a maybe-unset variable lands on any value it ever
+      // held: `d=/lw; true || d=/wt` leaves d at /lw or /wt, not only /wt.
+      if (maybeUnset?.has(name) === true) return whole;
       return value !== undefined ? value : whole;
     },
   );
@@ -433,11 +436,9 @@ function assignmentsOf(words: string[]): Array<[string, string]> | null {
 
 function setVar(vars: Vars, all: Map<string, Set<string>>, name: string, value: string): void {
   const tooLong = value.length > VAR_VALUE_MAX;
-  if (vars.has(name)) {
-    if (vars.get(name) !== value || tooLong) vars.set(name, null);
-  } else {
-    vars.set(name, tooLong ? null : value);
-  }
+  // Bash is last-wins for a plain value: `d=/a; d=/b` leaves d=/b, not an
+  // unknown. Only a value the reader cannot resolve keeps the null marker.
+  vars.set(name, tooLong || value.includes(DYNAMIC) ? null : value);
   // Every value the name ever held: a skipped or shadowed assignment still names a
   // directory the variable may carry (row 17, #52 and #55).
   let held = all.get(name);
@@ -515,18 +516,23 @@ function splitTopLevel(text: string): Array<{ text: string; conditional: boolean
   // `|`/`&&`/`||` follower does. `elif`'s own `then` reuses the level.
   let blockDepth = 0;
   let inCase = false;
-  let prevKw = '';
+  // `elif`'s condition may span separators (`elif a && b; then`), so the flag
+  // survives non-keyword segments until the matching `then` consumes it.
+  let elifPending = false;
   const emit = (seg: string, cond: boolean): void => {
     const kw = /^\s*(\w+)/.exec(seg)?.[1] ?? '';
     const bodyKw = kw === 'then' || kw === 'else' || kw === 'elif' || kw === 'do';
     segments.push({ text: seg, conditional: cond || blockDepth > 0 || inCase || bodyKw });
     if (kw === 'then') {
-      if (prevKw !== 'elif') blockDepth++;
-    } else if (kw === 'do') blockDepth++;
-    else if (kw === 'fi' || kw === 'done') blockDepth = Math.max(0, blockDepth - 1);
-    else if (kw === 'case') inCase = true;
+      if (elifPending) elifPending = false;
+      else blockDepth++;
+    } else if (kw === 'elif') elifPending = true;
+    else if (kw === 'do') blockDepth++;
+    else if (kw === 'fi' || kw === 'done') {
+      blockDepth = Math.max(0, blockDepth - 1);
+      elifPending = false;
+    } else if (kw === 'case') inCase = true;
     else if (kw === 'esac') inCase = false;
-    prevKw = kw;
   };
   while (i < text.length) {
     const c = text[i];
@@ -1100,9 +1106,15 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
   // (expansion happens first). When the assignment is unknown or only
   // conditional, every outcome is a candidate.
   let tildeHomes = new Set<string>([home]);
+  // The history feeds back into each `HOME=~/x` expansion, so an uncapped set
+  // doubles per assignment. Past the bound the parse is uncertain and fails
+  // closed rather than silently dropping a home bash could pick (review).
+  const TILDE_HOME_MAX = 8;
   const refreshTildeHomes = (): void => {
     const homeVar = varsNow.get('HOME');
     tildeHomes = new Set();
+    // The unset outcome goes in first so the cap below cannot truncate it.
+    if (homeVar === undefined || maybeUnset.has('HOME')) tildeHomes.add(home);
     if (typeof homeVar === 'string' && homeVar !== '' && !homeVar.includes(DYNAMIC)) tildeHomes.add(homeVar);
     else {
       for (const c of dynamicCandidates(homeVar ?? '') ?? []) tildeHomes.add(c);
@@ -1110,8 +1122,11 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       // every value the variable held is a possible home (review on #5342).
       if (homeVar === null) for (const c of varsAll.get('HOME') ?? []) tildeHomes.add(c);
     }
-    if (homeVar === undefined || maybeUnset.has('HOME')) tildeHomes.add(home);
     if (tildeHomes.size === 0) tildeHomes.add(home);
+    if (tildeHomes.size > TILDE_HOME_MAX) {
+      dirShaky = true;
+      tildeHomes = new Set([...tildeHomes].slice(0, TILDE_HOME_MAX));
+    }
   };
   const tildeHome = (): string => tildeHomes.values().next().value ?? home;
   const probeDir = (base: string, v: string): void => {
@@ -1182,13 +1197,24 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         const values = expanded.includes('~')
           ? [...tildeHomes].map((h) => expanded.replace(/(^|:)~(?=\/|$)/g, `$1${h}`))
           : [expanded];
-        for (const v of new Set(values)) {
+        if (values.length > TILDE_HOME_MAX) {
+          dirShaky = true;
+          values.length = TILDE_HOME_MAX;
+        }
+        const distinct = [...new Set(values)];
+        for (const v of distinct) {
           setVar(varsNow, varsAll, name, isNameref && /^[A-Za-z_]\w*$/.test(v) ? NAMEREF + v : v);
         }
+        // One expansion can still have several candidate homes: the outcome
+        // stays unknown even though every candidate is in the history.
+        if (distinct.length > 1) varsNow.set(name, null);
         // An assignment in a conditional or piped segment may not have run; an
         // unconditional one proves the variable is set.
         if (rawSeg.conditional) maybeUnset.add(name);
         else maybeUnset.delete(name);
+        // Assignments run left to right inside one segment, so a HOME written
+        // earlier on the line already rules the next tilde (`HOME=/b p=~/x`).
+        if (name === 'HOME') refreshTildeHomes();
       }
       restore();
       continue;
