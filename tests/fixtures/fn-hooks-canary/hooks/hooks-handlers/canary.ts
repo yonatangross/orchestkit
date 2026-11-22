@@ -1,6 +1,6 @@
 // Fixture only. Never loaded at runtime; `claude plugin validate` parses it statically.
-// Each registration below pins one fact, first measured on CC 2.1.263 and
-// re-measured on 2.1.270 (orchestkit#3917).
+// Each registration below pins one fact, first measured on CC 2.1.263,
+// re-measured on 2.1.270, and re-measured on 2.1.330 (orchestkit#3917, #5333).
 import type { Register } from "claude-code";
 
 export const register: Register = (on) => {
@@ -17,7 +17,16 @@ export const register: Register = (on) => {
   // Pins: these lifecycle nouns exist. If upstream adds `session.stop` or
   // similar, this fixture keeps passing; the assertion in CI is what notices.
   on("session.start", {}, async ($, e, next) => next(e));
-  on("engine.create", {}, async ($, e, next) => next(e));
+
+  // Pins: `engine.create` registers in the middleware spread form, with no
+  // matcher. Through 2.1.32x a `{}` matcher validated; from 2.1.330 the
+  // validator rejects it as "outside its form" and prescribes exactly this
+  // shape. The pass-through spread adds and withholds nothing, which is the
+  // smallest registration that still pins the noun.
+  on("engine.create", async ($, e, next) => {
+    const beneath = await next(e);
+    return { ...beneath };
+  });
 
   // Pins the `$` surface names we would migrate onto first. Note the validator
   // reports these without checking they exist, so this is a naming pin, not an

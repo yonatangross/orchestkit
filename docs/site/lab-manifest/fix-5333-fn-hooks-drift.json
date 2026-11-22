@@ -1,0 +1,8 @@
+{
+  "slug": "fix-5333-fn-hooks-drift",
+  "source": "docs/fix--5333-fn-hooks-drift/fn-hooks-330-drift.html",
+  "title": "Function Hooks: the 2.1.330 engine.create drift",
+  "description": "The canary form that moved in CC 2.1.330, before and after, plus the contract facts that did not move, measured on the local binary.",
+  "tags": ["ci", "contract-probe", "function-hooks", "cc-2-1-330"],
+  "date": "2026-11-22"
+}
