@@ -65,7 +65,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Host | Skills | Agents | Hooks | Install | Needs |
 |---|---|---|---|---|---|
-| Claude Code | 82 + 33 ork-extras | 36 | 163 | plugin (CLI) | Claude Code 2.1.277 or newer |
+| Claude Code | 82 + 33 ork-extras | 36 | 163 | plugin (CLI) | Claude Code 2.1.327 or newer |
 | Cursor | 82 + 33 ork-extras | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
 | Devin | 82 | 36 | 58 of 103 | plugin (git) |  |
