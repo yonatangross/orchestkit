@@ -1,0 +1,8 @@
+{
+  "slug": "llms-docs-index",
+  "source": "docs/fix--llms-docs-index/index.html",
+  "title": "The full page index, for every client",
+  "description": "Captured HTTP responses for the Full page index linked from /llms.txt, before and after the routing fix.",
+  "tags": ["docs", "markdown", "agents"],
+  "date": "2026-11-22"
+}

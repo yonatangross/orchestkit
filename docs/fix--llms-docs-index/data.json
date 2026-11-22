@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--llms-docs-index/index.html",
+  "lab_slug": "llms-docs-index",
+  "purpose": "PR playground: recorded HTTP responses for the full docs index"
+}
