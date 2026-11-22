@@ -207,6 +207,7 @@ SendMessage(to="api-designer", message="Now implement the schema you designed")
 **Key difference from CronCreate:**
 - `/loop` can invoke skills: `/loop 20m verify` (CronCreate can't)
 - CC 2.1.196+: a scheduled fire only runs skills Claude may invoke on its own; a skill with `disable-model-invocation: true` arrives as plain text and never executes, so verify the target skill is model-invocable before suggesting it in a loop
+- CC 2.1.325+: a scheduled fire asks before running a skill that declares `allowed-tools` or hooks, which most ork skills do. To run one unattended, add `Skill(ork:<name>)` to `permissions.allow`
 - Both use the same underlying scheduler (50-task limit, 7-day expiry)
 - Skills use `CronCreate` for agent-initiated scheduling
 - Skills suggest `/loop` in "Next Steps" for user-initiated monitoring
