@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seven skills learn to say the workflow never ran</title>
+<meta name="description" content="Eight skills launch their bundled workflows by name, but only verify said so in the report when the launch was refused. The other seven now carry the same disclosure line and verdict cap, asserted by test for every by-name call site.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; --warn:#8a5b00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--bad); }
+  h1 { font-size:clamp(2rem,5vw,3.2rem); line-height:1.1; max-width:780px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:760px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  .mech { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 22px; }
+  .mech button { border:1px solid var(--line); background:#fff; border-radius:8px; padding:10px 14px; font:600 .9rem ui-monospace,monospace; cursor:pointer; color:var(--ink); text-align:left; }
+  .mech button[aria-pressed="true"] { border-color:var(--ink); box-shadow:0 2px 0 var(--ink); }
+  .report { background:#0f1d20; color:#d8e6dd; border-radius:8px; padding:16px 18px; font:600 .9rem/1.6 ui-monospace,monospace; overflow-x:auto; margin:14px 0; white-space:pre-wrap; }
+  .report .new { color:#7fd4a8; }
+  .verdicts { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:14px 0; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:14px 16px; background:#fff; }
+  .card b { display:block; font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .card .v { font-size:1.4rem; font-weight:750; }
+  .card.allow .v { color:var(--bad); }
+  .card.deny .v { color:var(--good); }
+  .card.ask .v { color:var(--warn); }
+  .why { font-size:.92rem; color:var(--muted); margin-top:6px; }
+  code { font-family:ui-monospace,monospace; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Seven skills learn to say the workflow never ran"><meta property="og:description" content="Eight skills launch their bundled workflows by name, but only verify said so in the report when the launch was refused. The other seven now carry the same disclosure line and verdict cap, asserted by test for every by-name call site."><meta property="og:url" content="https://orchestkit.dev/lab/5200-workflow-refused.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Seven skills learn to say the workflow never ran"><meta name="twitter:description" content="Eight skills launch their bundled workflows by name, but only verify said so in the report when the launch was refused. The other seven now carry the same disclosure line and verdict cap, asserted by test for every by-name call site."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">skills / workflow launch / disclosure</div>
+    <h1>Say it when the workflow never ran.</h1>
+    <p>Since #5197, eight skills launch their bundled workflows by name (<code>Workflow(name="ork:&lt;name&gt;")</code>). Only verify disclosed a refused launch: a denied or unavailable Workflow call makes a report that reads as if the fan-out ran. The seven other call sites now carry the same refused-workflow rule, each with a verdict cap in its own vocabulary, and the test asserts the line exists at every site.</p>
+  </header>
+
+  <section>
+    <h2>Pick a call site</h2>
+    <p class="muted">Each panel shows the report's opening line before and after. The cap column is what the strongest claim becomes when the engine's guarantees did not run.</p>
+    <div class="mech" id="shapes"></div>
+    <div class="report" id="report"></div>
+    <div class="verdicts">
+      <div class="card" id="oldCard"><b>before this PR</b><div class="v" id="oldV"></div><p class="why" id="oldWhy"></p></div>
+      <div class="card deny" id="newCard"><b>after this PR</b><div class="v" id="newV"></div><p class="why" id="newWhy"></p></div>
+    </div>
+  </section>
+
+  <footer>Playground for #5200. The shipped files are the seven SKILL.md call sites and tests/skills/test-workflow-calls-by-name.sh, which now greps every skill for its own 'not run' disclosure.</footer>
+</main>
+<script>
+const SHAPES = [
+  { name: "verify (the model)", line: "Phase 2: verify-dispatch workflow not run (refused: permission denied), fell back to Agent Teams", before: "this was the only site that disclosed", bWhy: "added in #5197", now: "verdict caps at IMPROVEMENTS RECOMMENDED", nWhy: "the refuter majority and evidence gate never ran" },
+  { name: "assess", line: "Phase 2: assess-fanout workflow not run (<reason>), fell back to <Agent Teams|Agent tool>", before: "reported a refuted-looking pass", bWhy: "read as if assess-fanout.js ran", now: "scores and verdict are producer basis only", nWhy: "refuter majority, schema and dedup did not run in code" },
+  { name: "review-pr (fan-out)", line: "Phase 3: review-fanout workflow not run (<reason>), fell back to <Agent Teams|Agent tool>", before: "could report approve with no quorum", bWhy: "the report never said the workflow skipped", now: "approve stays off the table", nWhy: "a deliberate Agent run is not a refusal and is not capped" },
+  { name: "review-pr (rule-check)", line: "rule-check workflow not run (<reason>) + every rule 'not checked'", before: "the rules section implied coverage", bWhy: "survivor filter output was implied", now: "every rule listed as not checked", nWhy: "a rules pass that did not run is never coverage" },
+  { name: "audit-full", line: "audit-full-mapreduce workflow not run (<reason>), then BLOCKED", before: "already blocked, but unnamed", bWhy: "BLOCKED said why, not which call", now: "names the call, still BLOCKED", nWhy: "coverage claims without the run are fabricated" },
+  { name: "cover", line: "heal-loop workflow not run (<reason>), then BLOCKED", before: "blocked without naming the call", bWhy: "failures could read as handled", now: "names the call; nothing reported healed", nWhy: "the counted diagnose/repair loop never ran" },
+  { name: "bare-eval", line: "skill-fitness workflow not run (<reason>), static findings only", before: "could print a ranking it never computed", bWhy: "the harness is opt-in, so silence looked like results", now: "reports conformance-check findings only", nWhy: "the per-skill scorers and synthesis never ran" },
+  { name: "brainstorm", line: "Phase 2: brainstorm-diverge workflow not run (<reason>), fell back to Agent tool", before: "fallback ran quietly at wrong effort", bWhy: "agents ran at frontmatter effort, not low, and nobody said so", now: "names it; a short pool is named too", nWhy: "the minIdeas top-up and reasons ledger never ran" },
+];
+const shapes = document.getElementById('shapes');
+const report = document.getElementById('report');
+const setCard = (id, v, why) => { const c = document.getElementById(id); c.querySelector('.v').textContent = v; c.querySelector('.why').textContent = why; };
+SHAPES.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = (i + 1) + ' / ' + s.name;
+  b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => {
+    shapes.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    report.innerHTML = 'report opens:\n  <span class="new">' + s.line.replace(/</g, '&lt;') + '</span>';
+    setCard('oldCard', s.before, s.bWhy);
+    setCard('newCard', s.now, s.nWhy);
+  });
+  shapes.appendChild(b);
+});
+shapes.querySelector('button').click();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

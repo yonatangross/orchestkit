@@ -1,8 +1,8 @@
 // A skill reference page is a folder (index plus references and rules pages)
-// only while it is over the generator's byte budget. When review-pr dropped
-// under it, /docs/reference/skills/review-pr/references and /rules went away.
-// The site now redirects the sub-URLs of every skill the build wrote as ONE
-// page to that page, and must leave the real pages of a folder skill alone.
+// only while it is over the generator's byte budget. review-pr crossed back
+// over it: /docs/reference/skills/review-pr/references and /rules are real
+// pages again. The site redirects the sub-URLs of every skill the build wrote
+// as ONE page to that page, and must leave the real pages of a folder alone.
 
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -39,17 +39,14 @@ function redirectFor(path: string): { to: string; permanent: boolean | undefined
 	return null;
 }
 
-describe("review-pr sub-URLs redirect to the single page", () => {
-	it.each(["references", "rules"])(`${SKILLS}/review-pr/%s is a permanent redirect`, (sub) => {
-		expect(redirectFor(`${SKILLS}/review-pr/${sub}`)).toEqual({
-			to: `${SKILLS}/review-pr`,
-			permanent: true,
-		});
+describe("review-pr is a folder again: its sub-URLs are real pages", () => {
+	it.each(["references", "rules"])(`${SKILLS}/review-pr/%s does not redirect`, (sub) => {
+		expect(redirectFor(`${SKILLS}/review-pr/${sub}`)).toBeNull();
 	});
 
-	it("review-pr is a single page on disk, so the redirect is not hiding a real page", () => {
-		expect(existsSync(join(CONTENT, "review-pr.mdx"))).toBe(true);
-		expect(existsSync(join(CONTENT, "review-pr"))).toBe(false);
+	it("review-pr is a folder on disk, so the sub-pages are real", () => {
+		expect(existsSync(join(CONTENT, "review-pr.mdx"))).toBe(false);
+		expect(existsSync(join(CONTENT, "review-pr"))).toBe(true);
 	});
 
 	it("the page itself does not redirect", () => {
@@ -60,7 +57,7 @@ describe("review-pr sub-URLs redirect to the single page", () => {
 describe("the rule follows what the build wrote", () => {
 	it("every single-page skill redirects its sub-URLs and the destination is its own page", () => {
 		const slugs = singlePageSkillSlugs();
-		expect(slugs).toContain("review-pr");
+		expect(slugs).not.toContain("review-pr");
 		for (const slug of slugs) {
 			expect(redirectFor(`${SKILLS}/${slug}/rules`)?.to).toBe(`${SKILLS}/${slug}`);
 			expect(existsSync(join(CONTENT, `${slug}.mdx`))).toBe(true);

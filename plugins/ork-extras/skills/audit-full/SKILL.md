@@ -109,6 +109,8 @@ It preserves cross-file reasoning *within* each shard and recovers cross-*shard*
 
 **Fan-out rule:** a single pass is never a fallback for an over-budget repo when the selected mode is full coverage. If the map-reduce Workflow call does not run, end the run as BLOCKED and say why; never audit a truncated load. A mode the user picks that narrows the load on purpose (directory scoping, priority loading) is a declared scope cut, not a truncated load.
 
+**Refused workflow rule:** a map-reduce call that is refused, errors or is unavailable is named in the report's first line, `audit-full-mapreduce workflow not run (<refused|error|unavailable>: <reason>)`, before the run ends BLOCKED, because the per-shard audit, boundary synthesis and refutation in audit-full-mapreduce.js did not run. A report that shows audit coverage without it is a fabricated report.
+
 ---
 
 ## STEP 2: Load Codebase into Context
