@@ -11,14 +11,16 @@ address at all, and the identifiers are still moving. The decision is to keep
 watching.
 
 This fixture makes that watch mechanical instead of manual. It pins the parts of the
-module contract we measured on CC 2.1.263 and re-measured on 2.1.270, so CI notices
-when upstream moves one:
+module contract we measured on CC 2.1.263, re-measured on 2.1.270 and re-measured on
+2.1.330, so CI notices when upstream moves one:
 
 - the `modules` key in `hooks.json` is followed and the TypeScript is parsed
 - `tool.call` takes a matcher, and the matcher is echoed back
 - the legacy shell-hook bridge is spelled `classic.PreToolUse`, and bare `PreToolUse`
   is rejected as "not an event" (see below)
-- `session.start` and `engine.create` are spelled that way
+- `session.start` is spelled that way
+- `engine.create` is spelled that way and takes no matcher; it registers only in the
+  middleware spread form (see below)
 - `$.ui.log` is the capability name
 
 ## What moved, and when
@@ -29,6 +31,17 @@ hooks through a `classic.PreToolUse` site. No CHANGELOG bullet between 2.1.265 a
 2.1.270 mentions it (the feature is still behind `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS`),
 so this canary is what noticed. The probe went red on 2026-09-09 on 2.1.266; 2.1.265
 was @latest for about four hours and was never probed.
+
+From 2.1.330, `engine.create` rejects a matcher argument: `on("engine.create", {},
+fn)` fails validation as "outside its form", and the validator prescribes the
+middleware spread form `on('engine.create', async ($, e, next) => { const { ...
+beneath } = await next(e); return { ...beneath, ... } })`, which it echoes as
+`engine.create` with no braces. The same release adds two report lines per module
+(`adds to $` / `withholds from $`, both "nothing" for a pass-through) and a
+`gating hook without .catch` notice for matcher-bearing hooks. `tool.call`,
+`classic.PreToolUse`, `session.start` and `prompt.submit` still accept a matcher.
+The probe went red three days running on 2.1.330 (2026-11-19 through 2026-11-21,
+#5333); this canary is what noticed.
 
 ## What CI asserts
 
@@ -49,7 +62,9 @@ finds the binary the same way `scripts/derive-cc-output-keys.mjs` does: the nati
 `versions/<x.y.z>` file, then the npm `bin/claude.exe`. The control marker
 `event:"tool.call"` has to be present too; if it is missing, the result is
 CANNOT OBSERVE, never a pass. Measured on 2026-09-14: one hit on each of 2.1.268,
-2.1.269 and 2.1.270, and zero hits for a renamed `classic.PreToolUseV2`.
+2.1.269 and 2.1.270, and zero hits for a renamed `classic.PreToolUseV2`. Measured
+again on 2.1.330 (2026-11-22): two hits for the site marker, one for the control;
+the check is presence-only, so the extra dispatch site is corroboration, not drift.
 
 ## Two limits, both measured
 

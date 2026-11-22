@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Function Hooks: the 2.1.330 engine.create drift</title>
+<style>
+  :root { --bg:#f7f4ec; --ink:#222; --mute:#6b665c; --rule:#d9d3c4; --card:#fffdf7; --a1:#2f6f8f; --a2:#9a3f6b; --a4:#3d7a45; }
+  :root.dark { --bg:#15140f; --ink:#e8e4da; --mute:#9a9486; --rule:#34312a; --card:#1d1b16; --a1:#7cc0de; --a2:#e08ab6; --a4:#8fce96; }
+  body { background:var(--bg); color:var(--ink); font:15px/1.6 Georgia, "Iowan Old Style", serif; margin:0; padding:36px 20px; }
+  main { max-width:900px; margin:0 auto; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .verdict { font-size:17px; margin:0 0 24px; }
+  .sub { color:var(--mute); font-size:13px; margin-bottom:28px; }
+  .card { background:var(--card); border:1px solid var(--rule); padding:16px 18px; margin-bottom:18px; }
+  pre { font:13px/1.55 ui-monospace, Menlo, monospace; overflow-x:auto; margin:8px 0; padding:10px 12px; border:1px solid var(--rule); }
+  .old { color:var(--a2); } .new { color:var(--a4); } .note { color:var(--mute); font-size:13px; }
+  .btn { font:inherit; font-size:13px; background:var(--card); color:var(--ink); border:1px solid var(--rule); padding:5px 14px; cursor:pointer; margin-right:8px; }
+  .btn.on { border-color:var(--a1); color:var(--a1); font-weight:600; }
+  code { font:13px ui-monospace, Menlo, monospace; }
+  #theme { position:fixed; top:14px; right:14px; font:inherit; font-size:13px; background:var(--card); color:var(--ink); border:1px solid var(--rule); padding:3px 8px; }
+</style>
+</head>
+<body>
+<button id="theme" type="button">dark</button>
+<main>
+<h1>The 2.1.330 engine.create drift</h1>
+<p class="verdict">One registration form moved. The canary caught it three days running; the fixture now spells it the way the validator prescribes.</p>
+<div class="sub">CC Contract Probe: DRIFT on 2026-11-19, 11-20, 11-21 (#5333, watch #3917). Measured on the local 2.1.330 binary, 2026-11-22.</div>
+
+<button class="btn on" id="b-before" type="button">before, 2.1.32x</button>
+<button class="btn" id="b-after" type="button">after, 2.1.330</button>
+
+<div class="card" id="before">
+<pre><span class="old">on("engine.create", {}, async ($, e, next) =&gt; next(e));</span>
+<span class="note">  a matcher object on engine.create, accepted through 2.1.32x</span></pre>
+<p class="note">Validator verdict on 2.1.330: <span class="old">"this engine.create hook is outside its form: a matcher on the hook."</span></p>
+</div>
+
+<div class="card" id="after" hidden>
+<pre><span class="new">on("engine.create", async ($, e, next) =&gt; {
+  const beneath = await next(e);
+  return { ...beneath };
+});</span>
+<span class="note">  the middleware spread form, echoed as "engine.create" with no braces</span></pre>
+<p class="note">Why the form exists, in the validator's own words: it "lists what a hook in this form does if it registers and doesn't throw. It can't say what this module adds to or withholds from $." A pass-through spread adds and withholds nothing, the smallest registration that still pins the noun.</p>
+</div>
+
+<div class="card">
+<h2 style="font:600 12px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px">what did not move</h2>
+<pre>tool.call{tool=Bash}, classic.PreToolUse{}, session.start{}, prompt.submit{}
+calls: $.ui.log
+bare PreToolUse  still rejected: "PreToolUse" is not an event
+binary           two event:"classic.PreToolUse" sites (was one on 2.1.268-270)</pre>
+<p class="note">New on 2.1.330: per-module <code>adds to $</code> / <code>withholds from $</code> report lines, and a <code>gating hook without .catch</code> notice on the three matcher-bearing hooks.</p>
+</div>
+</main>
+<script>
+const before = document.getElementById('before'), after = document.getElementById('after');
+const bb = document.getElementById('b-before'), ba = document.getElementById('b-after');
+function show(which){
+  before.hidden = which !== 'before'; after.hidden = which !== 'after';
+  bb.classList.toggle('on', which === 'before'); ba.classList.toggle('on', which === 'after');
+}
+bb.onclick = () => show('before'); ba.onclick = () => show('after');
+document.getElementById('theme').onclick = function(){
+  document.documentElement.classList.toggle('dark');
+  this.textContent = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+};
+</script>
+</body>
+</html>

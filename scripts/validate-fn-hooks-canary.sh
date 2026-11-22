@@ -13,14 +13,25 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FIXTURE="$REPO_ROOT/tests/fixtures/fn-hooks-canary"
 NEGATIVE_MODULE="$FIXTURE/negative/bare-pretooluse.ts"
 
-# Measured on CC 2.1.270, 2026-09-14 (first measured on 2.1.263, 2026-09-08).
-# Order is the module's registration order.
+# Measured on CC 2.1.330, 2026-11-22 (first measured on 2.1.263, 2026-09-08;
+# re-measured on 2.1.270, 2026-09-14). Order is the module's registration
+# order.
 #
-# What moved between the two: the legacy shell-hook bridge. Through 2.1.263 the
-# validator accepted bare `PreToolUse`; from 2.1.266 it rejects it as "not an
-# event" and the binary dispatches shell PreToolUse hooks through a
-# `classic.PreToolUse` site instead. Everything else is unchanged.
-EXPECTED_HOOKS='tool.call{tool=Bash}, classic.PreToolUse{}, session.start{}, engine.create{}, prompt.submit{}'
+# What moved between 2.1.270 and 2.1.330: the engine.create form. Through
+# 2.1.32x a `{}` matcher validated; from 2.1.330 the validator rejects a
+# matcher on engine.create as "outside its form" and requires the middleware
+# spread form `on('engine.create', async ($, e, next) => ... )`, which it
+# echoes without braces. tool.call, classic.PreToolUse, session.start and
+# prompt.submit still take a matcher argument. The validator also gained two
+# report lines per module ("adds to $" / "withholds from $") and a "gating
+# hook without .catch" notice; neither changes this assertion, which reads
+# only the hooks: and calls: lines.
+#
+# The earlier move, 2.1.263 to 2.1.266: the legacy shell-hook bridge. Through
+# 2.1.263 the validator accepted bare `PreToolUse`; from 2.1.266 it rejects it
+# as "not an event" and the binary dispatches shell PreToolUse hooks through a
+# `classic.PreToolUse` site instead.
+EXPECTED_HOOKS='tool.call{tool=Bash}, classic.PreToolUse{}, session.start{}, engine.create, prompt.submit{}'
 EXPECTED_CALLS='$.ui.log'
 
 # The rename is pinned from three sides. `classic.PreToolUse` validating proves
@@ -36,7 +47,8 @@ EXPECTED_REJECT='"PreToolUse" is not an event'
 # the dispatch site below. Measured 2026-09-14: exactly 1 hit on 2.1.268, 2.1.269
 # and 2.1.270, and 0 hits for a renamed `event:"classic.PreToolUseV2"`.
 # `event:"tool.call"` is the control: when it is absent too, the lookup found a
-# shim or the wrong file, which is CANNOT OBSERVE and never a pass.
+# shim or the wrong file, which is CANNOT OBSERVE and never a pass. On 2.1.330
+# the site marker has two hits (the count is not asserted, only presence).
 SITE_MARKER='event:"classic.PreToolUse"'
 CONTROL_MARKER='event:"tool.call"'
 
