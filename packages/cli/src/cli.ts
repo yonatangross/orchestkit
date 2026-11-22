@@ -15,6 +15,11 @@ function packageVersion(): string {
 }
 
 const result = await run(process.argv.slice(2), { version: packageVersion(), hostEnv: realHostEnv() });
-if (result.stdout) process.stdout.write(result.stdout);
+if (result.stdout) {
+	process.stdout.on("error", (error: NodeJS.ErrnoException) => {
+		if (error.code !== "EPIPE") throw error;
+	});
+	process.stdout.write(result.stdout);
+}
 if (result.stderr) process.stderr.write(result.stderr);
 process.exitCode = result.exitCode;

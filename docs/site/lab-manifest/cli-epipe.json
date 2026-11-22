@@ -1,0 +1,8 @@
+{
+  "slug": "cli-epipe",
+  "source": "docs/fix--cli-epipe/index.html",
+  "title": "OrchestKit CLI: quiet broken pipes",
+  "description": "Compare the built CLI before and after handling a closed stdout pipe.",
+  "tags": ["cli"],
+  "date": "2026-11-22"
+}

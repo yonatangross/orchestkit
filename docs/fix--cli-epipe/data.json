@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--cli-epipe/index.html",
+  "lab_slug": "cli-epipe",
+  "purpose": "PR playground: compare CLI output and exit status when a pipe closes early"
+}

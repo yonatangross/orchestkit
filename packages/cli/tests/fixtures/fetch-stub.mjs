@@ -29,7 +29,10 @@ globalThis.fetch = async (input) => {
 		return json([{ id: "1", url: "/docs/x", title: "A doc" }]);
 	}
 	if (url.pathname.endsWith(".md")) {
-		return new Response("# A doc\n", {
+		const body = url.pathname === "/docs/long-output.md"
+			? "# A long doc\n" + "This line represents Markdown content.\n".repeat(65_536)
+			: "# A doc\n";
+		return new Response(body, {
 			headers: { "content-type": "text/markdown", ...RATE_LIMIT },
 		});
 	}
