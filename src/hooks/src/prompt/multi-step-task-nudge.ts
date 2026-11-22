@@ -39,20 +39,12 @@ import { outputPromptContext, outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { getSessionStorageDir } from '../lib/paths.js';
 import { safeIdentifier } from '../lib/safe-fs.js';
-import { taskNudgeAvailable, taskNudgeEligible } from '../lib/task-nudge-gate.js';
+import { isExplicitTaskAsk, taskNudgeAvailable, taskNudgeEligible } from '../lib/task-nudge-gate.js';
 
 const HOOK_NAME = 'multi-step-task-nudge';
 
 /** Below this the prompt is a command or an answer, not a work request. */
 const MIN_PROMPT_LENGTH = 40;
-
-/**
- * EXPLICIT ask: the operator is talking about task/todo organisation itself.
- * It bypasses the one-per-session limit, because rate-limiting the literal
- * request is how visual-style-nudge measured 4 silenced explicit asks in one
- * session before its bypass existed. It still needs a session id and no task.
- */
-const EXPLICIT_RE = /\b(?:todo list|task list|todos?\b|taskcreate|organi[sz]e (?:our|the|this) (?:session|work))/i;
 
 /** A skill route manages its own task ceremony — never second-guess it. */
 const ALREADY_ROUTED_RE = /\/(?:ork|hq-ext):[a-z-]+/i;
@@ -145,7 +137,7 @@ export function multiStepTaskNudge(
   if (prompt.length < MIN_PROMPT_LENGTH) return outputSilentSuccess();
   if (ALREADY_ROUTED_RE.test(prompt)) return outputSilentSuccess();
 
-  const explicit = EXPLICIT_RE.test(prompt);
+  const explicit = isExplicitTaskAsk(prompt);
   if (!explicit && !isMultiStepShaped(prompt)) return outputSilentSuccess();
 
   // The counter advances first: the Stop-side telemetry must count qualifying
@@ -154,7 +146,7 @@ export function multiStepTaskNudge(
 
   // Use the raw id: the 'unknown-session' fallback names only the counter file
   // and must never reach the shared nudge gate. An explicit ask passes the
-  // once-per-session limit. The dispatcher spends the nudge on delivery.
+  // once-per-session limit. The dispatcher makes the claim that admits the text.
   const canSpeak = explicit
     ? taskNudgeEligible(input.session_id, projectDir)
     : taskNudgeAvailable(input.session_id, projectDir);

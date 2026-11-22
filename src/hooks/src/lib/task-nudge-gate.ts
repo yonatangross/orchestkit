@@ -13,11 +13,11 @@
  *   2. a nudge was already sent this session (any of the three) -> silent
  *
  * The nudge is spent only when its text is delivered. A dispatcher hook first
- * asks taskNudgeAvailable (read only), and its dispatcher claims once the text
- * is going out: a later hook's ask or deny, or the prompt token budget, can
- * still discard the text. The claim is an exclusive-create marker file. Any
- * filesystem problem fails CLOSED (no nudge). Only injected text is gated
- * here; side effects stay in the calling hooks.
+ * asks taskNudgeAvailable (read only), and its dispatcher claims after a later
+ * hook's ask or deny, or the prompt token budget, can no longer discard the
+ * text. An unprompted reminder is included only if that exclusive claim wins.
+ * Any filesystem problem fails CLOSED (no unprompted nudge). Only injected text
+ * is gated here; side effects stay in the calling hooks.
  */
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -26,6 +26,18 @@ import type { HookInput } from '../types.js';
 import { getSessionStorageDir } from './paths.js';
 import { safeIdentifier } from './safe-fs.js';
 import { sessionHasTasks } from './task-usage-signal.js';
+
+/**
+ * EXPLICIT ask: the operator is talking about task/todo organisation itself.
+ * It bypasses the one-per-session limit, because rate-limiting the literal
+ * request is how visual-style-nudge measured 4 silenced explicit asks in one
+ * session before its bypass existed. It still needs a session id and no task.
+ */
+const EXPLICIT_RE = /\b(?:todo list|task list|todos?\b|taskcreate|organi[sz]e (?:our|the|this) (?:session|work))/i;
+
+export function isExplicitTaskAsk(prompt: string): boolean {
+  return EXPLICIT_RE.test(prompt);
+}
 
 function markerPath(sessionId: string): string {
   // session_id is untrusted hook input: sanitize before it becomes a filename.
@@ -65,4 +77,14 @@ export function claimTaskNudge(sessionId: string | undefined, projectDir: string
 /** Dispatcher form of claimTaskNudge, resolving the project dir from the input. */
 export function claimTaskNudgeForInput(input: HookInput): boolean {
   return claimTaskNudge(input.session_id, input.project_dir || process.env.CLAUDE_PROJECT_DIR || '');
+}
+
+/**
+ * Prompt dispatcher: may this reminder be included? An unprompted one must win
+ * the claim. An explicit ask was already checked for eligibility, so it is
+ * answered either way, and its claim only quiets later unprompted reminders.
+ */
+export function admitPromptTaskNudge(input: HookInput): boolean {
+  const claimed = claimTaskNudgeForInput(input);
+  return claimed || isExplicitTaskAsk(typeof input.prompt === 'string' ? input.prompt : '');
 }

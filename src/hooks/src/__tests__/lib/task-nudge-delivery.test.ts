@@ -13,8 +13,22 @@ import type { HookInput, HookResult } from '../../types.js';
 const stubs = vi.hoisted(() => ({
   validator: { continue: true, suppressOutput: true } as Record<string, unknown>,
   executor: { continue: true, suppressOutput: true } as Record<string, unknown>,
+  // Runs right after the prompt hook checked the gate, before the dispatcher claims.
+  afterPromptCheck: (() => undefined) as () => void,
 }));
 const silent = () => ({ continue: true, suppressOutput: true });
+
+vi.mock('../../prompt/multi-step-task-nudge.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../prompt/multi-step-task-nudge.js')>();
+  return {
+    ...actual,
+    multiStepTaskNudge: (...args: Parameters<typeof actual.multiStepTaskNudge>) => {
+      const result = actual.multiStepTaskNudge(...args);
+      stubs.afterPromptCheck();
+      return result;
+    },
+  };
+});
 
 vi.mock('../../lib/task-integration.js', () => ({
   getTaskByAgent: vi.fn().mockReturnValue(undefined),
@@ -68,6 +82,7 @@ import { syncTaskDispatcher } from '../../pretool/task/sync-task-dispatcher.js';
 import { unifiedPromptDispatcher } from '../../prompt/unified-dispatcher.js';
 import { agentTaskAutoRegister } from '../../posttool/task/agent-task-auto-register.js';
 import { getSessionStorageDir } from '../../lib/paths.js';
+import { claimTaskNudge } from '../../lib/task-nudge-gate.js';
 
 const QUALIFYING = 'Fix the docs counts, add a drift gate, then rebuild the plugins and verify CI passes';
 const EXPLICIT = 'Please keep a todo list for this session while we work through the release';
@@ -88,6 +103,7 @@ beforeEach(() => {
   vi.stubEnv('CLAUDE_MODEL', undefined);
   stubs.validator = silent();
   stubs.executor = silent();
+  stubs.afterPromptCheck = () => undefined;
 });
 
 afterEach(() => {
@@ -185,6 +201,36 @@ describe('the prompt dispatcher spends the nudge only on delivery', () => {
   it('an explicit todo-list ask still gets an answer after the one nudge', () => {
     expect(contextOf(unifiedPromptDispatcher(promptInput(QUALIFYING)))).toContain('[task-nudge]');
     expect(contextOf(unifiedPromptDispatcher(promptInput(QUALIFYING)))).not.toContain('[task-nudge]');
+    // Same text as the first nudge, so this also proves the delta skip cannot drop it.
+    expect(contextOf(unifiedPromptDispatcher(promptInput(EXPLICIT)))).toContain('[task-nudge]');
+  });
+
+  it('losing the claim to another hook drops only the reminder and keeps other context', () => {
+    stubs.executor = {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: '[other context] keep me' },
+    };
+    stubs.afterPromptCheck = () => {
+      expect(claimTaskNudge(sid, projectDir)).toBe(true);
+    };
+    const context = contextOf(unifiedPromptDispatcher(promptInput(QUALIFYING)));
+    expect(context).toContain('[other context]');
+    expect(context).not.toContain('[task-nudge]');
+  });
+
+  it('an unwritable marker never repeats the reminder on ordinary prompts', () => {
+    const blocker = join(data, 'not-a-directory');
+    writeFileSync(blocker, 'x');
+    vi.stubEnv('CLAUDE_PLUGIN_DATA', join(blocker, 'child'));
+    expect(contextOf(unifiedPromptDispatcher(promptInput(QUALIFYING)))).not.toContain('[task-nudge]');
+    expect(contextOf(unifiedPromptDispatcher(promptInput(QUALIFYING)))).not.toContain('[task-nudge]');
+  });
+
+  it('an explicit ask is still answered when the marker cannot be written', () => {
+    const blocker = join(data, 'not-a-directory');
+    writeFileSync(blocker, 'x');
+    vi.stubEnv('CLAUDE_PLUGIN_DATA', join(blocker, 'child'));
     expect(contextOf(unifiedPromptDispatcher(promptInput(EXPLICIT)))).toContain('[task-nudge]');
   });
 
