@@ -47,12 +47,16 @@ export function isInsideDir(filePath: string, rootDir: string): boolean {
 }
 
 /**
- * Check if a file path contains an excluded directory segment.
+ * Check for excluded segments at or below the matching root.
+ * For a requested symlink path outside that root, still check the full path.
  * Exact EXCLUDED_DIRS matches, plus any segment starting with `.git` (#4220 AF-13).
  * Segment compares are case-insensitive.
  */
-export function hasExcludedDir(filePath: string): boolean {
-  const parts = normalize(filePath).split(sep).filter(Boolean);
+export function hasExcludedDir(filePath: string, rootDir: string): boolean {
+  const pathToCheck = isInsideDir(filePath, rootDir)
+    ? relative(dirname(resolve(rootDir)), filePath)
+    : normalize(filePath);
+  const parts = pathToCheck.split(sep).filter(Boolean);
   for (const part of parts) {
     const lower = part.toLowerCase();
     if (lower.startsWith('.git')) return true;

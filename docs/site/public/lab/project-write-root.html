@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:">
+  <title>Project writes: check exclusions at the root</title>
+  <style>
+    :root{color-scheme:light dark;--bg:#f5f7fb;--paper:#fff;--text:#182337;--muted:#48576d;--line:#d4dce8;--accent:#244993;--good:#16634c;--good-bg:#e6f4ed}
+    @media(prefers-color-scheme:dark){:root{--bg:#121925;--paper:#1b2534;--text:#edf3fd;--muted:#b9c8db;--line:#3c4b62;--accent:#b5ccff;--good:#a5e2c9;--good-bg:#203b38}}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.55 system-ui,sans-serif}
+    main{max-width:55rem;margin:auto;padding:clamp(2rem,6vw,4rem) 1rem}
+    h1{margin:.3rem 0 .7rem;font-size:clamp(1.9rem,5.2vw,3.25rem);line-height:1.06;letter-spacing:-.035em;text-wrap:balance}
+    p{margin:0}
+    .eyebrow{color:var(--accent);font-size:.78rem;font-weight:750;letter-spacing:.09em;text-transform:uppercase}
+    .intro,.note{color:var(--muted)}
+    .example{margin:1.2rem 0 0;padding:.75rem 1rem;border:1px solid var(--line);border-radius:.65rem;background:var(--paper);overflow-wrap:anywhere}
+    code{font:500 .9em/1.5 ui-monospace,monospace}
+    strong{font-weight:700}
+    table{width:100%;table-layout:fixed;margin:1.25rem 0;border:1px solid var(--line);border-radius:.8rem;border-spacing:0;background:var(--paper);text-align:left}
+    caption{text-align:left;margin-bottom:.45rem;font-size:1.125rem;font-weight:700}
+    th,td{padding:.75rem .9rem;vertical-align:top;overflow-wrap:anywhere}
+    thead th{color:var(--muted);font-size:.85rem}
+    thead th:first-child{width:42%}
+    tbody th,tbody td{border-top:1px solid var(--line)}
+    .changed{color:var(--good);background:var(--good-bg);font-weight:700}
+    .note{font-size:.9rem}
+    @media(max-width:34rem){th,td{padding:.65rem .45rem;font-size:.84rem}thead th:first-child{width:40%}}
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Project writes: check exclusions at the root"><meta property="og:description" content="Compare captured write-hook results before and after exclusion checks stop scanning parent directories."><meta property="og:url" content="https://orchestkit.dev/lab/project-write-root.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Project writes: check exclusions at the root"><meta name="twitter:description" content="Compare captured write-hook results before and after exclusion checks stop scanning parent directories."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+  <main>
+    <p class="eyebrow">OrchestKit Lab / Write permissions</p>
+    <h1>Check write exclusions inside the project</h1>
+    <p class="intro">Opening a project under a folder named <code>build</code> used to suppress both write hooks. The containing root now limits the directory check, while protected paths still pass through without a decision.</p>
+    <p class="example"><strong>Project:</strong> <code>/tmp/scout/build/myapp</code></p>
+    <table>
+      <caption>Captured results from both hooks</caption>
+      <thead>
+        <tr><th scope="col">Write target</th><th scope="col">Before fix</th><th scope="col">After fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row"><code>src/a.ts</code></th><td>Pass-through</td><td class="changed">Allow / Retry</td></tr>
+        <tr><th scope="row"><code>build/a.ts</code></th><td>Pass-through</td><td>Pass-through</td></tr>
+        <tr><th scope="row"><code>src/linked/a.ts</code><br>Symlink into <code>build</code></th><td>Pass-through</td><td>Pass-through</td></tr>
+        <tr><th scope="row"><code>src/package.json</code></th><td>Pass-through</td><td>Pass-through</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><strong>Allow</strong> is the opt-in PermissionRequest decision. <strong>Retry</strong> is the PermissionDenied response. <strong>Pass-through</strong> emits neither.</p>
+  </main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

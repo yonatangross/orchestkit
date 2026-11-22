@@ -87,50 +87,60 @@ describe('isInsideDir', () => {
 });
 
 describe('hasExcludedDir', () => {
+  const root = '/project';
+
   test('detects node_modules in middle of path', () => {
-    expect(hasExcludedDir(`/project${sep}node_modules${sep}pkg${sep}index.js`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}node_modules${sep}pkg${sep}index.js`, root)).toBe(true);
   });
 
   test('detects .git in middle of path', () => {
-    expect(hasExcludedDir(`/project${sep}.git${sep}config`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.git${sep}config`, root)).toBe(true);
   });
 
   test('detects dist in middle of path', () => {
-    expect(hasExcludedDir(`/project${sep}dist${sep}bundle.js`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}dist${sep}bundle.js`, root)).toBe(true);
   });
 
   test('detects excluded dir as terminal segment (no trailing slash)', () => {
-    expect(hasExcludedDir(`/project${sep}.git`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.git`, root)).toBe(true);
   });
 
   test('detects node_modules as terminal segment', () => {
-    expect(hasExcludedDir(`/project${sep}node_modules`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}node_modules`, root)).toBe(true);
   });
 
   test('returns false for normal project paths', () => {
-    expect(hasExcludedDir(`/project${sep}src${sep}index.ts`)).toBe(false);
+    expect(hasExcludedDir(`/project${sep}src${sep}index.ts`, root)).toBe(false);
   });
 
   test('returns false when excluded name is part of a larger name', () => {
-    expect(hasExcludedDir(`/project${sep}dist-tools${sep}run.sh`)).toBe(false);
+    expect(hasExcludedDir(`/project${sep}dist-tools${sep}run.sh`, root)).toBe(false);
   });
 
   test('detects .claude and .husky mid-path (#4220 AF-13)', () => {
-    expect(hasExcludedDir(`/project${sep}.claude${sep}settings.json`)).toBe(true);
-    expect(hasExcludedDir(`/project${sep}.husky${sep}pre-commit`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.claude${sep}settings.json`, root)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.husky${sep}pre-commit`, root)).toBe(true);
   });
 
   test('detects .git* prefix segments (#4220 AF-13)', () => {
-    expect(hasExcludedDir(`/project${sep}.github${sep}workflows${sep}ci.yml`)).toBe(true);
-    expect(hasExcludedDir(`/project${sep}.gitignore${sep}x`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.github${sep}workflows${sep}ci.yml`, root)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}.gitignore${sep}x`, root)).toBe(true);
   });
 
   test.each(EXCLUDED_DIRS)('detects %s as mid-path segment', (dir) => {
-    expect(hasExcludedDir(`/project${sep}${dir}${sep}file.ts`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}${dir}${sep}file.ts`, root)).toBe(true);
   });
 
   test.each(EXCLUDED_DIRS)('detects %s as terminal segment', (dir) => {
-    expect(hasExcludedDir(`/project${sep}${dir}`)).toBe(true);
+    expect(hasExcludedDir(`/project${sep}${dir}`, root)).toBe(true);
+  });
+
+  test('still detects an excluded name on the root itself', () => {
+    expect(hasExcludedDir('/workspace/BUILD/src/file.ts', '/workspace/BUILD')).toBe(true);
+  });
+
+  test('still scans excluded segments on a requested alias outside the root', () => {
+    expect(hasExcludedDir('/workspace/dist/alias/file.ts', '/workspace/project')).toBe(true);
   });
 });
 

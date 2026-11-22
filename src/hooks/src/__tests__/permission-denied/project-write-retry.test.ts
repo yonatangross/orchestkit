@@ -96,6 +96,29 @@ describe('project-write-retry', () => {
     });
   });
 
+  test.each([
+    ['/test/scout/build/myapp', undefined],
+    ['/test/scout/dist/tools', ['/test/scout/dist/tools']],
+  ])('ignores excluded ancestors of the containing root %s', (root, addedDirs) => {
+    const input = createDeniedWriteInput(`${root}/src/a.ts`, {
+      projectDir: addedDirs ? '/test/project' : root,
+      addedDirs,
+    });
+    const result = projectWriteRetry(input, testCtx);
+
+    expect(result.hookSpecificOutput?.retry).toBe(true);
+  });
+
+  test('does not retry an excluded child of a project under build', () => {
+    const projectDir = '/test/scout/build/myapp';
+    const result = projectWriteRetry(
+      createDeniedWriteInput(`${projectDir}/build/a.ts`, { projectDir }),
+      testCtx,
+    );
+
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
   describe('Writes to excluded dirs NOT retried', () => {
     const excludedPaths = [
       '/test/project/node_modules/package/index.js',

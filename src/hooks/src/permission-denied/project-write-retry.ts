@@ -74,7 +74,7 @@ export function projectWriteRetry(input: HookInput, ctx: HookContext = NOOP_CTX)
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;
 
-    if (hasExcludedDir(requestedPath) || hasExcludedDir(filePath)) {
+    if (hasExcludedDir(requestedPath, rootDir) || hasExcludedDir(filePath, rootDir)) {
       ctx.log(HOOK_NAME, `File in excluded directory — not retrying`);
       return outputSilentSuccess();
     }
