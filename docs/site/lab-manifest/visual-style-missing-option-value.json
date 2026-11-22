@@ -1,0 +1,8 @@
+{
+  "slug": "visual-style-missing-option-value",
+  "source": "docs/fix--visual-style-missing-option-value/index.html",
+  "title": "Visual-style option values",
+  "description": "Compare missing-argument diagnostics and exit codes before and after the visual-style pre-flight fix.",
+  "tags": ["cli", "testing"],
+  "date": "2026-11-22"
+}

@@ -22,7 +22,11 @@ const built = existsSync(BIN);
 
 type Out = { stdout: string; stderr: string; code: number };
 
-function spawnBin(args: string[], viaNodeStub = false): Promise<Out> {
+function spawnBin(
+	args: string[],
+	viaNodeStub = false,
+	{ closeStdoutEarly = false } = {},
+): Promise<Out> {
 	const [cmd, argv] = viaNodeStub
 		? ["node", ["--import", STUB, BIN, ...args]]
 		: [BIN, args];
@@ -34,6 +38,7 @@ function spawnBin(args: string[], viaNodeStub = false): Promise<Out> {
 		let stderr = "";
 		child.stdout.on("data", (c) => {
 			stdout += String(c);
+			if (closeStdoutEarly) child.stdout.destroy();
 		});
 		child.stderr.on("data", (c) => {
 			stderr += String(c);
@@ -138,6 +143,14 @@ describe.skipIf(!built)("built binary, networked commands", () => {
 		);
 		expect(code).toBe(0);
 		expect(stdout).toContain("# A doc");
+	});
+
+	it("exits quietly when a reader closes stdout before a long document finishes", async () => {
+		const { stdout, stderr, code } = await spawnBin(["read", "long-output", ...base], true, {
+			closeStdoutEarly: true,
+		});
+		expect(stdout).toMatch(/^# A long doc\n/);
+		expect({ code, stderr }).toEqual({ code: 0, stderr: "" });
 	});
 
 	it("a 429 surfaces the problem detail and Retry-After on stderr", async () => {

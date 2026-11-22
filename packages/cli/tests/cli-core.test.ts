@@ -52,6 +52,14 @@ describe("parseArgs", () => {
 		expect(args.command).toBe("search");
 		expect(args.positional).toEqual(["parallel", "agents"]);
 	});
+	it("parses --all as a flag without adding a positional", () => {
+		expect(parseArgs(["install", "--all"])).toMatchObject({ all: true, positional: [] });
+	});
+	it.each(["search", "ask"])("ends option parsing for %s", (command) => {
+		expect(parseArgs([command, "--", "-foo", "--json"])).toMatchObject({
+			command, positional: ["-foo", "--json"], json: false,
+		});
+	});
 
 	it("clamps --limit into a sane range instead of trusting it", () => {
 		expect(parseArgs(["search", "x", "--limit", "3"]).limit).toBe(3);
@@ -64,6 +72,43 @@ describe("parseArgs", () => {
 		expect(() => parseArgs(["search", "x", "--limit", value])).toThrow(
 			"--limit requires an integer",
 		);
+	});
+});
+
+describe("invalid arguments", () => {
+	it.each([
+		["search", "hooks", "--limt", "3"],
+		["mcp", "--josn"],
+		["search", "hooks", "-x"],
+		["read", "--all"],
+		["search", "hooks", "--all"],
+	])("rejects unknown options in %j", async (...argv) => {
+		const res = await run(argv);
+		expect(res.exitCode).toBe(2);
+		expect(res.stdout).toBe("");
+		expect(res.stderr).toContain("Unknown option");
+	});
+
+	it.each([
+		["install", "claude", "cursor"],
+		["mcp", "stdio", "extra"],
+		["read", "foundations/overview", "extra"],
+	])("rejects extra positionals in %j", async (...argv) => {
+		const res = await run(argv);
+		expect(res.exitCode).toBe(2);
+		expect(res.stdout).toBe("");
+		expect(res.stderr).toContain("accepts at most one positional argument");
+	});
+	it.each([
+		["install", "--all", "claude"],
+		["install", "claude", "--all"],
+	])("rejects combining --all and a host in %j", async (...argv) => {
+		expect(await run(argv)).toEqual({ stdout: "", stderr: "install cannot combine --all with a host.\n", exitCode: 2 });
+	});
+	it.each([["install", "--all"], ["install", "claude"]])("keeps %j working", async (...argv) => {
+		const res = await run(argv);
+		expect(res.exitCode).toBe(0);
+		expect(res.stdout).toContain(PLUGIN_INSTALL_COMMAND);
 	});
 });
 
@@ -137,6 +182,9 @@ describe("help and version flags", () => {
 		["mcp", "stdio", "-h"],
 		["--help", "--version"],
 		["--version", "--help"],
+		["--help", "--all"],
+		["search", "hooks", "--limt", "3", "--help"],
+		["search", "hooks", "--help", "--limt", "3"],
 	])("%j prints help without running the command", async (...argv) => {
 		const restore = forbidFetch();
 		try {
@@ -155,6 +203,10 @@ describe("help and version flags", () => {
 		["install", "claude", "-v"],
 		["read", "foundations/overview", "--version"],
 		["search", "--json", "x", "-v"],
+		["--version", "--all"],
+		["search", "hooks", "--limt", "3", "--version"],
+		["search", "hooks", "--version", "--limt", "3"],
+		["search", "hooks", "--limt", "3", "-v"],
 	])("%j prints the version without running the command", async (...argv) => {
 		const restore = forbidFetch();
 		try {

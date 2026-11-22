@@ -57,6 +57,7 @@ export type ParsedArgs = {
 	positional: string[];
 	limit: number;
 	json: boolean;
+	all: boolean;
 	baseUrl?: string;
 	help: boolean;
 	version: boolean;
@@ -72,13 +73,20 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
 	let limit = 5;
 	let json = false;
+	let all = false;
 	let help = false;
 	let version = false;
 	let baseUrl: string | undefined;
+	let unknownOption: string | undefined;
 
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i] as string;
-		if (arg === "--json") json = true;
+		if (arg === "--") {
+			positional.push(...argv.slice(i + 1));
+			break;
+		}
+		if (arg === "--all") all = true;
+		else if (arg === "--json") json = true;
 		else if (arg === "--help" || arg === "-h") help = true;
 		else if (arg === "--version" || arg === "-v") version = true;
 		else if (arg === "--limit" || arg === "--base-url") {
@@ -95,7 +103,7 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 			} else {
 				baseUrl = value;
 			}
-		} else if (arg.startsWith("-")) positional.push(arg);
+		} else if (arg.startsWith("-")) unknownOption ??= arg;
 		else positional.push(arg);
 	}
 
@@ -105,7 +113,9 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 	if (help) command = "help";
 	else if (version) command = "version";
 	else command = positional.shift() ?? "help";
-	return { command, positional, limit, json, baseUrl, help, version };
+	if (unknownOption && !help && !version) throw new UsageError(`Unknown option "${unknownOption}".`);
+	if (all && !help && !version && command !== "install") throw new UsageError('Unknown option "--all".');
+	return { command, positional, limit, json, all, baseUrl, help, version };
 }
 
 export type RunResult = { stdout: string; stderr: string; exitCode: number };
@@ -151,6 +161,9 @@ export async function run(
 ): Promise<RunResult> {
 	try {
 		const args = parseArgs(argv);
+		if (["install", "mcp", "read"].includes(args.command) && args.positional.length > 1) {
+			throw new UsageError(`${args.command} accepts at most one positional argument.`);
+		}
 		const makeClient = deps.clientFactory ?? createClient;
 		const client = makeClient({ baseUrl: args.baseUrl });
 
@@ -163,7 +176,10 @@ export async function run(
 
 			case "install": {
 				const target = args.positional[0];
-				if (target === "--all") return ok(installText(HOST_IDS));
+				if (args.all) {
+					if (target !== undefined) throw new UsageError("install cannot combine --all with a host.");
+					return ok(installText(HOST_IDS));
+				}
 				if (target !== undefined) {
 					if (!isHostId(target)) {
 						return fail(`Unknown host "${target}". Use one of: ${HOST_IDS.join(", ")}.\n`, 2);

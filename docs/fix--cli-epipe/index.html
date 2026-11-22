@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit CLI: quiet broken pipes</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101720; color: #e5edf6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  main { max-width: 68rem; margin: 0 auto; padding: 4rem 1.5rem 2rem; }
+  h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); line-height: 1.1; margin: .5rem 0 1rem; }
+  h2 { margin: 0 0 1rem; font-size: 1.4rem; }
+  p, dd { line-height: 1.55; }
+  p { color: #bdcddd; }
+  .eyebrow { color: #77dec2; font-size: .85rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .command { padding: 1rem; border-radius: .5rem; background: #0a111a; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; margin: 2rem 0; }
+  section, details { border: 1px solid #536b81; background: #182431; border-radius: .75rem; padding: 1.25rem; }
+  .after { border-color: #77dec2; }
+  dl { margin-bottom: 0; }
+  dt { color: #a7bdcf; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  dd { margin: .3rem 0 .9rem; }
+  dd:last-child { margin-bottom: 0; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.5; }
+  summary { cursor: pointer; font-weight: 600; }
+  summary:focus-visible { outline: 2px solid #77dec2; outline-offset: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit / CLI bug fix</p>
+  <h1>One line, then a quiet exit.</h1>
+  <p>After <code>head -n 1</code> reads the first line, it closes its end of the pipe. The built CLI now treats that broken stdout pipe as normal rather than crashing with an uncaught error.</p>
+  <pre class="command"><code>node --import ./packages/cli/tests/fixtures/fetch-stub.mjs ./packages/cli/dist/cli.js read long-output --base-url https://fixture.test | head -n 1</code></pre>
+  <div class="results">
+    <section>
+      <h2>Before</h2>
+      <dl>
+        <dt>First line</dt><dd><code># A long doc</code></dd>
+        <dt>CLI exit / head exit</dt><dd><code>1 / 0</code></dd>
+        <dt>CLI stderr</dt><dd><code>Error: write EPIPE</code> and stack trace</dd>
+      </dl>
+    </section>
+    <section class="after">
+      <h2>After</h2>
+      <dl>
+        <dt>First line</dt><dd><code># A long doc</code></dd>
+        <dt>CLI exit / head exit</dt><dd><code>0 / 0</code></dd>
+        <dt>CLI stderr</dt><dd>Empty (0 bytes)</dd>
+      </dl>
+    </section>
+  </div>
+  <details>
+    <summary>View the captured stack trace</summary>
+    <pre>node:events:505
+    throw er; // Unhandled 'error' event
+    ^
+
+Error: write EPIPE
+    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:51:19)
+Emitted 'error' event on Socket instance at:
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  errno: -32,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+
+Node.js v24.22.3</pre>
+  </details>
+  <p>Captured with Node.js 24 against a local Markdown fixture. This page shows the recorded output; it does not run the CLI in your browser.</p>
+</main>
+</body>
+</html>

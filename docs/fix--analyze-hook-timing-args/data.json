@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/fix--analyze-hook-timing-args/index.html",
+  "lab_slug": "analyze-hook-timing-args",
+  "purpose": "PR playground: timing report argument validation and non-object JSONL filtering"
+}

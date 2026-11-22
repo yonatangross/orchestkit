@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchestKit CLI: explicit arguments</title><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit CLI: explicit arguments"><meta property="og:description" content="Compare real CLI output, exit codes and request URLs for unknown options, extra arguments and valid commands."><meta property="og:url" content="https://orchestkit.dev/lab/cli-reject-unknown-options.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit CLI: explicit arguments"><meta name="twitter:description" content="Compare real CLI output, exit codes and request URLs for unknown options, extra arguments and valid commands."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end -->
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #11151b; color: #edf2f7; }
+  main { max-width: 68rem; margin: 3rem auto; padding: 0 1.25rem; }
+  .eyebrow { color: #8bd5ba; text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; max-width: 18ch; }
+  p { line-height: 1.6; color: #b6c2d1; }
+  label { display: block; margin-bottom: .6rem; }
+  select { width: 100%; padding: .8rem; font: inherit; background: #202935; color: inherit; border: 1px solid #536176; border-radius: .5rem; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr)); gap: 1rem; margin-top: 1rem; }
+  section { min-width: 0; padding: 1rem; border: 1px solid #3c495b; border-radius: .75rem; background: #19212b; }
+  h2 { font-size: 1rem; color: #8bd5ba; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; font-size: .9rem; }
+</style>
+<main>
+  <div class="eyebrow">CLI argument validation / regression lab</div>
+  <h1>Typos should fail, not become queries.</h1>
+  <p>Compare real built-CLI captures against one local logging HTTP fixture. Invalid options exit 2 before any request. Valid commands keep their behavior. Use the standard <code>--</code> terminator to search for a leading dash.</p>
+  <label for="command">Choose a command</label>
+  <select id="command"></select>
+  <div class="results" aria-live="polite">
+    <section><h2>Before / main</h2><pre id="before"></pre></section>
+    <section><h2>After / fixed</h2><pre id="after"></pre></section>
+  </div>
+  <p>Install output is captured, never executed. The fixture returns a Hooks document and one search result, not live API data.</p>
+</main>
+<script>
+  const captures = [
+  {
+    "args": "search hooks --limt 3",
+    "before": {
+      "output": "1. Hooks\n     http://127.0.0.1:36017/docs/hooks",
+      "code": 0,
+      "requests": [
+        "/api/search?query=hooks+--limt+3&limit=5"
+      ]
+    },
+    "after": {
+      "output": "Unknown option \"--limt\".",
+      "code": 2,
+      "requests": []
+    }
+  },
+  {
+    "args": "install claude cursor",
+    "before": {
+      "output": "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n\nDocs: https://orchestkit.dev/docs/getting-started/installation",
+      "code": 0,
+      "requests": []
+    },
+    "after": {
+      "output": "install accepts at most one positional argument.",
+      "code": 2,
+      "requests": []
+    }
+  },
+  {
+    "args": "mcp stdio extra",
+    "before": {
+      "output": "{\n  \"mcpServers\": {\n    \"orchestkit\": {\n      \"command\": \"docker\",\n      \"args\": [\n        \"run\",\n        \"-i\",\n        \"--rm\",\n        \"ghcr.io/yonatangross/orchestkit-docs-mcp\"\n      ]\n    }\n  }\n}",
+      "code": 0,
+      "requests": []
+    },
+    "after": {
+      "output": "mcp accepts at most one positional argument.",
+      "code": 2,
+      "requests": []
+    }
+  },
+  {
+    "args": "mcp --josn",
+    "before": {
+      "output": "Unknown transport \"--josn\". Use \"http\" or \"stdio\".",
+      "code": 2,
+      "requests": []
+    },
+    "after": {
+      "output": "Unknown option \"--josn\".",
+      "code": 2,
+      "requests": []
+    }
+  },
+  {
+    "args": "search hooks --limit 3",
+    "before": {
+      "output": "1. Hooks\n     http://127.0.0.1:36017/docs/hooks",
+      "code": 0,
+      "requests": [
+        "/api/search?query=hooks&limit=3"
+      ]
+    },
+    "after": {
+      "output": "1. Hooks\n     http://127.0.0.1:36017/docs/hooks",
+      "code": 0,
+      "requests": [
+        "/api/search?query=hooks&limit=3"
+      ]
+    }
+  },
+  {
+    "args": "install claude",
+    "before": {
+      "output": "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n\nDocs: https://orchestkit.dev/docs/getting-started/installation",
+      "code": 0,
+      "requests": []
+    },
+    "after": {
+      "output": "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n\nDocs: https://orchestkit.dev/docs/getting-started/installation",
+      "code": 0,
+      "requests": []
+    }
+  },
+  {
+    "args": "install --all",
+    "before": {
+      "output": "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n\nCursor: Settings → Plugins. Paste the repo, enable ork, open a new chat.\n  yonatangross/orchestkit\n  then: /ork:setup\n\nCodex: Paste in a terminal, then restart Codex.\n  codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex\n  codex plugin add ork-codex@orchestkit-codex\n  then: $ork-implement\n\nDevin: Paste in a terminal with the Devin CLI signed in.\n  devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork\n  then: devin plugins info ork\n\nOpenCode: Paste in the repo.\n  npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit\n\nMuse Code: Paste in the repo. Muse Code already scans .agents/skills.\n  npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit\n  then: muse skills list\n\nPi: Paste in a terminal. Add -l to pin the project.\n  pi install git:github.com/yonatangross/orchestkit\n\nAntigravity: Paste in the repo. agy reads the workspace .agents/skills.\n  npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit\n  then: agy -p \"/skills\" --add-dir \"$PWD\"\n\nDocs: https://orchestkit.dev/docs/getting-started/installation",
+      "code": 0,
+      "requests": []
+    },
+    "after": {
+      "output": "Claude Code: Paste in a terminal.\n  claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit\n  then: /ork:setup\n\nCursor: Settings → Plugins. Paste the repo, enable ork, open a new chat.\n  yonatangross/orchestkit\n  then: /ork:setup\n\nCodex: Paste in a terminal, then restart Codex.\n  codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex\n  codex plugin add ork-codex@orchestkit-codex\n  then: $ork-implement\n\nDevin: Paste in a terminal with the Devin CLI signed in.\n  devin plugins install https://github.com/yonatangross/orchestkit#plugins/ork\n  then: devin plugins info ork\n\nOpenCode: Paste in the repo.\n  npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit\n\nMuse Code: Paste in the repo. Muse Code already scans .agents/skills.\n  npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit\n  then: muse skills list\n\nPi: Paste in a terminal. Add -l to pin the project.\n  pi install git:github.com/yonatangross/orchestkit\n\nAntigravity: Paste in the repo. agy reads the workspace .agents/skills.\n  npx skills add yonatangross/orchestkit -s devops-deployment -s responsive-patterns -s architecture-decision-record -s ui-components -s rag-retrieval -s agent-orchestration -s brainstorm -s expect -s auto -s review-pr -s fix-issue -s commit\n  then: agy -p \"/skills\" --add-dir \"$PWD\"\n\nDocs: https://orchestkit.dev/docs/getting-started/installation",
+      "code": 0,
+      "requests": []
+    }
+  },
+  {
+    "args": "read hooks",
+    "before": {
+      "output": "# Hooks\nFixture documentation.",
+      "code": 0,
+      "requests": [
+        "/docs/hooks.md"
+      ]
+    },
+    "after": {
+      "output": "# Hooks\nFixture documentation.",
+      "code": 0,
+      "requests": [
+        "/docs/hooks.md"
+      ]
+    }
+  },
+  {
+    "args": "search --base-url http://127.0.0.1:36017 -- -foo",
+    "before": {
+      "output": "1. Hooks\n     http://127.0.0.1:36017/docs/hooks",
+      "code": 0,
+      "requests": [
+        "/api/search?query=--+-foo&limit=5"
+      ]
+    },
+    "after": {
+      "output": "1. Hooks\n     http://127.0.0.1:36017/docs/hooks",
+      "code": 0,
+      "requests": [
+        "/api/search?query=-foo&limit=5"
+      ]
+    }
+  }
+];
+  const command = document.getElementById('command');
+  captures.forEach((capture, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = capture.args;
+    command.append(option);
+  });
+  function render() {
+    const capture = captures[command.value];
+    for (const side of ['before', 'after']) {
+      const result = capture[side];
+      document.getElementById(side).textContent = `${result.output}\n\nexit: ${result.code}\nRequest: ${result.requests.join(', ') || 'none'}`;
+    }
+  }
+  command.addEventListener('change', render);
+  render();
+</script>
+</html>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end -->

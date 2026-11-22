@@ -1,0 +1,8 @@
+{
+  "slug": "analyze-hook-timing-args",
+  "source": "docs/fix--analyze-hook-timing-args/index.html",
+  "title": "Hook timing: strict inputs, resilient records",
+  "description": "Compare before and after argument validation and JSONL record filtering with editable timing fixtures.",
+  "tags": ["scripts", "hooks", "validation"],
+  "date": "2026-11-22"
+}

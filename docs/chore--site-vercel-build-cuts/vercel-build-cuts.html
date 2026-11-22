@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Playground: Vercel build cuts for docs/site</title>
+<style>
+:root{--bg:#0b0d12;--card:#141822;--ink:#e8ecf4;--dim:#8a93a6;--go:#3ddc97;--skip:#ff6b6b;--off:#f5b942}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+main{max-width:880px;margin:0 auto;padding:32px 20px}
+h1{font-size:22px;margin:0 0 4px}p.sub{color:var(--dim);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:14px;padding:18px}
+label{display:block;color:var(--dim);font-size:13px;margin:10px 0 4px}
+input,select{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #2a3142;background:#0f131b;color:var(--ink);font:inherit}
+.row{display:flex;gap:8px;align-items:center;margin-top:10px}.row input{width:auto}
+#verdict{font-size:26px;font-weight:700;margin:6px 0}#why{color:var(--dim)}
+canvas{width:100%;height:180px;display:block;border-radius:10px;background:#0f131b;margin-top:12px}
+ol{padding-left:20px;margin:8px 0 0}li{margin:4px 0;color:var(--dim)}li.hit{color:var(--ink);font-weight:600}
+.presets button{margin:4px 4px 0 0;padding:6px 10px;border-radius:8px;border:1px solid #2a3142;background:#1b2130;color:var(--ink);cursor:pointer}
+code{background:#0f131b;padding:1px 5px;border-radius:5px}
+</style></head><body><main>
+<h1>Vercel build cuts for <code>docs/site</code></h1>
+<p class="sub">Try a push and see whether Vercel builds it. Mirrors <code>vercel.json</code> <code>git.deploymentEnabled</code> plus <code>scripts/vercel-ignore.sh</code>.</p>
+<div class="grid">
+<section class="card">
+<div class="presets">
+<button data-p="main">main push</button><button data-p="rp">release-please</button><button data-p="dep">dependabot</button><button data-p="pr">PR, no tag</button><button data-p="prev">PR + [preview]</button><button data-p="same">[preview], no site change</button>
+</div>
+<label for="ref">Branch</label><input id="ref" value="feat/new-page">
+<label for="msg">Head commit message</label><input id="msg" value="feat(site): new page">
+<div class="row"><input type="checkbox" id="changed" checked><label for="changed" style="margin:0">docs/site changed since last deploy</label></div>
+<div class="row"><input type="checkbox" id="prev" checked><label for="prev" style="margin:0">Previous deploy SHA is usable in the checkout<br><small>(a SHA Vercel supplied that is absent from the shallow clone counts as missing)</small></label></div>
+</section>
+<section class="card">
+<div id="verdict">…</div><div id="why"></div>
+<ol id="steps">
+<li data-s="1">Branch is release-please--** or dependabot/**: deployment disabled</li>
+<li data-s="2">Branch is main or the ref is unknown: build (main always builds, unknown fails toward building)</li>
+<li data-s="3">No [preview] in the commit message: skip</li>
+<li data-s="4">No usable previous SHA: build</li>
+<li data-s="5">docs/site unchanged: skip</li>
+<li data-s="6">docs/site changed: build</li>
+</ol>
+<canvas id="art" width="800" height="180"></canvas>
+</section>
+</div>
+<p class="sub" style="margin-top:20px">Request a preview with <code>git commit --allow-empty -m "chore: request preview [preview]" &amp;&amp; git push</code>.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const P={main:["main","fix(site): typo",1,1],rp:["release-please--branches--main","chore: release 7.1.0",1,1],dep:["dependabot/npm_and_yarn/next-16","chore(deps): bump next",1,1],pr:["feat/new-page","feat(site): new page",1,1],prev:["feat/new-page","chore: request preview [preview]",1,1],same:["feat/new-page","docs: readme [preview]",0,1]};
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const [r,m,c,p]=P[b.dataset.p];$('ref').value=r;$('msg').value=m;$('changed').checked=!!c;$('prev').checked=!!p;run()});
+function glob(ref){return ref.startsWith('release-please--')||ref.startsWith('dependabot/')}
+function decide(){const ref=$('ref').value.trim(),msg=$('msg').value;
+ if(glob(ref))return[1,'off','No deployment','vercel.json turns deployments off for this branch.'];
+ if(ref==='main'||!ref)return[2,'go','Build',ref==='main'?'main always builds.':'The ref is unknown (system env may not be exposed), so it fails toward building.'];
+ if(!msg.includes('[preview]'))return[3,'skip','Skip','Add [preview] to the commit message to build a preview.'];
+ if(!$('prev').checked)return[4,'go','Build','A preview was requested and there is no previous SHA to compare.'];
+ if(!$('changed').checked)return[5,'skip','Skip','A preview was requested but docs/site has not changed.'];
+ return[6,'go','Build','A preview was requested and docs/site changed.']}
+let state='go';
+function run(){const[s,k,v,w]=decide();state=k;$('verdict').textContent=v;$('verdict').style.color=`var(--${k})`;$('why').textContent=w;
+ document.querySelectorAll('#steps li').forEach(li=>li.classList.toggle('hit',+li.dataset.s===s))}
+['ref','msg','changed','prev'].forEach(i=>$(i).addEventListener('input',run));
+const cv=$('art'),cx=cv.getContext('2d');const dots=Array.from({length:70},()=>({x:Math.random()*800,y:20+Math.random()*140,v:.6+Math.random()*1.8}));
+function frame(){cx.fillStyle='rgba(15,19,27,.35)';cx.fillRect(0,0,800,180);
+ const col=getComputedStyle(document.documentElement).getPropertyValue('--'+state);const gate=500;
+ cx.strokeStyle='#2a3142';cx.lineWidth=2;cx.beginPath();cx.moveTo(gate,10);cx.lineTo(gate,170);cx.stroke();
+ for(const d of dots){d.x+=d.v;if(state!=='go'&&d.x>gate-6){d.x=gate-6-Math.random()*4;d.y+=(Math.random()-.5)*3}
+  if(d.x>800){d.x=0;d.y=20+Math.random()*140}
+  cx.fillStyle=d.x<gate?'#8a93a6':col;cx.beginPath();cx.arc(d.x,d.y,3,0,7);cx.fill()}
+ cx.fillStyle=col;cx.font='600 14px system-ui';cx.fillText(state==='go'?'builds':state==='skip'?'skipped':'deploy off',gate+12,24);
+ requestAnimationFrame(frame)}
+run();frame();
+</script></body></html>

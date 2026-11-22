@@ -110,6 +110,27 @@ else
 fi
 
 # --- wrapper ----------------------------------------------------------------
+assert_missing_value() {
+  local option="$1"
+  shift
+  local rc=0
+  bash "$WRAPPER" "$@" >"$WORK/stdout" 2>"$WORK/stderr" || rc=$?
+  if [ "$rc" = "2" ] && [ "$(cat "$WORK/stderr")" = "$option requires a value" ] && [ ! -s "$WORK/stdout" ]; then
+    log_pass "wrapper: missing $option value is a usage error"
+  else
+    log_fail "wrapper: missing $option value" "expected exit 2 and stderr diagnostic, got exit $rc"
+  fi
+}
+assert_missing_value --title --title
+assert_missing_value --body-file --body-file
+assert_missing_value --body-file --title "feat: x" --body-file
+
+if bash "$WRAPPER" --title "" >/dev/null 2>&1; then
+  log_pass "wrapper: explicit empty title remains valid"
+else
+  log_fail "wrapper empty title" "expected exit 0"
+fi
+
 printf 'A clean body with no special glyphs.' > "$WORK/wrap-ok.txt"
 if bash "$WRAPPER" --title "fix(x): clean" --body-file "$WORK/wrap-ok.txt" >/dev/null 2>&1; then
   log_pass "wrapper: clean title + body exits 0"
