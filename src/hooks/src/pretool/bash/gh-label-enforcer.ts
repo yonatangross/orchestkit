@@ -17,7 +17,7 @@ import {
   outputPreToolAdvisory,
 } from '../../lib/common.js';
 import { isCompoundCommand } from '../../lib/normalize-command.js';
-import { hasExplicitRepoTarget, hasGhCreateFlag, inferIssueLabel } from '../../lib/gh-command.js';
+import { hasExplicitRepoTarget, getGhCreateCommand, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -27,18 +27,8 @@ import { NOOP_CTX } from '../../lib/context.js';
 export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
-  // Only process gh issue create or gh pr create
-  const isIssueCreate = /gh\s+issue\s+create/.test(command);
-  const isPRCreate = /gh\s+pr\s+create/.test(command);
-
-  if (!isIssueCreate && !isPRCreate) {
-    return outputSilentSuccess();
-  }
-
-  // Check if --label or -l flag is present
-  const hasLabel = hasGhCreateFlag(command, '--label', '-l');
-
-  if (hasLabel) {
+  const create = getGhCreateCommand(command, '--label', '-l');
+  if (!create || create.hasFlag) {
     return outputSilentSuccess();
   }
 
@@ -61,7 +51,7 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // a labelling preference is not a trade this hook gets to make — a missing
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
-  if (isIssueCreate) {
+  if (create.kind === 'issue') {
     if (isCompoundCommand(command)) {
       // Appending --label to a compound string cannot target the right
       // segment without a real parser, so this stays an advisory.

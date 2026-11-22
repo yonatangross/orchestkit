@@ -56,6 +56,20 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
   it.each([
+    'git commit -m "Document gh issue create --milestone bug"',
+    'git commit -m "Document gh issue create"',
+    'echo gh issue create',
+    'gh issue create --title "unterminated',
+    "gh issue create --body $'It\\'s ready' --milestone docs",
+    '/usr/bin/gh issue create --milestone docs',
+  ])('silently preserves reviewed input: %s', (command) => {
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it.each([
     '--milestone bug', '--milestone=bug', '--milestone="help wanted"',
     "-m 'help wanted'", '-mbug', '-m=bug',
     '--milestone help\\ wanted',
@@ -75,7 +89,6 @@ describe('gh-milestone-enforcer', () => {
     '-- --milestone bug',
     '--milestone ""',
     '--milestone',
-    '--title "unterminated',
     '',
   ])('does not treat payload or missing values as flags: %s', (option) => {
     ghMilestoneEnforcer(createBashInput(`gh issue create ${option}`), testCtx);

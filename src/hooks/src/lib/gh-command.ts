@@ -31,6 +31,7 @@ function shellWords(command: string): (string | null)[] {
   let word = '';
   let started = false;
   let quote = '';
+  let ansiQuote = false;
   const flush = () => {
     if (started) words.push(word);
     word = '';
@@ -38,18 +39,23 @@ function shellWords(command: string): (string | null)[] {
   };
   for (let i = 0; i < command.length; i++) {
     const ch = command[i];
-    if (ch === '\\' && quote !== "'") {
+    if (ch === '\\' && (quote !== "'" || ansiQuote)) {
       const next = command[i + 1];
       if (next === undefined) return [];
-      if (!quote || /["\\$`\n]/.test(next)) {
+      if (!quote || ansiQuote || /["\\$`\n]/.test(next)) {
         i++;
         if (next !== '\n') { word += next; started = true; }
         continue;
       }
     }
     if (quote) {
-      if (ch === quote) quote = '';
+      if (ch === quote) { quote = ''; ansiQuote = false; }
       else word += ch;
+    } else if (ch === '$' && command[i + 1] === "'") {
+      quote = "'";
+      ansiQuote = true;
+      started = true;
+      i++;
     } else if (ch === '"' || ch === "'") {
       quote = ch;
       started = true;
@@ -66,31 +72,42 @@ function shellWords(command: string): (string | null)[] {
   return words;
 }
 
-/** Detect a valued flag on gh issue/pr create, not inside another argument. */
-export function hasGhCreateFlag(command: string, long: string, short: string): boolean {
+/** Find a literal gh create invocation and its flag, or null for opaque input. */
+export function getGhCreateCommand(command: string, long: string, short: string): {
+  kind: 'issue' | 'pr';
+  hasFlag: boolean;
+} | null {
   const words = shellWords(command);
   const valuedOptions = new Set([
     '--assignee', '--body', '--body-file', '--label', '--milestone', '--project',
     '--recover', '--template', '--title', '--repo', '--base', '--head', '--reviewer',
     '-a', '-b', '-F', '-l', '-m', '-p', '-T', '-t', '-R', '-B', '-H', '-r',
   ]);
+  let executable = true;
   for (let i = 0; i < words.length; i++) {
-    if (words[i] !== 'gh' || !['issue', 'pr'].includes(words[i + 1] ?? '') || words[i + 2] !== 'create') continue;
+    const word = words[i];
+    if (word === null) { executable = true; continue; }
+    if (executable && /^[A-Za-z_][A-Za-z0-9_]*=/.test(word)) continue;
+    const isExecutable = executable;
+    executable = false;
+    const kind = words[i + 1];
+    if (!isExecutable || !/(?:^|\/)gh$/.test(word) || (kind !== 'issue' && kind !== 'pr') || words[i + 2] !== 'create') continue;
     for (i += 3; i < words.length && words[i] !== null && words[i] !== '--'; i++) {
       const word = words[i] ?? '';
       if (word === long || word === short) {
         const value = words[++i];
-        if (value && !value.startsWith('-')) return true;
+        if (value && !value.startsWith('-')) return { kind, hasFlag: true };
       } else if (word.startsWith(`${long}=`)) {
-        if (word.length > long.length + 1) return true;
+        if (word.length > long.length + 1) return { kind, hasFlag: true };
       } else if (word.startsWith(short) && word !== short) {
-        if (word.slice(short.length).replace(/^=/, '')) return true;
+        if (word.slice(short.length).replace(/^=/, '')) return { kind, hasFlag: true };
       } else if (valuedOptions.has(word)) {
         i++;
       }
     }
+    return { kind, hasFlag: false };
   }
-  return false;
+  return null;
 }
 
 /**

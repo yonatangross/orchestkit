@@ -64,6 +64,20 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
   it.each([
+    'git commit -m "Document gh issue create --label bug"',
+    'git commit -m "Document gh issue create"',
+    'echo gh issue create',
+    'gh issue create --title "unterminated',
+    "gh issue create --body $'It\\'s ready' --label docs",
+    '/usr/bin/gh issue create --label docs',
+  ])('silently preserves reviewed input: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it.each([
     '--label bug', '--label=bug', '--label="help wanted"',
     "-l 'help wanted'", '-lbug', '-l=bug',
     '--label help\\ wanted',
@@ -83,7 +97,6 @@ describe('gh-label-enforcer', () => {
     '-- --label bug',
     '--label ""',
     '--label',
-    '--title "unterminated',
     '',
   ])('does not treat payload or missing values as flags: %s', (option) => {
     const result = ghLabelEnforcer(createBashInput(`gh issue create ${option}`), testCtx);
