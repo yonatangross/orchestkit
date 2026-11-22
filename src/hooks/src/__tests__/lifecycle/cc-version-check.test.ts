@@ -149,7 +149,7 @@ describe('cc-version-check', () => {
     });
     vi.mocked(openSync).mockReturnValue(7 as never);
     vi.mocked(readSync).mockImplementation(((_fd: number, buf: Buffer) => {
-      const line = '{"type":"user","sessionId":"x"}\n{"type":"assistant","version":"2.1.317"}\n';
+      const line = '{"type":"user","sessionId":"x"}\n{"type":"assistant","version":"2.1.330"}\n';
       return buf.write(line, 0, 'utf8');
     }) as never);
 
