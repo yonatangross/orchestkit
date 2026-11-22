@@ -81,10 +81,11 @@ export function claimTaskNudgeForInput(input: HookInput): boolean {
 
 /**
  * Prompt dispatcher: may this reminder be included? An unprompted one must win
- * the claim. An explicit ask was already checked for eligibility, so it is
- * answered either way, and its claim only quiets later unprompted reminders.
+ * the claim. An explicit ask bypasses a spent or unwritable marker, but a false
+ * claim can also mean a first task just appeared, so it rechecks eligibility.
  */
 export function admitPromptTaskNudge(input: HookInput): boolean {
-  const claimed = claimTaskNudgeForInput(input);
-  return claimed || isExplicitTaskAsk(typeof input.prompt === 'string' ? input.prompt : '');
+  if (claimTaskNudgeForInput(input)) return true;
+  if (!isExplicitTaskAsk(typeof input.prompt === 'string' ? input.prompt : '')) return false;
+  return taskNudgeEligible(input.session_id, input.project_dir || process.env.CLAUDE_PROJECT_DIR || '');
 }

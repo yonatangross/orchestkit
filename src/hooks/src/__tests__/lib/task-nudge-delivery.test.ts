@@ -234,6 +234,25 @@ describe('the prompt dispatcher spends the nudge only on delivery', () => {
     expect(contextOf(unifiedPromptDispatcher(promptInput(EXPLICIT)))).toContain('[task-nudge]');
   });
 
+  it('a first task recorded between the checks removes a stale explicit reminder', () => {
+    stubs.executor = {
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: '[other context] keep me' },
+    };
+    stubs.afterPromptCheck = () => {
+      const logDir = join(projectDir, '.claude', 'logs');
+      mkdirSync(logDir, { recursive: true });
+      writeFileSync(
+        join(logDir, 'task-creations.jsonl'),
+        `${JSON.stringify({ event: 'task_created', session_id: sid })}\n`,
+      );
+    };
+    const context = contextOf(unifiedPromptDispatcher(promptInput(EXPLICIT)));
+    expect(context).toContain('[other context]');
+    expect(context).not.toContain('[task-nudge]');
+  });
+
   it('an explicit ask stays silent once the session has a task', () => {
     const logDir = join(projectDir, '.claude', 'logs');
     mkdirSync(logDir, { recursive: true });
