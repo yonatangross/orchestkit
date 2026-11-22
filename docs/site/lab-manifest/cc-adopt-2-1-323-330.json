@@ -1,0 +1,12 @@
+{
+  "slug": "cc-adopt-2-1-323-330",
+  "source": "docs/feat--cc-adopt-2.1.323-330/index.html",
+  "title": "CC 2.1.323 to 2.1.330 adoption",
+  "description": "Filter the Claude Code 2.1.323 to 2.1.330 items that matter to ork by verdict: adopted here, documented, or a live test still owed, and copy a selection as a prompt.",
+  "tags": [
+    "cc-adoption",
+    "triage",
+    "hooks"
+  ],
+  "date": "2026-11-22"
+}
