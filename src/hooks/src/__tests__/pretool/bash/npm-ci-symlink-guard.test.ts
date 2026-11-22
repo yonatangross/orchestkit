@@ -1017,6 +1017,50 @@ describe('command shapes the reader must follow to the install', () => {
     });
   });
 
+  describe('directory divergences a third review round found (#5336)', () => {
+    it.each([
+      ["d=/ok; echo ${d:-'x'}; cd /lw; npm ci"],
+      ['d=/ok; echo ${d:-"x"}; cd /lw; npm ci'],
+    ])('%s: denied', (command) => {
+      expect(decision(command, linked)).toBe('deny');
+    });
+
+    it('CDPATH still resolves a hidden operand like .worktrees', () => {
+      expect(decision('CDPATH=/lw; cd .worktrees; npm ci', linksAt('/lw/.worktrees/node_modules'))).toBe('deny');
+    });
+
+    it('a standalone HOME assignment moves the tilde operand', () => {
+      expect(decision('HOME=/builds; cd ~/proj; npm ci', linksAt('/builds/proj/node_modules'))).toBe('deny');
+    });
+
+    it('a quoted default before the brace does not hide the install under --prefix', () => {
+      expect(decision("d=/ok; echo ${d:-'x'}; npm ci --prefix rel", linksAt('/wt/rel/node_modules'))).toBe('deny');
+    });
+
+    it.each([['CDPATH=/lw; cd ./sub; npm ci'], ['CDPATH=/lw; cd ../up; npm ci']])('control: %s does not search CDPATH', (command) => {
+      expect(decision(command, linksAt('/lw/sub/node_modules', '/lw/up/node_modules'))).toBeUndefined();
+    });
+  });
+
+  describe('directory divergences found on the follow-up review (#5336)', () => {
+    const home = process.env.HOME ?? '/root';
+    it.each([
+      // A skipped `then` assignment leaves HOME unchanged; a taken one moves `~`.
+      ['if false; then HOME=/decoy; fi; cd ~/p; npm ci', `${home}/p/node_modules`],
+      ['if true; then HOME=/lw; fi; cd ~/p; npm ci', '/lw/p/node_modules'],
+      // Conflicting assignments keep the last one; every held value is a candidate.
+      ['HOME=/a; HOME=/b; cd ~/p; npm ci', '/b/p/node_modules'],
+      // `$HOME` and `~/` on the right expand against the home already in effect.
+      ['HOME=$HOME; cd ~/p; npm ci', `${home}/p/node_modules`],
+      ['HOME=~/builds; cd ~/p; npm ci', `${home}/builds/p/node_modules`],
+      // A loop body and a case pattern body both stay conditional.
+      ['for x in a; do cd /lw; done; npm ci', '/lw/node_modules'],
+      ['case x in y) d=/lw;; esac; cd $d; npm ci', '/lw/node_modules'],
+    ])('%s: denied', (command, link) => {
+      expect(decision(command, linksAt(link))).toBe('deny');
+    });
+  });
+
   describe('the other spellings npm accepts for a clean install', () => {
     it.each([
       ['install-ci-test'],

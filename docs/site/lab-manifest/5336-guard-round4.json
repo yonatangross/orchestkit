@@ -1,0 +1,13 @@
+{
+  "slug": "5336-guard-round4",
+  "source": "docs/fix--5336-guard-round4/guard-round4.html",
+  "title": "The npm-ci guard learns where HOME lives",
+  "description": "A follow-up review found the guard still disagreed with bash about tilde homes, skipped branches, and quoted parameter defaults. Six more divergences now fail closed. Pick an attack shape and compare the old and new verdicts.",
+  "tags": [
+    "hooks",
+    "security",
+    "bash-pretool",
+    "5336"
+  ],
+  "date": "2026-11-21"
+}

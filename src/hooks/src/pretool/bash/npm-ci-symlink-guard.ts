@@ -509,6 +509,25 @@ function splitTopLevel(text: string): Array<{ text: string; conditional: boolean
   // characters inside it start nothing, so `cd d # don't` must not swallow the
   // commands on the next line into a quoted span (reviews on #5336).
   let wordStart = true;
+  // A `then`, `else`, `elif` or `do` body only runs when its condition held,
+  // and a case pattern's commands only on a match. `if x; then HOME=/y; fi`
+  // leaves HOME possibly unset, so those segments carry the same flag a
+  // `|`/`&&`/`||` follower does. `elif`'s own `then` reuses the level.
+  let blockDepth = 0;
+  let inCase = false;
+  let prevKw = '';
+  const emit = (seg: string, cond: boolean): void => {
+    const kw = /^\s*(\w+)/.exec(seg)?.[1] ?? '';
+    const bodyKw = kw === 'then' || kw === 'else' || kw === 'elif' || kw === 'do';
+    segments.push({ text: seg, conditional: cond || blockDepth > 0 || inCase || bodyKw });
+    if (kw === 'then') {
+      if (prevKw !== 'elif') blockDepth++;
+    } else if (kw === 'do') blockDepth++;
+    else if (kw === 'fi' || kw === 'done') blockDepth = Math.max(0, blockDepth - 1);
+    else if (kw === 'case') inCase = true;
+    else if (kw === 'esac') inCase = false;
+    prevKw = kw;
+  };
   while (i < text.length) {
     const c = text[i];
     if (c === "'") {
@@ -541,18 +560,24 @@ function splitTopLevel(text: string): Array<{ text: string; conditional: boolean
       let depth = 1;
       let j = i + 2;
       while (j < text.length && depth > 0) {
-        if (text[j] === '{') depth++;
-        else if (text[j] === '}') depth--;
+        // Only a nested expansion opens another level: a literal `{` inside a
+        // default such as `${d:-a{b}` is the parameter's own text. Each quote
+        // scan leaves j on the closing quote so the loop's j++ moves past it;
+        // jumping ahead skips the `}` right after a quoted default and the
+        // rest of the line disappears into the expansion (reviews on #5336).
+        if (text[j] === '$' && text[j + 1] === '{') {
+          depth++;
+          j++;
+        } else if (text[j] === '}') depth--;
         else if (text[j] === "'") {
           const q = text.indexOf("'", j + 1);
-          j = q === -1 ? text.length : q + 1;
+          j = q === -1 ? text.length : q;
         } else if (text[j] === '"') {
           j++;
           while (j < text.length && text[j] !== '"') {
             if (text[j] === '\\' && j + 1 < text.length && DQ_ESCAPABLE.includes(text[j + 1])) j++;
             j++;
           }
-          if (j < text.length) j++;
         } else if (text[j] === '\\' && j + 1 < text.length) {
           j++;
         }
@@ -568,7 +593,7 @@ function splitTopLevel(text: string): Array<{ text: string; conditional: boolean
     } else if (c === '#' && wordStart) {
       while (i < text.length && text[i] !== '\n') i++;
     } else if (c === ';' || c === '\n' || c === '|' || (c === '&' && text[i - 1] !== '<' && text[i - 1] !== '>' && text[i + 1] !== '>')) {
-      segments.push({ text: cur, conditional });
+      emit(cur, conditional);
       cur = '';
       conditional = c === '|' || c === '&';
       // `||` and `&&` are one separator each.
@@ -582,7 +607,7 @@ function splitTopLevel(text: string): Array<{ text: string; conditional: boolean
       i++;
     }
   }
-  segments.push({ text: cur, conditional });
+  emit(cur, conditional);
   return segments;
 }
 
@@ -1038,6 +1063,16 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
   // a multi-operand or metachar-heavy cd, an operand the reader cannot expand, CDPATH.
   let dirShaky = false;
   let varsNow: Vars = new Map();
+  // `$HOME` reads the inherited value until the command assigns one. varsNow
+  // itself stays unseeded: a `HOME=` stored next to the seed would read as a
+  // conflict and go null, and refreshTildeHomes needs undefined to mean "no
+  // assignment seen".
+  const varsForExpand = (): Vars => {
+    if (varsNow.has('HOME')) return varsNow;
+    const m: Vars = new Map(varsNow);
+    m.set('HOME', home);
+    return m;
+  };
   const varsAll = new Map<string, Set<string>>();
   // Variables whose every assignment sits in a conditional or piped segment:
   // they may be unset at the expansion, so `+`/`:+` forms keep the empty
@@ -1060,6 +1095,25 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     for (const a of parts.slice(2)) if (a !== '') out.push(a);
     return out;
   };
+  // A tilde expands against the shell's HOME when the word is read: a
+  // standalone `HOME=/x` moves it, a command-local `HOME=/x cmd` does not
+  // (expansion happens first). When the assignment is unknown or only
+  // conditional, every outcome is a candidate.
+  let tildeHomes = new Set<string>([home]);
+  const refreshTildeHomes = (): void => {
+    const homeVar = varsNow.get('HOME');
+    tildeHomes = new Set();
+    if (typeof homeVar === 'string' && homeVar !== '' && !homeVar.includes(DYNAMIC)) tildeHomes.add(homeVar);
+    else {
+      for (const c of dynamicCandidates(homeVar ?? '') ?? []) tildeHomes.add(c);
+      // A null value is set-but-unknown: bash keeps the last assignment and
+      // every value the variable held is a possible home (review on #5342).
+      if (homeVar === null) for (const c of varsAll.get('HOME') ?? []) tildeHomes.add(c);
+    }
+    if (homeVar === undefined || maybeUnset.has('HOME')) tildeHomes.add(home);
+    if (tildeHomes.size === 0) tildeHomes.add(home);
+  };
+  const tildeHome = (): string => tildeHomes.values().next().value ?? home;
   const probeDir = (base: string, v: string): void => {
     // A marked expansion resolves to one of its candidates; a plain value is
     // one candidate itself. Tildes read the shell's HOME, never a
@@ -1068,8 +1122,18 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     if (cands !== null) dirShaky = true;
     for (const c of cands ?? [v]) {
       cdArgs.push(c);
-      seen.push(resolveDir(base, c, home));
+      for (const h of c.includes('~') ? tildeHomes : [tildeHome()]) seen.push(resolveDir(base, c, h));
     }
+  };
+  // An operand holding a tilde expands against every HOME outcome the shell
+  // could have; without a tilde the primary home alone resolves it.
+  const resolveOp = (base: string, op: string): string => {
+    const r = resolveDir(base, op, tildeHome());
+    if (op.includes('~') && tildeHomes.size > 1) {
+      dirShaky = true;
+      for (const h of tildeHomes) seen.push(resolveDir(base, op, h));
+    }
+    return r;
   };
   for (const rawSeg of splitTopLevel(command)) {
     let segment = rawSeg.text.trim();
@@ -1085,6 +1149,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       // inside it must not leak into the parent shell (reviews on #5336).
       varsNow = new Map(varsNow);
     }
+    refreshTildeHomes();
     const restore = () => {
       for (let n = 0; n < closes; n++) {
         const s = saved.pop();
@@ -1110,8 +1175,16 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         DECLARE_WORDS.has(rawWords[0].value) &&
         rawWords.slice(1).some((w) => /^-[a-zA-Z]*n[a-zA-Z]*$/.test(w.value));
       for (const [name, value] of assigned) {
-        const expanded = expandVars(value, varsNow, maybeUnset);
-        setVar(varsNow, varsAll, name, isNameref && /^[A-Za-z_]\w*$/.test(expanded) ? NAMEREF + expanded : expanded);
+        const expanded = expandVars(value, varsForExpand(), maybeUnset);
+        // A tilde on the right expands against the home in effect BEFORE this
+        // assignment: `HOME=~/builds` lands under the previous home, and a
+        // `:` inside an assignment value opens the same expansion (`a=~/x:y`).
+        const values = expanded.includes('~')
+          ? [...tildeHomes].map((h) => expanded.replace(/(^|:)~(?=\/|$)/g, `$1${h}`))
+          : [expanded];
+        for (const v of new Set(values)) {
+          setVar(varsNow, varsAll, name, isNameref && /^[A-Za-z_]\w*$/.test(v) ? NAMEREF + v : v);
+        }
         // An assignment in a conditional or piped segment may not have run; an
         // unconditional one proves the variable is set.
         if (rawSeg.conditional) maybeUnset.add(name);
@@ -1127,7 +1200,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     const ifs = typeof ifsValue === 'string' ? ifsValue : ' \t\n';
     const ifsSplit = new RegExp(`[${ifs.replace(/[\\\-\]^[]/g, '\\$&')}]+`);
     const words = rawWords.flatMap((w) => {
-      const ex = w.hasExpand ? expandVars(w.value, varsNow, maybeUnset) : w.value;
+      const ex = w.hasExpand ? expandVars(w.value, varsForExpand(), maybeUnset) : w.value;
       // Only an unquoted expansion splits on IFS: `cd "$d"` is one operand
       // even when $d holds blanks, and `IFS=` turns splitting off entirely.
       // An unquoted expansion that produces nothing drops the whole operand
@@ -1155,7 +1228,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         cdVars = new Map(varsNow);
         for (const a of words.slice(0, cdIdx)) {
           const m = /^(\w+)=(.*)$/s.exec(a);
-          if (m !== null) cdVars.set(m[1], expandVars(m[2], varsNow, maybeUnset));
+          if (m !== null) cdVars.set(m[1], expandVars(m[2], varsForExpand(), maybeUnset));
         }
       }
       const cdHomeValue = cdVars.get('HOME');
@@ -1177,7 +1250,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         // The operands may also be one quoted directory that holds blanks: probe the
         // joined form and the directory that stays if bash refuses (#38, #57, #58).
         seen.push(beforeCd);
-        seen.push(resolveDir(beforeCd, cdOperands.join(' '), cdHome));
+        seen.push(resolveOp(beforeCd, cdOperands.join(' ')));
         restore();
         continue;
       }
@@ -1189,7 +1262,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         // quoted fallback holding a blank is not read as a literal directory.
         dirShaky = true;
         seen.push(beforeCd);
-        seen.push(resolveDir(beforeCd, op, home));
+        seen.push(resolveOp(beforeCd, op));
         // A parameter form over a set-but-unknown var arrives as `DYNAMIC name
         // DYNAMIC arg`: bash may land on any value the var held or on the arg.
         // The `+`/`:+` forms carry an empty name and only the arg plus the
@@ -1203,14 +1276,14 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
           if (name !== undefined) {
             for (const v of varsAll.get(name) ?? []) {
               cdArgs.push(v);
-              seen.push(resolveDir(beforeCd, v, home));
+              seen.push(resolveOp(beforeCd, v));
             }
           }
         }
         for (const v of dynParts?.slice(1) ?? []) {
           if (v !== '') {
             cdArgs.push(v);
-            seen.push(resolveDir(beforeCd, v, home));
+            seen.push(resolveOp(beforeCd, v));
           }
         }
         restore();
@@ -1222,21 +1295,24 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         // mark the parse shaky and probe the stayed-behind directory too.
         dirShaky = true;
         seen.push(beforeCd);
-        dir = resolveDir(beforeCd, op, home);
+        dir = resolveOp(beforeCd, op);
         seen.push(dir);
         restore();
         continue;
       }
-      dir = resolveDir(dir, op, home);
+      dir = resolveOp(dir, op);
       // CDPATH: a relative cd may resolve under a CDPATH entry instead of the cwd
-      // (#37). Bash never consults it for operands that start with `.`.
+      // (#37). Bash skips it only for operands that ARE `.` or `..` or start
+      // with `./` or `../`; a hidden name like `.worktrees` still searches it.
       const cdpath = cdVars.get('CDPATH');
-      if (!isAbsolute(expandHome(op, home)) && !op.startsWith('.') && typeof cdpath === 'string' && cdpath !== '') {
+      if (!isAbsolute(expandHome(op, tildeHome())) && !/^\.\.?(?:\/|$)/.test(op) && typeof cdpath === 'string' && cdpath !== '') {
         dirShaky = true;
         for (const entry of cdpath.split(':')) {
           if (entry === '') continue;
           for (const e of dynamicCandidates(entry) ?? [entry]) {
-            seen.push(resolveDir(resolveDir(beforeCd, e, home), op, home));
+            for (const h of e.includes('~') || op.includes('~') ? tildeHomes : [tildeHome()]) {
+              seen.push(resolveDir(resolveDir(beforeCd, e, h), op, h));
+            }
           }
         }
       }
@@ -1262,7 +1338,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         if (wrapper === 'env' && (option === '-C' || option === '--chdir') && start < words.length) {
           const envDir = words[start++];
           probeDir(cmdDir, envDir);
-          cmdDir = resolveDir(cmdDir, envDir, home);
+          cmdDir = resolveOp(cmdDir, envDir);
           seen.push(cmdDir);
         } else if (valueOptions.has(option) && start < words.length) {
           start++;
@@ -1298,7 +1374,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       // word after it is the shape of `$NPM ci`: not certain, so it is recorded, not denied.
       if (sub !== null && CLEAN_INSTALL.has(sub)) {
         dynamic = true;
-        seen.push(prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home));
+        seen.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
       }
       restore();
       continue;
@@ -1306,14 +1382,14 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     if (sub === null && dynamicSub) {
       // `npm $SUB`: the subcommand cannot be read.
       dynamic = true;
-      seen.push(prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home));
+      seen.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
     }
     if (sub !== null && CLEAN_INSTALL.has(sub)) {
       // Keep scanning: a later clean install (after a cd into a linked worktree, say) must
       // not be hidden by an earlier one in a directory that is safe (Vercel Security Review,
       // row 16 finding 5). Every target is collected and every directory the scan passes
       // through is still recorded.
-      targets.push(prefix === null ? cmdDir : resolveDir(cmdDir, prefix, home));
+      targets.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
     }
     restore();
   }
