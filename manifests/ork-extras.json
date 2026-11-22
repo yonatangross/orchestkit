@@ -1,6 +1,6 @@
 {
   "name": "ork-extras",
-  "version": "10.15.1",
+  "version": "10.16.0",
   "description": "Opt-in OrchestKit reference skills: library patterns (LangGraph, RAG, MCP, Vite, Zustand, Storybook and more) engineering domain guides (accessibility, distributed systems, DDD, release management) and slash-only operator tools (audit-full, careful, freeze, swarm-migrate and more). Skills only, no agents or hooks. Install next to ork.",
   "author": {
     "name": "Yonatan Gross",
