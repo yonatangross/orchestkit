@@ -65,6 +65,10 @@ describe('User Identity System', () => {
     delete process.env.USER;
     delete process.env.USERNAME;
     delete process.env.LOGNAME;
+    // A real Claude Code session sets these, and they outrank the mocked git config.
+    delete process.env.CLAUDE_CODE_USER_EMAIL;
+    delete process.env.CLAUDE_CODE_ACCOUNT_UUID;
+    delete process.env.CLAUDE_CODE_ORGANIZATION_UUID;
   });
 
   afterEach(() => {
