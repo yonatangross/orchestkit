@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Worktree reclaim: spaces are part of the path</title>
+<meta name="description" content="A real before and after reproduction of worktree reclaim deleting an unrelated directory when a worktree path contains a space.">
+<style>
+:root{color-scheme:dark;--bg:#101820;--panel:#192631;--edge:#354958;--ink:#eef5f9;--dim:#b1c4d1;--accent:#83d7ed}
+*{box-sizing:border-box}body{margin:0;padding:2.5rem 1.25rem;background:var(--bg);color:var(--ink);font:16px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}main{max-width:68rem;margin:auto}h1{font-size:clamp(1.5rem,4vw,2.4rem);line-height:1.2}h2{font-size:1rem;color:var(--accent)}p{color:var(--dim)}section{padding:1.25rem;background:var(--panel);border:1px solid var(--edge);border-radius:10px;margin:1rem 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.grid section{min-width:0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}code{overflow-wrap:anywhere}.bad{color:#ffadad}.good{color:#9de3b0}.label{text-transform:uppercase;font-size:.75rem;letter-spacing:.12em;color:var(--accent)}@media(max-width:640px){.grid{grid-template-columns:1fr}body{padding:1.25rem 1rem}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Worktree reclaim: spaces are part of the path"><meta property="og:description" content="A real destructive reproduction and regression test show why worktree reclaim must preserve complete paths, including spaces."><meta property="og:url" content="https://orchestkit.dev/lab/worktree-reclaim-spaces.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Worktree reclaim: spaces are part of the path"><meta name="twitter:description" content="A real destructive reproduction and regression test show why worktree reclaim must preserve complete paths, including spaces."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body><main>
+<p class="label">OrchestKit / safety regression</p>
+<h1>Spaces are part of the path.</h1>
+<p>Reclaiming <code>my wt/node_modules</code> must never remove <code>my/node_modules</code>. The old parser split the worktree path at its first space, then passed the wrong destination to a correctly quoted removal command.</p>
+<section><h2>Real fixture, not a simulated deletion</h2><p>A throwaway Git repository has a linked worktree named <code>my wt</code>, stale dependency directories, and an unrelated sibling <code>my/node_modules/decoy</code>. These excerpts came from running the script itself in dry-run and apply modes. Temporary root prefixes and aligned columns are omitted for readability.</p></section>
+<div class="grid">
+<section><h2>Before: wrong directory</h2><pre>DRY RUN
+my  LINK  node_modules  reclaims 0 MB
+
+APPLY
+my  LINK  node_modules  reclaims 0 MB
+
+<span class="bad">FAIL decoy deleted
+FAIL real worktree not reclaimed</span></pre></section>
+<section><h2>After: exact worktree path</h2><pre>DRY RUN
+my wt  LINK  node_modules  reclaims 0 MB
+
+APPLY
+my wt  LINK  node_modules  reclaims 0 MB
+
+<span class="good">PASS decoy preserved
+PASS real worktree reclaimed</span></pre></section>
+</div>
+<section><h2>The fix and its proof</h2><p>Keep everything after the porcelain <code>worktree </code> prefix. Read paths without trimming whitespace. Replace <code>mapfile</code> with a Bash 3.2-compatible array loop.</p><pre>PASS dry-run reports the real main and worktree paths
+PASS dry-run leaves directories unchanged
+PASS apply preserves the unrelated decoy
+PASS apply reclaims the real worktree directory</pre><p>The existing worktree shell suite now exercises a space in both the main repository and linked worktree paths. The suite also passed in Docker with GNU Bash 3.2.57.</p></section>
+</main><!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
