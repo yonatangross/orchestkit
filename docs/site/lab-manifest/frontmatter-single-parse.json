@@ -1,0 +1,8 @@
+{
+  "slug": "frontmatter-single-parse",
+  "source": "docs/perf--frontmatter-single-parse/index.html",
+  "title": "Frontmatter validation, parsed once",
+  "description": "Five-run benchmark and old/new equivalence evidence for parsing each file once: median validation drops from 28.09s to 4.32s across 151 files.",
+  "tags": ["performance", "git-hooks", "validation"],
+  "date": "2026-11-22"
+}

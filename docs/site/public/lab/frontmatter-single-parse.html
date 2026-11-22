@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'">
+<title>Frontmatter validation, parsed once</title>
+<meta name="description" content="Parsing frontmatter once per file reduces the median validation time from 28.09s to 4.32s across 151 files, with identical output and exit codes on compared fixtures.">
+<style>
+:root{color-scheme:dark;--bg:#0f0b1a;--surface:#1a1428;--border:#3d2e5c;--text:#e8e0f0;--muted:#b5a7ce;--accent:#c084fc;--ok:#86efac}
+*{box-sizing:border-box}body{margin:0 auto;padding:40px 24px;max-width:1050px;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}h1{font-size:clamp(28px,5vw,46px);line-height:1.15;margin:12px 0}h2{font-size:20px;margin:0 0 12px}.eyebrow{color:var(--accent);font:12px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.lede,.note{color:var(--muted)}section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-top:20px}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--border)}thead th{color:var(--muted);font-size:12px;text-transform:uppercase}code{font:.9em ui-monospace,monospace}.ok{color:var(--ok)}.note{font-size:13px}caption{text-align:left;margin-bottom:12px}@media(max-width:700px){body{padding:24px 16px}section{padding:16px}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Frontmatter validation, parsed once"><meta property="og:description" content="Five-run benchmark and old/new equivalence evidence for parsing each file once: median validation drops from 28.09s to 4.32s across 151 files."><meta property="og:url" content="https://orchestkit.dev/lab/frontmatter-single-parse.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Frontmatter validation, parsed once"><meta name="twitter:description" content="Five-run benchmark and old/new equivalence evidence for parsing each file once: median validation drops from 28.09s to 4.32s across 151 files."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<header>
+<span class="eyebrow">OrchestKit / Measured validation performance</span>
+<h1>Frontmatter validation, parsed once</h1>
+<p class="lede">Parse each file once instead of once per field: median validation time drops from 28.09s to 4.32s with unchanged output and exit codes on compared inputs.</p>
+</header>
+<main>
+<section>
+<h2>Five runs, 151 files</h2>
+<p><code>bin/validate-frontmatter.sh</code> still uses the project parser and the same validation rules; Bash caches each file's parsed fields.</p>
+<div class="table-wrap"><table>
+<caption>Elapsed seconds for 36 agents and 115 skills. All runs exited 0.</caption>
+<thead><tr><th scope="col">Run</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+<tbody>
+<tr><th scope="row">1</th><td>27.971730s</td><td>4.305640s</td></tr>
+<tr><th scope="row">2</th><td>28.089794s</td><td>4.315566s</td></tr>
+<tr><th scope="row">3</th><td>28.041105s</td><td>4.472781s</td></tr>
+<tr><th scope="row">4</th><td>29.091151s</td><td>4.130828s</td></tr>
+<tr><th scope="row">5</th><td>31.423943s</td><td>4.700821s</td></tr>
+<tr class="ok"><th scope="row">Median</th><td><strong>28.09s</strong></td><td><strong>4.32s</strong></td></tr>
+</tbody></table></div>
+<p class="ok">6.51 times faster; 84.6% less elapsed time, using unrounded medians.</p>
+<p class="note">Measured on 2026-11-22 on Ubuntu Linux x86_64, Intel Xeon, 8 vCPUs. Five invocations per revision of <code>./bin/validate-frontmatter.sh</code>, the command used by pre-commit, with DISPLAY unset. Python <code>time.perf_counter()</code> measured subprocess wall-clock time with stdout and stderr captured. Hyperfine was unavailable. These are local measurements, not a CI latency guarantee.</p>
+</section>
+<section>
+<h2>Old/new equivalence</h2>
+<p>Repository output plus exit code was byte-identical: <code>diff /tmp/before.out /tmp/after.out</code> produced no output and exited 0.</p>
+<div class="table-wrap"><table>
+<caption>Fixture comparisons assert identical stdout, stderr and exit status against the original script from main.</caption>
+<thead><tr><th scope="col">Input</th><th scope="col">Cases</th><th scope="col">Old exit</th><th scope="col">New exit</th><th scope="col">Output</th></tr></thead>
+<tbody>
+<tr><td>Valid; metadata and multiline values</td><td>2</td><td>0</td><td>0</td><td>Identical</td></tr>
+<tr><td>Agent missing or empty name, description, category, model</td><td>8</td><td>1</td><td>1</td><td>Identical</td></tr>
+<tr><td>Skill missing or empty name, description, tags, version, author, user-invocable, complexity</td><td>14</td><td>1</td><td>1</td><td>Identical</td></tr>
+<tr><td>No frontmatter; unterminated frontmatter</td><td>2</td><td>1</td><td>1</td><td>Identical</td></tr>
+<tr><td>Description at 250 characters</td><td>1</td><td>0</td><td>0</td><td>Identical</td></tr>
+<tr><td>Description over limit</td><td>1</td><td>1</td><td>1</td><td>Identical</td></tr>
+<tr><td>Short reminder</td><td>1</td><td>1</td><td>1</td><td>Identical</td></tr>
+<tr><td>Reminder at minimum length</td><td>1</td><td>0</td><td>0</td><td>Identical</td></tr>
+<tr><td>Skill name mismatch</td><td>1</td><td>1</td><td>1</td><td>Identical</td></tr>
+</tbody></table></div>
+<p class="note"><code>tests/unit/test-validate-frontmatter.sh</code>: 32 passed, 0 failed. The 31 compared cases above matched the original script. One additional case verifies empty directories and skipped documentation against the expected success output and exit 0 for the new validator only.</p>
+</section>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
