@@ -18,6 +18,52 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.16.0",
+    "date": "2026-11-22",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.15.1...v10.16.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**glyph:** add the devin-safe profile for engines that render shade fills as slabs ([#5323](https://github.com/yonatangross/orchestkit/issues/5323)) ([55c71bb](https://github.com/yonatangross/orchestkit/commit/55c71bb1c884136c8da2fdb21b304b89264aec21))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**agents:** raise ci-cd and frontend maxTurns to 85 ([#5299](https://github.com/yonatangross/orchestkit/issues/5299)) ([c53a3ea](https://github.com/yonatangross/orchestkit/commit/c53a3ea1366c831f8545de5fbb382381be072f98))",
+          "**build:** preserve reference docs on generator failure ([#5301](https://github.com/yonatangross/orchestkit/issues/5301)) ([9d0ac3f](https://github.com/yonatangross/orchestkit/commit/9d0ac3f28aaa98de4a73f44784b86b8e00f80093))",
+          "**cli:** ignore directories during host detection ([#5319](https://github.com/yonatangross/orchestkit/issues/5319)) ([875a5ab](https://github.com/yonatangross/orchestkit/commit/875a5ab741782c160cc9e94fa31b76dfdca55f0d))",
+          "**cli:** treat --help and --version as flags after a command ([#5318](https://github.com/yonatangross/orchestkit/issues/5318)) ([5c2048a](https://github.com/yonatangross/orchestkit/commit/5c2048adb03958508d9e09ada156ce30beb512c5))",
+          "**docs:** match search autocomplete anchors to github-slugger ([#5321](https://github.com/yonatangross/orchestkit/issues/5321)) ([609a1c6](https://github.com/yonatangross/orchestkit/commit/609a1c698bf606216eba09fcc15e88bdbe744f45))",
+          "**docs:** reject oversized async batch tokens ([#5322](https://github.com/yonatangross/orchestkit/issues/5322)) ([fe6c0ac](https://github.com/yonatangross/orchestkit/commit/fe6c0ac90883d906a5b8e177d4fefd314ca46a99))",
+          "**docs:** strip YAML frontmatter from CRLF doc bodies ([#5326](https://github.com/yonatangross/orchestkit/issues/5326)) ([1d6bc97](https://github.com/yonatangross/orchestkit/commit/1d6bc97582902c662f1c34e7c8e0761f9f570646))",
+          "**hooks:** bound npm-ci guard home candidates and model last-wins ([#5343](https://github.com/yonatangross/orchestkit/issues/5343)) ([72a3b50](https://github.com/yonatangross/orchestkit/commit/72a3b50c84155ce44136132ee38abb0e9e6e23cb))",
+          "**hooks:** close directory-resolution divergences in npm-ci guard ([#5340](https://github.com/yonatangross/orchestkit/issues/5340)) ([7357b46](https://github.com/yonatangross/orchestkit/commit/7357b4664714c3721f99377fa7830b09e58dd90c))",
+          "**hooks:** close third review round divergences in npm-ci guard ([#5342](https://github.com/yonatangross/orchestkit/issues/5342)) ([8d2638a](https://github.com/yonatangross/orchestkit/commit/8d2638a6cf098137647a43588945731bb6decdb2))",
+          "**hooks:** cover the ANSI-C $'...' directory shapes from [#5198](https://github.com/yonatangross/orchestkit/issues/5198) ([#5334](https://github.com/yonatangross/orchestkit/issues/5334)) ([6b8cb88](https://github.com/yonatangross/orchestkit/commit/6b8cb88a0dd2787c0f51e0d9eeebab8f112c933d))",
+          "**hooks:** keep auto label when default timeout is applied ([#5315](https://github.com/yonatangross/orchestkit/issues/5315)) ([46a0c3f](https://github.com/yonatangross/orchestkit/commit/46a0c3fef536b07be2fefa2f79f826235c32bdf5))",
+          "**scripts:** reject unreadable perf snapshots in perf-compare ([#5328](https://github.com/yonatangross/orchestkit/issues/5328)) ([f5cebba](https://github.com/yonatangross/orchestkit/commit/f5cebba33d3271f3b3833232c044f436035668f4))",
+          "**site:** 44 px consent targets and one name for the privacy page ([#5335](https://github.com/yonatangross/orchestkit/issues/5335)) ([37f031f](https://github.com/yonatangross/orchestkit/commit/37f031ffb31a6b595f5161f70cb59985e9b3e528))",
+          "**site:** gate MCP card render data to the embedding frame ([#5341](https://github.com/yonatangross/orchestkit/issues/5341)) ([daebb74](https://github.com/yonatangross/orchestkit/commit/daebb74859751067cf04086ba5fd76022aeaf9e4))",
+          "**skills:** cap archive entry names before the clash check ([#5339](https://github.com/yonatangross/orchestkit/issues/5339)) ([be2735b](https://github.com/yonatangross/orchestkit/commit/be2735b22477094c6354efca6e134f99431f04e9)), closes [#5338](https://github.com/yonatangross/orchestkit/issues/5338)",
+          "**tests:** prevent prepush ESM fixture from invoking import ([#5303](https://github.com/yonatangross/orchestkit/issues/5303)) ([07912bd](https://github.com/yonatangross/orchestkit/commit/07912bd899443d0826ef61a344de180b89a0c483))",
+          "**tests:** probe hook bundler loading on the current platform ([#5310](https://github.com/yonatangross/orchestkit/issues/5310)) ([49442d3](https://github.com/yonatangross/orchestkit/commit/49442d3187ef983667436be89e93251669390100))",
+          "**verify:** refused evidence gates report BLOCKED, not WAIVED ([#5330](https://github.com/yonatangross/orchestkit/issues/5330)) ([263bde0](https://github.com/yonatangross/orchestkit/commit/263bde0e1702216fb467e1203ea88fe0cd0a46a3))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**deps:** bump the npm-minor-patch group across 1 directory with 5 updates ([#5259](https://github.com/yonatangross/orchestkit/issues/5259)) ([c126abb](https://github.com/yonatangross/orchestkit/commit/c126abbb098fca07be64813529c5d47745ee6b15))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.15.1",
     "date": "2026-11-19",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1",
