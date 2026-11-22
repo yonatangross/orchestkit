@@ -1,7 +1,7 @@
 ---
 name: implement
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires memory MCP server, context7 MCP server, network access."
+compatibility: "Claude Code 2.1.327+. Requires memory MCP server, context7 MCP server, network access."
 description: "Builds a new feature with parallel backend, frontend, test and security agents in worktrees, then verifies. Use when asked to build, add or scaffold a feature, endpoint or component. Not for fixing, reviewing or testing existing code."
 argument-hint: "[feature-description]"
 context: fork

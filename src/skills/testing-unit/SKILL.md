@@ -1,7 +1,7 @@
 ---
 name: testing-unit
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Unit test patterns: AAA, parametrized tests, fixture scope, MSW or VCR network mocks, data factories, for Vitest, Jest and pytest. Use when writing unit tests or setting up mocks and fixtures."
 user-invocable: false
 disable-model-invocation: false

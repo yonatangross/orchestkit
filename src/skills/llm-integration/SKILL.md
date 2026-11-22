@@ -1,7 +1,7 @@
 ---
 name: llm-integration
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.
 user-invocable: false
 metadata:

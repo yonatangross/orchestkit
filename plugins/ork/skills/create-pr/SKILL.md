@@ -1,7 +1,7 @@
 ---
 name: create-pr
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.327+. Requires memory MCP server, gh CLI."
 description: "Opens a PR after pre-flight checks (tests, lint, types, security) with a conventional title and body. Use only when asked for this skill; an everyday gh pr create stays plain tooling."
 argument-hint: "[title]"
 context: fork

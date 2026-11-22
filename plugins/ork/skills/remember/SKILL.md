@@ -1,7 +1,7 @@
 ---
 name: remember
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires: memory skill."
+compatibility: "Claude Code 2.1.327+. Requires: memory skill."
 description: "Formerly remember, now memory remember. Use when /ork:remember is typed to store a decision in the knowledge graph. Removed 2027-01-31."
 argument-hint: "[decision-or-pattern]"
 user-invocable: true

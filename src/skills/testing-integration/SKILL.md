@@ -1,7 +1,7 @@
 ---
 name: testing-integration
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Integration and contract tests: API endpoints, databases, Pact contracts, property-based tests, Zod validation. Use when testing API or service boundaries."
 user-invocable: false
 disable-model-invocation: false

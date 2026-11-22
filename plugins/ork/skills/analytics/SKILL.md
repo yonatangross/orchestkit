@@ -1,7 +1,7 @@
 ---
 name: analytics
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Local OrchestKit usage analytics: agent and skill frequency, hook timing, session replay, cost estimates, model delegation trends. Use when reviewing usage, performance or costs."
 argument-hint: "[agents|models|skills|hooks|teams|session|cost|trends|summary]"
 context: inherit

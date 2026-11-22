@@ -1,7 +1,7 @@
 ---
 name: testing-e2e
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Playwright E2E patterns: page objects, visual regression, axe-core accessibility, CI. Use when writing E2E tests or setting up Playwright."
 user-invocable: false
 disable-model-invocation: false

@@ -1,7 +1,7 @@
 ---
 name: quality-gates
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Task complexity scoring (1-5), escalation when stuck, and best-practice checks. Use before complex tasks or after repeated failed attempts."
 skills: [scope-appropriate-architecture]
 user-invocable: false

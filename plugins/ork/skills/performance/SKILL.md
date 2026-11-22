@@ -1,7 +1,7 @@
 ---
 name: performance
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Performance patterns: Core Web Vitals, React renders, lazy loading, images, backend profiling, LLM inference. Use when improving page speed, slow renders, bundle size or backend latency."
 user-invocable: false
 disable-model-invocation: false

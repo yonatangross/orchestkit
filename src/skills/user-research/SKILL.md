@@ -1,7 +1,7 @@
 ---
 name: user-research
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Personas, journey maps, interview guides, usability tests, card sorting and Jobs-to-Be-Done. Use when planning user research."
 user-invocable: false
 disable-model-invocation: false

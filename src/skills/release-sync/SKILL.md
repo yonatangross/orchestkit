@@ -1,6 +1,6 @@
 ---
 name: release-sync
-compatibility: "Claude Code 2.1.277+"
+compatibility: "Claude Code 2.1.327+"
 description: "After a version tag, syncs CHANGELOG and release notes to NotebookLM and the knowledge base, optionally a podcast. Use after tagging a release."
 user-invocable: true
 argument-hint: "[version]"

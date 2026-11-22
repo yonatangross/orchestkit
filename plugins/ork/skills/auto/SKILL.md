@@ -1,7 +1,7 @@
 ---
 name: auto
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Default front door for goal-shaped requests: classifies a plain-English goal and routes it to the right skill. Use for do this, figure out, I want, help me, fix, build, improve. Not for browsing skills (use help)."
 argument-hint: "[plain-english goal]"
 context: inherit

@@ -1,7 +1,7 @@
 ---
 name: telemetry-inspect
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "Read-only check of this project's OrchestKit telemetry files: write counts, sizes, schema locks, growth and orphans. Use when verifying the observability pipeline or hunting a missing writer."
 argument-hint: "[--session <id>] [--json]"
 context: inherit

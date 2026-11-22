@@ -4,7 +4,7 @@ description: "Works through review comments in a plan or research artifact: repl
 argument-hint: "[artifact file]"
 user-invocable: true
 allowed-tools: "Bash Read Grep Glob AskUserQuestion"
-compatibility: "Claude Code 2.1.277+. Node 22+."
+compatibility: "Claude Code 2.1.327+. Node 22+."
 metadata:
   version: "1.0.0"
   author: "OrchestKit"

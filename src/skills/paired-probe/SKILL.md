@@ -3,7 +3,7 @@ name: paired-probe
 description: "Refuses a verdict a check did not earn: runs it with the fault present and absent and blocks when both agree; catches zero-sample sweeps and swallowed errors. Use before reporting any status, audit or nothing-found result."
 user-invocable: false
 disable-model-invocation: false
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 metadata:
   version: "1.0.0"
   author: "yonatangross"

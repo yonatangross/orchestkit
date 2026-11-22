@@ -1,7 +1,7 @@
 ---
 name: api-design
 license: MIT
-compatibility: "Claude Code 2.1.277+."
+compatibility: "Claude Code 2.1.327+."
 description: "API wire contracts for REST and GraphQL: resource shape, versioning and deprecation, RFC 9457 errors, OpenAPI. Use when designing an endpoint contract. Not for runtime code (use python-backend)."
 user-invocable: false
 disable-model-invocation: false

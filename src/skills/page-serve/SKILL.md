@@ -1,6 +1,6 @@
 ---
 name: page-serve
-compatibility: "Claude Code 2.1.277+"
+compatibility: "Claude Code 2.1.327+"
 description: "Serves a static HTML page at a stable https://NAME.localhost/ URL via portless, never a port, and stops it on request. Use when an agent made a page a person should open. Not for app dev servers (use dev)."
 license: MIT
 argument-hint: "[path] [--name slug] [--screenshot|--no-screenshot] | stop [name|--all] | status [--json]"

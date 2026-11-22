@@ -1,7 +1,7 @@
 ---
 name: browser-tools
 license: MIT
-compatibility: "Claude Code 2.1.277+. Requires network access."
+compatibility: "Claude Code 2.1.327+. Requires network access."
 description: "Safety rules over the upstream agent-browser skill: scraping ethics, auth, request pacing, local URLs. Use for browser automation."
 user-invocable: false
 metadata:

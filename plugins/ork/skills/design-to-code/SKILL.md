@@ -1,7 +1,7 @@
 ---
 name: design-to-code
 license: MIT
-compatibility: "Claude Code 2.1.277+. Import and ship modes use the claude-design-orchestrator agent and compose cover, expect, create-pr. Optional: stitch (official Google Stitch), 21st-dev-magic, storybook-mcp (@storybook/addon-mcp, Storybook 10.3+, Vite only) MCP servers."
+compatibility: "Claude Code 2.1.327+. Import and ship modes use the claude-design-orchestrator agent and compose cover, expect, create-pr. Optional: stitch (official Google Stitch), 21st-dev-magic, storybook-mcp (@storybook/addon-mcp, Storybook 10.3+, Vite only) MCP servers."
 description: "Turns a Claude Design export (zip or standalone HTML), a mockup or a screenshot into React components that reuse existing ones; ship mode adds tests and a PR. Use when a design should become code, or for Storybook MCP tools."
 argument-hint: "[import|ship|mockup|storybook] <export.zip | export.html | folder | screenshot | description | url>"
 context: fork
