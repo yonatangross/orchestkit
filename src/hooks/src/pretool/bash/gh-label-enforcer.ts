@@ -17,7 +17,7 @@ import {
   outputPreToolAdvisory,
 } from '../../lib/common.js';
 import { isCompoundCommand } from '../../lib/normalize-command.js';
-import { hasExplicitRepoTarget, getGhCreateCommand, inferIssueLabel } from '../../lib/gh-command.js';
+import { hasExplicitRepoTarget, getGhCreateCommands, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -27,7 +27,9 @@ import { NOOP_CTX } from '../../lib/context.js';
 export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
-  const create = getGhCreateCommand(command, '--label', '-l');
+  const creates = getGhCreateCommands(command, '--label', '-l');
+  const create = creates.find(create => create.kind === 'issue' && !create.hasFlag)
+    ?? creates.find(create => !create.hasFlag);
   if (!create || create.hasFlag) {
     return outputSilentSuccess();
   }

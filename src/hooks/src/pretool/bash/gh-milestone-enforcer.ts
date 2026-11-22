@@ -14,7 +14,7 @@ import {
   outputSilentSuccess,
   outputAllowWithContext,
 } from '../../lib/common.js';
-import { hasExplicitRepoTarget, getGhCreateCommand } from '../../lib/gh-command.js';
+import { hasExplicitRepoTarget, getGhCreateCommands } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -24,8 +24,8 @@ import { NOOP_CTX } from '../../lib/context.js';
 export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
-  const create = getGhCreateCommand(command, '--milestone', '-m');
-  if (create?.kind !== 'issue' || create.hasFlag) {
+  const creates = getGhCreateCommands(command, '--milestone', '-m');
+  if (!creates.some(create => create.kind === 'issue' && !create.hasFlag)) {
     return outputSilentSuccess();
   }
 

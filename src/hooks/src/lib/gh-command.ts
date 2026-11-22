@@ -72,12 +72,13 @@ function shellWords(command: string): (string | null)[] {
   return words;
 }
 
-/** Find a literal gh create invocation and its flag, or null for opaque input. */
-export function getGhCreateCommand(command: string, long: string, short: string): {
+/** Find literal gh create invocations and their flags. */
+export function getGhCreateCommands(command: string, long: string, short: string): {
   kind: 'issue' | 'pr';
   hasFlag: boolean;
-} | null {
+}[] {
   const words = shellWords(command);
+  const creates: { kind: 'issue' | 'pr'; hasFlag: boolean }[] = [];
   const valuedOptions = new Set([
     '--assignee', '--body', '--body-file', '--label', '--milestone', '--project',
     '--recover', '--template', '--title', '--repo', '--base', '--head', '--reviewer',
@@ -93,22 +94,24 @@ export function getGhCreateCommand(command: string, long: string, short: string)
     executable = false;
     const kind = words[i + 1];
     if (!isExecutable || !/(?:^|\/)gh$/.test(word) || (kind !== 'issue' && kind !== 'pr') || words[i + 2] !== 'create') continue;
-    for (i += 3; i < words.length && words[i] !== null && words[i] !== '--'; i++) {
-      const word = words[i] ?? '';
+    let hasFlag = false;
+    for (let j = i + 3; j < words.length && words[j] !== null && words[j] !== '--'; j++) {
+      const word = words[j] ?? '';
       if (word === long || word === short) {
-        const value = words[++i];
-        if (value && !value.startsWith('-')) return { kind, hasFlag: true };
+        const value = words[j + 1];
+        if (value && !value.startsWith('-')) hasFlag = true;
+        if (value !== null && value !== undefined) j++;
       } else if (word.startsWith(`${long}=`)) {
-        if (word.length > long.length + 1) return { kind, hasFlag: true };
+        if (word.length > long.length + 1) hasFlag = true;
       } else if (word.startsWith(short) && word !== short) {
-        if (word.slice(short.length).replace(/^=/, '')) return { kind, hasFlag: true };
+        if (word.slice(short.length).replace(/^=/, '')) hasFlag = true;
       } else if (valuedOptions.has(word)) {
-        i++;
+        if (words[j + 1] !== null) j++;
       }
     }
-    return { kind, hasFlag: false };
+    creates.push({ kind, hasFlag });
   }
-  return null;
+  return creates;
 }
 
 /**

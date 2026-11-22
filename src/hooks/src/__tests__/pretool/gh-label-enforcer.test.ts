@@ -63,6 +63,16 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it.each([
+    'gh pr create --label docs && gh issue create --title x',
+    'gh pr create --title y && gh issue create --title x',
+    'gh issue create --label docs; gh issue create --title x',
+  ])('advises about the unlabeled issue without rewriting compound input: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
   it.each(['env FOO=1', 'command', 'VAR=val'])('enforces a missing flag through %s', (prefix) => {
     const result = ghLabelEnforcer(createBashInput(`${prefix} gh issue create --title "Fix crash"`), testCtx);
     expect(result.hookSpecificOutput?.updatedInput?.command).toContain(' --label bug');

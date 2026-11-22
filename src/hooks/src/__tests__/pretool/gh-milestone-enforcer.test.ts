@@ -55,6 +55,21 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each([
+    'gh pr create --title y && gh issue create --title x',
+    'gh issue create --milestone v1; gh issue create --title x',
+    'gh issue create --title x && gh issue create --milestone v1',
+  ])('advises when any issue invocation lacks a milestone: %s', (command) => {
+    ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(outputAllowWithContext).toHaveBeenCalled();
+  });
+
+  it('does not advise about PR milestones in a mixed command', () => {
+    ghMilestoneEnforcer(createBashInput('gh pr create --title y && gh issue create --milestone v1'), testCtx);
+    expect(outputAllowWithContext).not.toHaveBeenCalled();
+    expect(outputSilentSuccess).toHaveBeenCalled();
+  });
+
   it.each(['env FOO=1', 'command', 'VAR=val'])('enforces a missing flag through %s', (prefix) => {
     const result = ghMilestoneEnforcer(createBashInput(`${prefix} gh issue create --title "Fix crash"`), testCtx);
     expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
