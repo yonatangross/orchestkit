@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit CLI: read page fragments</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui, sans-serif; background: #101720; color: #e5edf6; }
+  * { box-sizing: border-box; }
+  main { max-width: 70rem; margin: 4rem auto; padding: 0 1.5rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3rem); margin: .5rem 0 1rem; }
+  p { line-height: 1.6; color: #bdcddd; }
+  .eyebrow { color: #72d8c0; text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; }
+  label { display: block; margin: 2rem 0 .5rem; font-weight: 600; }
+  input { width: 100%; font: inherit; padding: .9rem; border: 1px solid #688098; border-radius: .5rem; background: #182431; color: inherit; }
+  input:focus-visible, button:focus-visible { outline: 2px solid #72d8c0; outline-offset: 3px; }
+  .examples { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 2rem; }
+  button { font: inherit; font-size: .85rem; cursor: pointer; padding: .5rem .75rem; background: #223448; color: #e5edf6; border: 1px solid #526c85; border-radius: 2rem; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 1rem; }
+  section { padding: 1.5rem; border: 1px solid #526c85; border-radius: .8rem; background: #182431; }
+  section:last-child { border-color: #72d8c0; }
+  h2 { margin-top: 0; }
+  h3 { font-size: .8rem; text-transform: uppercase; color: #a7bdcf; margin-top: 1.5rem; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.6; }
+  .note { margin-top: 2rem; font-size: .9rem; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit CLI: read page fragments"><meta property="og:description" content="Compare before and after Markdown URL normalization for page fragments and query strings."><meta property="og:url" content="https://orchestkit.dev/lab/cli-read-doc-fragment.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit CLI: read page fragments"><meta name="twitter:description" content="Compare before and after Markdown URL normalization for page fragments and query strings."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <div class="eyebrow">OrchestKit / CLI bug fix</div>
+  <h1>Read the page, not its fragment.</h1>
+  <p><code>ork read</code> should fetch Markdown even when a pasted page path includes an anchor or query string. Compare the old and fixed normalization below.</p>
+  <label for="page">Page argument</label>
+  <input id="page" value="foundations/overview#install" spellcheck="false" autocomplete="off">
+  <div class="examples" aria-label="Example page arguments">
+    <button type="button" data-page="foundations/overview#install">Slug + fragment</button>
+    <button type="button" data-page="/docs/foundations/overview#install">Site path + fragment</button>
+    <button type="button" data-page="/docs/foundations/overview.md#install">Markdown + fragment</button>
+    <button type="button" data-page="foundations/overview?lang=en#install">Query + fragment</button>
+    <button type="button" data-page="/docs/foundations/overview.md?lang=en">Markdown + query</button>
+    <button type="button" data-page="foundations/overview">Plain slug</button>
+  </div>
+  <div class="results" aria-live="polite">
+    <section><h2>Before</h2><h3>Normalized URL</h3><pre id="before-url"></pre><h3>HTTP request target</h3><pre id="before-target"></pre></section>
+    <section><h2>After</h2><h3>Normalized URL</h3><pre id="after-url"></pre><h3>HTTP request target</h3><pre id="after-target"></pre></section>
+  </div>
+  <p class="note">Local simulation of <code>readDoc</code>, no network requests. Fetch drops fragments, but retains query strings. The fix strips both before adding <code>.md</code>. An existing <code>.md#install</code> already fetched the right path before the fix.</p>
+</main>
+<script>
+  const page = document.getElementById('page');
+  function normalize(slug, fixed) {
+    let clean = (fixed ? (slug.trim().split(/[?#]/, 1)[0] ?? '') : slug.trim()).replace(/\.md$/, '');
+    if (!clean.startsWith('/')) clean = `/docs/${clean}`;
+    if (!clean.startsWith('/docs')) clean = `/docs${clean}`;
+    return `https://orchestkit.dev${clean}.md`;
+  }
+  function render() {
+    for (const [label, fixed] of [['before', false], ['after', true]]) {
+      const normalized = normalize(page.value, fixed);
+      document.getElementById(`${label}-url`).textContent = normalized;
+      try {
+        const url = new URL(normalized);
+        document.getElementById(`${label}-target`).textContent = url.pathname + url.search;
+      } catch {
+        document.getElementById(`${label}-target`).textContent = 'Invalid URL';
+      }
+    }
+  }
+  page.addEventListener('input', render);
+  document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => {
+    page.value = button.dataset.page;
+    render();
+  }));
+  render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -170,12 +170,13 @@ export async function ask(
  * ("foundations/overview"), a site path ("/docs/foundations/overview") or the
  * `.md` form, all three are the same page, and making the CLI accept whichever
  * one a user pasted is cheaper than making them normalize it.
+ * Query strings and fragments are ignored before normalizing the page path.
  */
 export async function readDoc(
 	client: Client,
 	slug: string,
 ): Promise<{ text: string; rateLimit: RateLimit }> {
-	let clean = slug.trim().replace(/\.md$/, "");
+	let clean = (slug.trim().split(/[?#]/, 1)[0] ?? "").replace(/\.md$/, "");
 	if (!clean.startsWith("/")) clean = `/docs/${clean}`;
 	if (!clean.startsWith("/docs")) clean = `/docs${clean}`;
 	return getMarkdown(client, `${clean}.md`);
