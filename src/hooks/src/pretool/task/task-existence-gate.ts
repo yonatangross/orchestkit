@@ -15,6 +15,7 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
 import { getTaskByAgent } from '../../lib/task-integration.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { claimTaskNudge } from '../../lib/task-nudge-gate.js';
 
 const HOOK_NAME = 'task-existence-gate';
 
@@ -82,7 +83,13 @@ export function taskExistenceGate(input: HookInput, ctx: HookContext = NOOP_CTX)
     return outputSilentSuccess();
   }
 
-  // No task found — advisory nudge (don't block ad-hoc work)
+  // No task found — advisory nudge (don't block ad-hoc work), but at most one
+  // task-tracking nudge per session across all three task hooks.
+  const projectDir = input.project_dir || process.env.CLAUDE_PROJECT_DIR || '';
+  if (!claimTaskNudge(input.session_id, projectDir)) {
+    ctx.log(HOOK_NAME, `No task registered for ${subagentType}, nudge suppressed (already sent or session has tasks)`);
+    return outputSilentSuccess();
+  }
   ctx.log(HOOK_NAME, `No task registered, advisory nudge for ${subagentType}`);
   return outputWithContext(
     `[Task Tracking] No task registered for agent "${subagentType}". ` +
