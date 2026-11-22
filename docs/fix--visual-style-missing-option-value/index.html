@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; connect-src 'self'">
+<title>Visual-style option values</title>
+<meta name="description" content="Missing visual-style option arguments now report usage errors instead of silent violations.">
+<style>
+body { font: 18px/1.6 system-ui, sans-serif; max-width: 960px; margin: 4rem auto; padding: 0 1.5rem; background: #101722; color: #edf2fa; }
+h1 { line-height: 1.2; } h2 { color: #a9d5ff; }
+pre { white-space: pre; overflow-x: auto; background: #1c293b; padding: 1.5rem; border-radius: 12px; font-size: 15px; }
+code { color: #bbebd2; }
+</style>
+</head>
+<body>
+<h1>A missing argument is a usage error</h1>
+<p>The visual-style pre-flight now distinguishes malformed invocations (exit 2) from style violations (exit 1). Explicit empty titles remain allowed.</p>
+<h2>Before</h2>
+<pre>$ bin/check-pr-visual-style.sh --title
+stderr: (empty)
+exit: 1
+
+$ bin/check-pr-visual-style.sh --body-file
+stderr: (empty)
+exit: 1
+
+$ bin/check-pr-visual-style.sh --title "feat: x" --body-file
+stderr: (empty)
+exit: 1</pre>
+<h2>After</h2>
+<pre>$ bin/check-pr-visual-style.sh --title
+stderr: --title requires a value
+exit: 2
+
+$ bin/check-pr-visual-style.sh --body-file
+stderr: --body-file requires a value
+exit: 2
+
+$ bin/check-pr-visual-style.sh --title "feat: x" --body-file
+stderr: --body-file requires a value
+exit: 2</pre>
+<h2>Valid input stays clean</h2>
+<pre>$ bin/check-pr-visual-style.sh --title "feat: ok"
+[OK] PR title clean
+Visual-style pre-flight: clean — safe to open the PR.
+stderr: (empty)
+exit: 0</pre>
+<p>Regression coverage: <code>tests/integration/test-visual-style-validator.sh</code>, 19 passed, 0 failed. On unchanged main code the three missing-value checks fail.</p>
+</body>
+</html>

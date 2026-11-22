@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit CLI: read page fragments</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui, sans-serif; background: #101720; color: #e5edf6; }
+  * { box-sizing: border-box; }
+  main { max-width: 70rem; margin: 4rem auto; padding: 0 1.5rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3rem); margin: .5rem 0 1rem; }
+  p { line-height: 1.6; color: #bdcddd; }
+  .eyebrow { color: #72d8c0; text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; }
+  label { display: block; margin: 2rem 0 .5rem; font-weight: 600; }
+  input { width: 100%; font: inherit; padding: .9rem; border: 1px solid #688098; border-radius: .5rem; background: #182431; color: inherit; }
+  input:focus-visible, button:focus-visible { outline: 2px solid #72d8c0; outline-offset: 3px; }
+  .examples { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 2rem; }
+  button { font: inherit; font-size: .85rem; cursor: pointer; padding: .5rem .75rem; background: #223448; color: #e5edf6; border: 1px solid #526c85; border-radius: 2rem; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 1rem; }
+  section { padding: 1.5rem; border: 1px solid #526c85; border-radius: .8rem; background: #182431; }
+  section:last-child { border-color: #72d8c0; }
+  h2 { margin-top: 0; }
+  h3 { font-size: .8rem; text-transform: uppercase; color: #a7bdcf; margin-top: 1.5rem; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.6; }
+  .note { margin-top: 2rem; font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">OrchestKit / CLI bug fix</div>
+  <h1>Read the page, not its fragment.</h1>
+  <p><code>ork read</code> should fetch Markdown even when a pasted page path includes an anchor or query string. Compare the old and fixed normalization below.</p>
+  <label for="page">Page argument</label>
+  <input id="page" value="foundations/overview#install" spellcheck="false" autocomplete="off">
+  <div class="examples" aria-label="Example page arguments">
+    <button type="button" data-page="foundations/overview#install">Slug + fragment</button>
+    <button type="button" data-page="/docs/foundations/overview#install">Site path + fragment</button>
+    <button type="button" data-page="/docs/foundations/overview.md#install">Markdown + fragment</button>
+    <button type="button" data-page="foundations/overview?lang=en#install">Query + fragment</button>
+    <button type="button" data-page="/docs/foundations/overview.md?lang=en">Markdown + query</button>
+    <button type="button" data-page="foundations/overview">Plain slug</button>
+  </div>
+  <div class="results" aria-live="polite">
+    <section><h2>Before</h2><h3>Normalized URL</h3><pre id="before-url"></pre><h3>HTTP request target</h3><pre id="before-target"></pre></section>
+    <section><h2>After</h2><h3>Normalized URL</h3><pre id="after-url"></pre><h3>HTTP request target</h3><pre id="after-target"></pre></section>
+  </div>
+  <p class="note">Local simulation of <code>readDoc</code>, no network requests. Fetch drops fragments, but retains query strings. The fix strips both before adding <code>.md</code>. An existing <code>.md#install</code> already fetched the right path before the fix.</p>
+</main>
+<script>
+  const page = document.getElementById('page');
+  function normalize(slug, fixed) {
+    let clean = (fixed ? (slug.trim().split(/[?#]/, 1)[0] ?? '') : slug.trim()).replace(/\.md$/, '');
+    if (!clean.startsWith('/')) clean = `/docs/${clean}`;
+    if (!clean.startsWith('/docs')) clean = `/docs${clean}`;
+    return `https://orchestkit.dev${clean}.md`;
+  }
+  function render() {
+    for (const [label, fixed] of [['before', false], ['after', true]]) {
+      const normalized = normalize(page.value, fixed);
+      document.getElementById(`${label}-url`).textContent = normalized;
+      try {
+        const url = new URL(normalized);
+        document.getElementById(`${label}-target`).textContent = url.pathname + url.search;
+      } catch {
+        document.getElementById(`${label}-target`).textContent = 'Invalid URL';
+      }
+    }
+  }
+  page.addEventListener('input', render);
+  document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => {
+    page.value = button.dataset.page;
+    render();
+  }));
+  render();
+</script>
+</body>
+</html>

@@ -31,11 +31,19 @@ BODY_FILE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --title)
+      if [ $# -lt 2 ]; then
+        echo "$1 requires a value" >&2
+        exit 2
+      fi
       TITLE="${2:-}"
       HAVE_TITLE=1
       shift 2
       ;;
     --body-file)
+      if [ $# -lt 2 ]; then
+        echo "$1 requires a value" >&2
+        exit 2
+      fi
       BODY_FILE="${2:-}"
       shift 2
       ;;

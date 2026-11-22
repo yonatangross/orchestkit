@@ -305,6 +305,29 @@ describe("networked commands", () => {
 		}
 	});
 
+	it.each([
+		"foundations/overview#install",
+		"/docs/foundations/overview#install",
+		"foundations/overview.md#install",
+		"/docs/foundations/overview.md#install",
+		"foundations/overview#",
+		"foundations/overview?lang=en#install",
+		"/docs/foundations/overview.md?lang=en#install",
+		"foundations/overview?lang=en",
+	])("read normalizes page suffixes in %s to the .md URL", async (form) => {
+		const seen: string[] = [];
+		const restore = stubFetch((url) => {
+			seen.push(url);
+			return new Response("# Overview\n");
+		});
+		try {
+			await readDoc(createClient({ baseUrl: "https://example.test" }), form);
+			expect(seen).toEqual(["https://example.test/docs/foundations/overview.md"]);
+		} finally {
+			restore();
+		}
+	});
+
 	it("search() reads the IETF RateLimit headers off the response", async () => {
 		const restore = stubFetch(() => jsonResponse([]));
 		try {
