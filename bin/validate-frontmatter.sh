@@ -22,19 +22,32 @@ NC='\033[0m'
 
 ERRORS=0
 
-# Extract a frontmatter field using the project parser
-get_field() {
+declare -A FIELDS=()
+
+# Parse each file once, preserving multiline values with NUL delimiters.
+load_fields() {
   local file="$1"
-  local field="$2"
-  node -e "
-    const { parseYamlFrontmatter } = require('$PROJECT_ROOT/scripts/lib/parse-frontmatter.js');
-    const fs = require('fs');
-    const content = fs.readFileSync('$file', 'utf-8');
+  local key value
+  FIELDS=()
+  while IFS= read -r -d '' key && IFS= read -r -d '' value; do
+    FIELDS["$key"]="$value"
+  done < <(node -e '
+    const { parseYamlFrontmatter } = require(process.argv[1]);
+    const fs = require("fs");
+    const content = fs.readFileSync(process.argv[2], "utf-8");
     const result = parseYamlFrontmatter(content);
-    const val = result.frontmatter['$field'];
-    if (val === undefined || val === null || val === '') process.exit(1);
-    console.log(typeof val === 'string' ? val : JSON.stringify(val));
-  " 2>/dev/null
+    for (const [key, val] of Object.entries(result.frontmatter)) {
+      if (val === undefined || val === null || val === "") continue;
+      const text = typeof val === "string" ? val : JSON.stringify(val);
+      process.stdout.write(key + "\0" + text.replace(/\0/g, "") + "\0");
+    }
+  ' "$PROJECT_ROOT/scripts/lib/parse-frontmatter.js" "$file" 2>/dev/null)
+}
+
+get_field() {
+  local field="$2"
+  [[ -n "${FIELDS[$field]+present}" ]] || return 1
+  printf '%s\n' "${FIELDS[$field]}"
 }
 
 # ===== Agent Validation =====
@@ -51,6 +64,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     README|INDEX|CONTRIBUTING) continue ;;
   esac
 
+  load_fields "$agent_file"
   for field in $AGENT_REQUIRED_FIELDS; do
     if ! get_field "$agent_file" "$field" >/dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Agent '$agent_name': missing required field '$field'"
@@ -82,6 +96,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
   [[ ! -f "$skill_file" ]] && continue
   skill_name=$(basename "$skill_dir")
 
+  load_fields "$skill_file"
   for field in $SKILL_REQUIRED_FIELDS; do
     if ! get_field "$skill_file" "$field" >/dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Skill '$skill_name': missing required field '$field'"
