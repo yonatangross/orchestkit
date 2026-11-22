@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; connect-src 'self'">
+<title>Visual-style option values</title>
+<meta name="description" content="Missing visual-style option arguments now report usage errors instead of silent violations.">
+<style>
+body { font: 18px/1.6 system-ui, sans-serif; max-width: 960px; margin: 4rem auto; padding: 0 1.5rem; background: #101722; color: #edf2fa; }
+h1 { line-height: 1.2; } h2 { color: #a9d5ff; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #1c293b; padding: 1.5rem; border-radius: 12px; font-size: 15px; }
+code { color: #bbebd2; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Visual-style option values"><meta property="og:description" content="Compare missing-argument diagnostics and exit codes before and after the visual-style pre-flight fix."><meta property="og:url" content="https://orchestkit.dev/lab/visual-style-missing-option-value.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Visual-style option values"><meta name="twitter:description" content="Compare missing-argument diagnostics and exit codes before and after the visual-style pre-flight fix."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<h1>A missing argument is a usage error</h1>
+<p>The visual-style pre-flight now distinguishes malformed invocations (exit 2) from style violations (exit 1). Explicit empty titles remain allowed.</p>
+<h2>Before</h2>
+<pre>$ bin/check-pr-visual-style.sh --title
+stderr: (empty)
+exit: 1
+
+$ bin/check-pr-visual-style.sh --body-file
+stderr: (empty)
+exit: 1
+
+$ bin/check-pr-visual-style.sh --title "feat: x" --body-file
+stderr: (empty)
+exit: 1</pre>
+<h2>After</h2>
+<pre>$ bin/check-pr-visual-style.sh --title
+stderr: --title requires a value
+exit: 2
+
+$ bin/check-pr-visual-style.sh --body-file
+stderr: --body-file requires a value
+exit: 2
+
+$ bin/check-pr-visual-style.sh --title "feat: x" --body-file
+stderr: --body-file requires a value
+exit: 2</pre>
+<h2>Valid input stays clean</h2>
+<pre>$ bin/check-pr-visual-style.sh --title "feat: ok"
+[OK] PR title clean
+Visual-style pre-flight: clean — safe to open the PR.
+stderr: (empty)
+exit: 0</pre>
+<p>Regression coverage: <code>tests/integration/test-visual-style-validator.sh</code>, 19 passed, 0 failed. On unchanged main code the three missing-value checks fail.</p>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
