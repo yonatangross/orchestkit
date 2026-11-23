@@ -142,6 +142,32 @@ describe('hasExcludedDir', () => {
   test('still scans excluded segments on a requested alias outside the root', () => {
     expect(hasExcludedDir('/workspace/dist/alias/file.ts', '/workspace/project')).toBe(true);
   });
+
+  // Opus review of #5363: a session root inside a generated tree is never a
+  // real project root, so its writes stay manual even though the excluded
+  // name sits above the root.
+  test.each([
+    '/workspace/node_modules/pkg',
+    '/workspace/.venv/lib',
+    '/workspace/venv/lib',
+    '/workspace/__pycache__/pkg',
+    '/workspace/.git/worktrees/x',
+    '/workspace/.github/fork',
+    '/workspace/.claude/proj',
+    '/workspace/.husky/proj',
+  ])('refuses a root inside the generated tree %s', (root) => {
+    expect(hasExcludedDir(`${root}/src/a.ts`, root)).toBe(true);
+  });
+
+  test('keeps a root under a build or dist ancestor working (#5363)', () => {
+    expect(hasExcludedDir('/scout/build/myapp/src/a.ts', '/scout/build/myapp')).toBe(false);
+    expect(hasExcludedDir('/scout/dist/tools/src/a.ts', '/scout/dist/tools')).toBe(false);
+  });
+
+  test('an excluded child below a build-named root still refuses', () => {
+    expect(hasExcludedDir('/scout/build/myapp/build/a.ts', '/scout/build/myapp')).toBe(true);
+    expect(hasExcludedDir('/scout/dist/tools/node_modules/x.js', '/scout/dist/tools')).toBe(true);
+  });
 });
 
 describe('resolveRealPath', () => {

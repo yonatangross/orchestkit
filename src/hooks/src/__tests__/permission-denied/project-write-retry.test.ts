@@ -350,6 +350,78 @@ describe('project-write-retry', () => {
       expect(result.hookSpecificOutput?.retry).toBeUndefined();
     });
 
+    test.each(['node_modules', '.venv'])(
+      'does not retry a write whose root sits inside %s, and writes nothing (#5363 follow-up)',
+      (tree) => {
+        // Real temp dirs: the root itself is staged inside a generated
+        // tree on disk, so resolveRealPath sees the same path a session
+        // opened there would.
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-retry-root-'));
+        try {
+          const rootPath = path.join(tmp, tree, 'pkg');
+          fs.mkdirSync(path.join(rootPath, 'src'), { recursive: true });
+          const root = fs.realpathSync(rootPath);
+          const target = path.join(root, 'src', 'a.ts');
+          const result = projectWriteRetry(
+            createDeniedWriteInput(target, { projectDir: root }),
+            testCtx,
+          );
+          expect(result.hookSpecificOutput?.retry).toBeUndefined();
+          expect(fs.existsSync(target)).toBe(false);
+        } finally {
+          fs.rmSync(tmp, { recursive: true, force: true });
+        }
+      },
+    );
+
+    test('retries a plain file under a real project root (control)', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-retry-plain-'));
+      try {
+        const root = fs.realpathSync(tmp);
+        fs.mkdirSync(path.join(root, 'src'), { recursive: true });
+        const result = projectWriteRetry(
+          createDeniedWriteInput(path.join(root, 'src', 'a.ts'), { projectDir: root }),
+          testCtx,
+        );
+        expect(result.hookSpecificOutput?.retry).toBe(true);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    test('retries a real root under a build-named ancestor (keeps #5363)', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-retry-build-'));
+      try {
+        const rootPath = path.join(tmp, 'scout', 'build', 'myapp');
+        fs.mkdirSync(path.join(rootPath, 'src'), { recursive: true });
+        const root = fs.realpathSync(rootPath);
+        const result = projectWriteRetry(
+          createDeniedWriteInput(path.join(root, 'src', 'a.ts'), { projectDir: root }),
+          testCtx,
+        );
+        expect(result.hookSpecificOutput?.retry).toBe(true);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    test('does not retry an excluded folder below a real root (control)', () => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-retry-below-'));
+      try {
+        const root = fs.realpathSync(tmp);
+        fs.mkdirSync(path.join(root, 'node_modules', 'pkg'), { recursive: true });
+        const target = path.join(root, 'node_modules', 'pkg', 'a.ts');
+        const result = projectWriteRetry(
+          createDeniedWriteInput(target, { projectDir: root }),
+          testCtx,
+        );
+        expect(result.hookSpecificOutput?.retry).toBeUndefined();
+        expect(fs.existsSync(target)).toBe(false);
+      } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
     test('does not retry write whose target path crosses a linked parent', () => {
       const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ork-retry-linked-'));
       fs.mkdirSync(path.join(tmp, 'proj'), { recursive: true });

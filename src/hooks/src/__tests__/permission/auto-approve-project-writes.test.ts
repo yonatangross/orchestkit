@@ -110,6 +110,18 @@ describe('auto-approve-project-writes', () => {
     expect(result.hookSpecificOutput).toBeUndefined();
   });
 
+  // Opus review of #5363: a session root inside a generated tree is never a
+  // real project root, so its writes stay manual even under the opt-in.
+  test.each([
+    '/test/scout/node_modules/pkg',
+    '/test/scout/.venv/lib',
+    '/test/scout/venv/lib',
+  ])('does not auto-approve a write whose root sits inside a generated tree %s', (root) => {
+    const result = autoApproveProjectWrites(createWriteInput(`${root}/src/a.ts`, root), testCtx);
+
+    expect(result.hookSpecificOutput?.decision?.behavior).toBeUndefined();
+  });
+
   describe('Excluded directories (should NOT auto-approve)', () => {
     const excludedPaths = [
       '/test/project/node_modules/package/index.js',

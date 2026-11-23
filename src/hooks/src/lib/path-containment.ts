@@ -47,12 +47,38 @@ export function isInsideDir(filePath: string, rootDir: string): boolean {
 }
 
 /**
- * Check for excluded segments at or below the matching root.
+ * Directory names a containing root may never sit inside: generated or
+ * tool-owned trees — dependency dirs, virtualenvs, caches and git/tool
+ * state. A session root inside one is never a real project root, so its
+ * writes stay manual (opus review of #5363). `build` and `dist` are
+ * deliberately absent: they are output-name folders a real root can sit
+ * under, which is the case #5363 fixed.
+ */
+const EXCLUDED_ROOT_TREES = new Set([
+  'node_modules',
+  '__pycache__',
+  '.venv',
+  'venv',
+  '.claude',
+  '.husky',
+]);
+
+/**
+ * Check for excluded segments at or below the matching root, or a generated
+ * tree above it.
  * For a requested symlink path outside that root, still check the full path.
  * Exact EXCLUDED_DIRS matches, plus any segment starting with `.git` (#4220 AF-13).
  * Segment compares are case-insensitive.
  */
 export function hasExcludedDir(filePath: string, rootDir: string): boolean {
+  // The root's own ancestors refuse only the tree names in
+  // EXCLUDED_ROOT_TREES (plus `.git*`): a root inside node_modules/pkg or
+  // .venv/lib approves nothing. The root's own name and anything below it
+  // is the path check below — output-name ancestors stay allowed.
+  for (const part of normalize(dirname(resolve(rootDir))).split(sep).filter(Boolean)) {
+    const lower = part.toLowerCase();
+    if (lower.startsWith('.git') || EXCLUDED_ROOT_TREES.has(lower)) return true;
+  }
   const pathToCheck = isInsideDir(filePath, rootDir)
     ? relative(dirname(resolve(rootDir)), filePath)
     : normalize(filePath);
