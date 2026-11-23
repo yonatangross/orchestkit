@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { join } from "node:path";
 import { source } from "@/lib/source";
 import { SITE } from "@/lib/constants";
+import { docsHtmlCanonical } from "@/lib/docs-canonical";
 import { STATIC_PAGES } from "@/lib/static-pages";
 import { gitLastModified, newestUnder } from "@/lib/git-last-modified";
 
@@ -23,7 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const dates = gitLastModified(site, ["app", "content/docs"]);
   const dirDate = (dir: string) => newestUnder(dates, join(site, dir));
 
-  return [
+  const entries: MetadataRoute.Sitemap = [
     {
       url: SITE.domain,
       lastModified: dates.get(join(site, "app/(home)/page.tsx")),
@@ -43,10 +44,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     })),
     ...source.getPages().map((page) => ({
-      url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
+      url: docsHtmlCanonical(page.slugs),
       lastModified: dates.get(join(site, "content/docs", page.path)),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
   ];
+
+  const seen = new Set<string>();
+  return entries.filter(({ url }) => {
+    if (seen.has(url)) return false;
+    seen.add(url);
+    return true;
+  });
 }
