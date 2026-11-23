@@ -61,7 +61,9 @@ The docs API is public, read-only and unauthenticated.
   carries the IETF `RateLimit-*` headers. Formatted `search` shows the remaining
   budget when there are matches and the limit and remaining values are available.
   `search --json`, `ask`, and `read` keep stdout raw. Scripts that need quota
-  information can use the library's returned `rateLimit` value.
+  information can use the library's `rateLimit` value on successful calls.
+  On HTTP 429, the library throws an `ApiError`; use its `retryAfter` value
+  when present to decide when to retry.
 - **Errors**, RFC 9457 Problem Details. `ApiError.problem` exposes the parsed
   object, including the `links` recovery hops a 404 carries.
 - **Versioning and deprecation**, <https://orchestkit.dev/api-policy>.
