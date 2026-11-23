@@ -56,10 +56,15 @@ function shellWords(command: string): (string | null)[] {
       ansiQuote = true;
       started = true;
       i++;
+    } else if (ch === '#' && !started) {
+      // A comment runs to the end of the line. Skipping it keeps an apostrophe in a
+      // trailing comment from reading as an unterminated quote, which would drop
+      // the whole command (the guard disabled itself without saying so).
+      while (i + 1 < command.length && command[i + 1] !== '\n') i++;
     } else if (ch === '"' || ch === "'") {
       quote = ch;
       started = true;
-    } else if (/\s|[;&|()<>]/.test(ch)) {
+    } else if (/\s|[;&|()<>`]/.test(ch)) {
       flush();
       if (!/[^\S\n]/.test(ch)) words.push(null);
     } else {
@@ -72,13 +77,59 @@ function shellWords(command: string): (string | null)[] {
   return words;
 }
 
-/** Find literal gh create invocations and their flags. */
-export function getGhCreateCommands(command: string, long: string, short: string): {
-  kind: 'issue' | 'pr';
-  hasFlag: boolean;
-}[] {
+/** Reserved words that precede a command in a conditional, loop or negation. */
+const SHELL_RESERVED_WORDS: ReadonlySet<string> = new Set([
+  'if', 'then', 'elif', 'else', 'while', 'until', 'do', '!',
+]);
+
+/**
+ * Commands that run their operand as a command: the real command follows the
+ * wrapper's own options. `valued` options take the next word, `duration` is one
+ * positional operand before the command (`timeout 5 gh ...`), `subcommands` are
+ * words that may sit between the wrapper and the command (`rtk proxy gh ...`).
+ * `rtk rewrite` turns `gh issue create` into `rtk gh issue create` on this machine.
+ */
+const WRAPPERS: Readonly<Record<string, {
+  valued?: readonly string[];
+  duration?: boolean;
+  subcommands?: readonly string[];
+}>> = {
+  rtk: { subcommands: ['proxy'] },
+  env: { valued: ['-u', '-C', '-S'] },
+  command: {},
+  exec: { valued: ['-a'] },
+  time: { valued: ['-f', '-o'] },
+  nohup: {},
+  nice: { valued: ['-n'] },
+  sudo: { valued: ['-u', '-g', '-h', '-p', '-C', '-D', '-R', '-T', '-U'] },
+  doas: { valued: ['-u', '-C'] },
+  timeout: { valued: ['-s', '-k'], duration: true },
+  xargs: { valued: ['-I', '-n', '-P', '-L', '-d', '-E', '-s', '-a'] },
+  stdbuf: { valued: ['-i', '-o', '-e'] },
+};
+
+const SHELLS = /(?:^|\/)(?:ba|z|da|k)?sh$/;
+const MAX_NESTING = 3;
+
+/** Drop heredoc bodies: their text is data, and an apostrophe in it would unbalance the quote scan. */
+function stripHeredocBodies(command: string): string {
+  return command.replace(/(<<-?\s*(['"]?)(\w+)\2[^\n]*)\n[\s\S]*?\n[ \t]*\3[ \t]*(?=\n|$)/g, '$1');
+}
+
+type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean };
+
+/**
+ * Find literal gh create invocations and their flags. `nested` is set when the
+ * create sits inside a string another command runs (`bash -c "..."`, `eval ...`):
+ * the flag is still read, but a caller must not append text to the outer command.
+ */
+export function getGhCreateCommands(command: string, long: string, short: string): GhCreate[] {
+  return scanGhCreates(stripHeredocBodies(command), long, short, 0);
+}
+
+function scanGhCreates(command: string, long: string, short: string, depth: number): GhCreate[] {
   const words = shellWords(command);
-  const creates: { kind: 'issue' | 'pr'; hasFlag: boolean }[] = [];
+  const creates: GhCreate[] = [];
   const valuedOptions = new Set([
     '--assignee', '--body', '--body-file', '--label', '--milestone', '--project',
     '--recover', '--template', '--title', '--repo', '--base', '--head', '--reviewer',
@@ -89,7 +140,59 @@ export function getGhCreateCommands(command: string, long: string, short: string
     const word = words[i];
     if (word === null) { executable = true; continue; }
     if (executable && /^[A-Za-z_][A-Za-z0-9_]*=/.test(word)) continue;
-    if (executable && /(?:^|\/)(?:env|command)$/.test(word)) continue;
+    // A shell reserved word (`if gh ...`, `while gh ...`, `! gh ...`) holds the executable slot
+    // but is not the command: the real command follows it, so keep the slot open.
+    if (executable && SHELL_RESERVED_WORDS.has(word)) continue;
+    if (executable) {
+      const name = word.slice(word.lastIndexOf('/') + 1);
+      const wrapper = Object.prototype.hasOwnProperty.call(WRAPPERS, name) ? WRAPPERS[name] : undefined;
+      if (wrapper) {
+        // Skip the wrapper's own options (and its operand), keep the slot open for the command.
+        let j = i + 1;
+        let sawDuration = !wrapper.duration;
+        for (; j < words.length; j++) {
+          const next = words[j];
+          if (next === null) break;
+          if (wrapper.subcommands?.includes(next)) continue;
+          if (name === 'env' && /^[A-Za-z_][A-Za-z0-9_]*=/.test(next)) continue;
+          if (next.startsWith('-') && next.length > 1) {
+            if (wrapper.valued?.includes(next) && words[j + 1] !== null) j++;
+            continue;
+          }
+          if (!sawDuration && /^\d+(?:\.\d+)?[smhd]?$/.test(next)) { sawDuration = true; continue; }
+          break;
+        }
+        i = j - 1;
+        continue;
+      }
+      if (depth < MAX_NESTING && (SHELLS.test(word) || name === 'eval')) {
+        // `bash -c "gh issue create ..."` and `eval gh issue create ...` run a string as a command.
+        let payload: string | undefined;
+        let end = i + 1;
+        if (name === 'eval') {
+          const parts: string[] = [];
+          for (; end < words.length && words[end] !== null; end++) parts.push(words[end] as string);
+          payload = parts.join(' ');
+        } else {
+          for (; end < words.length && words[end] !== null; end++) {
+            if (/^-[A-Za-z]*c[A-Za-z]*$/.test(words[end] as string)) {
+              const next = words[end + 1];
+              if (next !== null && next !== undefined) payload = next;
+              end++;
+              break;
+            }
+          }
+        }
+        if (payload) {
+          for (const inner of scanGhCreates(payload, long, short, depth + 1)) {
+            creates.push({ ...inner, nested: true });
+          }
+        }
+        executable = false;
+        i = Math.max(i, end - 1);
+        continue;
+      }
+    }
     const isExecutable = executable;
     executable = false;
     const kind = words[i + 1];

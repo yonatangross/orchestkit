@@ -53,9 +53,11 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
   if (create.kind === 'issue') {
-    if (isCompoundCommand(command)) {
+    if (isCompoundCommand(command) || create.nested) {
       // Appending --label to a compound string cannot target the right
-      // segment without a real parser, so this stays an advisory.
+      // segment without a real parser, so this stays an advisory. The same
+      // holds for a create inside `bash -c "..."` or `eval`: text appended to
+      // the outer command would reach the shell, not gh.
       const advisory = `[gh-label-enforcer] This \`gh issue create\` has no --label. Add one when you re-run it:
   --label bug        (defect or error)
   --label enhancement (new feature or improvement)
