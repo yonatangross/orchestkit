@@ -617,6 +617,13 @@ function splitTopLevel(text: string): Array<{ text: string; conditional: boolean
   return segments;
 }
 
+/**
+ * A function definition header in front of a segment: `f() `, `f () `, `function f `, `function f() `.
+ * The body is shell the function runs when it is called, so what follows the header is read as a
+ * command of its own: `f() { cd /lw; npm ci; }; f` must not hide the cd behind `f()`.
+ */
+const FUNCTION_HEADER = /^(?:function\s+[A-Za-z_][\w.:+-]*(?:\s*\(\s*\))?|[A-Za-z_][\w.:+-]*\s*\(\s*\))\s*/;
+
 /** A segment whose command is cd or pushd (after assignments and `builtin`/`command`). */
 const CD_SEGMENT = /^(?:[A-Za-z_]\w*=\S+\s+)*(?:(?:builtin|command)\s+)*(?:cd|pushd)(?:\s|$)/;
 
@@ -1135,6 +1142,9 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     // command-local one (`HOME=/h cd ~` expands before the assignment).
     const cands = dynamicCandidates(v);
     if (cands !== null) dirShaky = true;
+    // An operand that still holds a `$` or a backtick after expansion (a positional parameter, a
+    // loop or `read` variable, an unquoted substitution) names a directory the text does not show.
+    if (cands === null && /[$`]/.test(v)) dirShaky = true;
     for (const c of cands ?? [v]) {
       cdArgs.push(c);
       for (const h of c.includes('~') ? tildeHomes : [tildeHome()]) seen.push(resolveDir(base, c, h));
@@ -1151,7 +1161,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     return r;
   };
   for (const rawSeg of splitTopLevel(command)) {
-    let segment = rawSeg.text.trim();
+    let segment = rawSeg.text.trim().replace(FUNCTION_HEADER, '');
     const opens = /^\(+/.exec(segment)?.[0].length ?? 0;
     segment = segment.slice(opens).trim();
     // Counted from the end: a regex for a trailing run rescans the whole run from each of its starts.
