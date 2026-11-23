@@ -108,6 +108,11 @@ class Env:
     idle_minutes: int = DEFAULT_IDLE_MINUTES
     disk_usage: Callable[[Path], tuple[int, int, int]] = shutil.disk_usage  # type: ignore[assignment]
     ledger: Path | None = None
+    # Folders the cleanup never walks or empties: every private lane from any
+    # installed plugin's configs/private-lanes.json plus each lane's
+    # ~/.claude/projects slug dir. Loaded by private_lanes(home); empty when no
+    # such list is installed.
+    lanes: tuple[Path, ...] = ()
 
     @property
     def ledger_path(self) -> Path:
@@ -117,11 +122,14 @@ class Env:
 # --------------------------------------------------------------------- helpers
 
 
-def measure(path: Path, older_than: float | None = None) -> int:
+def measure(path: Path, older_than: float | None = None, lanes: tuple[Path, ...] = ()) -> int:
     """Allocated bytes under path. Never follows symlinks, counts a hardlink once.
 
     With `older_than` (epoch seconds) only files last modified before it count.
+    A private lane is pruned, not counted: another session never reads it.
     """
+    if in_lanes(path, lanes):
+        return 0
     try:
         st = os.lstat(path)
     except OSError:
@@ -143,7 +151,8 @@ def measure(path: Path, older_than: float | None = None) -> int:
         if older_than is not None and st.st_mtime >= older_than:
             return 0
         return add(st)
-    for dirpath, _dirnames, filenames in os.walk(path, followlinks=False):
+    for dirpath, dirnames, filenames in os.walk(path, followlinks=False):
+        dirnames[:] = [d for d in dirnames if not in_lanes(Path(dirpath) / d, lanes)]
         if older_than is None:
             with contextlib.suppress(OSError):
                 total += os.lstat(dirpath).st_blocks * 512
@@ -223,6 +232,67 @@ def inside(path: Path, parent: Path) -> bool:
     except OSError:
         return False
     return rp == rq or rp.startswith(rq + os.sep)
+
+
+# ------------------------------------------------------------------ private lanes
+#
+# A plugin may ship configs/private-lanes.json naming folders no other session
+# may read (the personal-lane-privacy contract). The cleanup sizes and can
+# delete inside home, so it prunes those folders and each lane's
+# ~/.claude/projects slug dir (the slug is the lane path with every non-alnum
+# byte turned to a dash), which the agent-transcripts spec would otherwise
+# measure and offer to delete.
+
+
+def lane_slug(path: Path) -> str:
+    """The ~/.claude/projects dir name for a path."""
+    return re.sub(r"[^A-Za-z0-9]", "-", str(path))
+
+
+def private_lanes(home: Path) -> tuple[Path, ...]:
+    """Resolved private-lane folders plus their projects slug dirs.
+
+    Every installed list contributes (a stale older copy can only widen the
+    set); an absent or unreadable list means no lanes.
+    """
+    out: list[Path] = []
+    projects = home / ".claude" / "projects"
+    cache = home / ".claude" / "plugins" / "cache"
+    for cfg in sorted(cache.glob("*/*/*/configs/private-lanes.json")):
+        try:
+            data = json.loads(cfg.read_text())
+        except (OSError, ValueError):
+            continue
+        entries = data.get("private_lanes") if isinstance(data, dict) else None
+        for entry in entries if isinstance(entries, list) else ():
+            if not isinstance(entry, str) or not entry.strip():
+                continue
+            p = Path(entry)
+            if entry == "~" or entry.startswith("~/"):
+                p = home if entry == "~" else home / entry[2:]
+            if not p.is_absolute():
+                p = home / p
+            out.append(Path(os.path.realpath(p)))
+            out.append(Path(os.path.realpath(projects / lane_slug(p))))
+        # One malformed list fails closed for that file only; the others still
+        # contribute, matching the union-above comment.
+    return tuple(dict.fromkeys(out))
+
+
+def in_lanes(path: Path, lanes: tuple[Path, ...]) -> bool:
+    try:
+        real = os.path.realpath(path)
+    except OSError:
+        return False
+    return any(real == str(lane) or real.startswith(str(lane) + os.sep) for lane in lanes)
+
+
+def lane_prune(lanes: tuple[Path, ...]) -> str:
+    """A find(1) -prune clause skipping every lane dir, or '' when there are none."""
+    if not lanes:
+        return ""
+    conds = " -o ".join(f"-path {shlex.quote(str(lane))}" for lane in lanes)
+    return f"\\( {conds} \\) -prune -o"
 
 
 # --------------------------------------------------------------------- catalog
@@ -351,7 +421,7 @@ CATALOG: tuple[Spec, ...] = (
         "ask",
         ("~/.claude/projects",),
         ("~/.claude/projects",),
-        ask_template="find {p} -type f -mtime +30 -delete",
+        ask_template="find {p} {lanes} -type f -mtime +30 -delete",
     ),
     Spec(
         "codex-sessions",
@@ -428,7 +498,7 @@ def scan_catalog(env: Env, inv: Inventory) -> None:
             )
         if not real:
             continue
-        size = sum(measure(p, cutoff) for p in real)
+        size = sum(measure(p, cutoff, env.lanes) for p in real)
         if size <= 0:
             continue
         refused = next((r for r in (deletable(env, p) for p in real) if r), "")
@@ -436,7 +506,11 @@ def scan_catalog(env: Env, inv: Inventory) -> None:
             quoted = " ".join(
                 shlex.quote(short(env, p).replace("~", str(env.home), 1)) for p in real
             )
-            cmd = spec.ask_template.format(p=quoted) if spec.ask_template else f"rm -rf {quoted}"
+            cmd = (
+                spec.ask_template.format(p=quoted, lanes=lane_prune(env.lanes))
+                if spec.ask_template
+                else f"rm -rf {quoted}"
+            )
             inv.items.append(
                 Item(spec.id, "caches", "ask", spec.label, spec.icon, size, "", "ask", None, cmd)
             )
@@ -636,7 +710,15 @@ def discover_repos(env: Env) -> list[Path]:
                 add(Path(dirpath))
                 dirnames[:] = []
                 continue
-            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS] if depth < 3 else []
+            dirnames[:] = (
+                [
+                    d
+                    for d in dirnames
+                    if d not in SKIP_DIRS and not in_lanes(Path(dirpath) / d, env.lanes)
+                ]
+                if depth < 3
+                else []
+            )
     return list(found.values())
 
 
@@ -748,6 +830,8 @@ def classify_worktree(
 
     if not inside(wt, env.home):
         return keep("outside home")
+    if in_lanes(wt, env.lanes):
+        return keep("private lane")
     if "locked" in entry:
         return keep("locked")
     if default is None:
@@ -781,7 +865,7 @@ def classify_worktree(
     if age < idle:
         return keep(f"touched {max(0, int(age // 60))} min ago")
     head = entry.get("HEAD", "")
-    size = measure(wt)
+    size = measure(wt, None, env.lanes)
     rc, _ = env.runner.run(["git", "merge-base", "--is-ancestor", head, default], cwd=repo)
     if rc == 0:
         return Item(
@@ -894,10 +978,12 @@ class Result:
     estimate: int
 
 
-def clear_dir(path: Path, cutoff: float | None) -> list[str]:
+def clear_dir(path: Path, cutoff: float | None, lanes: tuple[Path, ...] = ()) -> list[str]:
     errors: list[str] = []
     if cutoff is None:
         for child in path.iterdir():
+            if in_lanes(child, lanes):
+                continue
             try:
                 if child.is_symlink() or not child.is_dir():
                     child.unlink()
@@ -908,6 +994,8 @@ def clear_dir(path: Path, cutoff: float | None) -> list[str]:
         return errors
     for dirpath, _dirnames, filenames in os.walk(path, topdown=False, followlinks=False):
         here = Path(dirpath)
+        if in_lanes(here, lanes):
+            continue
         for name in filenames:
             fp = here / name
             try:
@@ -930,7 +1018,7 @@ def do_action(env: Env, item: Item) -> tuple[bool, str]:
             why = deletable(env, Path(p))
             if why:
                 return False, why
-            errors += clear_dir(Path(p), cutoff)
+            errors += clear_dir(Path(p), cutoff, env.lanes)
         return (not errors, "; ".join(errors[:3]) or "cleared")
     if kind == "cmd":
         rc, _ = env.runner.run(list(item.action[1]), timeout=600)  # type: ignore[index]
@@ -1292,6 +1380,7 @@ def _run(
         uid=os.getuid() if hasattr(os, "getuid") else -1,
         idle_minutes=args.idle_minutes,
         ledger=Path(args.ledger) if args.ledger else None,
+        lanes=private_lanes(home),
     )
     if disk_usage:
         env.disk_usage = disk_usage

@@ -282,6 +282,87 @@ def test_transcripts_are_ask_first_with_printed_command(home):
     assert item.action is None
 
 
+# ---------------------------------------------------------------- private lanes
+
+
+def lane_env(home: Path) -> tuple[Path, Path, tuple[Path, ...]]:
+    """A private lane under a fixture home, its projects slug dir, the lanes tuple."""
+    lane = home / ".floor" / "desks" / "personal-desk"
+    lane.mkdir(parents=True)
+    slug_dir = home / ".claude" / "projects" / dc.lane_slug(lane)
+    slug_dir.mkdir(parents=True)
+    lanes = (Path(os.path.realpath(lane)), Path(os.path.realpath(slug_dir)))
+    return lane, slug_dir, lanes
+
+
+def write_lane_list(home: Path, *lanes: str) -> Path:
+    cfg = (
+        home
+        / ".claude"
+        / "plugins"
+        / "cache"
+        / "mp"
+        / "plugin"
+        / "1.0.0"
+        / "configs"
+        / "private-lanes.json"
+    )
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(json.dumps({"private_lanes": list(lanes)}))
+    return cfg
+
+
+def test_private_lanes_loads_the_installed_list_and_slug_dirs(home):
+    lane = home / ".floor" / "desks" / "personal-desk"
+    write_lane_list(home, "~/.floor/desks/personal-desk")
+    got = dc.private_lanes(home)
+    assert Path(os.path.realpath(lane)) in got
+    assert (home / ".claude" / "projects" / dc.lane_slug(lane)) in got
+
+
+def test_private_lanes_without_a_plugin_list_is_empty(home):
+    assert dc.private_lanes(home) == ()
+
+
+def test_measure_prunes_private_lanes(home):
+    _lane, slug_dir, lanes = lane_env(home)
+    write(slug_dir / "s.jsonl", 500_000)
+    write(home / ".claude" / "projects" / "other" / "s.jsonl", 70_000)
+    got = dc.measure(home / ".claude" / "projects", None, lanes)
+    assert got < blocks(slug_dir / "s.jsonl") + 1
+    assert dc.measure(slug_dir, None, lanes) == 0
+
+
+def test_transcript_ask_cmd_prunes_private_lanes(home):
+    _lane, slug_dir, lanes = lane_env(home)
+    write(home / ".claude" / "projects" / "p" / "s.jsonl", 70_000)
+    item = by_id(dc.build_inventory(make_env(home, lanes=lanes)), "agent-transcripts")
+    assert "-prune -o" in item.ask_cmd
+    assert str(slug_dir) in item.ask_cmd
+
+
+def test_discover_repos_skips_private_lanes(home):
+    _lane, _slug_dir, lanes = lane_env(home)
+    inside_repo = home / ".floor" / "desks" / "personal-desk" / "repo"
+    (inside_repo / ".git").mkdir(parents=True)
+    outside_repo = home / "code" / "app"
+    (outside_repo / ".git").mkdir(parents=True)
+    found = dc.discover_repos(make_env(home, roots=[home], lanes=lanes))
+    assert outside_repo in found
+    assert inside_repo not in found
+
+
+def test_clear_dir_never_empties_a_lane_child(tmp_path):
+    lane_child = tmp_path / "lane-child"
+    write(lane_child / "s.jsonl", 10)
+    drop = tmp_path / "normal"
+    write(drop / "f", 10)
+    lanes = (Path(os.path.realpath(lane_child)),)
+    dc.clear_dir(tmp_path, None, lanes)
+    assert (lane_child / "s.jsonl").exists()
+    assert not (drop / "f").exists()
+
+
 # ---------------------------------------------------------------- dry run and apply (caches)
 
 
