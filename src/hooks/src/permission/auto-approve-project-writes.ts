@@ -63,7 +63,7 @@ export function autoApproveProjectWrites(input: HookInput, ctx: HookContext = NO
   for (const rootDir of rootDirs) {
     if (!isInsideDir(filePath, rootDir)) continue;
 
-    if (hasExcludedDir(requestedPath) || hasExcludedDir(filePath)) {
+    if (hasExcludedDir(requestedPath, rootDir) || hasExcludedDir(filePath, rootDir)) {
       ctx.log('auto-approve-project-writes', `Write to excluded directory in: ${rootDir}`);
       return outputSilentSuccess(); // Let user decide
     }

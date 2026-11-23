@@ -1,0 +1,8 @@
+{
+  "slug": "project-write-root",
+  "source": "docs/fix--project-write-root/index.html",
+  "title": "Project writes: check exclusions at the root",
+  "description": "Compare captured write-hook results before and after exclusion checks stop scanning parent directories.",
+  "tags": ["hooks", "permissions", "bugfix"],
+  "date": "2026-11-22"
+}
