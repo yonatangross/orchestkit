@@ -358,6 +358,10 @@ describe("networked commands", () => {
 	});
 
 	it.each([
+		"https://example.test/docs/foundations/overview",
+		"http://example.test/docs/foundations/overview.md?lang=en#install",
+		"docs/foundations/overview",
+		"docs/foundations/overview.md?lang=en#install",
 		"foundations/overview#install",
 		"/docs/foundations/overview#install",
 		"foundations/overview.md#install",
