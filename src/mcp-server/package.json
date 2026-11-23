@@ -5,6 +5,7 @@
   "main": "./dist/server.mjs",
   "scripts": {
     "build": "node esbuild.config.mjs",
+    "test": "npm run build && node --test docs-server.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "engines": {

@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 const DOCS_ORIGIN = process.env.ORCHESTKIT_DOCS_ORIGIN ?? 'https://orchestkit.dev';
+const DOCS_TIMEOUT_MS = 15_000;
 
 type ToolText = { content: Array<{ type: 'text'; text: string }> };
 
@@ -16,7 +17,10 @@ function text(value: string): ToolText {
 }
 
 async function fetchText(url: string, accept: string): Promise<string> {
-  const res = await fetch(url, { headers: { Accept: accept } });
+  const res = await fetch(url, {
+    headers: { Accept: accept },
+    signal: AbortSignal.timeout(DOCS_TIMEOUT_MS),
+  });
   if (!res.ok) {
     throw new Error(`Docs API responded ${res.status} for ${url}`);
   }

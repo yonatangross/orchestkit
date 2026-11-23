@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Docs MCP response timeout</title>
+<meta name="description" content="Recorded stdio Docs MCP tool results with complete and stalled response bodies.">
+<style>
+  :root {
+    --pg-bg: hsl(232 26% 7%); --pg-ink: hsl(220 18% 93%); --pg-muted: hsl(224 18% 73%);
+    --pg-glass: hsl(237 32% 16% / .76); --pg-edge: hsl(238 30% 35%);
+    --pg-accent: hsl(247 85% 81%); --pg-focus: hsl(226 95% 75%);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--pg-ink); background: radial-gradient(ellipse at 20% 0%, hsl(241 43% 19%), transparent 68%), var(--pg-bg); font: 1rem/1.6 system-ui, sans-serif; }
+  main { max-inline-size: 65rem; margin-inline: auto; padding: 48px 24px; }
+  h1 { margin: 12px 0; font-size: clamp(2.25rem, 6vw, 4.25rem); line-height: 1.04; letter-spacing: -.045em; }
+  h2 { margin: 0 0 12px; font-size: 1.1rem; }
+  p { margin: 0; color: var(--pg-muted); }
+  .eyebrow { color: var(--pg-accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .controls { display: flex; gap: 8px; margin-block: 24px 16px; }
+  button { border: 1px solid var(--pg-edge); border-radius: 9px; background: var(--pg-glass); color: var(--pg-ink); padding: 8px 16px; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { color: var(--pg-bg); background: var(--pg-accent); border-color: var(--pg-accent); }
+  button:focus-visible { outline: 2px solid var(--pg-focus); outline-offset: 4px; }
+  .cards { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+  article { min-inline-size: 0; padding: 24px; background: var(--pg-glass); border: 1px solid var(--pg-edge); border-radius: 16px; }
+  pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
+  .notes { display: grid; gap: 12px; margin-block-start: 24px; }
+  #copy-status { margin-inline-start: 8px; }
+  @media (max-width: 45rem) { .cards { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Docs MCP response timeout"><meta property="og:description" content="Compare real stdio Docs MCP probe output before and after bounding stalled upstream response bodies."><meta property="og:url" content="https://orchestkit.dev/lab/mcp-docs-body-timeout.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Docs MCP response timeout"><meta name="twitter:description" content="Compare real stdio Docs MCP probe output before and after bounding stalled upstream response bodies."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Stdio Docs MCP / regression</p>
+    <h1>When the body never finishes</h1>
+    <p>Compare the real built server’s tool results against a loopback HTTP upstream.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Server version">
+    <button type="button" id="before" aria-pressed="true">Before fix</button>
+    <button type="button" id="after" aria-pressed="false">After fix</button>
+  </div>
+  <div class="cards">
+    <article aria-labelledby="complete">
+      <h2 id="complete">Complete response</h2>
+      <pre>GET /docs/ready.md
+control: # Ready</pre>
+    </article>
+    <article aria-labelledby="stalled">
+      <h2 id="stalled">Headers sent, body left open</h2>
+      <pre id="result" aria-live="polite">GET /docs/stall.md
+stalled call: still pending after 20 s
+elapsed: 20.0 s</pre>
+    </article>
+  </div>
+  <div class="notes">
+    <p>Recorded output, not a live request. The 20-second observation limit is from the probe, not the Docs MCP server.</p>
+    <p>After the fix, a 15-second deadline covers both waiting for headers and reading the response body.</p>
+    <pre><code id="command">npm --prefix src/mcp-server ci &amp;&amp; npm --prefix src/mcp-server test</code></pre>
+    <div><button type="button" id="copy">Copy test command</button><span id="copy-status" role="status"></span></div>
+  </div>
+</main>
+<script>
+  const before = document.querySelector('#before');
+  const after = document.querySelector('#after');
+  const result = document.querySelector('#result');
+  const original = result.textContent;
+  const fixed = "GET /docs/stall.md\nstalled call: Could not fetch '/docs/stall': The operation was aborted due to timeout\nelapsed: 15.0 s";
+  function show(isFixed) {
+    before.setAttribute('aria-pressed', String(!isFixed));
+    after.setAttribute('aria-pressed', String(isFixed));
+    result.textContent = isFixed ? fixed : original;
+  }
+  before.addEventListener('click', () => show(false));
+  after.addEventListener('click', () => show(true));
+  document.querySelector('#copy').addEventListener('click', async () => {
+    const status = document.querySelector('#copy-status');
+    try {
+      await navigator.clipboard.writeText(document.querySelector('#command').textContent);
+      status.textContent = 'Copied.';
+    } catch {
+      status.textContent = 'Clipboard unavailable. Select and copy the command above.';
+    }
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
