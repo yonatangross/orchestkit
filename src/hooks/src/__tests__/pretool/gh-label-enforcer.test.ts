@@ -31,16 +31,12 @@ vi.mock('../../lib/common.js', async () => {
       stopReason: msg,
       hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: msg },
     })),
-    outputAllowWithContext: vi.fn((ctx: string) => ({
-      continue: true,
-      suppressOutput: true,
-      hookSpecificOutput: { additionalContext: ctx, hookEventName: 'PreToolUse' },
-    })),
+    outputPreToolAdvisory: vi.fn(actual.outputPreToolAdvisory),
   };
 });
 
 import { ghLabelEnforcer } from '../../pretool/bash/gh-label-enforcer.js';
-import { outputSilentSuccess, outputDeny, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputDeny, outputPreToolAdvisory } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
@@ -63,6 +59,183 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it.each([
+    `gh issue create --title "$(( $(grep -c '(' f) ))"`,
+    `gh issue create --title "$(echo \${title//(/})"`,
+  ])('falls back to an advisory for an opaque computed title: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
+  it.each(['x=$((1<<2))', '(( y <<= 1 ))'])('finds the gh invocation after arithmetic: %s', (arithmetic) => {
+    const result = ghLabelEnforcer(createBashInput(`${arithmetic}\ngh issue create --title x`), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+  });
+
+  it.each(['', ' --label docs'])('handles quoted command-substitution heredocs with trailing flags %s', (flags) => {
+    const command = [
+      'gh issue create --title x --body "$(cat <<\'EOF\'',
+      'A literal " and a lone ` with --label foo --milestone fake',
+      'gh issue create --title example',
+      'EOF',
+      `)"${flags}`,
+    ].join('\n');
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    if (flags) {
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+    } else {
+      expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+      expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    }
+  });
+
+  it('finds the invocation after a comment mentioning its heredoc', () => {
+    const command = "# uses <<'ISSUE-BODY' below\ngh issue create --title x <<'ISSUE-BODY'\nbody\nISSUE-BODY";
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+  });
+
+  it('ignores gh examples and lone backticks in dotted-delimiter heredocs', () => {
+    const command = "cat <<'END.BODY'\nA lone `\ngh issue create --title x\nEND.BODY";
+    ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each(["'ISSUE-BODY'", '"ISSUE-BODY"'])('advises before a quoted heredoc with a lone backtick: %s', (delimiter) => {
+    const command = `gh issue create --title x --body-file - <<${delimiter}\nA lone \` in the body\nISSUE-BODY`;
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it.each([
+    'gh issue create --title Fix\\ #123',
+    'gh issue create --title "Fix "#123',
+    "gh issue create --title 'Fix '#123",
+    'gh issue create --title Fix\\ #123 # note',
+  ])('recognizes comments only at shell word starts: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    if (command.endsWith('# note')) {
+      expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+      expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    } else {
+      expect(result.hookSpecificOutput?.updatedInput?.command).toMatch(/ --label \w+$/);
+    }
+  });
+
+  it('preserves flags following an unquoted backtick argument', () => {
+    ghLabelEnforcer(createBashInput('gh issue create --title `date` --label bug --milestone v1'), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'gh issue create --title "Fix # crash"',
+    'gh issue create --title "Fix & crash"',
+    'gh issue create --title a#b',
+    'gh issue create --title \\#note',
+  ])('still rewrites when shell suffix characters are literal: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.updatedInput?.command).toMatch(/ --label \w+$/);
+  });
+
+  it.each([
+    'nohup gh issue create --title x &',
+    'gh issue create --title x # note',
+    "gh issue create --title x # don't forget",
+  ])('advises without appending after shell syntax: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
+  it.each([
+    'gh pr create --title x --body "ls -l output"',
+    'gh pr create --title x',
+  ])('advises without granting permission: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('--label');
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
+  it.each([
+    'gh pr create --label docs && gh issue create --title x',
+    'gh pr create --title y && gh issue create --title x',
+    'gh issue create --label docs; gh issue create --title x',
+  ])('advises about the unlabeled issue without rewriting compound input: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it.each(['env FOO=1', 'command', 'VAR=val', 'rtk', 'timeout 30', 'sudo', 'nohup', 'time', 'env -i'])(
+    'enforces a missing flag through %s',
+    (prefix) => {
+      const result = ghLabelEnforcer(createBashInput(`${prefix} gh issue create --title "Fix crash"`), testCtx);
+      expect(result.hookSpecificOutput?.updatedInput?.command).toContain(' --label bug');
+    },
+  );
+
+  it.each([
+    'bash -c "gh issue create --title \'Fix crash\'"',
+    "eval 'gh issue create --title x'",
+  ])('advises, and does not append to the outer command, for a create inside a string: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it('stays silent for a wrapped create that already has a label', () => {
+    ghLabelEnforcer(createBashInput('rtk gh issue create --title "Fix crash" --label bug'), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'git commit -m "Document gh issue create --label bug"',
+    'git commit -m "Document gh issue create"',
+    'echo gh issue create',
+    "gh issue create --body $'It\\'s ready' --label docs",
+    '/usr/bin/gh issue create --label docs',
+  ])('silently preserves reviewed input: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it.each([
+    '--label bug', '--label=bug', '--label="help wanted"',
+    "-l 'help wanted'", '-lbug', '-l=bug',
+    '--label help\\ wanted',
+    '--body "say \\"hello\\"" --label=bug',
+  ])('recognizes argv flag %s', (option) => {
+    ghLabelEnforcer(createBashInput(`gh issue create --title "Fix crash" ${option}`), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '--body "ls -l output"',
+    "--title '--label bug'",
+    '--body "--label=bug"',
+    '--body "-lbug"',
+    '--body "--label"',
+    '-- --label bug',
+    '--label ""',
+    '--label',
+    '',
+  ])('does not treat payload or missing values as flags: %s', (option) => {
+    const result = ghLabelEnforcer(createBashInput(`gh issue create ${option}`), testCtx);
+    expect(result.hookSpecificOutput?.updatedInput?.command).toMatch(/ --label (bug|chore)$/);
+  });
+
   beforeEach(() => {
     testCtx = createTestContext();
     vi.clearAllMocks();
@@ -195,7 +368,7 @@ describe('gh-label-enforcer', () => {
       const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputAllowWithContext).not.toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     });
   });
 
@@ -241,7 +414,7 @@ describe('gh-label-enforcer', () => {
       const result = ghLabelEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputAllowWithContext).toHaveBeenCalled();
+      expect(outputPreToolAdvisory).toHaveBeenCalled();
       expect(outputDeny).not.toHaveBeenCalled();
     });
 
@@ -249,7 +422,7 @@ describe('gh-label-enforcer', () => {
       const input = createBashInput('gh pr create --title "My PR"');
       ghLabelEnforcer(input, testCtx);
 
-      const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
+      const ctxCall = vi.mocked(outputPreToolAdvisory).mock.calls[0][0];
       expect(ctxCall).toContain('--label');
     });
 
@@ -271,7 +444,7 @@ describe('gh-label-enforcer', () => {
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
-      expect(outputAllowWithContext).not.toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     });
 
     it('returns silent success for gh pr create with -l shorthand', () => {

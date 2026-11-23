@@ -1,0 +1,8 @@
+{
+  "slug": "gh-enforcer-equals-flags",
+  "source": "docs/fix--gh-enforcer-equals-flags/index.html",
+  "title": "GitHub flags: arguments, not body text",
+  "description": "Built PreToolUse runner outputs before and after argv-aware label and milestone detection.",
+  "tags": ["hooks", "bugfix", "github"],
+  "date": "2026-11-22"
+}

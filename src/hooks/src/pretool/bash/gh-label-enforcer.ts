@@ -13,11 +13,10 @@
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
   outputPreToolAdvisory,
 } from '../../lib/common.js';
-import { isCompoundCommand } from '../../lib/normalize-command.js';
-import { hasExplicitRepoTarget, inferIssueLabel } from '../../lib/gh-command.js';
+import { hasBackgroundOperator, isCompoundCommand } from '../../lib/normalize-command.js';
+import { hasExplicitRepoTarget, getGhCreateCommands, hasShellComment, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -27,18 +26,10 @@ import { NOOP_CTX } from '../../lib/context.js';
 export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
-  // Only process gh issue create or gh pr create
-  const isIssueCreate = /gh\s+issue\s+create/.test(command);
-  const isPRCreate = /gh\s+pr\s+create/.test(command);
-
-  if (!isIssueCreate && !isPRCreate) {
-    return outputSilentSuccess();
-  }
-
-  // Check if --label or -l flag is present
-  const hasLabel = /--label\s+\S+|-l\s+\S+/.test(command);
-
-  if (hasLabel) {
+  const creates = getGhCreateCommands(command, '--label', '-l');
+  const create = creates.find(create => create.kind === 'issue' && !create.hasFlag)
+    ?? creates.find(create => !create.hasFlag);
+  if (!create || create.hasFlag) {
     return outputSilentSuccess();
   }
 
@@ -61,10 +52,13 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // a labelling preference is not a trade this hook gets to make — a missing
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
-  if (isIssueCreate) {
-    if (isCompoundCommand(command)) {
+  if (create.kind === 'issue') {
+    if (isCompoundCommand(command) || create.nested || create.advisoryOnly || hasBackgroundOperator(command)
+      || hasShellComment(command)) {
       // Appending --label to a compound string cannot target the right
-      // segment without a real parser, so this stays an advisory.
+      // segment without a real parser, so this stays an advisory. The same
+      // holds for a create inside `bash -c "..."` or `eval`: text appended to
+      // the outer command would reach the shell, not gh.
       const advisory = `[gh-label-enforcer] This \`gh issue create\` has no --label. Add one when you re-run it:
   --label bug        (defect or error)
   --label enhancement (new feature or improvement)
@@ -102,5 +96,5 @@ discard the earlier segments without running them.)`;
   // PR creation: WARN (advisory)
   const context = 'Consider adding --label to categorize this PR (bug, enhancement, chore, docs).';
   ctx.log('gh-label-enforcer', 'Advisory: gh pr create without --label');
-  return outputAllowWithContext(context);
+  return outputPreToolAdvisory(context);
 }

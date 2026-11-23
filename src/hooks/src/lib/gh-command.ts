@@ -25,6 +25,285 @@ export function hasExplicitRepoTarget(command: string): boolean {
   return /(^|[\s;|&])(--repo|-R)[=\s]+\S+/.test(command) || /(^|[\s;|&])GH_REPO=\S+/.test(command);
 }
 
+/** Read literal shell words without splitting quoted argument payloads. */
+function shellWords(command: string, substitutions: string[], onComment?: () => void, closingParen?: { end?: number }): (string | null)[] {
+  const words: (string | null)[] = [];
+  let word = '';
+  let started = false;
+  let quote = '';
+  let ansiQuote = false;
+  let parentheses = 0;
+  let heredoc: { stripTabs: boolean } | undefined;
+  const heredocs: { delimiter: string; stripTabs: boolean }[] = [];
+  const flush = () => {
+    if (started) {
+      if (heredoc) {
+        heredocs.push({ delimiter: word, ...heredoc });
+        heredoc = undefined;
+      } else words.push(word);
+    }
+    word = '';
+    started = false;
+  };
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    if (ch === '\\' && (quote !== "'" || ansiQuote)) {
+      const next = command[i + 1];
+      if (next === undefined) return [];
+      if (!quote || ansiQuote || /["\\$`\n]/.test(next)) {
+        i++;
+        if (next !== '\n') { word += next; started = true; }
+        continue;
+      }
+    }
+    const arithmeticStart = !quote && command.startsWith('((', i) ? i + 2
+      : quote !== "'" && command.startsWith('$((', i) ? i + 3 : undefined;
+    if (arithmeticStart !== undefined && !heredoc) {
+      let depth = 2;
+      let end = arithmeticStart;
+      for (; end < command.length && depth > 0; end++) {
+        if (command[end] === '(') depth++;
+        else if (command[end] === ')') depth--;
+      }
+      if (depth !== 0) return [];
+      word += command.slice(i, end);
+      started = true;
+      i = end - 1;
+    } else if (ch === '$' && command[i + 1] === '(' && quote !== "'" && !heredoc) {
+      const nested: { end?: number } = {};
+      shellWords(command.slice(i + 2), [], undefined, nested);
+      if (nested.end === undefined) return [];
+      const end = i + 2 + nested.end;
+      substitutions.push(command.slice(i + 2, end));
+      word += command.slice(i, end + 1);
+      started = true;
+      i = end;
+    } else if (!quote && ch === ')' && closingParen && parentheses === 0) {
+      closingParen.end = i;
+      flush();
+      return words;
+    } else if (ch === '`' && quote !== "'" && !heredoc) {
+      // A backtick still executes inside "..." (only '...' is literal), so it
+      // must reach this branch before the quote consume below; a create hiding
+      // in "`gh issue create`" would otherwise vanish from the scan.
+      let end = i + 1;
+      for (; end < command.length && command[end] !== '`'; end++) {
+        if (command[end] === '\\') end++;
+      }
+      if (end >= command.length) {
+        word += ch;
+        started = true;
+        continue;
+      }
+      substitutions.push(command.slice(i + 1, end));
+      word += command.slice(i, end + 1);
+      started = true;
+      i = end;
+    } else if (quote) {
+      if (ch === quote) { quote = ''; ansiQuote = false; }
+      else word += ch;
+    } else if (ch === '$' && command[i + 1] === "'") {
+      quote = "'";
+      ansiQuote = true;
+      started = true;
+      i++;
+    } else if (ch === '#' && !started) {
+      onComment?.();
+      // A comment runs to the end of the line. Skipping it keeps an apostrophe in a
+      // trailing comment from reading as an unterminated quote, which would drop
+      // the whole command (the guard disabled itself without saying so).
+      while (i + 1 < command.length && command[i + 1] !== '\n') i++;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      started = true;
+    } else if (ch === '<' && command[i + 1] === '<') {
+      flush();
+      words.push(null);
+      if (command[i + 2] === '<') i += 2;
+      else {
+        heredoc = { stripTabs: command[i + 2] === '-' };
+        i += heredoc.stripTabs ? 2 : 1;
+      }
+    } else if (/\s|[;&|()<>]/.test(ch)) {
+      if (ch === '(') parentheses++;
+      else if (ch === ')') parentheses--;
+      flush();
+      if (!/[^\S\n]/.test(ch)) words.push(null);
+      if (ch === '\n') {
+        for (const { delimiter, stripTabs } of heredocs.splice(0)) {
+          let start = i + 1;
+          while (start < command.length) {
+            const newline = command.indexOf('\n', start);
+            const end = newline === -1 ? command.length : newline;
+            const line = command.slice(start, end);
+            i = end;
+            if ((stripTabs ? line.replace(/^\t+/, '') : line) === delimiter) break;
+            start = end + 1;
+          }
+        }
+      }
+    } else {
+      word += ch;
+      started = true;
+    }
+  }
+  if (quote) return [];
+  flush();
+  return words;
+}
+
+export function hasShellComment(command: string): boolean {
+  let found = false;
+  shellWords(command, [], () => { found = true; });
+  return found;
+}
+
+/** Reserved words that precede a command in a conditional, loop or negation. */
+const SHELL_RESERVED_WORDS: ReadonlySet<string> = new Set([
+  'if', 'then', 'elif', 'else', 'while', 'until', 'do', '!',
+]);
+
+/**
+ * Commands that run their operand as a command: the real command follows the
+ * wrapper's own options. `valued` options take the next word, `duration` is one
+ * positional operand before the command (`timeout 5 gh ...`), `subcommands` are
+ * words that may sit between the wrapper and the command (`rtk proxy gh ...`).
+ * `rtk rewrite` turns `gh issue create` into `rtk gh issue create` on this machine.
+ */
+const WRAPPERS: Readonly<Record<string, {
+  valued?: readonly string[];
+  duration?: boolean;
+  subcommands?: readonly string[];
+}>> = {
+  rtk: { subcommands: ['proxy'] },
+  env: { valued: ['-u', '-C', '-S'] },
+  command: {},
+  exec: { valued: ['-a'] },
+  time: { valued: ['-f', '-o'] },
+  nohup: {},
+  nice: { valued: ['-n'] },
+  sudo: { valued: ['-u', '-g', '-h', '-p', '-C', '-D', '-R', '-T', '-U'] },
+  doas: { valued: ['-u', '-C'] },
+  timeout: { valued: ['-s', '-k'], duration: true },
+  xargs: { valued: ['-I', '-n', '-P', '-L', '-d', '-E', '-s', '-a'] },
+  stdbuf: { valued: ['-i', '-o', '-e'] },
+};
+
+const SHELLS = /(?:^|\/)(?:ba|z|da|k)?sh$/;
+const MAX_NESTING = 3;
+
+type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean; advisoryOnly?: boolean };
+
+/**
+ * Find literal gh create invocations and their flags. `nested` is set when the
+ * create sits inside a string another command runs (`bash -c "..."`, `eval ...`):
+ * the flag is still read, but a caller must not append text to the outer command.
+ */
+export function getGhCreateCommands(command: string, long: string, short: string): GhCreate[] {
+  return scanGhCreates(command, long, short, 0);
+}
+
+function scanGhCreates(command: string, long: string, short: string, depth: number): GhCreate[] {
+  const substitutions: string[] = [];
+  const words = shellWords(command, substitutions);
+  const creates: GhCreate[] = [];
+  if (words.length === 0) {
+    const hasFlag = new RegExp(`(?:${long}(?:\\s+|=)|${short}\\s+)\\S+`).test(command);
+    for (const match of command.matchAll(/\bgh\s+(issue|pr)\s+create\b/g)) {
+      creates.push({ kind: match[1] as 'issue' | 'pr', hasFlag, advisoryOnly: true });
+    }
+    return creates;
+  }
+  if (depth < MAX_NESTING) {
+    for (const payload of substitutions) creates.push(...scanGhCreates(payload, long, short, depth + 1));
+  }
+  const valuedOptions = new Set([
+    '--assignee', '--body', '--body-file', '--label', '--milestone', '--project',
+    '--recover', '--template', '--title', '--repo', '--base', '--head', '--reviewer',
+    '-a', '-b', '-F', '-l', '-m', '-p', '-T', '-t', '-R', '-B', '-H', '-r',
+  ]);
+  let executable = true;
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    if (word === null) { executable = true; continue; }
+    if (executable && /^[A-Za-z_][A-Za-z0-9_]*=/.test(word)) continue;
+    // A shell reserved word (`if gh ...`, `while gh ...`, `! gh ...`) holds the executable slot
+    // but is not the command: the real command follows it, so keep the slot open.
+    if (executable && SHELL_RESERVED_WORDS.has(word)) continue;
+    if (executable) {
+      const name = word.slice(word.lastIndexOf('/') + 1);
+      const wrapper = Object.hasOwn(WRAPPERS, name) ? WRAPPERS[name] : undefined;
+      if (wrapper) {
+        // Skip the wrapper's own options (and its operand), keep the slot open for the command.
+        let j = i + 1;
+        let sawDuration = !wrapper.duration;
+        for (; j < words.length; j++) {
+          const next = words[j];
+          if (next === null) break;
+          if (wrapper.subcommands?.includes(next)) continue;
+          if (name === 'env' && /^[A-Za-z_][A-Za-z0-9_]*=/.test(next)) continue;
+          if (next.startsWith('-') && next.length > 1) {
+            if (wrapper.valued?.includes(next) && words[j + 1] !== null) j++;
+            continue;
+          }
+          if (!sawDuration && /^\d+(?:\.\d+)?[smhd]?$/.test(next)) { sawDuration = true; continue; }
+          break;
+        }
+        i = j - 1;
+        continue;
+      }
+      if (depth < MAX_NESTING && (SHELLS.test(word) || name === 'eval')) {
+        // `bash -c "gh issue create ..."` and `eval gh issue create ...` run a string as a command.
+        let payload: string | undefined;
+        let end = i + 1;
+        if (name === 'eval') {
+          const parts: string[] = [];
+          for (; end < words.length && words[end] !== null; end++) parts.push(words[end] as string);
+          payload = parts.join(' ');
+        } else {
+          for (; end < words.length && words[end] !== null; end++) {
+            if (/^-[A-Za-z]*c[A-Za-z]*$/.test(words[end] as string)) {
+              const next = words[end + 1];
+              if (next !== null && next !== undefined) payload = next;
+              end++;
+              break;
+            }
+          }
+        }
+        if (payload) {
+          for (const inner of scanGhCreates(payload, long, short, depth + 1)) {
+            creates.push({ ...inner, nested: true });
+          }
+        }
+        executable = false;
+        i = Math.max(i, end - 1);
+        continue;
+      }
+    }
+    const isExecutable = executable;
+    executable = false;
+    const kind = words[i + 1];
+    if (!isExecutable || !/(?:^|\/)gh$/.test(word) || (kind !== 'issue' && kind !== 'pr') || words[i + 2] !== 'create') continue;
+    let hasFlag = false;
+    for (let j = i + 3; j < words.length && words[j] !== null && words[j] !== '--'; j++) {
+      const word = words[j] ?? '';
+      if (word === long || word === short) {
+        const value = words[j + 1];
+        if (value && !value.startsWith('-')) hasFlag = true;
+        if (value !== null && value !== undefined) j++;
+      } else if (word.startsWith(`${long}=`)) {
+        if (word.length > long.length + 1) hasFlag = true;
+      } else if (word.startsWith(short) && word !== short) {
+        if (word.slice(short.length).replace(/^=/, '')) hasFlag = true;
+      } else if (valuedOptions.has(word)) {
+        if (words[j + 1] !== null) j++;
+      }
+    }
+    creates.push({ kind, hasFlag });
+  }
+  return creates;
+}
+
 /**
  * Ordered, first-match-wins. docs outranks bug so "fix typo in README"
  * lands as docs, not bug.
