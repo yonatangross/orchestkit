@@ -99,7 +99,7 @@ describe('project-write-retry', () => {
   test.each([
     ['/test/scout/build/myapp', undefined],
     ['/test/scout/dist/tools', ['/test/scout/dist/tools']],
-  ])('ignores excluded ancestors of the containing root %s', (root, addedDirs) => {
+  ])('ignores build-output ancestors of the containing root %s', (root, addedDirs) => {
     const input = createDeniedWriteInput(`${root}/src/a.ts`, {
       projectDir: addedDirs ? '/test/project' : root,
       addedDirs,
@@ -108,6 +108,19 @@ describe('project-write-retry', () => {
 
     expect(result.hookSpecificOutput?.retry).toBe(true);
   });
+
+  test.each(['.claude', '.git', '.husky', '.ClAuDe', '.GiThUb', '.HuSkY'])(
+    'does not retry a write under a protected ancestor %s',
+    (ancestor) => {
+      const root = `/test/scout/${ancestor}/myapp`;
+      const filePath = `${root}/src/a.ts`;
+      const projectRootInput = createDeniedWriteInput(filePath, { projectDir: root });
+      const addedRootInput = createDeniedWriteInput(filePath, { addedDirs: [root] });
+
+      expect(projectWriteRetry(projectRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+      expect(projectWriteRetry(addedRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+    },
+  );
 
   test('does not retry an excluded child of a project under build', () => {
     const projectDir = '/test/scout/build/myapp';
