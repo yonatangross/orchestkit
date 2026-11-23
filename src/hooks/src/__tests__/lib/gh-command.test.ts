@@ -15,6 +15,37 @@ import { getGhCreateCommands } from '../../lib/gh-command.js';
 
 const find = (command: string) => getGhCreateCommands(command, '--label', '-l');
 
+describe('getGhCreateCommands: tokenized heredocs', () => {
+  it.each(["'END.BODY'", '"END.BODY"', 'END\\.BODY', 'E"ND".BODY'])('removes quoting from delimiter %s', (delimiter) => {
+    expect(find(`cat <<${delimiter}\nA lone \` and an apostrophe's payload\ngh issue create --title example\nEND.BODY\ngh issue create --label docs`)).toEqual([
+      { kind: 'issue', hasFlag: true },
+    ]);
+  });
+
+  it('skips multiple queued bodies in order, including an empty body', () => {
+    expect(find("cat <<'ONE' <<-TWO\nONE\n\tgh issue create --title example\n\tTWO\ngh issue create --label docs")).toEqual([
+      { kind: 'issue', hasFlag: true },
+    ]);
+  });
+
+  it('does not treat quoted heredoc examples or here-strings as operators', () => {
+    expect(find('echo "<<EOF"\ngh issue create --label docs')).toEqual([{ kind: 'issue', hasFlag: true }]);
+    expect(find('cat <<< data\ngh issue create --label docs')).toEqual([{ kind: 'issue', hasFlag: true }]);
+  });
+
+  it('does not queue a heredoc from a shell comment', () => {
+    expect(find("# uses <<'ISSUE-BODY' below\ngh issue create --title x <<'ISSUE-BODY'\nbody\nISSUE-BODY")).toEqual([
+      { kind: 'issue', hasFlag: false },
+    ]);
+  });
+
+  it('keeps the preceding invocation when the heredoc delimiter is missing', () => {
+    expect(find("gh issue create --title x <<'END.BODY'\nA lone `\ngh issue create --title example")).toEqual([
+      { kind: 'issue', hasFlag: false },
+    ]);
+  });
+});
+
 describe('getGhCreateCommands: backtick arguments', () => {
   it.each(['`date`', 'prefix`printf "two words"`suffix', '``'])('reads flags after %s', (title) => {
     expect(find(`gh issue create --title ${title} --label bug`)).toEqual([{ kind: 'issue', hasFlag: true }]);

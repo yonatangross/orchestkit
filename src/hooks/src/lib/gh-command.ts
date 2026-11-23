@@ -32,8 +32,15 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
   let started = false;
   let quote = '';
   let ansiQuote = false;
+  let heredoc: { stripTabs: boolean } | undefined;
+  const heredocs: { delimiter: string; stripTabs: boolean }[] = [];
   const flush = () => {
-    if (started) words.push(word);
+    if (started) {
+      if (heredoc) {
+        heredocs.push({ delimiter: word, ...heredoc });
+        heredoc = undefined;
+      } else words.push(word);
+    }
     word = '';
     started = false;
   };
@@ -65,7 +72,7 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
     } else if (ch === '"' || ch === "'") {
       quote = ch;
       started = true;
-    } else if (ch === '`') {
+    } else if (ch === '`' && !heredoc) {
       let end = i + 1;
       for (; end < command.length && command[end] !== '`'; end++) {
         if (command[end] === '\\') end++;
@@ -79,9 +86,30 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
       word += command.slice(i, end + 1);
       started = true;
       i = end;
+    } else if (ch === '<' && command[i + 1] === '<') {
+      flush();
+      words.push(null);
+      if (command[i + 2] === '<') i += 2;
+      else {
+        heredoc = { stripTabs: command[i + 2] === '-' };
+        i += heredoc.stripTabs ? 2 : 1;
+      }
     } else if (/\s|[;&|()<>]/.test(ch)) {
       flush();
       if (!/[^\S\n]/.test(ch)) words.push(null);
+      if (ch === '\n') {
+        for (const { delimiter, stripTabs } of heredocs.splice(0)) {
+          let start = i + 1;
+          while (start < command.length) {
+            const newline = command.indexOf('\n', start);
+            const end = newline === -1 ? command.length : newline;
+            const line = command.slice(start, end);
+            i = end;
+            if ((stripTabs ? line.replace(/^\t+/, '') : line) === delimiter) break;
+            start = end + 1;
+          }
+        }
+      }
     } else {
       word += ch;
       started = true;
@@ -132,11 +160,6 @@ const WRAPPERS: Readonly<Record<string, {
 const SHELLS = /(?:^|\/)(?:ba|z|da|k)?sh$/;
 const MAX_NESTING = 3;
 
-/** Drop heredoc bodies: their text is data, and an apostrophe in it would unbalance the quote scan. */
-function stripHeredocBodies(command: string): string {
-  return command.replace(/(<<-?\s*(['"]?)([\w-]+)\2[^\n]*)\n[\s\S]*?\n[ \t]*\3[ \t]*(?=\n|$)/g, '$1');
-}
-
 type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean };
 
 /**
@@ -145,7 +168,7 @@ type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean };
  * the flag is still read, but a caller must not append text to the outer command.
  */
 export function getGhCreateCommands(command: string, long: string, short: string): GhCreate[] {
-  return scanGhCreates(stripHeredocBodies(command), long, short, 0);
+  return scanGhCreates(command, long, short, 0);
 }
 
 function scanGhCreates(command: string, long: string, short: string, depth: number): GhCreate[] {

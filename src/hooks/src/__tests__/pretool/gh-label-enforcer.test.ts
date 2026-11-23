@@ -59,6 +59,19 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it('finds the invocation after a comment mentioning its heredoc', () => {
+    const command = "# uses <<'ISSUE-BODY' below\ngh issue create --title x <<'ISSUE-BODY'\nbody\nISSUE-BODY";
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+  });
+
+  it('ignores gh examples and lone backticks in dotted-delimiter heredocs', () => {
+    const command = "cat <<'END.BODY'\nA lone `\ngh issue create --title x\nEND.BODY";
+    ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
   it.each(["'ISSUE-BODY'", '"ISSUE-BODY"'])('advises before a quoted heredoc with a lone backtick: %s', (delimiter) => {
     const command = `gh issue create --title x --body-file - <<${delimiter}\nA lone \` in the body\nISSUE-BODY`;
     const result = ghLabelEnforcer(createBashInput(command), testCtx);
