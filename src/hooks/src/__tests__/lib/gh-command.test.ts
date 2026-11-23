@@ -136,6 +136,23 @@ describe('getGhCreateCommands: backtick arguments', () => {
   it('does not scan literal backticks inside single quotes as commands', () => {
     expect(find("echo '`gh issue create --title x`'")).toEqual([]);
   });
+
+  it.each([
+    'echo "`gh issue create --title x`"',
+    'echo "log: `gh issue create --label bug` done"',
+    'x="`gh pr create --title y`"',
+  ])('scans backticks inside double quotes as commands: %s', (command) => {
+    expect(find(command)).toEqual([
+      { kind: command.includes('pr') ? 'pr' : 'issue', hasFlag: command.includes('--label') },
+    ]);
+  });
+
+  it.each([
+    'echo "\\`gh issue create --title x\\`"',
+    "echo $'`gh issue create --title x`'",
+  ])('keeps escaped or ANSI-quoted backticks literal: %s', (command) => {
+    expect(find(command)).toEqual([]);
+  });
 });
 
 describe('getGhCreateCommands: gh create behind a shell reserved word', () => {

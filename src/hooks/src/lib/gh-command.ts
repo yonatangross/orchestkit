@@ -82,6 +82,23 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
       closingParen.end = i;
       flush();
       return words;
+    } else if (ch === '`' && quote !== "'" && !heredoc) {
+      // A backtick still executes inside "..." (only '...' is literal), so it
+      // must reach this branch before the quote consume below; a create hiding
+      // in "`gh issue create`" would otherwise vanish from the scan.
+      let end = i + 1;
+      for (; end < command.length && command[end] !== '`'; end++) {
+        if (command[end] === '\\') end++;
+      }
+      if (end >= command.length) {
+        word += ch;
+        started = true;
+        continue;
+      }
+      substitutions.push(command.slice(i + 1, end));
+      word += command.slice(i, end + 1);
+      started = true;
+      i = end;
     } else if (quote) {
       if (ch === quote) { quote = ''; ansiQuote = false; }
       else word += ch;
@@ -99,20 +116,6 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
     } else if (ch === '"' || ch === "'") {
       quote = ch;
       started = true;
-    } else if (ch === '`' && !heredoc) {
-      let end = i + 1;
-      for (; end < command.length && command[end] !== '`'; end++) {
-        if (command[end] === '\\') end++;
-      }
-      if (end >= command.length) {
-        word += ch;
-        started = true;
-        continue;
-      }
-      substitutions.push(command.slice(i + 1, end));
-      word += command.slice(i, end + 1);
-      started = true;
-      i = end;
     } else if (ch === '<' && command[i + 1] === '<') {
       flush();
       words.push(null);
