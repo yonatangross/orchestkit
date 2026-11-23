@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-docs-body-timeout",
+  "source": "docs/fix--mcp-docs-body-timeout/index.html",
+  "title": "Docs MCP response timeout",
+  "description": "Compare real stdio Docs MCP probe output before and after bounding stalled upstream response bodies.",
+  "tags": ["mcp", "docs", "timeout"],
+  "date": "2026-11-23"
+}
