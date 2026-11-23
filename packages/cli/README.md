@@ -58,8 +58,10 @@ console.log(results[0]?.url, `${rateLimit.remaining}/${rateLimit.limit} left`);
 The docs API is public, read-only and unauthenticated.
 
 - **Rate limits**, 120 requests per minute per IP per endpoint. Every response
-  carries the IETF `RateLimit-*` headers; the CLI surfaces the remaining budget
-  after each call so scripts can pace themselves instead of probing.
+  carries the IETF `RateLimit-*` headers. Formatted `search` shows the remaining
+  budget when there are matches and the limit and remaining values are available.
+  `search --json`, `ask`, and `read` keep stdout raw. Scripts that need quota
+  information can use the library's returned `rateLimit` value.
 - **Errors**, RFC 9457 Problem Details. `ApiError.problem` exposes the parsed
   object, including the `links` recovery hops a 404 carries.
 - **Versioning and deprecation**, <https://orchestkit.dev/api-policy>.
