@@ -1,0 +1,11 @@
+{
+  "slug": "npm-ci-guard-five-shapes",
+  "source": "docs/test--npm-ci-guard-five-shapes/five-shapes.html",
+  "title": "Five findings the repro pass could not reproduce, and two gaps found beside them",
+  "description": "Pick a command and a linked-worktree setup to see what the npm ci guard says on main and on this branch. Five Vercel findings were already blocked; a function header and a prefix the text does not show were not.",
+  "tags": [
+    "hooks",
+    "security"
+  ],
+  "date": "2026-11-23"
+}
