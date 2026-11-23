@@ -256,6 +256,50 @@ else
 fi
 rm -rf "$FIXTURE"
 
+echo ""
+echo "=== 8. reclaim preserves paths containing newlines ==="
+NL_FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/ork-reclaim-nl.XXXXXX")
+NL_FIXTURE=$(cd "$NL_FIXTURE" && pwd -P)
+NL_MAIN="$NL_FIXTURE/main"$'\n'"repo"
+NL_WT="$NL_FIXTURE/my"$'\n'"wt"
+git init -q "$NL_MAIN"
+git -C "$NL_MAIN" -c user.name=Test -c user.email=test@example.invalid \
+    -c commit.gpgsign=false commit -qm initial --allow-empty
+git -C "$NL_MAIN" worktree add -q -b reclaim-nl "$NL_WT"
+mkdir -p "$NL_MAIN/node_modules" "$NL_FIXTURE/main/node_modules" \
+    "$NL_WT/node_modules" "$NL_FIXTURE/my/node_modules"
+touch "$NL_FIXTURE/my/node_modules/decoy"
+touch -t 200001010000 "$NL_WT/node_modules" "$NL_FIXTURE/my/node_modules"
+if NL_DRY_OUTPUT=$(cd "$NL_MAIN" && bash "$RECLAIM" --dry-run 2>&1) \
+    && [[ "$NL_DRY_OUTPUT" == *"main repository: $NL_MAIN"* ]] \
+    && [[ "$NL_DRY_OUTPUT" == *"my"$'\n'"wt"* ]] \
+    && [[ "$NL_DRY_OUTPUT" == *"LINK  node_modules"* ]]; then
+    pass "dry-run reports the real main and worktree paths with newlines"
+else
+    fail "dry-run fails to parse paths containing newlines"
+fi
+if [[ -f "$NL_FIXTURE/my/node_modules/decoy" && ! -L "$NL_WT/node_modules" ]]; then
+    pass "dry-run leaves newline worktree and decoy unchanged"
+else
+    fail "dry-run modified newline worktree or decoy"
+fi
+if (cd "$NL_MAIN" && bash "$RECLAIM" --apply > /dev/null 2>&1); then
+    pass "apply exits 0 for paths containing newlines"
+else
+    fail "apply failed for paths containing newlines"
+fi
+if [[ -f "$NL_FIXTURE/my/node_modules/decoy" && ! -L "$NL_FIXTURE/my/node_modules" ]]; then
+    pass "apply preserves the unrelated decoy next to newline path"
+else
+    fail "apply deleted or linked the unrelated decoy next to newline path"
+fi
+if [[ -L "$NL_WT/node_modules" && "$(readlink "$NL_WT/node_modules")" == "$NL_MAIN/node_modules" ]]; then
+    pass "apply reclaims the newline worktree directory"
+else
+    fail "apply did not reclaim the newline worktree directory"
+fi
+rm -rf "$NL_FIXTURE"
+
 echo "=== Results ==="
 echo -e "${GREEN}Passed: $PASS${NC}"
 if [ "$FAIL" -gt 0 ]; then
