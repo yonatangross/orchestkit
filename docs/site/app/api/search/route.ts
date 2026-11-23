@@ -42,6 +42,7 @@ function makeSearchAPI(tolerance: number) {
 		search: {
 			// Pagination happens after reranking, not inside Fumadocs.
 			limit: Infinity,
+			groupBy: { properties: ["page_id"], maxResult: Infinity },
 			tolerance,
 			boost: { content: 1.5 },
 		},

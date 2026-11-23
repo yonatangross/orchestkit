@@ -57,17 +57,17 @@
         <tr>
           <th scope="row">No limit</th>
           <td><strong>60 rows / 60 total</strong><small>No cursor</small></td>
-          <td><strong>802 rows / 802 total</strong><small>No cursor</small></td>
+          <td><strong>999 rows / 999 total</strong><small>No cursor</small></td>
         </tr>
         <tr>
           <th scope="row"><code>limit=5</code>, page 1</th>
           <td><strong>5 rows / 5 total</strong><small>No cursor</small></td>
-          <td><strong>5 rows / 802 total</strong><small>Next cursor: <code>djE6NQ</code></small></td>
+          <td><strong>5 rows / 999 total</strong><small>Next cursor: <code>djE6NQ</code></small></td>
         </tr>
         <tr>
           <th scope="row"><code>limit=5</code>, page 2</th>
           <td><strong>0 rows / 5 total</strong><small>No cursor</small></td>
-          <td><strong>5 rows / 802 total</strong><small>Next cursor: <code>djE6MTA</code></small></td>
+          <td><strong>5 rows / 999 total</strong><small>Next cursor: <code>djE6MTA</code></small></td>
         </tr>
         <tr>
           <th scope="row"><code>limit=2.5</code></th>
@@ -80,7 +80,7 @@
   <div class="notes">
     <article aria-labelledby="fix">
       <h2 id="fix">What changed</h2>
-      <p>Fumadocs returns all matches. The route ranks them, sets <code>X-Total-Count</code>, and then slices the page. If more rows remain, it sends <code>X-Next-Cursor</code>. A page size must be an integer from 1 to 100.</p>
+      <p>Fumadocs returns all matching rows without a per-document cap. The route ranks them, sets <code>X-Total-Count</code>, and then slices the page. If more rows remain, it sends <code>X-Next-Cursor</code>. A page size must be an integer from 1 to 100.</p>
     </article>
     <details>
       <summary>How to reproduce</summary>
