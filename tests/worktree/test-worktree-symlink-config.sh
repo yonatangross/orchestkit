@@ -217,6 +217,45 @@ else
 fi
 
 echo ""
+echo "=== 7. reclaim preserves paths containing spaces ==="
+FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/ork-reclaim.XXXXXX")
+FIXTURE=$(cd "$FIXTURE" && pwd -P)
+git init -q "$FIXTURE/main repo"
+git -C "$FIXTURE/main repo" -c user.name=Test -c user.email=test@example.invalid \
+    -c commit.gpgsign=false commit -qm initial --allow-empty
+git -C "$FIXTURE/main repo" worktree add -q -b reclaim-test "$FIXTURE/my wt"
+mkdir -p "$FIXTURE/main repo/node_modules" "$FIXTURE/main/node_modules" \
+    "$FIXTURE/my wt/node_modules" "$FIXTURE/my/node_modules"
+touch "$FIXTURE/my/node_modules/decoy"
+touch -t 200001010000 "$FIXTURE/my wt/node_modules" "$FIXTURE/my/node_modules"
+DRY_OUTPUT=$(cd "$FIXTURE/main repo" && bash "$RECLAIM" --dry-run)
+if [[ "$DRY_OUTPUT" == *"main repository: $FIXTURE/main repo"* && "$DRY_OUTPUT" == *"my wt "* ]]; then
+    echo "PASS dry-run reports the real main and worktree paths"
+else
+    echo "FAIL dry-run truncates a worktree path"
+    FAIL=$((FAIL + 1))
+fi
+if [[ -f "$FIXTURE/my/node_modules/decoy" && ! -L "$FIXTURE/my wt/node_modules" ]]; then
+    echo "PASS dry-run leaves directories unchanged"
+else
+    echo "FAIL dry-run changed directories"
+    FAIL=$((FAIL + 1))
+fi
+(cd "$FIXTURE/main repo" && bash "$RECLAIM" --apply)
+if [[ -f "$FIXTURE/my/node_modules/decoy" && ! -L "$FIXTURE/my/node_modules" ]]; then
+    echo "PASS apply preserves the unrelated decoy"
+else
+    echo "FAIL apply deleted the unrelated decoy"
+    FAIL=$((FAIL + 1))
+fi
+if [[ -L "$FIXTURE/my wt/node_modules" && "$(readlink "$FIXTURE/my wt/node_modules")" == "$FIXTURE/main repo/node_modules" ]]; then
+    echo "PASS apply reclaims the real worktree directory"
+else
+    echo "FAIL apply did not reclaim the real worktree directory"
+    FAIL=$((FAIL + 1))
+fi
+rm -rf "$FIXTURE"
+
 echo "=== Results ==="
 echo -e "${GREEN}Passed: $PASS${NC}"
 if [ "$FAIL" -gt 0 ]; then

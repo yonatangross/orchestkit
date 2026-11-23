@@ -1,0 +1,8 @@
+{
+  "slug": "worktree-reclaim-spaces",
+  "source": "docs/fix--worktree-reclaim-spaces/index.html",
+  "title": "Worktree reclaim: spaces are part of the path",
+  "description": "A real destructive reproduction and regression test show why worktree reclaim must preserve complete paths, including spaces.",
+  "tags": ["bug", "git", "safety"],
+  "date": "2026-11-22"
+}

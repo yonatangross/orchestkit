@@ -1,0 +1,6 @@
+{
+  "serves": "worktree-reclaim-spaces",
+  "page": "docs/fix--worktree-reclaim-spaces/index.html",
+  "lab_slug": "worktree-reclaim-spaces",
+  "purpose": "Before and after evidence for preserving spaces in worktree reclaim paths"
+}
