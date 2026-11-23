@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Skill checks across plugin packs</title>
+<meta name="description" content="Compare the real before and after output of the OrchestKit skill checker.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eef2f5; color: #172c38; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1080px; margin: auto; padding: 56px 24px 40px; }
+  header { max-width: 675px; }
+  .eyebrow { margin: 0; color: #375c69; font-size: 12px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 12px 0; font-size: clamp(32px, 6vw, 59px); line-height: 1.04; letter-spacing: -.05em; }
+  header p, footer { color: #425966; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .controls { display: inline-flex; gap: 4px; margin: 12px 0 20px; padding: 4px; border-radius: 10px; background: #dce5ea; }
+  button { border: 0; border-radius: 7px; padding: 8px 18px; background: transparent; color: #25414f; font: inherit; font-weight: 680; cursor: pointer; }
+  button[aria-pressed="true"] { background: #173745; color: #fff; }
+  button:focus-visible { outline: 2px solid #0b637f; outline-offset: 2px; }
+  .grid { display: grid; grid-template-columns: 1fr 1.35fr; gap: 16px; }
+  article { min-width: 0; overflow: hidden; border-radius: 14px; border: 1px solid #c6d3db; background: #fff; }
+  .card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 18px; }
+  h2 { margin: 0; font-size: 15px; }
+  .badge { padding: 3px 9px; border-radius: 6px; color: #145349; background: #d9eee7; font-weight: 750; font-size: 12px; }
+  .badge.bad { background: #fbe9e3; color: #8a3826; }
+  pre { min-height: 195px; margin: 0; padding: 16px 18px; color: #e5f2f6; background: #102935; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.65; }
+  #summary { margin: 0 0 16px; font-weight: 650; }
+  footer { margin-top: 20px; font-size: 14px; }
+  @media (max-width: 700px) {
+    main { padding-top: 32px; }
+    .grid { grid-template-columns: 1fr; }
+    pre { min-height: 0; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / Skill diagnostics</p>
+    <h1>Check the plugin that ships the skill.</h1>
+    <p>The old checker searched <code>ork</code> for every skill, even when the build correctly put that skill in <code>ork-extras</code>.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Checker version">
+    <button type="button" id="before" aria-pressed="true">Before fix</button>
+    <button type="button" id="after" aria-pressed="false">After fix</button>
+  </div>
+  <p id="summary" aria-live="polite">33 correctly built extras skills reported as missing.</p>
+  <div class="grid">
+    <article aria-labelledby="sweep-title">
+      <div class="card-head"><h2 id="sweep-title"><code>--all</code></h2><span class="badge bad" data-exit>Exit 1</span></div>
+      <pre id="sweep">DRIFT: careful
+  FAIL [5/6] no built copy:
+  plugins/ork/skills/careful/SKILL.md
+
+32 more DRIFT rows</pre>
+    </article>
+    <article aria-labelledby="single-title">
+      <div class="card-head"><h2 id="single-title"><code>careful</code></h2><span class="badge bad" data-exit>Exit 1</span></div>
+      <pre id="single">ok   [4/6] manifest includes it
+FAIL [5/6] no built copy:
+plugins/ork/skills/careful/SKILL.md
+VERDICT: /ork:careful is NOT invocable (see FAIL lines above)</pre>
+    </article>
+  </div>
+  <footer>Excerpts from actual CLI runs, with checkout paths shortened. The checker now follows the manifests; a copy in the wrong plugin still fails.</footer>
+</main>
+<script>
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  const sweep = document.getElementById('sweep');
+  const single = document.getElementById('single');
+  const summary = document.getElementById('summary');
+  const original = [sweep.textContent, single.textContent, summary.textContent];
+  function show(fixed) {
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    summary.textContent = fixed ? '115 source skills checked. No drift.' : original[2];
+    sweep.textContent = fixed ? 'OK: all 115 skills consistent across src/manifest/build' : original[0];
+    single.textContent = fixed ? [
+      'ok   [4/6] ork-extras manifest includes it',
+      'ok   [5/6] built copy exists:',
+      'plugins/ork-extras/skills/careful/SKILL.md',
+      'ok   [6/6] built matches src',
+      'VERDICT: /ork-extras:careful is INVOCABLE'
+    ].join('\n') : original[1];
+    for (const badge of document.querySelectorAll('[data-exit]')) {
+      badge.textContent = fixed ? 'Exit 0' : 'Exit 1';
+      badge.classList.toggle('bad', !fixed);
+    }
+  }
+  before.addEventListener('click', () => show(false));
+  after.addEventListener('click', () => show(true));
+</script>
+</body>
+</html>
