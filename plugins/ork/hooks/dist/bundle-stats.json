@@ -2,8 +2,8 @@
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 34225,
-      "sizeKB": "33.42",
+      "size": 34259,
+      "sizeKB": "33.46",
       "exports": 73
     },
     "pretool": {
@@ -32,8 +32,8 @@
       "exports": 55
     },
     "subagent": {
-      "size": 76497,
-      "sizeKB": "74.70",
+      "size": 76623,
+      "sizeKB": "74.83",
       "exports": 89
     },
     "notification": {
@@ -57,8 +57,8 @@
       "exports": 73
     }
   },
-  "totalSize": 903586,
-  "totalSizeKB": "882.41",
+  "totalSize": 903746,
+  "totalSizeKB": "882.56",
   "inputs": 120,
-  "avgBundleSizeKB": "80.22"
+  "avgBundleSizeKB": "80.23"
 }
