@@ -51,13 +51,18 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each(['x=$((1<<2))', '(( y <<= 1 ))'])('finds the gh invocation after arithmetic: %s', (arithmetic) => {
+    const result = ghMilestoneEnforcer(createBashInput(`${arithmetic}\ngh issue create --title x`), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+  });
+
   it.each(['', ' --milestone v1'])('handles quoted command-substitution heredocs with trailing flags %s', (flags) => {
     const command = [
       'gh issue create --title x --body "$(cat <<\'EOF\'',
       'A literal " and a lone ` with --label foo --milestone fake',
       'gh issue create --title example',
       'EOF',
-      ')"' + flags,
+      `)"${flags}`,
     ].join('\n');
     const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
     if (flags) {

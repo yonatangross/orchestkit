@@ -56,7 +56,20 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
         continue;
       }
     }
-    if (ch === '$' && command[i + 1] === '(' && quote !== "'" && !heredoc) {
+    const arithmeticStart = !quote && command.startsWith('((', i) ? i + 2
+      : quote !== "'" && command.startsWith('$((', i) ? i + 3 : undefined;
+    if (arithmeticStart !== undefined && !heredoc) {
+      let depth = 2;
+      let end = arithmeticStart;
+      for (; end < command.length && depth > 0; end++) {
+        if (command[end] === '(') depth++;
+        else if (command[end] === ')') depth--;
+      }
+      if (depth !== 0) return [];
+      word += command.slice(i, end);
+      started = true;
+      i = end - 1;
+    } else if (ch === '$' && command[i + 1] === '(' && quote !== "'" && !heredoc) {
       const nested: { end?: number } = {};
       shellWords(command.slice(i + 2), [], undefined, nested);
       if (nested.end === undefined) return [];

@@ -15,6 +15,22 @@ import { getGhCreateCommands } from '../../lib/gh-command.js';
 
 const find = (command: string) => getGhCreateCommands(command, '--label', '-l');
 
+describe('getGhCreateCommands: arithmetic shifts', () => {
+  it.each(['x=$((1<<2))', '(( y <<= 1 ))', 'x=$(((1 + 2)<<2))'])('does not open a heredoc in %s', (arithmetic) => {
+    expect(find(`${arithmetic}\ngh issue create --title x`)).toEqual([{ kind: 'issue', hasFlag: false }]);
+  });
+
+  it('keeps arithmetic inside a quoted argument opaque', () => {
+    expect(find('gh issue create --title "$((1<<2))" --label docs')).toEqual([{ kind: 'issue', hasFlag: true }]);
+  });
+
+  it('still opens real heredocs after arithmetic', () => {
+    expect(find("x=$((1<<2))\ncat <<'EOF'\ngh issue create --title example\nEOF\ngh issue create --label docs")).toEqual([
+      { kind: 'issue', hasFlag: true },
+    ]);
+  });
+});
+
 describe('getGhCreateCommands: nested command substitutions', () => {
   it('keeps heredoc examples opaque and resumes the outer quote', () => {
     const command = [
