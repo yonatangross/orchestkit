@@ -1,0 +1,4 @@
+{
+  "serves": "protect-write-hook-ancestors",
+  "page": "index.html"
+}
