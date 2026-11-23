@@ -24,8 +24,15 @@ describe('getGhCreateCommands: backtick arguments', () => {
     expect(find('gh issue create --title `echo --label bug`')).toEqual([{ kind: 'issue', hasFlag: false }]);
   });
 
-  it('rejects an unterminated substitution', () => {
-    expect(find('gh issue create --title `date --label bug')).toEqual([]);
+  it('keeps an unmatched backtick from hiding the preceding invocation', () => {
+    expect(find('gh issue create --title `date')).toEqual([{ kind: 'issue', hasFlag: false }]);
+    expect(find('gh issue create --title `date --label bug')).toEqual([{ kind: 'issue', hasFlag: true }]);
+  });
+
+  it.each(["'ISSUE-BODY'", '"ISSUE-BODY"'])('keeps heredoc payloads opaque with delimiter %s', (delimiter) => {
+    expect(find(`gh issue create --title x --body-file - <<${delimiter}\nA lone \` and an apostrophe's payload --label bug\nISSUE-BODY`)).toEqual([
+      { kind: 'issue', hasFlag: false },
+    ]);
   });
 
   it('does not scan literal backticks inside single quotes as commands', () => {

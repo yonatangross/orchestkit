@@ -51,6 +51,13 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each(["'ISSUE-BODY'", '"ISSUE-BODY"'])('advises before a quoted heredoc with a lone backtick: %s', (delimiter) => {
+    const command = `gh issue create --title x --body-file - <<${delimiter}\nA lone \` in the body\nISSUE-BODY`;
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
   it('preserves flags following an unquoted backtick argument', () => {
     ghMilestoneEnforcer(createBashInput('gh issue create --title `date` --label bug --milestone v1'), testCtx);
     expect(outputSilentSuccess).toHaveBeenCalled();

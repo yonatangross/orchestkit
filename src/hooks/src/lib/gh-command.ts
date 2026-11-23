@@ -70,7 +70,11 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
       for (; end < command.length && command[end] !== '`'; end++) {
         if (command[end] === '\\') end++;
       }
-      if (end >= command.length) return [];
+      if (end >= command.length) {
+        word += ch;
+        started = true;
+        continue;
+      }
       substitutions.push(command.slice(i + 1, end));
       word += command.slice(i, end + 1);
       started = true;
@@ -130,7 +134,7 @@ const MAX_NESTING = 3;
 
 /** Drop heredoc bodies: their text is data, and an apostrophe in it would unbalance the quote scan. */
 function stripHeredocBodies(command: string): string {
-  return command.replace(/(<<-?\s*(['"]?)(\w+)\2[^\n]*)\n[\s\S]*?\n[ \t]*\3[ \t]*(?=\n|$)/g, '$1');
+  return command.replace(/(<<-?\s*(['"]?)([\w-]+)\2[^\n]*)\n[\s\S]*?\n[ \t]*\3[ \t]*(?=\n|$)/g, '$1');
 }
 
 type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean };
