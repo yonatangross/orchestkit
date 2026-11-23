@@ -15,6 +15,28 @@ import { getGhCreateCommands } from '../../lib/gh-command.js';
 
 const find = (command: string) => getGhCreateCommands(command, '--label', '-l');
 
+describe('getGhCreateCommands: opaque input fallback', () => {
+  it.each(['--label docs', '--label=docs', '-l docs'])('preserves legacy flag detection for %s', (flag) => {
+    expect(find(`gh issue create ${flag} --title "unterminated`)).toEqual([
+      { kind: 'issue', hasFlag: true, advisoryOnly: true },
+    ]);
+  });
+
+  it('preserves milestone equals flags and PR identity', () => {
+    expect(getGhCreateCommands('gh pr create --milestone=v1 --title "unterminated', '--milestone', '-m')).toEqual([
+      { kind: 'pr', hasFlag: true, advisoryOnly: true },
+    ]);
+  });
+
+  it.each(['', 'echo "unterminated', 'echo "gh issue create"'])('does not invent invocations for %s', (command) => {
+    expect(find(command)).toEqual([]);
+  });
+
+  it('still parses a directly quoted parameter expansion normally', () => {
+    expect(find(`gh issue create --title "\${title//(/}"`)).toEqual([{ kind: 'issue', hasFlag: false }]);
+  });
+});
+
 describe('getGhCreateCommands: arithmetic shifts', () => {
   it.each(['x=$((1<<2))', '(( y <<= 1 ))', 'x=$(((1 + 2)<<2))'])('does not open a heredoc in %s', (arithmetic) => {
     expect(find(`${arithmetic}\ngh issue create --title x`)).toEqual([{ kind: 'issue', hasFlag: false }]);
@@ -55,8 +77,8 @@ describe('getGhCreateCommands: nested command substitutions', () => {
     ]);
   });
 
-  it('rejects an unterminated substitution without rewriting it', () => {
-    expect(find('gh issue create --title "$(echo x"')).toEqual([]);
+  it('falls back to advisory-only for an unterminated substitution', () => {
+    expect(find('gh issue create --title "$(echo x"')).toEqual([{ kind: 'issue', hasFlag: false, advisoryOnly: true }]);
   });
 });
 
@@ -316,7 +338,7 @@ describe('getGhCreateCommands: quotes that used to disable the parser', () => {
     expect(find('gh issue create --title a#b --label bug')).toEqual([{ kind: 'issue', hasFlag: true }]);
   });
 
-  it('a truly unterminated quote still returns nothing (pinned: a rewrite would land inside the quote)', () => {
-    expect(find('gh issue create --title "unterminated')).toEqual([]);
+  it('a truly unterminated quote falls back without permitting a rewrite', () => {
+    expect(find('gh issue create --title "unterminated')).toEqual([{ kind: 'issue', hasFlag: false, advisoryOnly: true }]);
   });
 });

@@ -189,7 +189,7 @@ const WRAPPERS: Readonly<Record<string, {
 const SHELLS = /(?:^|\/)(?:ba|z|da|k)?sh$/;
 const MAX_NESTING = 3;
 
-type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean };
+type GhCreate = { kind: 'issue' | 'pr'; hasFlag: boolean; nested?: boolean; advisoryOnly?: boolean };
 
 /**
  * Find literal gh create invocations and their flags. `nested` is set when the
@@ -204,7 +204,13 @@ function scanGhCreates(command: string, long: string, short: string, depth: numb
   const substitutions: string[] = [];
   const words = shellWords(command, substitutions);
   const creates: GhCreate[] = [];
-  if (words.length === 0) return creates;
+  if (words.length === 0) {
+    const hasFlag = new RegExp(`(?:${long}(?:\\s+|=)|${short}\\s+)\\S+`).test(command);
+    for (const match of command.matchAll(/\bgh\s+(issue|pr)\s+create\b/g)) {
+      creates.push({ kind: match[1] as 'issue' | 'pr', hasFlag, advisoryOnly: true });
+    }
+    return creates;
+  }
   if (depth < MAX_NESTING) {
     for (const payload of substitutions) creates.push(...scanGhCreates(payload, long, short, depth + 1));
   }

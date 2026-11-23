@@ -51,6 +51,16 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each([
+    `gh issue create --title "$(( $(grep -c '(' f) ))"`,
+    `gh issue create --title "$(echo \${title//(/})"`,
+  ])('falls back to an advisory for an opaque computed title: %s', (command) => {
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
   it.each(['x=$((1<<2))', '(( y <<= 1 ))'])('finds the gh invocation after arithmetic: %s', (arithmetic) => {
     const result = ghMilestoneEnforcer(createBashInput(`${arithmetic}\ngh issue create --title x`), testCtx);
     expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
@@ -134,7 +144,6 @@ describe('gh-milestone-enforcer', () => {
     'git commit -m "Document gh issue create --milestone bug"',
     'git commit -m "Document gh issue create"',
     'echo gh issue create',
-    'gh issue create --title "unterminated',
     "gh issue create --body $'It\\'s ready' --milestone docs",
     '/usr/bin/gh issue create --milestone docs',
   ])('silently preserves reviewed input: %s', (command) => {

@@ -53,7 +53,7 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
   if (create.kind === 'issue') {
-    if (isCompoundCommand(command) || create.nested || hasBackgroundOperator(command)
+    if (isCompoundCommand(command) || create.nested || create.advisoryOnly || hasBackgroundOperator(command)
       || hasShellComment(command)) {
       // Appending --label to a compound string cannot target the right
       // segment without a real parser, so this stays an advisory. The same
