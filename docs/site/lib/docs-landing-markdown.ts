@@ -88,6 +88,11 @@ const FRONTMATTER: Record<
 	},
 };
 
+// The page without frontmatter, in the shape every other doc reader returns.
+export function docsLandingPage(slug: DocsLandingSlug): { title: string; markdown: string } {
+	return { title: FRONTMATTER[slug].title, markdown: RENDERERS[slug]() };
+}
+
 export function docsLandingMarkdown(slug: DocsLandingSlug): string {
 	return withFrontmatter(FRONTMATTER[slug], RENDERERS[slug]());
 }
