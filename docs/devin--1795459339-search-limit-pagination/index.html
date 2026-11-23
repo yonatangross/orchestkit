@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Docs search keeps the full result set</title>
+<meta name="description" content="Compare recorded search responses before and after moving pagination after ranking.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f6f8fa; color: #172b35; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1040px; margin: auto; padding: clamp(28px, 6vw, 64px) 24px 0; }
+  .eyebrow { color: #346557; font-size: .8rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  h1 { margin: 10px 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.1; letter-spacing: -.04em; }
+  h2 { margin: 0; font-size: 1.1rem; }
+  p { color: #415660; }
+  .intro { max-width: 65ch; }
+  .evidence { margin: 28px 0 16px; overflow-x: auto; background: #fff; border: 1px solid #cedadd; border-radius: 14px; }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  caption { padding: 16px; text-align: left; color: #415660; font-size: .88rem; }
+  th, td { padding: 12px 16px; border-top: 1px solid #dbe4e6; vertical-align: top; }
+  thead { background: #edf2f4; }
+  thead th:last-child { background: #dfeee6; color: #174c39; }
+  tbody th { font-size: .92rem; }
+  td { min-width: 115px; }
+  td:last-child { background: #f2f8f4; }
+  td small { display: block; color: #415660; }
+  code { font: .86em ui-monospace, monospace; }
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  article, details { background: #fff; border: 1px solid #cedadd; border-radius: 12px; padding: 16px; }
+  article p { margin: 6px 0 0; }
+  summary { cursor: pointer; font-weight: 700; }
+  summary:focus-visible { outline: 2px solid #346557; outline-offset: 3px; }
+  details p { margin: 8px 0 0; }
+  pre { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  @media (max-width: 600px) {
+    main { padding-inline: 16px; }
+    .notes { grid-template-columns: 1fr; }
+    th, td { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Docs API / Regression evidence</div>
+    <h1>Docs search keeps the full result set</h1>
+    <p class="intro"><code>limit=5</code> now means five rows per page, not five matches in total. Follow the cursor to get the next five rows from the same ranked list.</p>
+  </header>
+  <div class="evidence">
+    <table>
+      <caption>Recorded HTTP responses for <code>GET /api/search?query=install</code></caption>
+      <thead>
+        <tr><th scope="col">Request</th><th scope="col">Before</th><th scope="col">After</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">No limit</th>
+          <td><strong>60 rows / 60 total</strong><small>No cursor</small></td>
+          <td><strong>999 rows / 999 total</strong><small>No cursor</small></td>
+        </tr>
+        <tr>
+          <th scope="row"><code>limit=5</code>, page 1</th>
+          <td><strong>5 rows / 5 total</strong><small>No cursor</small></td>
+          <td><strong>5 rows / 999 total</strong><small>Next cursor: <code>djE6NQ</code></small></td>
+        </tr>
+        <tr>
+          <th scope="row"><code>limit=5</code>, page 2</th>
+          <td><strong>0 rows / 5 total</strong><small>No cursor</small></td>
+          <td><strong>5 rows / 999 total</strong><small>Next cursor: <code>djE6MTA</code></small></td>
+        </tr>
+        <tr>
+          <th scope="row"><code>limit=2.5</code></th>
+          <td><strong>HTTP 200</strong><small>2 rows / 60 total · next: <code>djE6Mg</code></small></td>
+          <td><strong>HTTP 400</strong><small>Invalid limit</small></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="notes">
+    <article aria-labelledby="fix">
+      <h2 id="fix">What changed</h2>
+      <p>Fumadocs returns all matching rows without a per-document cap. The route ranks them, sets <code>X-Total-Count</code>, and then slices the page. If more rows remain, it sends <code>X-Next-Cursor</code>. A page size must be an integer from 1 to 100.</p>
+    </article>
+    <details>
+      <summary>How to reproduce</summary>
+      <p>Run against the local Next.js docs server on port 3100. Page 2 used a constructed cursor before the fix and the returned cursor after it.</p>
+      <pre><code>curl -si 'http://127.0.0.1:3100/api/search?query=install&amp;limit=5&amp;cursor=djE6NQ'</code></pre>
+    </details>
+  </div>
+</main>
+</body>
+</html>
