@@ -11,6 +11,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
+import { basename, isAbsolute, resolve, sep } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
 import { safeProjectDir } from '../lib/paths.js';
@@ -214,13 +215,15 @@ export function asciiLint(input: HookInput, _ctx: HookContext = NOOP_CTX): HookR
 
     const filePath = getField<string>(input, 'tool_input.file_path') || '';
     if (!filePath.endsWith('.md')) return outputSilentSuccess();
-    if (!filePath.includes('/src/')) return outputSilentSuccess();
-    if (filePath.includes('/node_modules/') || filePath.includes('/.git/')) {
+
+    const projectDir = safeProjectDir();
+    const fullPath = isAbsolute(filePath) ? filePath : resolve(projectDir, filePath);
+    const filterPath = fullPath.split(sep).join('/');
+    if (!filterPath.includes('/src/')) return outputSilentSuccess();
+    if (filterPath.includes('/node_modules/') || filterPath.includes('/.git/')) {
       return outputSilentSuccess();
     }
 
-    const projectDir = safeProjectDir();
-    const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
     if (!existsSync(fullPath)) return outputSilentSuccess();
 
     const content = readFileSync(fullPath, 'utf-8');
@@ -244,7 +247,7 @@ export function asciiLint(input: HookInput, _ctx: HookContext = NOOP_CTX): HookR
     const more = findings.length > MAX_FINDINGS_REPORTED
       ? `\n  ...and ${findings.length - MAX_FINDINGS_REPORTED} more`
       : '';
-    const fileName = filePath.split('/').pop();
+    const fileName = basename(fullPath);
     return {
       continue: true,
       systemMessage:

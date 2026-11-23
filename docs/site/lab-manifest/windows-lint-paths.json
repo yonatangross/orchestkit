@@ -1,0 +1,8 @@
+{
+  "slug": "windows-lint-paths",
+  "source": "docs/fix--windows-lint-paths/index.html",
+  "title": "Lint hooks accept Windows paths",
+  "description": "Compare regression results for drive-letter, network-share, and relative paths in both lint hooks.",
+  "tags": ["hooks", "windows", "lint"],
+  "date": "2026-11-23"
+}
