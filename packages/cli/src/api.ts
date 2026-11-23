@@ -167,17 +167,23 @@ export async function ask(
 
 /**
  * Fetch a documentation page as raw Markdown. Accepts a bare slug
- * ("foundations/overview"), a site path ("/docs/foundations/overview") or the
- * `.md` form, all three are the same page, and making the CLI accept whichever
- * one a user pasted is cheaper than making them normalize it.
+ * ("foundations/overview"), a site path (with or without a leading slash), or
+ * a full HTTP(S) URL, all with an optional `.md` suffix. Only the URL's path
+ * is used; the request always goes to the client's configured base URL.
  * Query strings and fragments are ignored before normalizing the page path.
  */
 export async function readDoc(
 	client: Client,
 	slug: string,
 ): Promise<{ text: string; rateLimit: RateLimit }> {
-	let clean = (slug.trim().split(/[?#]/, 1)[0] ?? "").replace(/\.md$/, "");
-	if (!clean.startsWith("/")) clean = `/docs/${clean}`;
-	if (!clean.startsWith("/docs")) clean = `/docs${clean}`;
-	return getMarkdown(client, `${clean}.md`);
+	const input = slug.trim();
+	const path = /^https?:\/\//i.test(input) && URL.canParse(input)
+		? new URL(input).pathname
+		: (input.split(/[?#]/, 1)[0] ?? "");
+	const clean = path.replace(/\.md$/, "");
+	const absolute = clean.startsWith("/") ? clean : `/${clean}`;
+	const docsPath = absolute === "/docs" || absolute.startsWith("/docs/")
+		? absolute
+		: `/docs${absolute}`;
+	return getMarkdown(client, `${docsPath}.md`);
 }
