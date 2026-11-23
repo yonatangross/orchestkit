@@ -14,8 +14,9 @@ OrchestKit implements security at multiple layers. No single hook is responsible
 PermissionRequest  -->  PreToolUse  -->  Tool Executes  -->  PostToolUse
       |                     |                                     |
   auto-approve        operator deny rules                    secret-handler
-  safe commands       (enforced by Claude Code)              failure-handler
-  project writes      sync-bash-dispatcher                   (on tool errors)
+  safe commands       (enforced by Claude Code)              redact-secrets
+  project writes      sync-bash-dispatcher                   failure-handler
+                                                             (on tool errors)
                       sync-write-edit-dispatcher
                       sync-task-dispatcher
 ```
@@ -149,6 +150,13 @@ Beyond the operator deny rules and the sync Bash dispatcher, two dispatchers run
 **Event:** PostToolUse (Read, Bash, Grep, Glob)
 
 Scans tool output for secrets. The `ORK_SECRET_HOOK` variable picks the mode: `AUDIT` (the default) logs would-be matches and leaves the output alone, `REDACT` replaces bounded patterns in place and withholds the whole output for critical ones, and `OFF` disables it.
+
+### Redact Secrets
+
+**Hook:** `skill/redact-secrets`
+**Event:** PostToolUse (Bash, Write|Edit)
+
+Scans the tool output for API key shapes (OpenAI, GitHub, GitLab, AWS, Slack, Tavily, Mem0) and quoted `password=` or `secret=` assignments. On a match it writes a `::warning::` line to stderr. It runs async, never blocks, and leaves the output unchanged; in-place redaction is `posttool/secret-handler` with `ORK_SECRET_HOOK=REDACT`.
 
 ### Failure Handler
 
