@@ -15,6 +15,35 @@ import { getGhCreateCommands } from '../../lib/gh-command.js';
 
 const find = (command: string) => getGhCreateCommands(command, '--label', '-l');
 
+describe('getGhCreateCommands: nested command substitutions', () => {
+  it('keeps heredoc examples opaque and resumes the outer quote', () => {
+    const command = [
+      'gh issue create --title x --body "$(cat <<\'EOF\'',
+      'A literal " and a lone ` --label fake',
+      'gh issue create --title example',
+      'EOF',
+      ')" --label docs',
+    ].join('\n');
+    expect(find(command)).toEqual([{ kind: 'issue', hasFlag: true }]);
+  });
+
+  it('matches parentheses only in the active substitution context', () => {
+    expect(find('gh issue create --title "$(echo "$(printf \'x)\')")" --label docs')).toEqual([
+      { kind: 'issue', hasFlag: true },
+    ]);
+  });
+
+  it('ignores parentheses in substitution comments', () => {
+    expect(find('gh issue create --title "$(echo x # )\n)" --label docs')).toEqual([
+      { kind: 'issue', hasFlag: true },
+    ]);
+  });
+
+  it('rejects an unterminated substitution without rewriting it', () => {
+    expect(find('gh issue create --title "$(echo x"')).toEqual([]);
+  });
+});
+
 describe('getGhCreateCommands: tokenized heredocs', () => {
   it.each(["'END.BODY'", '"END.BODY"', 'END\\.BODY', 'E"ND".BODY'])('removes quoting from delimiter %s', (delimiter) => {
     expect(find(`cat <<${delimiter}\nA lone \` and an apostrophe's payload\ngh issue create --title example\nEND.BODY\ngh issue create --label docs`)).toEqual([

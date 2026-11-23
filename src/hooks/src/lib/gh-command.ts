@@ -26,12 +26,13 @@ export function hasExplicitRepoTarget(command: string): boolean {
 }
 
 /** Read literal shell words without splitting quoted argument payloads. */
-function shellWords(command: string, substitutions: string[], onComment?: () => void): (string | null)[] {
+function shellWords(command: string, substitutions: string[], onComment?: () => void, closingParen?: { end?: number }): (string | null)[] {
   const words: (string | null)[] = [];
   let word = '';
   let started = false;
   let quote = '';
   let ansiQuote = false;
+  let parentheses = 0;
   let heredoc: { stripTabs: boolean } | undefined;
   const heredocs: { delimiter: string; stripTabs: boolean }[] = [];
   const flush = () => {
@@ -55,7 +56,20 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
         continue;
       }
     }
-    if (quote) {
+    if (ch === '$' && command[i + 1] === '(' && quote !== "'" && !heredoc) {
+      const nested: { end?: number } = {};
+      shellWords(command.slice(i + 2), [], undefined, nested);
+      if (nested.end === undefined) return [];
+      const end = i + 2 + nested.end;
+      substitutions.push(command.slice(i + 2, end));
+      word += command.slice(i, end + 1);
+      started = true;
+      i = end;
+    } else if (!quote && ch === ')' && closingParen && parentheses === 0) {
+      closingParen.end = i;
+      flush();
+      return words;
+    } else if (quote) {
       if (ch === quote) { quote = ''; ansiQuote = false; }
       else word += ch;
     } else if (ch === '$' && command[i + 1] === "'") {
@@ -95,6 +109,8 @@ function shellWords(command: string, substitutions: string[], onComment?: () => 
         i += heredoc.stripTabs ? 2 : 1;
       }
     } else if (/\s|[;&|()<>]/.test(ch)) {
+      if (ch === '(') parentheses++;
+      else if (ch === ')') parentheses--;
       flush();
       if (!/[^\S\n]/.test(ch)) words.push(null);
       if (ch === '\n') {

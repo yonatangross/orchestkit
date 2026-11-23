@@ -59,6 +59,24 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it.each(['', ' --label docs'])('handles quoted command-substitution heredocs with trailing flags %s', (flags) => {
+    const command = [
+      'gh issue create --title x --body "$(cat <<\'EOF\'',
+      'A literal " and a lone ` with --label foo --milestone fake',
+      'gh issue create --title example',
+      'EOF',
+      ')"' + flags,
+    ].join('\n');
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    if (flags) {
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+    } else {
+      expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+      expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    }
+  });
+
   it('finds the invocation after a comment mentioning its heredoc', () => {
     const command = "# uses <<'ISSUE-BODY' below\ngh issue create --title x <<'ISSUE-BODY'\nbody\nISSUE-BODY";
     const result = ghLabelEnforcer(createBashInput(command), testCtx);
