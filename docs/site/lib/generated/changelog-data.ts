@@ -18,6 +18,66 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.17.0",
+    "date": "2026-11-23",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.16.0...v10.17.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**cc:** adopt Claude Code 2.1.323 through 2.1.330 ([#5350](https://github.com/yonatangross/orchestkit/issues/5350)) ([383a7cb](https://github.com/yonatangross/orchestkit/commit/383a7cbf5f5281512c5c3679e9fd79d1e055a648))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** update fn-hooks canary for the 2.1.330 engine.create form ([#5348](https://github.com/yonatangross/orchestkit/issues/5348)) ([3391c66](https://github.com/yonatangross/orchestkit/commit/3391c6634faf470f11a1186352a8fab2410c254f))",
+          "**cli:** strip #fragment before adding .md in readDoc ([#5351](https://github.com/yonatangross/orchestkit/issues/5351)) ([8e4bae1](https://github.com/yonatangross/orchestkit/commit/8e4bae1bea7cbe5b73493cc3e848f30fba995d09))",
+          "**docs:** preserve the full page index for Markdown clients ([#5359](https://github.com/yonatangross/orchestkit/issues/5359)) ([bf78e04](https://github.com/yonatangross/orchestkit/commit/bf78e04c8f5a664e30d8cbad1d935b2ab31b0e79))",
+          "**hooks:** catch assistant-format edits in scope-audit ([#5361](https://github.com/yonatangross/orchestkit/issues/5361)) ([bf977fa](https://github.com/yonatangross/orchestkit/commit/bf977faa5f62f44fcf2c71f322779a8dffb43e91))",
+          "**hooks:** scope write exclusions to the containing root ([#5363](https://github.com/yonatangross/orchestkit/issues/5363)) ([8648b03](https://github.com/yonatangross/orchestkit/commit/8648b0397bd48a0001d9cf93f810f747d65d9b9d))",
+          "**skills:** disclose a refused Workflow launch in seven more skills ([#5346](https://github.com/yonatangross/orchestkit/issues/5346)) ([45472a5](https://github.com/yonatangross/orchestkit/commit/45472a50aefa20f184fe2fba88c4ab62fbbd17a2))",
+          "**tests:** extract the page script without an HTML regex ([#5358](https://github.com/yonatangross/orchestkit/issues/5358)) ([d197181](https://github.com/yonatangross/orchestkit/commit/d197181686063a0366c39ae3ffdfada886f38499))",
+          "**visualize-plan:** bound the gh title lookup so a stalled call cannot hang the skill ([#5331](https://github.com/yonatangross/orchestkit/issues/5331)) ([9926af7](https://github.com/yonatangross/orchestkit/commit/9926af7a303b36d01a3609f6807225ead109241f))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**cc:** bump support floor 2.1.277 → 2.1.327 ([#5354](https://github.com/yonatangross/orchestkit/issues/5354)) ([29cce0b](https://github.com/yonatangross/orchestkit/commit/29cce0b0f9c7689ee6c8a568d9fbfa03db5d7b20))",
+          "**deps-dev:** bump @biomejs/biome ([#5369](https://github.com/yonatangross/orchestkit/issues/5369)) ([d9d67ae](https://github.com/yonatangross/orchestkit/commit/d9d67ae23bfd2a0f3ef56686650746ec9e62b25f))",
+          "**deps-dev:** bump jsdom from 30.1.3 to 31.0.0 in /orchestkit-demos ([#5374](https://github.com/yonatangross/orchestkit/issues/5374)) ([08b0912](https://github.com/yonatangross/orchestkit/commit/08b0912dcc4fd922008bef620bd96511cd2298ed))",
+          "**deps-dev:** bump the vitest group in /src/hooks with 2 updates ([#5366](https://github.com/yonatangross/orchestkit/issues/5366)) ([46f3188](https://github.com/yonatangross/orchestkit/commit/46f31884a2b36114f9e3e36eb1c92e54e3081fa4))",
+          "**deps-dev:** bump vitest from 5.0.5 to 5.1.0 in the vitest group ([#5367](https://github.com/yonatangross/orchestkit/issues/5367)) ([b4d70ce](https://github.com/yonatangross/orchestkit/commit/b4d70cece715abd0aa73caf7c56f2fef132b66b8))",
+          "**deps-dev:** bump vitest in /docs/site in the vitest group ([#5365](https://github.com/yonatangross/orchestkit/issues/5365)) ([059b117](https://github.com/yonatangross/orchestkit/commit/059b1171edc61cef95445f468c6179054660a929))",
+          "**deps:** bump @anthropic-ai/sdk ([#5368](https://github.com/yonatangross/orchestkit/issues/5368)) ([18d8cfe](https://github.com/yonatangross/orchestkit/commit/18d8cfe8a31f3262c369d65de497dcbc8ff06c4a))",
+          "**deps:** bump the npm-minor-patch group ([#5371](https://github.com/yonatangross/orchestkit/issues/5371)) ([0735b04](https://github.com/yonatangross/orchestkit/commit/0735b04c8559765f41e8cfe704567ddb7a142132))",
+          "**deps:** bump the npm-minor-patch group ([#5373](https://github.com/yonatangross/orchestkit/issues/5373)) ([9811e3d](https://github.com/yonatangross/orchestkit/commit/9811e3d105380ac8274b688e6a1bf93e5dd15339))",
+          "**deps:** bump the remotion group across 1 directory with 21 updates ([#5370](https://github.com/yonatangross/orchestkit/issues/5370)) ([0e1a27d](https://github.com/yonatangross/orchestkit/commit/0e1a27d4620c1e7034f062c7fe2670ab9f328293))",
+          "**site:** cut Vercel builds: skip bot branches, previews on request ([#5332](https://github.com/yonatangross/orchestkit/issues/5332)) ([395cd7b](https://github.com/yonatangross/orchestkit/commit/395cd7bdeee9ca79e36e0a4ee5bd1d44990d5a0d))",
+          "**traffic:** snapshot week of 2026-11-16 ([#5376](https://github.com/yonatangross/orchestkit/issues/5376)) ([01c84d0](https://github.com/yonatangross/orchestkit/commit/01c84d0735e7d22a65e210eb2b68acbe29999100))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**compat:** measure Devin, Antigravity, OpenCode and Muse host support ([#5347](https://github.com/yonatangross/orchestkit/issues/5347)) ([9e9b4ff](https://github.com/yonatangross/orchestkit/commit/9e9b4ffcc2fb889d617604d23c6bebde5b391c71))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "bump the github-actions group with 5 updates ([#5375](https://github.com/yonatangross/orchestkit/issues/5375)) ([7c6fc0b](https://github.com/yonatangross/orchestkit/commit/7c6fc0b6e52c8900757523ba127b523a7c0de230))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.16.0",
     "date": "2026-11-22",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.15.1...v10.16.0",

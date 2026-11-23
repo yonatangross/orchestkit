@@ -684,6 +684,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.17.0](https://github.com/yonatangross/orchestkit/compare/v10.16.0...v10.17.0)** · 2026-11-23
+
+- **cc:** adopt Claude Code 2.1.323 through 2.1.330 (#5350)
+- **ci:** update fn-hooks canary for the 2.1.330 engine.create form (#5348)
+- **cli:** strip #fragment before adding .md in readDoc (#5351)
+- **docs:** preserve the full page index for Markdown clients (#5359)
+- **hooks:** catch assistant-format edits in scope-audit (#5361)
+- …and 18 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.16.0](https://github.com/yonatangross/orchestkit/compare/v10.15.1...v10.16.0)** · 2026-11-22
 
 - **glyph:** add the devin-safe profile for engines that render shade fills as slabs (#5323)
@@ -742,10 +751,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs-site:** make the consent banner easier to notice (#5179)
 - **agents:** raise builder maxTurns above documented workload (#5192)
 - …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.10.8](https://github.com/yonatangross/orchestkit/compare/v10.10.7...v10.10.8)** · 2026-11-09
-
-- **release:** fetch mcp-publisher through the authenticated API (#5162)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
