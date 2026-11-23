@@ -59,6 +59,12 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it('preserves flags following an unquoted backtick argument', () => {
+    ghLabelEnforcer(createBashInput('gh issue create --title `date` --label bug --milestone v1'), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
   it.each([
     'gh issue create --title "Fix # crash"',
     'gh issue create --title "Fix & crash"',

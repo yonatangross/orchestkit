@@ -51,6 +51,12 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it('preserves flags following an unquoted backtick argument', () => {
+    ghMilestoneEnforcer(createBashInput('gh issue create --title `date` --label bug --milestone v1'), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
   it.each([
     'gh issue create --title x --body "ls -m output" --label bug',
     'gh issue create --title x',

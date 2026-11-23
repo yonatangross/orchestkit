@@ -15,6 +15,24 @@ import { getGhCreateCommands } from '../../lib/gh-command.js';
 
 const find = (command: string) => getGhCreateCommands(command, '--label', '-l');
 
+describe('getGhCreateCommands: backtick arguments', () => {
+  it.each(['`date`', 'prefix`printf "two words"`suffix', '``'])('reads flags after %s', (title) => {
+    expect(find(`gh issue create --title ${title} --label bug`)).toEqual([{ kind: 'issue', hasFlag: true }]);
+  });
+
+  it('does not read flags from the substitution payload', () => {
+    expect(find('gh issue create --title `echo --label bug`')).toEqual([{ kind: 'issue', hasFlag: false }]);
+  });
+
+  it('rejects an unterminated substitution', () => {
+    expect(find('gh issue create --title `date --label bug')).toEqual([]);
+  });
+
+  it('does not scan literal backticks inside single quotes as commands', () => {
+    expect(find("echo '`gh issue create --title x`'")).toEqual([]);
+  });
+});
+
 describe('getGhCreateCommands: gh create behind a shell reserved word', () => {
   const cases: [string, string][] = [
     ['if', 'if gh issue create --title "x"; then echo ok; fi'],

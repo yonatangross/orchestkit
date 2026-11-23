@@ -26,7 +26,7 @@ export function hasExplicitRepoTarget(command: string): boolean {
 }
 
 /** Read literal shell words without splitting quoted argument payloads. */
-function shellWords(command: string): (string | null)[] {
+function shellWords(command: string, substitutions: string[]): (string | null)[] {
   const words: (string | null)[] = [];
   let word = '';
   let started = false;
@@ -64,7 +64,17 @@ function shellWords(command: string): (string | null)[] {
     } else if (ch === '"' || ch === "'") {
       quote = ch;
       started = true;
-    } else if (/\s|[;&|()<>`]/.test(ch)) {
+    } else if (ch === '`') {
+      let end = i + 1;
+      for (; end < command.length && command[end] !== '`'; end++) {
+        if (command[end] === '\\') end++;
+      }
+      if (end >= command.length) return [];
+      substitutions.push(command.slice(i + 1, end));
+      word += command.slice(i, end + 1);
+      started = true;
+      i = end;
+    } else if (/\s|[;&|()<>]/.test(ch)) {
       flush();
       if (!/[^\S\n]/.test(ch)) words.push(null);
     } else {
@@ -128,8 +138,13 @@ export function getGhCreateCommands(command: string, long: string, short: string
 }
 
 function scanGhCreates(command: string, long: string, short: string, depth: number): GhCreate[] {
-  const words = shellWords(command);
+  const substitutions: string[] = [];
+  const words = shellWords(command, substitutions);
   const creates: GhCreate[] = [];
+  if (words.length === 0) return creates;
+  if (depth < MAX_NESTING) {
+    for (const payload of substitutions) creates.push(...scanGhCreates(payload, long, short, depth + 1));
+  }
   const valuedOptions = new Set([
     '--assignee', '--body', '--body-file', '--label', '--milestone', '--project',
     '--recover', '--template', '--title', '--repo', '--base', '--head', '--reviewer',
@@ -145,7 +160,7 @@ function scanGhCreates(command: string, long: string, short: string, depth: numb
     if (executable && SHELL_RESERVED_WORDS.has(word)) continue;
     if (executable) {
       const name = word.slice(word.lastIndexOf('/') + 1);
-      const wrapper = Object.prototype.hasOwnProperty.call(WRAPPERS, name) ? WRAPPERS[name] : undefined;
+      const wrapper = Object.hasOwn(WRAPPERS, name) ? WRAPPERS[name] : undefined;
       if (wrapper) {
         // Skip the wrapper's own options (and its operand), keep the slot open for the command.
         let j = i + 1;
