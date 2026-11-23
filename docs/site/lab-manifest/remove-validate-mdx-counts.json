@@ -1,0 +1,12 @@
+{
+  "slug": "remove-validate-mdx-counts",
+  "source": "docs/refactor--remove-validate-mdx-counts/index.html",
+  "title": "One count checker, not two",
+  "description": "Caller audit and real runs: the orphaned MDX count scanner miscounted agents and failed on dated docs, while validate-counts still passes.",
+  "tags": [
+    "ci",
+    "scripts",
+    "cleanup"
+  ],
+  "date": "2026-11-23"
+}

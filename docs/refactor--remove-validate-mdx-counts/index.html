@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>One count checker, not two</title>
+<meta name="description" content="Caller audit and real runs for removing the orphaned MDX count scanner.">
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#f7f6f2;color:#202b35;font:16px/1.6 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:48px 24px}header{max-width:760px}.eyebrow{color:#456658;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.04em;line-height:1.1;margin:16px 0}p{color:#53606a}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}code{overflow-wrap:anywhere;font-size:.9em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px}article{background:white;border:1px solid #d7ddd9;border-radius:12px;overflow:hidden}h2{font-size:18px;margin:0}.card-head{padding:18px 20px;border-bottom:1px solid #d7ddd9;display:flex;justify-content:space-between;gap:10px;align-items:center}.status{font-size:12px;font-weight:700;white-space:nowrap;padding:3px 9px;border-radius:20px;background:#e8f3ec;color:#245235}.status.bad{background:#fce9e6;color:#973425}pre{margin:0;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8;color:#203a31}h3{font-size:18px;margin:36px 0 12px}table{width:100%;border-collapse:collapse;background:white;border:1px solid #d7ddd9;font-size:14px}th,td{text-align:left;padding:10px 16px;border-bottom:1px solid #e6eae7;vertical-align:top}th{background:#eef1ee;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#456658}tr:last-child td{border-bottom:0}.zero{font-weight:700;color:#245235}.note{font-size:13px;margin-top:20px}footer{margin-top:28px;border-top:1px solid #d7ddd9;padding-top:20px;font-size:14px}@media(max-width:650px){main{padding:28px 16px}.grid{grid-template-columns:1fr}pre{padding:16px}.card-head{padding:14px 16px}h2{font-size:16px}th,td{padding:8px 10px}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Refactor / dead script removal</div>
+    <h1>One count checker, not two.</h1>
+    <p><code>bin/validate-mdx-counts.sh</code> had no caller anywhere in the repo. Run by hand, it counted <code>src/agents/README.md</code> as an agent and failed on three docs lines that are intentionally dated or not totals. <code>bin/validate-counts.sh</code>, which CI and the pre-commit hook run, still covers the component counts.</p>
+  </header>
+  <div class="grid">
+    <article aria-labelledby="mdx-title">
+      <div class="card-head"><h2 id="mdx-title">validate-mdx-counts.sh (removed)</h2><span class="status bad">Exit 1</span></div>
+      <pre>  Scanning docs for stale total counts...
+    Actual: 115 skills, 37 agents, 163 hooks
+  ⚠ docs/reference/skills/configure/index.mdx:50 - says '107 skills' in total-count context (actual: 115)
+  ⚠ docs/guides/cc-adoption.mdx:10 - says '100 skills' in total-count context (actual: 115)
+  ⚠ docs/guides/ask-fallback.mdx:73 - says '33 skills' (actual: 115)
+
+  Found 3 stale total-count reference(s) in docs
+  Fix: update hardcoded numbers to match actual counts</pre>
+    </article>
+    <article aria-labelledby="counts-title">
+      <div class="card-head"><h2 id="counts-title">validate-counts.sh (kept)</h2><span class="status">Exit 0</span></div>
+      <pre>Validating component counts...
+Source: .claude-plugin/plugin.json description
+
+✓ Skills: 115 (includes command-type skills)
+✓ Agents: 36
+✓ Hooks: 163
+
+Validating version sync...
+✓ Version manifests/ork.json: 10.16.0
+  (13 more version files, all 10.16.0)
+
+Validation PASSED: All counts and versions match</pre>
+    </article>
+  </div>
+  <h3>Why each warning was wrong</h3>
+  <table>
+    <thead><tr><th>Docs line</th><th>Text</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><code>configure/index.mdx:50</code></td><td>"(107 skills, 36 agents on 2026-09-25)"</td><td>Dated snapshot, beside a pointer to the live count</td></tr>
+      <tr><td><code>cc-adoption.mdx:10</code></td><td>"100+ skills, 36 agents"</td><td>Lower bound, still true at 115</td></tr>
+      <tr><td><code>ask-fallback.mdx:73</code></td><td>"all 33 skills using AskUserQuestion"</td><td>A subset, not the total</td></tr>
+      <tr><td>Agents total</td><td>Scanner said 37</td><td>36 agents plus <code>src/agents/README.md</code></td></tr>
+    </tbody>
+  </table>
+  <h3>Caller audit on main</h3>
+  <table>
+    <thead><tr><th>Where</th><th>References</th></tr></thead>
+    <tbody>
+      <tr><td>CI workflows and actions (<code>.github/</code>)</td><td class="zero">0</td></tr>
+      <tr><td>Git hooks (<code>bin/git-hooks/</code>)</td><td class="zero">0</td></tr>
+      <tr><td>npm scripts (<code>package.json</code>)</td><td class="zero">0</td></tr>
+      <tr><td>Tests, scripts, manifests, <code>src/</code></td><td class="zero">0</td></tr>
+      <tr><td>Docs site content</td><td class="zero">0</td></tr>
+      <tr><td>Kept on purpose</td><td>CHANGELOG entry, its generated copy, and a frozen secrets-veil corpus fixture (all history)</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Static evidence, not a live shell. Both outputs are from real runs on main; the scanner's dashes are shown as hyphens and its color codes are stripped. Version lines in the kept checker are abridged.</p>
+  <footer><strong>The change:</strong> delete <code>bin/validate-mdx-counts.sh</code>. Nothing called it, so no other file changes behavior.</footer>
+</main>
+</body>
+</html>
