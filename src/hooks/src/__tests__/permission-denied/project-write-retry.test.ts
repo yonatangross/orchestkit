@@ -5,6 +5,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { projectWriteRetry } from '../../permission-denied/project-write-retry.js';
+import * as permissionAutoApprove from '../../lib/permission-auto-approve.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 import * as fs from 'node:fs';
@@ -110,15 +111,20 @@ describe('project-write-retry', () => {
   });
 
   test.each(['.claude', '.git', '.husky', '.ClAuDe', '.GiThUb', '.HuSkY'])(
-    'does not retry a write under a protected ancestor %s',
+    'the exclusion check withholds retry under protected ancestor %s',
     (ancestor) => {
       const root = `/test/scout/${ancestor}/myapp`;
       const filePath = `${root}/src/a.ts`;
       const projectRootInput = createDeniedWriteInput(filePath, { projectDir: root });
       const addedRootInput = createDeniedWriteInput(filePath, { addedDirs: [root] });
 
-      expect(projectWriteRetry(projectRootInput, testCtx).hookSpecificOutput).toBeUndefined();
-      expect(projectWriteRetry(addedRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+      const hardDenylist = vi.spyOn(permissionAutoApprove, 'isHardDeniedWritePath').mockReturnValue(false);
+      try {
+        expect(projectWriteRetry(projectRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+        expect(projectWriteRetry(addedRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+      } finally {
+        hardDenylist.mockRestore();
+      }
     },
   );
 

@@ -5,6 +5,7 @@
 
 import { describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 import { autoApproveProjectWrites } from '../../permission/auto-approve-project-writes.js';
+import * as permissionAutoApprove from '../../lib/permission-auto-approve.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -101,7 +102,7 @@ describe('auto-approve-project-writes', () => {
   });
 
   test.each(['.claude', '.git', '.husky', '.ClAuDe', '.GiThUb', '.HuSkY'])(
-    'does not auto-approve a write under a protected ancestor %s',
+    'the exclusion check withholds approval under protected ancestor %s',
     (ancestor) => {
       const root = `/test/scout/${ancestor}/myapp`;
       const filePath = `${root}/src/a.ts`;
@@ -109,8 +110,13 @@ describe('auto-approve-project-writes', () => {
       const addedRootInput = createWriteInput(filePath);
       addedRootInput.added_dirs = [root];
 
-      expect(autoApproveProjectWrites(projectRootInput, testCtx).hookSpecificOutput).toBeUndefined();
-      expect(autoApproveProjectWrites(addedRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+      const hardDenylist = vi.spyOn(permissionAutoApprove, 'isHardDeniedWritePath').mockReturnValue(false);
+      try {
+        expect(autoApproveProjectWrites(projectRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+        expect(autoApproveProjectWrites(addedRootInput, testCtx).hookSpecificOutput).toBeUndefined();
+      } finally {
+        hardDenylist.mockRestore();
+      }
     },
   );
 
