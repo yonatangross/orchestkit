@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>SessionEnd reports the installed version</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f2f5f7; color: #152d3e; font: 16px/1.6 system-ui, sans-serif; }
+  main { max-width: 780px; margin: auto; padding: clamp(24px, 6vw, 64px) 24px; }
+  h1 { margin: 5px 0 12px; font-size: clamp(30px, 6vw, 50px); line-height: 1.1; }
+  .label { color: #335b72; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .controls { display: flex; gap: 8px; margin: 24px 0 12px; }
+  button { padding: 8px 16px; border: 1px solid #557486; border-radius: 6px; background: white; color: #152d3e; font: inherit; font-weight: 600; cursor: pointer; }
+  button[aria-pressed="true"] { background: #153d54; color: white; }
+  button:focus-visible { outline: 3px solid #246cf0; outline-offset: 2px; }
+  section { padding: 16px 22px; border: 1px solid #c4d4dd; border-radius: 10px; background: white; }
+  section h2 { margin: 0; font-size: 18px; }
+  code, pre { font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+  pre { padding: 14px; border-radius: 6px; background: #152d3e; color: #eef8ff; white-space: pre-wrap; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="SessionEnd reports the installed version"><meta property="og:description" content="Compare the SessionEnd payloads captured from the installed OrchestKit plugin before and after the manifest lookup fix."><meta property="og:url" content="https://orchestkit.dev/lab/usage-reporter-plugin-version.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="SessionEnd reports the installed version"><meta name="twitter:description" content="Compare the SessionEnd payloads captured from the installed OrchestKit plugin before and after the manifest lookup fix."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="label">OrchestKit / SessionEnd</p>
+    <h1>SessionEnd reports the installed version</h1>
+    <p>The reporter used to look for <code>package.json</code> outside the installed plugin. It now uses the <code>.claude-plugin/plugin.json</code> shipped inside it.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Recorded reporter version">
+    <button id="before" type="button" aria-pressed="true">Before</button>
+    <button id="after" type="button" aria-pressed="false">After</button>
+  </div>
+  <section aria-labelledby="capture-heading">
+    <h2 id="capture-heading">Captured SessionEnd payload</h2>
+    <div aria-live="polite" aria-atomic="true">
+      <pre><code id="capture">{
+  "manifest_version": "10.17.0",
+  "hook_version": "0.0.0"
+}</code></pre>
+      <p id="result">Mismatch: the reporter sent its fallback instead of the installed version.</p>
+    </div>
+  </section>
+  <p>The same probe ran against the built lifecycle bundle in both cases. It intercepted the webhook locally; no request left the process.</p>
+</main>
+<script>
+  const captures = [
+    { manifest_version: '10.17.0', hook_version: '0.0.0' },
+    { manifest_version: '10.17.0', hook_version: '10.17.0' },
+  ];
+  const buttons = [document.querySelector('#before'), document.querySelector('#after')];
+  buttons.forEach((button, selected) => button.addEventListener('click', () => {
+    const capture = captures[selected];
+    document.querySelector('#capture').textContent = JSON.stringify(capture, null, 2);
+    document.querySelector('#result').textContent = capture.hook_version === capture.manifest_version
+      ? 'Match: the payload identifies the installed OrchestKit release.'
+      : 'Mismatch: the reporter sent its fallback instead of the installed version.';
+    buttons.forEach((control, index) => control.setAttribute('aria-pressed', String(index === selected)));
+  }));
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

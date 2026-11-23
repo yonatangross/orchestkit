@@ -54,13 +54,16 @@ const HOOK_NAME = 'usage-summary-reporter';
 /** Fetch timeout in ms. Must be less than hooks.json timeout (8s) to allow clean exit. */
 const FETCH_TIMEOUT_MS = 4000;
 
-/** Read OrchestKit version from root package.json (cached at module load) */
 const HOOK_VERSION = (() => {
+  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
+  if (!pluginRoot) return '0.0.0';
+
   try {
-    const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || '';
-    const pkgPath = join(pluginRoot, '..', 'package.json');
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-    return String(pkg.version || '0.0.0');
+    const manifestPath = join(pluginRoot, '.claude-plugin', 'plugin.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { version?: unknown } | null;
+    return typeof manifest?.version === 'string' && manifest.version.trim()
+      ? manifest.version.trim()
+      : '0.0.0';
   } catch {
     return '0.0.0';
   }

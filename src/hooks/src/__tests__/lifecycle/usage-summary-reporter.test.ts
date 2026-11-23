@@ -5,6 +5,9 @@
  * payload shape, HMAC signing, project slug resolution.
  */
 
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
@@ -73,12 +76,6 @@ vi.mock('../../lib/session-tracker.js', () => ({
     problems_reported: 0,
     solutions_found: 1,
   })),
-}));
-
-// Mock node:fs for HOOK_VERSION reading
-vi.mock('node:fs', () => ({
-  readFileSync: vi.fn(() => JSON.stringify({ version: '7.2.2' })),
-  existsSync: vi.fn(() => false),
 }));
 
 import { usageSummaryReporter, signPayload, getProjectSlug } from '../../lifecycle/usage-summary-reporter.js';
@@ -239,6 +236,27 @@ describe('Usage Summary Reporter Hook', () => {
       expect(body).not.toContain('user-123');
       expect(body).not.toContain('anon-456');
       expect(body).not.toContain('team-789');
+    });
+
+    it('reports the version from the installed plugin manifest', async () => {
+      const installDir = mkdtempSync(join(tmpdir(), 'ork-reporter-'));
+      try {
+        const pluginRoot = join(installDir, 'ork');
+        const manifestDir = join(pluginRoot, '.claude-plugin');
+        const manifest = { name: 'ork', version: '10.17.0' };
+        mkdirSync(manifestDir, { recursive: true });
+        writeFileSync(join(manifestDir, 'plugin.json'), JSON.stringify(manifest));
+        vi.stubEnv('CLAUDE_PLUGIN_ROOT', pluginRoot);
+        vi.resetModules();
+        const { usageSummaryReporter: report } = await import('../../lifecycle/usage-summary-reporter.js');
+
+        await report(defaultInput, testCtx);
+
+        const [, options] = mockFetch.mock.calls[0];
+        expect(JSON.parse(options.body).metadata.hook_version).toBe(manifest.version);
+      } finally {
+        rmSync(installDir, { recursive: true, force: true });
+      }
     });
 
     it('should use hook_event from input when present', async () => {

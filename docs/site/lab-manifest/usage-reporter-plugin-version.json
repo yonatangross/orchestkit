@@ -1,0 +1,8 @@
+{
+  "slug": "usage-reporter-plugin-version",
+  "source": "docs/fix--usage-reporter-plugin-version/index.html",
+  "title": "SessionEnd reports the installed version",
+  "description": "Compare the SessionEnd payloads captured from the installed OrchestKit plugin before and after the manifest lookup fix.",
+  "tags": ["hooks", "telemetry", "bugfix"],
+  "date": "2026-11-23"
+}
