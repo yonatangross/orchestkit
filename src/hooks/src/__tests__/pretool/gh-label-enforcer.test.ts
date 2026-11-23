@@ -59,6 +59,21 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
+  it.each([
+    'gh issue create --title Fix\\ #123',
+    'gh issue create --title "Fix "#123',
+    "gh issue create --title 'Fix '#123",
+    'gh issue create --title Fix\\ #123 # note',
+  ])('recognizes comments only at shell word starts: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    if (command.endsWith('# note')) {
+      expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+      expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    } else {
+      expect(result.hookSpecificOutput?.updatedInput?.command).toMatch(/ --label \w+$/);
+    }
+  });
+
   it('preserves flags following an unquoted backtick argument', () => {
     ghLabelEnforcer(createBashInput('gh issue create --title `date` --label bug --milestone v1'), testCtx);
     expect(outputSilentSuccess).toHaveBeenCalled();

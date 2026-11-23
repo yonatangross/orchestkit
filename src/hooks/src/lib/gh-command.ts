@@ -26,7 +26,7 @@ export function hasExplicitRepoTarget(command: string): boolean {
 }
 
 /** Read literal shell words without splitting quoted argument payloads. */
-function shellWords(command: string, substitutions: string[]): (string | null)[] {
+function shellWords(command: string, substitutions: string[], onComment?: () => void): (string | null)[] {
   const words: (string | null)[] = [];
   let word = '';
   let started = false;
@@ -57,6 +57,7 @@ function shellWords(command: string, substitutions: string[]): (string | null)[]
       started = true;
       i++;
     } else if (ch === '#' && !started) {
+      onComment?.();
       // A comment runs to the end of the line. Skipping it keeps an apostrophe in a
       // trailing comment from reading as an unterminated quote, which would drop
       // the whole command (the guard disabled itself without saying so).
@@ -85,6 +86,12 @@ function shellWords(command: string, substitutions: string[]): (string | null)[]
   if (quote) return [];
   flush();
   return words;
+}
+
+export function hasShellComment(command: string): boolean {
+  let found = false;
+  shellWords(command, [], () => { found = true; });
+  return found;
 }
 
 /** Reserved words that precede a command in a conditional, loop or negation. */
