@@ -67,10 +67,9 @@ function sdkMarkdown(): string {
 	].join("\n");
 }
 
-const RENDERERS: Record<DocsLandingSlug, () => string> = {
-	mcp: mcpMarkdown,
-	sdk: sdkMarkdown,
-};
+function landingBody(slug: DocsLandingSlug): string {
+	return slug === "mcp" ? mcpMarkdown() : sdkMarkdown();
+}
 
 const FRONTMATTER: Record<
 	DocsLandingSlug,
@@ -90,9 +89,9 @@ const FRONTMATTER: Record<
 
 // The page without frontmatter, in the shape every other doc reader returns.
 export function docsLandingPage(slug: DocsLandingSlug): { title: string; markdown: string } {
-	return { title: FRONTMATTER[slug].title, markdown: RENDERERS[slug]() };
+	return { title: FRONTMATTER[slug].title, markdown: landingBody(slug) };
 }
 
 export function docsLandingMarkdown(slug: DocsLandingSlug): string {
-	return withFrontmatter(FRONTMATTER[slug], RENDERERS[slug]());
+	return withFrontmatter(FRONTMATTER[slug], landingBody(slug));
 }
