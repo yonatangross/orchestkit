@@ -33,7 +33,7 @@ const BUILD_OUTPUT_DIRS = [
  */
 export function isInsideDir(filePath: string, rootDir: string): boolean {
   const rel = relative(normalize(rootDir), normalize(filePath));
-  return !rel.startsWith('..') && !isAbsolute(rel);
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
 }
 
 /**
