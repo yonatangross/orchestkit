@@ -52,4 +52,17 @@ else
     fail "missing extras build should name the expected path and fail"
 fi
 
+printf '%s\n' '{' > "$FIXTURE/manifests/ork-extras.json"
+for probe in assess --all; do
+    status=0
+    output="$(bash "$CHECK" "$probe" 2>&1)" || status=$?
+    if [[ "$status" == 2 &&
+        "$output" == *"ERROR: could not read manifest $FIXTURE/manifests/ork-extras.json:"* &&
+        "$output" != *"VERDICT:"* && "$output" != *"DRIFT:"* ]]; then
+        pass "invalid manifest is a checker error for $probe"
+    else
+        fail "invalid manifest should exit 2 with a manifest error for $probe, got $status"
+    fi
+done
+
 [[ "$failures" == 0 ]]

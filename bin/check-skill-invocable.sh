@@ -52,8 +52,12 @@ import json, sys
 name, *paths = sys.argv[1:]
 owners = []
 for path in paths:
-    with open(path) as file:
-        manifest = json.load(file)
+    try:
+        with open(path, encoding="utf-8") as file:
+            manifest = json.load(file)
+    except (OSError, ValueError) as error:
+        print(f"ERROR: could not read manifest {path}: {error}", file=sys.stderr)
+        sys.exit(2)
     skills = manifest.get("skills")
     if (skills == "all" and name not in manifest.get("skillsExclude", [])) or (
         isinstance(skills, list) and name in skills
@@ -77,7 +81,7 @@ PY
 #                   without condemning every internal knowledge module.
 check_one() {
   local name="$1" mode="${2:-invocable}" fails=0
-  local src_md="$SRC/$name/SKILL.md" owner
+  local src_md="$SRC/$name/SKILL.md" owner owner_status=0
 
   if [ ! -f "$src_md" ]; then
     echo "FAIL [1/6] no src skill: $src_md"
@@ -109,7 +113,11 @@ check_one() {
     echo "ok   [3/6] skipped (consistency mode — internal-by-design is not drift)"
   fi
 
-  if ! owner=$(manifest_owner "$name"); then
+  owner=$(manifest_owner "$name") || owner_status=$?
+  if [ "$owner_status" -gt 1 ]; then
+    return 2
+  fi
+  if [ "$owner_status" -eq 1 ]; then
     echo "FAIL [4/6] ${owner:-could not resolve skill ownership from manifests}"
     if [ "$mode" = "invocable" ]; then
       echo "VERDICT: $name is NOT invocable (see FAIL lines above)"
@@ -156,7 +164,9 @@ case "${1:-}" in
       [ -f "$d/SKILL.md" ] || continue   # shared/ etc. carry no SKILL.md
       # Capture the full report; on failure surface only the FAIL lines.
       report=$(check_one "$name" consistency) && rc=0 || rc=$?
-      if [ "$rc" -ne 0 ]; then
+      if [ "$rc" -eq 2 ]; then
+        exit 2
+      elif [ "$rc" -ne 0 ]; then
         echo "DRIFT: $name"
         echo "$report" | { grep '^FAIL' || echo "  (no FAIL detail captured)"; } | sed 's/^/  /'
         drift=1
