@@ -44,7 +44,7 @@ interface Finding {
 }
 
 function extractFencedBlocks(content: string): FencedBlock[] {
-  const lines = content.split('\n');
+  const lines = content.split(/\r?\n/);
   const blocks: FencedBlock[] = [];
   let inBlock = false;
   let current: string[] = [];

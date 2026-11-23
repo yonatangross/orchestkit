@@ -79,6 +79,22 @@ describe('lint hooks with Windows paths', () => {
     expect(result.systemMessage).toContain('[width-80]');
   });
 
+  it.each([80, 81])('ascii-lint measures a %i-character CRLF line without the terminator', (width) => {
+    vi.stubEnv('CLAUDE_PROJECT_DIR', project);
+    const filePath = win32.join(project, 'src', 'guide.md');
+    vi.mocked(existsSync).mockImplementation((path) => path === filePath);
+    vi.mocked(readFileSync).mockReturnValue(['```', `───${'a'.repeat(width - 3)}`, '```'].join('\r\n'));
+
+    const result = asciiLint(writeInput(filePath));
+
+    expect(readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
+    if (width === 80) {
+      expect(result.systemMessage).toBeUndefined();
+    } else {
+      expect(result.systemMessage).toContain('width 81 > 80');
+    }
+  });
+
   it('auto-lint does not pick up config above a Windows project root with different separators', () => {
     // Arrange
     vi.stubEnv('CLAUDE_PROJECT_DIR', 'C:/work/project');
