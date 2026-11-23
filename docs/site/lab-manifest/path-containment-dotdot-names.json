@@ -1,0 +1,8 @@
+{
+  "slug": "path-containment-dotdot-names",
+  "source": "docs/fix--path-containment-dotdot-names/index.html",
+  "title": "When two dots are part of the name",
+  "description": "Compare recorded write retry results before and after fixing project path containment.",
+  "tags": ["hooks", "permissions", "bugfix"],
+  "date": "2026-11-23"
+}

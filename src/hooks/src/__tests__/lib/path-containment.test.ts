@@ -45,6 +45,14 @@ describe('isInsideDir', () => {
     expect(isInsideDir('/project/a/b/c/d/file.ts', '/project')).toBe(true);
   });
 
+  test.each(['..cache/a.json', '..foo/bar', '..file'])('returns true for the in-project path %s', (path) => {
+    expect(isInsideDir(join('/project', path), '/project')).toBe(true);
+  });
+
+  test('returns false for the parent directory itself', () => {
+    expect(isInsideDir('/project/..', '/project')).toBe(false);
+  });
+
   test('returns false for file outside directory', () => {
     expect(isInsideDir('/other/file.ts', '/project')).toBe(false);
   });
