@@ -60,6 +60,27 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-label-enforcer', () => {
   it.each([
+    'gh issue create --title "Fix # crash"',
+    'gh issue create --title "Fix & crash"',
+    'gh issue create --title a#b',
+    'gh issue create --title \\#note',
+  ])('still rewrites when shell suffix characters are literal: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.updatedInput?.command).toMatch(/ --label \w+$/);
+  });
+
+  it.each([
+    'nohup gh issue create --title x &',
+    'gh issue create --title x # note',
+    "gh issue create --title x # don't forget",
+  ])('advises without appending after shell syntax: %s', (command) => {
+    const result = ghLabelEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(result.hookSpecificOutput?.additionalContext).toContain('gh issue create');
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
+  it.each([
     'gh pr create --title x --body "ls -l output"',
     'gh pr create --title x',
   ])('advises without granting permission: %s', (command) => {

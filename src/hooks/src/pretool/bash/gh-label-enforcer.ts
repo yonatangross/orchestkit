@@ -15,7 +15,7 @@ import {
   outputSilentSuccess,
   outputPreToolAdvisory,
 } from '../../lib/common.js';
-import { isCompoundCommand } from '../../lib/normalize-command.js';
+import { blankQuotedContent, hasBackgroundOperator, isCompoundCommand } from '../../lib/normalize-command.js';
 import { hasExplicitRepoTarget, getGhCreateCommands, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
@@ -53,7 +53,8 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
   if (create.kind === 'issue') {
-    if (isCompoundCommand(command) || create.nested) {
+    if (isCompoundCommand(command) || create.nested || hasBackgroundOperator(command)
+      || /(^|\s)#/.test(blankQuotedContent(command))) {
       // Appending --label to a compound string cannot target the right
       // segment without a real parser, so this stays an advisory. The same
       // holds for a create inside `bash -c "..."` or `eval`: text appended to
