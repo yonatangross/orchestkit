@@ -168,6 +168,9 @@ export async function run(
 		if (["install", "mcp", "read"].includes(args.command) && args.positional.length > 1) {
 			throw new UsageError(`${args.command} accepts at most one positional argument.`);
 		}
+		if (args.command === "doctor" && args.positional.length > 0) {
+			throw new UsageError("doctor does not accept positional arguments.");
+		}
 		const makeClient = deps.clientFactory ?? createClient;
 		const client = makeClient({ baseUrl: args.baseUrl });
 

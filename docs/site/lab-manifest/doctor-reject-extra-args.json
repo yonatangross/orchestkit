@@ -1,0 +1,8 @@
+{
+  "slug": "doctor-reject-extra-args",
+  "source": "docs/fix--doctor-reject-extra-args/index.html",
+  "title": "Doctor rejects extra arguments",
+  "description": "Compare built CLI output and loopback HTTP request counts before and after rejecting extra doctor arguments.",
+  "tags": ["cli", "doctor", "regression"],
+  "date": "2026-11-24"
+}
