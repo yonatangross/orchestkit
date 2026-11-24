@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Readable search excerpts</title>
+<meta name="description" content="Compare real OrchestKit docs search results before and after Card markup was removed from the index.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f4ee; color: #17282a; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1080px; margin: auto; padding: 54px 24px; }
+  header { border-top: 2px solid #234645; padding: 24px 0 30px; }
+  h1 { margin: 12px 0; font-size: clamp(34px, 7vw, 60px); line-height: 1.02; letter-spacing: -.055em; }
+  p { margin: 0; color: #405655; }
+  .label { color: #405655; font-size: .73rem; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+  .controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-block: 0 16px; }
+  button { border: 1px solid #526965; border-radius: 6px; padding: 6px 16px; font: inherit; color: #17282a; background: transparent; cursor: pointer; }
+  button[aria-pressed="true"] { color: white; background: #234645; border-color: #234645; }
+  button:focus-visible { outline: 3px solid #126ab0; outline-offset: 3px; }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .panel { border: 1px solid #c5cfca; border-radius: 10px; overflow: hidden; background: #fff; }
+  .panel h2 { margin: 0; padding: 13px 18px; font-size: .94rem; background: #eeeae2; }
+  .panel.after h2 { background: #deece3; }
+  pre { margin: 0; padding: 18px; min-height: 172px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  code, pre { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+  .command { border-top: 1px solid #c5cfca; margin-top: 24px; padding-top: 16px; }
+  .command > code { display: block; margin-block: 6px; overflow-wrap: anywhere; }
+  .command p { font-size: .87rem; }
+  @media (max-width: 690px) {
+    main { padding: 32px 16px; }
+    .comparison { grid-template-columns: 1fr; }
+    pre { min-height: auto; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="label">OrchestKit Lab / Docs search</div>
+    <h1>Search the docs, not the markup.</h1>
+    <p>Search for <strong>hooks</strong>. The same matches now carry readable titles and descriptions instead of MDX attributes.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Search client">
+    <span class="label">Captured output</span>
+    <button type="button" id="api" aria-pressed="true">Search API</button>
+    <button type="button" id="cli" aria-pressed="false">CLI</button>
+  </div>
+  <div id="api-output">
+    <div class="comparison">
+      <section class="panel">
+        <h2>Before · Card markup</h2>
+        <pre>&lt;Card title="Writing hooks" description="Adding a hook, registering it, and keeping counts in sync." href="/docs/hooks/writing-hooks" /&gt;
+
+&lt;Card title="Overview" description="What hooks do and when they fire." href="/docs/hooks/overview" /&gt;</pre>
+      </section>
+      <section class="panel after">
+        <h2>After · Readable excerpts</h2>
+        <pre>Writing hooks: Adding a hook, registering it, and keeping counts in sync.
+
+Overview: What hooks do and when they fire.</pre>
+      </section>
+    </div>
+    <div class="command">
+      <span class="label">Reproduce</span>
+      <code>curl 'https://orchestkit.dev/api/search?query=hooks&amp;limit=5&amp;maxSnippets=2' | jq -r '.[] | select(.type == "text" and .url == "/docs/hooks") | .content'</code>
+      <p>Shows the two <code>content</code> fields returned under the Hooks page. Both still link to <a href="/docs/hooks">/docs/hooks</a>.</p>
+    </div>
+  </div>
+  <div id="cli-output" hidden>
+    <div class="comparison">
+      <section class="panel">
+        <h2>Before · Card markup</h2>
+        <pre>1. Hooks
+2. &lt;Card title="Writing hooks" description="Adding a hook, registering it, and keeping counts in sync." href="/docs/hooks/writing-hooks" /&gt;
+3. &lt;Card title="Overview" description="What hooks do and when they fire." href="/docs/hooks/overview" /&gt;</pre>
+      </section>
+      <section class="panel after">
+        <h2>After · Readable excerpts</h2>
+        <pre>1. Hooks
+2. Writing hooks: Adding a hook, registering it, and keeping counts in sync.
+3. Overview: What hooks do and when they fire.</pre>
+      </section>
+    </div>
+    <div class="command">
+      <span class="label">Reproduce</span>
+      <code>orchestkit search hooks --limit 5</code>
+      <p>Shows the first three labels from the built CLI run. Result URLs and rate-limit output are omitted.</p>
+    </div>
+  </div>
+</main>
+<script>
+  const api = document.getElementById("api");
+  const cli = document.getElementById("cli");
+  const apiOutput = document.getElementById("api-output");
+  const cliOutput = document.getElementById("cli-output");
+  function showCli(selected) {
+    api.setAttribute("aria-pressed", String(!selected));
+    cli.setAttribute("aria-pressed", String(selected));
+    apiOutput.hidden = selected;
+    cliOutput.hidden = !selected;
+  }
+  api.addEventListener("click", () => showCli(false));
+  cli.addEventListener("click", () => showCli(true));
+</script>
+</body>
+</html>

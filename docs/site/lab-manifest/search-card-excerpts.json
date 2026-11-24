@@ -1,0 +1,8 @@
+{
+  "slug": "search-card-excerpts",
+  "source": "docs/fix--search-card-excerpts/index.html",
+  "title": "Readable search excerpts",
+  "description": "Compare recorded docs search output before and after indexing Card titles and descriptions as plain text.",
+  "tags": ["search", "docs", "cli"],
+  "date": "2026-11-24"
+}

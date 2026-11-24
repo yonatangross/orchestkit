@@ -2,9 +2,41 @@
 // Created: 2026-02-06
 
 import { defineDocs, defineConfig } from "fumadocs-mdx/config";
-import { rehypeCode, remarkGfm, remarkNpm } from "fumadocs-core/mdx-plugins";
+import {
+  rehypeCode,
+  remarkGfm,
+  remarkNpm,
+  remarkStructureDefaultOptions,
+} from "fumadocs-core/mdx-plugins";
 import lastModified from "fumadocs-mdx/plugins/last-modified";
 import { pageSchema } from "fumadocs-core/source/schema";
+import type { Nodes, Root } from "mdast";
+
+function remarkCardSearchText() {
+  return (tree: Root) => {
+    function visit(node: Nodes) {
+      if (
+        (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") &&
+        node.name === "Card" &&
+        node.children.length === 0
+      ) {
+        const getLabel = (name: string) => {
+          const prop = node.attributes.find(
+            (attr) => attr.type === "mdxJsxAttribute" && attr.name === name,
+          );
+          return prop?.type === "mdxJsxAttribute" && typeof prop.value === "string"
+            ? prop.value.replace(/\s+/g, " ").trim()
+            : "";
+        };
+        const content = [getLabel("title"), getLabel("description")].filter(Boolean).join(": ");
+        if (content) (node.data ??= {}).structuredData = { contents: [{ heading: undefined, content }] };
+      }
+      if ("children" in node) node.children.forEach(visit);
+    }
+
+    visit(tree);
+  };
+}
 
 // `seoTitle` is an optional search result title. It sets the HTML <title>,
 // og:title and twitter:title of a docs page. The `title` key stays short
@@ -27,6 +59,9 @@ export default defineConfig({
     // Options merge over rehypeCodeDefaultOptions, so themes and transformers
     // are unchanged.
     rehypePlugins: [[rehypeCode, { addLanguageClass: true }]],
-    remarkPlugins: [remarkGfm, remarkNpm],
+    remarkPlugins: [remarkGfm, remarkNpm, remarkCardSearchText],
+    remarkStructureOptions: {
+      filterElement: (node) => node.name !== "Card" && remarkStructureDefaultOptions.filterElement(node),
+    },
   },
 });
