@@ -15,10 +15,12 @@ function request(path: string, accept = "application/json") {
 }
 
 describe("middleware rate limits", () => {
-	it("meters both spellings of the API discovery route in the same window", async () => {
+	it("meters the API discovery route and its aliases in the same window", async () => {
 		for (const [path, remaining] of [
 			["/api", RATE_LIMIT - 1],
 			["/api/", RATE_LIMIT - 2],
+			["/api/v1", RATE_LIMIT - 3],
+			["/api/v1/", RATE_LIMIT - 4],
 		] as const) {
 			const response = await middleware(request(path));
 
