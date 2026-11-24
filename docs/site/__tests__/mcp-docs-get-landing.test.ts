@@ -69,6 +69,7 @@ describe("orchestkit_docs_get with orchestkit_docs_search result URLs", () => {
 	it.each([
 		"https://example.com/docs/getting-started/installation",
 		"https://orchestkit.dev.example.com/docs/getting-started/installation",
+		"https://orchestkit.dev/mcp",
 		"http://orchestkit.dev/docs/getting-started/installation",
 		"file:///docs/getting-started/installation",
 	])("rejects %s without fetching it", async (url) => {

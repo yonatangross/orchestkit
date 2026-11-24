@@ -30,12 +30,12 @@ const PROTOCOL_VERSION = "2025-06-18";
 const SITE_ORIGIN = new URL(SITE.domain).origin;
 
 // orchestkit_docs_search returns absolute URLs, so orchestkit_docs_get takes
-// those as well as paths. Only this site's origin is accepted, and only its
-// pathname is used for the local lookup: caller URLs are never fetched.
+// those as well as paths. Only /docs URLs on this site are accepted, and only
+// their pathname is used for the local lookup: caller URLs are never fetched.
 function docPathFromInput(input: string): string | null {
 	if (!URL.canParse(input)) return input;
 	const url = new URL(input);
-	return url.origin === SITE_ORIGIN ? url.pathname : null;
+	return url.origin === SITE_ORIGIN && /^\/docs(\/|$)/.test(url.pathname) ? url.pathname : null;
 }
 
 type ToolResult = {
