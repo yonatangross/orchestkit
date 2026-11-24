@@ -1,0 +1,4 @@
+{
+  "serves": ["server.json", "tests/manifests/test-server-json.sh"],
+  "description": "The old and new MCP Registry description with the 100 character limit and a live counter."
+}

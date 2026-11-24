@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit MCP Registry description</title>
+<meta name="description" content="The old and new server.json description for the MCP Registry, with the 100 character limit.">
+<style>
+  body { margin: 0; background: #f4f6f6; color: #162825; font: 1rem/1.6 system-ui, sans-serif; }
+  main { max-width: 51rem; margin: auto; padding: 3rem 1.25rem; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.75rem); line-height: 1.2; margin: .25rem 0 .75rem; }
+  .eyebrow { color: #365c53; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .row { margin: 1rem 0; padding: 1rem 1.25rem; background: #fff; border: 1px solid #c9d6d3; border-radius: .5rem; }
+  .row h2 { font-size: 1rem; margin: 0 0 .35rem; }
+  .text { overflow-wrap: anywhere; margin: 0 0 .5rem; }
+  .bar { position: relative; height: .75rem; background: #e3eae8; border-radius: .4rem; overflow: hidden; }
+  .fill { height: 100%; background: #2f7d6b; }
+  .fill.over { background: #b3261e; }
+  .limit { position: absolute; top: 0; bottom: 0; left: 62.5%; width: 2px; background: #162825; }
+  .meter { position: relative; padding-bottom: 1.2rem; }
+  .meter .tick { position: absolute; top: 1rem; left: 62.5%; transform: translateX(-50%); font-size: .8rem; color: #365c53; }
+  .status { font-weight: 700; }
+  .status.bad { color: #b3261e; }
+  .status.good { color: #1f6b4c; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 5.5rem; padding: .6rem; font: inherit; border: 1px solid #8aa39d; border-radius: .4rem; }
+  button { margin-inline-end: .5rem; padding: .4rem .8rem; font: inherit; cursor: pointer; }
+  .note { color: #365c53; }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">MCP Registry / publish check</div>
+  <h1>The registry description fits in 100 characters</h1>
+  <p>The MCP Registry rejects a <code>server.json</code> description longer than 100 characters with <code>422 validation failed: body.description expected length &lt;= 100</code>. The publish job failed on the last three releases (10.17.0, 10.18.0 and 10.18.1) because the description was 153 characters.</p>
+
+  <div class="row" id="before-row">
+    <h2>Before</h2>
+    <p class="text" id="before-text"></p>
+    <div class="meter"><div class="bar"><div class="fill" id="before-fill"></div><div class="limit"></div></div><span class="tick">100</span></div>
+    <p class="status" id="before-status"></p>
+  </div>
+
+  <div class="row" id="after-row">
+    <h2>After</h2>
+    <p class="text" id="after-text"></p>
+    <div class="meter"><div class="bar"><div class="fill" id="after-fill"></div><div class="limit"></div></div><span class="tick">100</span></div>
+    <p class="status" id="after-status"></p>
+  </div>
+
+  <div class="row">
+    <h2>Try a description</h2>
+    <p><label for="try">Type or paste a description to see how the check would judge it.</label></p>
+    <textarea id="try" aria-describedby="try-status"></textarea>
+    <p><button type="button" id="load-before">Load before</button><button type="button" id="load-after">Load after</button></p>
+    <div class="meter"><div class="bar"><div class="fill" id="try-fill"></div><div class="limit"></div></div><span class="tick">100</span></div>
+    <p class="status" id="try-status" aria-live="polite"></p>
+  </div>
+
+  <p class="note">The check is <code>tests/manifests/test-server-json.sh</code> (check 4). It counts characters the way <code>jq length</code> does, fails on a missing, empty or non-string description, and accepts 1 to 100. This page counts the same way, does not call the registry, and publishes nothing.</p>
+</main>
+<script>
+  const LIMIT = 100;
+  const SCALE = 160; // the bar spans 0 to 160 characters, so the limit line sits inside it
+  const BEFORE = "Read-only MCP server for the OrchestKit docs: full-text search, Markdown fetch, a skill card and an install picker (Claude Code, Cursor, Codex). No auth.";
+  const AFTER = "Read-only OrchestKit docs MCP: search, Markdown fetch, skill card, install picker. No auth.";
+  const count = (s) => Array.from(s).length;
+  const byId = (id) => document.getElementById(id);
+
+  function judge(text, fillId, statusId) {
+    const n = count(text);
+    const ok = n >= 1 && n <= LIMIT;
+    const fill = byId(fillId);
+    fill.style.width = Math.min(100, (n / SCALE) * 100) + "%";
+    fill.className = ok ? "fill" : "fill over";
+    const status = byId(statusId);
+    status.className = ok ? "status good" : "status bad";
+    status.textContent = ok
+      ? n + " of " + LIMIT + " characters: accepted"
+      : n === 0
+        ? "0 characters: refused, a description is required"
+        : n + " of " + LIMIT + " characters: refused (" + (n - LIMIT) + " over), the registry answers 422";
+  }
+
+  byId("before-text").textContent = BEFORE;
+  byId("after-text").textContent = AFTER;
+  judge(BEFORE, "before-fill", "before-status");
+  judge(AFTER, "after-fill", "after-status");
+
+  const field = byId("try");
+  const update = () => judge(field.value, "try-fill", "try-status");
+  field.value = AFTER;
+  field.addEventListener("input", update);
+  byId("load-before").addEventListener("click", () => { field.value = BEFORE; update(); });
+  byId("load-after").addEventListener("click", () => { field.value = AFTER; update(); });
+  update();
+</script>
+</body>
+</html>
