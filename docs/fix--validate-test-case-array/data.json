@@ -1,0 +1,6 @@
+{
+  "serves": ["bin/validate-test-case-rules.sh"],
+  "page": "docs/fix--validate-test-case-array/index.html",
+  "lab_slug": "validate-test-case-array",
+  "purpose": "Compare real validator output for an object in testCases before and after the fix"
+}
