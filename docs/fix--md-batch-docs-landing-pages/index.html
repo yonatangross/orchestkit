@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Batch Markdown reads every published docs page</title>
+<meta name="description" content="Compare recorded batch, async job and hosted MCP reads of /docs/mcp and /docs/sdk before and after the fix.">
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#f1f4f6;color:#162637;font:16px/1.55 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:clamp(24px,6vw,72px) 24px}.label{color:#145a56;font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}h1{max-width:18ch;margin:.3em 0;font-size:clamp(2rem,5vw,3.8rem);line-height:1.05;letter-spacing:-.04em}header p{max-width:60ch}.choices{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 16px}button{font:inherit;padding:8px 15px;color:#123b39;background:white;border:1px solid #6f918e;border-radius:8px;cursor:pointer}button[aria-pressed="true"]{background:#145a56;color:white}button:focus-visible{outline:3px solid #2169a8;outline-offset:2px}.command,pre{overflow-wrap:anywhere;white-space:pre-wrap}code,pre{font-family:ui-monospace,monospace}.command{display:block;background:#e2e9ed;padding:12px 16px;border-radius:8px;font-size:.9rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px;margin:16px 0}.grid section{background:white;border:1px solid #cedade;border-radius:12px;padding:16px}.grid h2{margin:0;font-size:1rem}.grid pre{margin:12px 0 0;background:#152638;color:#eff6fa;padding:14px;border-radius:6px;font-size:.85rem}.note{font-size:.9rem;color:#455967}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="label">Docs API regression &middot; batch Markdown</div>
+    <h1>Batch reads every published docs page.</h1>
+    <p>/docs/mcp and /docs/sdk already return 200 as Markdown, but the batch, async job and hosted MCP readers only looked in Fumadocs. Pick a reader to compare recorded output from a local docs dev server before and after the fix.</p>
+  </header>
+  <div class="choices" role="group" aria-label="Reader">
+    <button type="button" data-reader="sync" aria-pressed="true">Batch</button>
+    <button type="button" data-reader="async" aria-pressed="false">Async job</button>
+    <button type="button" data-reader="mcp" aria-pressed="false">Hosted MCP</button>
+  </div>
+  <div aria-live="polite">
+    <code class="command" id="command"></code>
+    <div class="grid">
+      <section aria-labelledby="before-heading">
+        <h2 id="before-heading">Before</h2>
+        <pre id="before"></pre>
+      </section>
+      <section aria-labelledby="after-heading">
+        <h2 id="after-heading">After</h2>
+        <pre id="after"></pre>
+      </section>
+    </div>
+  </div>
+  <p class="note">Recorded output excerpts, not a live request. The installation page is the unchanged control and /docs/nope is the genuine miss.</p>
+</main>
+<script>
+  const rows = (mcp, sdk) => '/docs/mcp: ' + mcp + '\n/docs/sdk: ' + sdk + '\n/docs/getting-started/installation: ok (2355 chars)\n/docs/nope: 404';
+  const readers = {
+    sync: {
+      command: 'POST /api/md/batch {"paths":["/docs/mcp","/docs/sdk","/docs/getting-started/installation","/docs/nope"]}',
+      before: rows('404', '404'),
+      after: rows('ok "OrchestKit MCP server"', 'ok "OrchestKit SDK packages"'),
+    },
+    async: {
+      command: 'POST /api/md/batch (Prefer: respond-async), then GET status_url',
+      before: rows('404', '404'),
+      after: rows('ok "OrchestKit MCP server"', 'ok "OrchestKit SDK packages"'),
+    },
+    mcp: {
+      command: 'POST /api/mcp tools/call orchestkit_docs_get {"path":"/docs/mcp"}',
+      before: 'isError=true\nNo page at "/docs/mcp". Use orchestkit_docs_search to find a valid path.',
+      after: 'isError=false\n# OrchestKit MCP server',
+    },
+  };
+  const choices = document.querySelectorAll('button[data-reader]');
+  const show = (key) => {
+    const r = readers[key];
+    document.querySelector('#command').textContent = '$ ' + r.command;
+    document.querySelector('#before').textContent = r.before;
+    document.querySelector('#after').textContent = r.after;
+    for (const button of choices) button.setAttribute('aria-pressed', String(button.dataset.reader === key));
+  };
+  for (const choice of choices) choice.addEventListener('click', () => show(choice.dataset.reader));
+  show('sync');
+</script>
+</body>
+</html>

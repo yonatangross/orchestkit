@@ -1,0 +1,12 @@
+{
+  "slug": "md-batch-docs-landing-pages",
+  "source": "docs/fix--md-batch-docs-landing-pages/index.html",
+  "title": "Batch reads every published docs page",
+  "description": "Compare recorded batch, async job and hosted MCP reads of /docs/mcp and /docs/sdk before and after the fix.",
+  "tags": [
+    "docs",
+    "api",
+    "regression"
+  ],
+  "date": "2026-11-23"
+}
