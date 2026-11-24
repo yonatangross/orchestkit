@@ -23,7 +23,7 @@ small{display:block;color:#435964}code{background:#e9e6dc;padding:3px}
 <select id="source"><option value="none">nobody</option><option value="user">user settings (~/.claude/settings.json)</option><option value="project">project or local settings, or the environment</option></select>
 </label>
 <label>Session folder
-<select id="cwd"><option value="under">/Users/you/.floor/desks/mods-1 (under the listed folder)</option><option value="sibling">/Users/you/.floor/desks-other/lane (same prefix, not under)</option></select>
+<select id="cwd"><option value="under">/Users/you/lanes/mods-1 (under the listed folder)</option><option value="sibling">/Users/you/lanes-other/lane (same prefix, not under)</option></select>
 </label>
 <label>Session
 <select id="session"><option value="interactive">Interactive (a lane pane)</option><option value="headless">Headless (claude -p)</option></select>
@@ -38,7 +38,7 @@ small{display:block;color:#435964}code{background:#e9e6dc;padding:3px}
 </table>
 <p>Status line after: <output id="status" aria-live="polite"></output></p>
 <p><output id="reason" aria-live="polite"></output></p>
-<small>The listed folder is /Users/you/.floor/desks. This demo isolates the dialog decision. Pattern matching, the card's drawing and the classic pretool-lesson-guard (which still denies its block patterns) are outside this demo.</small>
+<small>The listed folder is /Users/you/lanes. This demo isolates the dialog decision. Pattern matching, the card's drawing and the classic pretool-lesson-guard (which still denies its block patterns) are outside this demo.</small>
 </main>
 <script>
 const source = document.getElementById('source');

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>What the public page scan bans and what it allows</title>
+  <meta name="description" content="Which paths a published Lab page or playground source may quote, and which the new scan refuses.">
+  <style>
+    body { margin: 0; background: #f6f8fa; color: #172b35; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: auto; padding: clamp(1rem, 5vw, 4rem) 1rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+    .eyebrow { color: #346557; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence, details { background: #fff; border: 1px solid #cedadd; border-radius: .75rem; margin-top: 1.25rem; }
+    .evidence { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    caption, th, td, details { padding: .65rem 1rem; }
+    th, td { border-top: 1px solid #dbe4e6; }
+    thead { background: #edf2f4; }
+    td.ban { background: #fff4e5; }
+    td.ok { background: #eff7f2; }
+    summary { cursor: pointer; font-weight: 700; }
+  </style>
+</head>
+<body>
+<main>
+  <span class="eyebrow">Lab hygiene / Public page scan</span>
+  <h1>What the public page scan bans and what it allows</h1>
+  <p>Pages under <code>docs/site/public/lab</code> are public, and so are the playground sources they come from. A new test scans every one of them, plus every lab manifest fragment, and refuses a real home or desk path. Two pages that were already public are fixed here.</p>
+  <div class="evidence">
+    <table>
+      <caption>Path examples and the scan verdict</caption>
+      <thead><tr><th>Quoted path</th><th>Verdict</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>/Users/you/lanes/mods-1</code></td><td class="ok">Allowed</td><td>Neutral example folder under a placeholder home.</td></tr>
+        <tr><td><code>~/shots/orchestkit-v10-ga/</code></td><td class="ok">Allowed</td><td>Home relative, no private directory name.</td></tr>
+        <tr><td><code>/home/user/repo</code></td><td class="ok">Allowed</td><td>Placeholder home name.</td></tr>
+        <tr><td>a path inside the private floor directory</td><td class="ban">Refused</td><td>Shows the layout of a private machine.</td></tr>
+        <tr><td>any folder named <code>desks</code></td><td class="ban">Refused</td><td>Same private layout, one level down.</td></tr>
+        <tr><td>a real operator home</td><td class="ban">Refused</td><td>The name of a real account.</td></tr>
+        <tr><td>a home with any name that is not a placeholder</td><td class="ban">Refused</td><td>Unknown names are treated as real until listed.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <details open>
+    <summary>What changed</summary>
+    <p>The card-only-mode page and its Lab copy quoted a desk folder as the listed folder. They now use <code>/Users/you/lanes</code>. The v10-ga data file named a desk screenshots folder. It now names <code>~/shots/orchestkit-v10-ga/</code>. The scan covers every published page, so the next one is caught on its own PR.</p>
+  </details>
+</main>
+</body>
+</html>
