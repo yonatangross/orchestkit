@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.yonatangross/orchestkit",
   "title": "OrchestKit Docs MCP",
-  "description": "Read-only MCP server for the OrchestKit docs: full-text search, Markdown fetch, a skill card and an install picker (Claude Code, Cursor, Codex). No auth.",
+  "description": "Read-only OrchestKit docs MCP: search, Markdown fetch, skill card, install picker. No auth.",
   "websiteUrl": "https://orchestkit.dev",
   "repository": {
     "url": "https://github.com/yonatangross/orchestkit",

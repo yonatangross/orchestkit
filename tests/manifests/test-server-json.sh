@@ -17,6 +17,10 @@
 #      hard-rejected by ValidateOCI).
 #   3. The Dockerfile ownership label matches .name — the registry pulls the
 #      image and checks io.modelcontextprotocol.server.name at publish time.
+#   4. .description is 1..100 characters. The registry rejects anything longer
+#      with 422 (body.description expected length <= 100), and that failed the
+#      publish-mcp-registry job on three releases (10.17.0, 10.18.0, 10.18.1)
+#      because nothing checked it before the tag.
 
 set -euo pipefail
 
@@ -95,6 +99,18 @@ else
   # `del(.packages)` and `packages: []` both exited 0 here before
   # (gate-fault-arm audit 2026-09-06, the #3933 empty-array shape).
   fail "server.json has neither packages[] nor remotes[]; the shape checks had nothing to check"
+fi
+
+# --- 4. description length ------------------------------------------------
+# Counted in characters (jq `length` on a string), the unit the registry's
+# schema uses. A missing or non-string description fails too: `// ""` turns
+# null into an empty string, and a non-string gives -1; both are out of range.
+DESC_MAX=100
+DESC_LEN="$(jq -r '(.description // "") | if type == "string" then length else -1 end' "$SERVER_JSON")"
+if [ "$DESC_LEN" -ge 1 ] && [ "$DESC_LEN" -le "$DESC_MAX" ]; then
+  pass "description is $DESC_LEN characters (registry limit $DESC_MAX)"
+else
+  fail "description is $DESC_LEN characters, registry needs 1..$DESC_MAX (the publish fails with 422 body.description expected length <= $DESC_MAX)"
 fi
 
 echo ""
