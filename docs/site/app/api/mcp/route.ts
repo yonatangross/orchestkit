@@ -27,6 +27,17 @@ export const dynamic = "force-dynamic";
 
 const PROTOCOL_VERSION = "2025-06-18";
 
+const SITE_ORIGIN = new URL(SITE.domain).origin;
+
+// orchestkit_docs_search returns absolute URLs, so orchestkit_docs_get takes
+// those as well as paths. Only /docs URLs on this site are accepted, and only
+// their pathname is used for the local lookup: caller URLs are never fetched.
+function docPathFromInput(input: string): string | null {
+	if (!URL.canParse(input)) return input;
+	const url = new URL(input);
+	return url.origin === SITE_ORIGIN && /^\/docs(\/|$)/.test(url.pathname) ? url.pathname : null;
+}
+
 type ToolResult = {
 	content: Array<{ type: "text"; text: string }>;
 	structuredContent?: unknown;
@@ -119,13 +130,14 @@ const TOOLS = [
 	{
 		name: "orchestkit_docs_get",
 		description:
-			"Fetch one OrchestKit documentation page as Markdown. Use after orchestkit_docs_search to read a page in full. Input: the page path (e.g. '/docs/getting-started/installation'). Returns the page Markdown.",
+			"Fetch one OrchestKit documentation page as Markdown. Use after orchestkit_docs_search to read a page in full. Input: the page path (e.g. '/docs/getting-started/installation') or the result URL from orchestkit_docs_search. Returns the page Markdown.",
 		inputSchema: {
 			type: "object",
 			properties: {
 				path: {
 					type: "string",
-					description: "Page path, e.g. /docs/getting-started/installation",
+					description:
+						"Page path, e.g. /docs/getting-started/installation, or a search result URL on the same site",
 				},
 			},
 			required: ["path"],
@@ -139,12 +151,18 @@ const TOOLS = [
 			required: ["path", "markdown"],
 		},
 		run: async (args: Record<string, unknown>): Promise<ToolResult> => {
-			const path = String(args.path ?? "").trim();
-			if (!path) return errText("Provide a `path`, e.g. /docs/foundations/overview.");
+			const input = String(args.path ?? "").trim();
+			if (!input) return errText("Provide a `path`, e.g. /docs/foundations/overview.");
+			const path = docPathFromInput(input);
+			if (path === null) {
+				return errText(
+					`"${input}" is not an OrchestKit docs URL. Pass a path like /docs/getting-started/installation or a ${SITE.domain}/docs/... URL from orchestkit_docs_search.`,
+				);
+			}
 			const md = await getDocMarkdown(path);
 			if (!md) {
 				return errText(
-					`No page at "${path}". Use orchestkit_docs_search to find a valid path.`,
+					`No page at "${input}". Use orchestkit_docs_search to find a valid path.`,
 				);
 			}
 			return {

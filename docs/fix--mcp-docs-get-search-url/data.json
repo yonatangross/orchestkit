@@ -1,0 +1,4 @@
+{
+  "serves": ["docs/site/app/api/mcp/route.ts"],
+  "description": "Recorded hosted Docs MCP orchestkit_docs_get calls with search result URLs, paths and other origins, before and after the fix."
+}

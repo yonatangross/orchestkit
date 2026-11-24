@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Recorded hosted Docs MCP calls: orchestkit_docs_get with the URL orchestkit_docs_search returns, before and after the fix.">
+<title>Docs MCP read accepts search result URLs</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f1f4f4;color:#1d2e32;font:16px/1.55 system-ui,sans-serif}
+  main{max-width:900px;margin:auto;padding:48px 20px}
+  .eyebrow{margin:0;color:#386365;font-size:.75rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;letter-spacing:-.045em;margin:12px 0}
+  p{color:#42595e}header p{max-width:64ch}
+  section{background:#fff;border:1px solid #cedadb;border-radius:16px;margin-top:26px;padding:clamp(14px,4vw,28px)}
+  h2{font-size:1.15rem;margin:0 0 14px}
+  .controls{display:flex;gap:8px}
+  button{cursor:pointer;border:1px solid #8fa9aa;border-radius:8px;padding:8px 18px;background:#fff;color:#24464a;font:inherit;font-weight:650}
+  button[aria-pressed="true"]{background:#17494b;color:#fff;border-color:#17494b}
+  button:focus-visible{outline:3px solid #2762ab;outline-offset:3px}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;text-align:left;table-layout:fixed;min-width:640px}
+  .c-input{width:36%}.c-result{width:13%}
+  th,td{padding:8px 6px;border-bottom:1px solid #dfe6e6;vertical-align:top}
+  thead th{color:#45636a;font-size:.78rem}
+  tbody th{font-weight:550}
+  code{font:.85rem/1.4 ui-monospace,monospace;overflow-wrap:anywhere}
+  .ok{color:#1f6b3a;font-weight:700}.err{color:#a3361f;font-weight:700}
+  footer{font-size:.9rem}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Docs MCP read accepts search result URLs"><meta property="og:description" content="Compare recorded orchestkit_docs_get calls with the URL orchestkit_docs_search returns, before and after the fix."><meta property="og:url" content="https://orchestkit.dev/lab/mcp-docs-get-search-url.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Docs MCP read accepts search result URLs"><meta name="twitter:description" content="Compare recorded orchestkit_docs_get calls with the URL orchestkit_docs_search returns, before and after the fix."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / Docs MCP</p>
+    <h1>Read the URL search returns</h1>
+    <p>Each row is a real JSON-RPC <code>tools/call</code> to <code>/api/mcp</code> on a local dev server. The first row feeds <code>orchestkit_docs_get</code> the URL that <code>orchestkit_docs_search</code> returned for "installation".</p>
+  </header>
+  <section aria-labelledby="probe-title">
+    <h2 id="probe-title">Recorded orchestkit_docs_get calls</h2>
+    <div class="controls" role="group" aria-label="Server version">
+      <button type="button" id="before" aria-pressed="true">Before fix</button>
+      <button type="button" id="after" aria-pressed="false">After fix</button>
+    </div>
+    <p id="summary" aria-live="polite"></p>
+    <div class="scroll">
+    <table aria-labelledby="probe-title">
+      <colgroup><col class="c-input"><col class="c-result"><col></colgroup>
+      <thead><tr><th scope="col">Input</th><th scope="col">Result</th><th scope="col">First line returned</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    </div>
+  </section>
+  <footer><p>The trap row points at a loopback server that counts requests: it saw 0 hits in both runs, so the route never fetches a caller URL. Only the configured site origin is accepted, and only its pathname is looked up locally.</p></footer>
+</main>
+<script>
+  var inputs = [
+    'https://orchestkit.dev/docs/getting-started/installation',
+    '/docs/getting-started/installation',
+    '/docs/mcp',
+    'https://example.com/docs/getting-started/installation',
+    'http://127.0.0.1:9977/docs/getting-started/installation',
+    '/docs/nope'
+  ];
+  var runs = {
+    before: {
+      summary: 'Before: the search result URL fails, so agents must strip the origin by hand.',
+      rows: [
+        ['err', 'No page at "https://orchestkit.dev/docs/getting-started/installation". Use orchestkit_docs_search to find a valid path.'],
+        ['ok', '# OrchestKit Installation and Setup'],
+        ['ok', '# OrchestKit MCP server'],
+        ['err', 'No page at "https://example.com/docs/getting-started/installation". Use orchestkit_docs_search to find a valid path.'],
+        ['err', 'Error, trap server hits: 0'],
+        ['err', 'No page at "/docs/nope". Use orchestkit_docs_search to find a valid path.']
+      ]
+    },
+    after: {
+      summary: 'After: the search result URL returns the same Markdown as its path. Other origins are refused by name.',
+      rows: [
+        ['ok', '# OrchestKit Installation and Setup (identical to the path read)'],
+        ['ok', '# OrchestKit Installation and Setup'],
+        ['ok', '# OrchestKit MCP server'],
+        ['err', '"https://example.com/docs/getting-started/installation" is not an OrchestKit docs URL. Pass a path like /docs/getting-started/installation or a https://orchestkit.dev/docs/... URL from orchestkit_docs_search.'],
+        ['err', 'Error, trap server hits: 0'],
+        ['err', 'No page at "/docs/nope". Use orchestkit_docs_search to find a valid path.']
+      ]
+    }
+  };
+  var before = document.getElementById('before');
+  var after = document.getElementById('after');
+  var summary = document.getElementById('summary');
+  var tbody = document.getElementById('rows');
+  function cell(tag, text, cls) {
+    var el = document.createElement(tag);
+    if (cls) el.className = cls;
+    el.textContent = text;
+    return el;
+  }
+  function show(fixed) {
+    var run = fixed ? runs.after : runs.before;
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    summary.textContent = run.summary;
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    run.rows.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+      var th = document.createElement('th');
+      th.scope = 'row';
+      th.appendChild(cell('code', inputs[i]));
+      tr.appendChild(th);
+      tr.appendChild(cell('td', row[0] === 'ok' ? 'Markdown' : 'isError', row[0]));
+      var td = document.createElement('td');
+      td.appendChild(cell('code', row[1]));
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+  }
+  before.addEventListener('click', function () { show(false); });
+  after.addEventListener('click', function () { show(true); });
+  show(false);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
