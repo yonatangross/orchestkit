@@ -2,9 +2,14 @@
 
 import { Search } from "lucide-react";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
+import { useSyncExternalStore } from "react";
+
+const subscribe = () => () => {};
+const getShortcut = () => (navigator.platform.startsWith("Mac") ? "⌘K" : "Ctrl+K");
 
 export function HomeSearchTrigger() {
   const { setOpenSearch } = useSearchContext();
+  const shortcut = useSyncExternalStore(subscribe, getShortcut, () => null);
 
   return (
     <button
@@ -14,9 +19,11 @@ export function HomeSearchTrigger() {
     >
       <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span className="flex-1">Search skills, agents, hooks, docs…</span>
-      <kbd className="hidden rounded border border-fd-border px-1.5 py-0.5 font-mono text-[10px] sm:inline">
-        ⌘K
-      </kbd>
+      {shortcut && (
+        <kbd className="hidden rounded border border-fd-border px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+          {shortcut}
+        </kbd>
+      )}
     </button>
   );
 }
