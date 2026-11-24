@@ -1,0 +1,4 @@
+{
+  "serves": ["packages/cli/src/cli-core.ts"],
+  "description": "Built CLI doctor stdout and exit status against the existing fetch fixture."
+}
