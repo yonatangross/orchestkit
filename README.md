@@ -684,6 +684,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.17.1](https://github.com/yonatangross/orchestkit/compare/v10.17.0...v10.17.1)** · 2026-11-24
+
+- **cli:** honor `ask --limit` in the CLI and docs API
+
 **[v10.17.0](https://github.com/yonatangross/orchestkit/compare/v10.16.0...v10.17.0)** · 2026-11-23
 
 - **cc:** adopt Claude Code 2.1.323 through 2.1.330 (#5350)
@@ -742,15 +746,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** hook pages say when the shipped plugin skips an event (#5215)
 - **docs:** try Chromium before apt, so the mirror is not on every build (#5212)
 - …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.11.0](https://github.com/yonatangross/orchestkit/compare/v10.10.8...v10.11.0)** · 2026-11-10
-
-- **cc:** adopt Claude Code 2.1.310 through 2.1.322 (#5181)
-- **demo-producer:** add code-drawn mode, storyboard renders the film (#5185)
-- **docs-site:** count page views cookieless before consent (#5180)
-- **docs-site:** make the consent banner easier to notice (#5179)
-- **agents:** raise builder maxTurns above documented workload (#5192)
-- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.17.1",
+    "date": "2026-11-24",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.17.0...v10.17.1",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**cli:** honor `ask --limit` in the CLI and docs API"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.17.0",
     "date": "2026-11-23",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.16.0...v10.17.0",
