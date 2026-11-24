@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-registry-description",
+  "source": "docs/fix--mcp-registry-description/index.html",
+  "title": "OrchestKit MCP Registry description",
+  "description": "Compare the old 153 character and new 91 character server.json description against the registry limit of 100.",
+  "tags": ["mcp", "release", "regression"],
+  "date": "2026-11-24"
+}
