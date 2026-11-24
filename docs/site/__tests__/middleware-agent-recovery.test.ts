@@ -67,6 +67,10 @@ describe("agent-friendly 404s", () => {
 
 	it.each([
 		["application/json, text/markdown;q=0", "application/json"],
+		[
+			"application/json, text/markdown;charset=utf-8;q=0, text/markdown",
+			"application/json",
+		],
 		["Text/Markdown;Q=0.5", "text/markdown"],
 	])("selects the recovery body for Accept: %s", (accept, type) => {
 		const res = middleware(req("/some-path-that-does-not-exist", accept)) as Response;
@@ -192,11 +196,15 @@ describe("docs Markdown negotiation", () => {
 		["text/markdown-extra", null],
 		['text/html;note="see, text/markdown"', null],
 		['text/html;note="see, text/markdown; q=1', null],
+		["text/markdown;charset=iso-8859-1", null],
+		["text/markdown;charset=UTF-8;q=0, text/markdown", null],
+		['text/markdown, text/markdown;q=0;charset="UTF-8"', null],
 		["text/html", null],
 		["*/*", null],
 		["text/markdown", target],
 		["Text/Markdown;Q=0.001", target],
-		['text/markdown;note="a;q=0, b";q=0.5', target],
+		['text/html;note="a;q=0, b", text/markdown;q=0.5', target],
+		["text/markdown;q=0, text/markdown;charset=UTF-8;q=0.5", target],
 	])("selects the docs representation for Accept: %s", (accept, rewrite) => {
 		const res = middleware(req(path, accept));
 		expect(res?.headers.get("x-middleware-rewrite")).toBe(rewrite);
@@ -204,6 +212,7 @@ describe("docs Markdown negotiation", () => {
 
 	it.each([
 		[path, "text/html, text/markdown;q=0", null],
+		[path, "text/html, text/markdown;q=0;charset=iso-8859-1", target],
 		[path, "text/html", target],
 		[`${path}.md`, "text/markdown;q=0", target],
 		[`${path}?mode=agent`, "text/markdown;q=0", target],
