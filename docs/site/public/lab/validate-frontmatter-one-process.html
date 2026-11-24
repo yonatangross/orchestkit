@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>One process for frontmatter validation</title>
+<meta name="description" content="Measured before and after results for OrchestKit's agent and skill frontmatter validator.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7f4; color: #192920; font: 16px/1.55 system-ui, sans-serif; }
+  main { width: min(100% - 2rem, 48rem); margin: 0 auto; padding: 3rem 0; }
+  .eyebrow { margin: 0; font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #42604c; }
+  h1 { margin: .45rem 0; font-size: clamp(2rem, 5vw, 3.15rem); line-height: 1.12; letter-spacing: -.035em; }
+  .lead { color: #46574c; margin: .8rem 0 1.6rem; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ced9d0; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; font-weight: 650; margin-bottom: .5rem; }
+  th, td { border-bottom: 1px solid #ced9d0; padding: .65rem clamp(.5rem, 2.5vw, 1rem); }
+  thead { background: #e4ede5; }
+  th { text-align: left; }
+  td, thead th:not(:first-child) { text-align: right; }
+  .method { color: #46574c; font-size: .92rem; }
+  code { overflow-wrap: anywhere; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="One process for frontmatter validation"><meta property="og:description" content="Same-checkout measurements show the cost of starting Node once per file versus once for the whole catalog."><meta property="og:url" content="https://orchestkit.dev/lab/validate-frontmatter-one-process.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="One process for frontmatter validation"><meta name="twitter:description" content="Same-checkout measurements show the cost of starting Node once per file versus once for the whole catalog."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit performance lab</p>
+  <h1>One Node process for the whole catalog</h1>
+  <p class="lead">Batched frontmatter parsing cut median validation time by <strong>3.571 seconds</strong> (6.9× faster). The parser and Bash validation checks are unchanged.</p>
+  <table>
+    <caption>Full agent and skill catalog</caption>
+    <thead><tr><th scope="col">Metric</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Node launches</th><td>151</td><td>1</td></tr>
+      <tr><th scope="row">Median</th><td>4.176 s</td><td>0.605 s</td></tr>
+      <tr><th scope="row">Minimum</th><td>3.940 s</td><td>0.595 s</td></tr>
+      <tr><th scope="row">Maximum</th><td>4.694 s</td><td>0.621 s</td></tr>
+    </tbody>
+  </table>
+  <p class="method">Measured with 10 consecutive wall-clock runs of each version on the same Linux checkout and catalog, using Bash 5.1 and Node 24.22.3. Node launches were counted in separate <code>bash -x</code> runs. Catalog stdout, stderr and exit status matched.</p>
+  <p><strong>Try it:</strong> <code>bash bin/validate-frontmatter.sh</code></p>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

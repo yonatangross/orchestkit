@@ -1,0 +1,8 @@
+{
+  "slug": "validate-frontmatter-one-process",
+  "source": "docs/devin--1795500952-validate-frontmatter-one-process/index.html",
+  "title": "One process for frontmatter validation",
+  "description": "Same-checkout measurements show the cost of starting Node once per file versus once for the whole catalog.",
+  "tags": ["performance", "frontmatter", "scripts"],
+  "date": "2026-11-24"
+}

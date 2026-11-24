@@ -26,32 +26,43 @@ FIELD_KEYS=()
 FIELD_VALUES=()
 FIELD_COUNT=0
 
-# Parse each file once, preserving multiline values with NUL delimiters.
+parse_catalog() {
+  [[ $# -gt 0 ]] || return 0
+  node -e '
+    const { parseYamlFrontmatter } = require(process.argv[1]);
+    const fs = require("fs");
+    for (const file of process.argv.slice(2)) {
+      try {
+        const content = fs.readFileSync(file, "utf-8");
+        const result = parseYamlFrontmatter(content);
+        for (const [key, val] of Object.entries(result.frontmatter)) {
+          if (val === undefined || val === null || val === "") continue;
+          const text = typeof val === "string" ? val : JSON.stringify(val);
+          process.stdout.write(key + "\0" + text.replace(/\0/g, "") + "\0");
+        }
+      } catch {
+        // Unreadable or unparseable files are reported as missing fields.
+      }
+      process.stdout.write("\0");
+    }
+  ' "$PROJECT_ROOT/scripts/lib/parse-frontmatter.js" "$@" 2>/dev/null
+}
+
+# An empty key ends each file's NUL-delimited field pairs.
 load_fields() {
-  local file="$1"
   local key value
   FIELD_KEYS=()
   FIELD_VALUES=()
   FIELD_COUNT=0
-  while IFS= read -r -d '' key && IFS= read -r -d '' value; do
+  while IFS= read -r -d '' key && [[ -n "$key" ]] && IFS= read -r -d '' value; do
     FIELD_KEYS[FIELD_COUNT]="$key"
     FIELD_VALUES[FIELD_COUNT]="$value"
     FIELD_COUNT=$((FIELD_COUNT + 1))
-  done < <(node -e '
-    const { parseYamlFrontmatter } = require(process.argv[1]);
-    const fs = require("fs");
-    const content = fs.readFileSync(process.argv[2], "utf-8");
-    const result = parseYamlFrontmatter(content);
-    for (const [key, val] of Object.entries(result.frontmatter)) {
-      if (val === undefined || val === null || val === "") continue;
-      const text = typeof val === "string" ? val : JSON.stringify(val);
-      process.stdout.write(key + "\0" + text.replace(/\0/g, "") + "\0");
-    }
-  ' "$PROJECT_ROOT/scripts/lib/parse-frontmatter.js" "$file" 2>/dev/null)
+  done
 }
 
 get_field() {
-  local field="$2" i
+  local field="$1" i
   for ((i = 0; i < FIELD_COUNT; i++)); do
     if [[ "${FIELD_KEYS[i]}" == "$field" ]]; then
       printf '%s\n' "${FIELD_VALUES[i]}"
@@ -66,25 +77,19 @@ get_field() {
 # reads them through the parser's metadata lift. context was dropped in m3.
 AGENT_REQUIRED_FIELDS="name description category model"
 
-for agent_file in "$AGENTS_DIR"/*.md; do
-  [[ ! -f "$agent_file" ]] && continue
+validate_agent() {
+  local agent_file="$1" agent_name field desc desc_len csr
   agent_name=$(basename "$agent_file" .md)
 
-  # Skip non-agent docs in src/agents/
-  case "$agent_name" in
-    README|INDEX|CONTRIBUTING) continue ;;
-  esac
-
-  load_fields "$agent_file"
   for field in $AGENT_REQUIRED_FIELDS; do
-    if ! get_field "$agent_file" "$field" >/dev/null 2>&1; then
+    if ! get_field "$field" >/dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Agent '$agent_name': missing required field '$field'"
       ERRORS=$((ERRORS + 1))
     fi
   done
 
   # Check description length (≤250 bytes)
-  desc=$(get_field "$agent_file" "description" 2>/dev/null || echo "")
+  desc=$(get_field "description" 2>/dev/null || echo "")
   desc_len=${#desc}
   if [[ "$desc_len" -gt 250 ]]; then
     echo -e "  ${RED}✗${NC} Agent '$agent_name': description $desc_len bytes > 250 limit"
@@ -92,36 +97,56 @@ for agent_file in "$AGENTS_DIR"/*.md; do
   fi
 
   # Validate optional critical_system_reminder is a non-empty string when present
-  csr=$(get_field "$agent_file" "critical_system_reminder" 2>/dev/null || echo "")
+  csr=$(get_field "critical_system_reminder" 2>/dev/null || echo "")
   if [[ -n "$csr" ]] && [[ ${#csr} -lt 10 ]]; then
     echo -e "  ${RED}✗${NC} Agent '$agent_name': critical_system_reminder too short (${#csr} chars, min 10)"
     ERRORS=$((ERRORS + 1))
   fi
-done
+}
 
 # ===== Skill Validation =====
 SKILL_REQUIRED_FIELDS="name description tags version author user-invocable complexity"
 
-for skill_dir in "$SKILLS_DIR"/*/; do
-  skill_file="$skill_dir/SKILL.md"
-  [[ ! -f "$skill_file" ]] && continue
+validate_skill() {
+  local skill_dir="${1%/*}" skill_name field declared_name
   skill_name=$(basename "$skill_dir")
 
-  load_fields "$skill_file"
   for field in $SKILL_REQUIRED_FIELDS; do
-    if ! get_field "$skill_file" "$field" >/dev/null 2>&1; then
+    if ! get_field "$field" >/dev/null 2>&1; then
       echo -e "  ${RED}✗${NC} Skill '$skill_name': missing required field '$field'"
       ERRORS=$((ERRORS + 1))
     fi
   done
 
   # Verify name matches directory
-  declared_name=$(get_field "$skill_file" "name" 2>/dev/null || echo "")
+  declared_name=$(get_field "name" 2>/dev/null || echo "")
   if [[ -n "$declared_name" ]] && [[ "$declared_name" != "$skill_name" ]]; then
     echo -e "  ${RED}✗${NC} Skill '$skill_name': name '$declared_name' doesn't match directory"
     ERRORS=$((ERRORS + 1))
   fi
+}
+
+set --
+for agent_file in "$AGENTS_DIR"/*.md; do
+  [[ -f "$agent_file" ]] || continue
+  case "$(basename "$agent_file" .md)" in
+    README|INDEX|CONTRIBUTING) continue ;;
+  esac
+  set -- "$@" "$agent_file"
 done
+for skill_dir in "$SKILLS_DIR"/*/; do
+  skill_file="$skill_dir/SKILL.md"
+  [[ -f "$skill_file" ]] || continue
+  set -- "$@" "$skill_file"
+done
+
+for file in "$@"; do
+  load_fields
+  case "$file" in
+    "$AGENTS_DIR"/*) validate_agent "$file" ;;
+    *) validate_skill "$file" ;;
+  esac
+done < <(parse_catalog "$@")
 
 if [[ "$ERRORS" -gt 0 ]]; then
   echo ""
