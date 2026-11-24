@@ -28,7 +28,7 @@ const RUNNER_FILES = ['run-hook.mjs', 'output-guard.mjs', 'analytics-rotate.mjs'
 // #4220 AF-12: sync-bash-dispatcher joined SECURITY_HOOKS, so the plain probe
 // must be a different pretool hook (still in the same corrupted bundle).
 const SECURITY_HOOK = 'pretool/Write/security-pattern-validator';
-const PLAIN_HOOK = 'pretool/bash/default-timeout-setter';
+const PLAIN_HOOK = 'pretool/bash/error-pattern-warner';
 
 let root: string;
 let home: string;

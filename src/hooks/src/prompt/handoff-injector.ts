@@ -96,6 +96,15 @@ function readLocalHandoff(
 }
 
 /**
+ * True when the first prompt is a seat's own orders: an hc message envelope (`<hc from="...">`), a brief file
+ * (`BRIEF-<name>.md`), or a seat brief that opens with `You are <name>.`. Exported for tests.
+ */
+export function isSeatOpening(prompt: unknown): boolean {
+  if (typeof prompt !== 'string') return false;
+  return /<hc from="/.test(prompt) || /\bBRIEF-[\w.-]+\.md\b/.test(prompt) || /^\s*You are [\w-]+\.\s/.test(prompt);
+}
+
+/**
  * Handoff injector — reads HANDOFF.md on first prompt and injects context,
  * falling back to the global handoff store when there is no local one.
  */
@@ -105,6 +114,15 @@ export function handoffInjector(input: HookInput, ctx: HookContext = NOOP_CTX): 
 
   let source: HandoffSource = 'local';
   let content = readLocalHandoff(projectDir, handoffPath, ctx);
+
+  // A seat opened with its own orders must follow them, not the last session's handoff. The global store is
+  // keyed by project dir, so every seat started in a shared tree got whichever session wrote there last: on
+  // 2026-11-24 four of seven new floor seats followed that handoff instead of their opening prompt. The
+  // repo-local HANDOFF.md is unchanged (it is written for this tree on purpose).
+  if (content === null && isSeatOpening(input.prompt)) {
+    ctx.log(HOOK_NAME, 'First prompt is a seat brief or an hc message: no global handoff');
+    return outputSilentSuccess();
+  }
 
   // #3329 re-home: no usable repo-local handoff, so serve the global store.
   if (content === null) {

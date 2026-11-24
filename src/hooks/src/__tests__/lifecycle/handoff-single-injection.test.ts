@@ -134,6 +134,38 @@ describe('handoff injection is single-shot per session (#3329)', () => {
     expect(fromPrompt).toContain('only the global yaml store exists');
   });
 
+  // 2026-11-24: four of seven new floor seats followed the last session's global handoff instead of their own
+  // opening prompt. A seat brief or an hc message gets no global handoff; a person's prompt still does, and a
+  // repo-local HANDOFF.md is served either way.
+  describe('a seat opened with its own orders gets no global handoff', () => {
+    const withPrompt = (prompt: string): HookInput => ({ ...input(), prompt }) as HookInput;
+    const seatPrompts = [
+      '<hc from="t8kj succ-424">You are guard-fixes. Read and execute /x/briefs/BRIEF-guard-fixes.md in full now.</hc>',
+      'You are guard-fixes. Read and execute the brief now.',
+      'Read and execute /Users/me/.floor/desks/c/briefs/BRIEF-studio-r4.md, report to t8kj.',
+    ];
+
+    it.each(seatPrompts)('no global handoff for %s', (prompt) => {
+      writeGlobalHandoff('status: partial\nnext: someone else\'s billing page\n');
+      const out = contextOf(handoffInjector(withPrompt(prompt), createTestContext({ projectDir })));
+      expect(out).not.toContain(MARKER);
+    });
+
+    it('a person typing a normal first prompt still gets the global handoff', () => {
+      writeGlobalHandoff('status: partial\nnext: only the global yaml store exists\n');
+      const out = contextOf(handoffInjector(withPrompt('where were we?'), createTestContext({ projectDir })));
+      expect(out).toContain('only the global yaml store exists');
+    });
+
+    it('a repo-local HANDOFF.md is still served to a seat brief', () => {
+      writeLocalHandoff('# Handoff\n\nfrom the repo-local markdown store\n');
+      const out = contextOf(
+        handoffInjector(withPrompt('You are guard-fixes. Read and execute the brief now.'), createTestContext({ projectDir })),
+      );
+      expect(out).toContain('from the repo-local markdown store');
+    });
+  });
+
   it('injects nothing at all when neither store is populated', () => {
     const ctx = createTestContext({ projectDir });
     expect(contextOf(sessionHandoffInjector(input(), ctx))).not.toContain(MARKER);

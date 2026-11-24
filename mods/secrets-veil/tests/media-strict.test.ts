@@ -268,7 +268,7 @@ describe("a payload passes only when the whole file is valid", () => {
     const named = "sample-\u00e9-value-1234";
     const data = b64(pngWith(itxt(`note ${named}`)));
     const out = await run(readShape(data), { GITHUB_TOKEN: named });
-    expect(out.deny).toBe(WITHHELD);
+    expect(String(out.deny).startsWith(`${WITHHELD} Cause: `)).toBe(true);
   });
 
   test("strict base64: bad length, inner padding and non-canonical padding are refused", () => {
@@ -282,14 +282,14 @@ describe("a payload passes only when the whole file is valid", () => {
   test("a named value inside the image withholds the whole result", async () => {
     const data = b64(png(`token ${NAMED}`));
     const out = await run(readShape(data), { GITHUB_TOKEN: NAMED });
-    expect(out.deny).toBe(WITHHELD);
+    expect(String(out.deny).startsWith(`${WITHHELD} Cause: `)).toBe(true);
     expect(out.text).not.toContain(NAMED);
   });
 
   test("a vendor shape (PEM header) inside the image withholds the whole result", async () => {
     const data = b64(png(PEM_HEADER));
     const out = await run(readShape(data));
-    expect(out.deny).toBe(WITHHELD);
+    expect(String(out.deny).startsWith(`${WITHHELD} Cause: `)).toBe(true);
   });
 
   test("an image with harmless text still passes", async () => {

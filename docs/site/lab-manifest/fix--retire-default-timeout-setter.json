@@ -1,0 +1,8 @@
+{
+  "slug": "fix--retire-default-timeout-setter",
+  "source": "docs/fix--retire-default-timeout-setter/index.html",
+  "title": "default-timeout-setter retired: the auto-mode wall it caused",
+  "description": "A hook that added timeout: 120000 to every Bash call voided the auto-mode review and refused the call plus its siblings. Compare one call before and after, and see where 1,454 walls in 7 days came from.",
+  "tags": ["hooks", "auto-mode", "permissions"],
+  "date": "2026-11-24"
+}
