@@ -507,7 +507,11 @@ describe('Cross-Bundle Consistency', () => {
     //              sync-bash-dispatcher (no hooks.json entry of its own, so
     //              validate-counts.sh is unchanged): denies npm ci through a
     //              symlinked node_modules, unguarded since #3841.
-    expect(totalHooks).toBe(183);
+    // 183 -> 182: pretool/bash/default-timeout-setter retired. It wrote CC's
+    //              own default timeout into every call that had none, and in
+    //              auto mode that changed input voided the classifier review
+    //              (no hooks.json entry of its own, validate-counts.sh unchanged).
+    expect(totalHooks).toBe(182);
   });
 });
 

@@ -171,7 +171,8 @@ export function syncBashDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX
   const systemMessages: string[] = [];
   let updatedInput: Record<string, unknown> | undefined;
   // Each hook sees the input as rewritten by the hooks before it, so a later
-  // modifier (default-timeout-setter) cannot undo an earlier one (gh-label-enforcer).
+  // modifier cannot undo an earlier one (gh-label-enforcer is the one left, and
+  // it does not rewrite in auto mode).
   let currentInput = input;
 
   for (const hook of BASH_HOOKS) {

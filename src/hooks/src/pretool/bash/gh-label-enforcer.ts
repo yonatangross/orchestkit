@@ -18,6 +18,7 @@ import {
 import { hasBackgroundOperator, isCompoundCommand } from '../../lib/normalize-command.js';
 import { hasExplicitRepoTarget, getGhCreateCommands, hasShellComment, inferIssueLabel } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { isAutoMode } from '../../lib/guards.js';
 
 /**
  * Check for --label flag in gh issue/pr create commands.
@@ -53,21 +54,28 @@ export function ghLabelEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): 
   // label is a policy nit, not a hazard, unlike the safety hooks that share
   // this dispatcher and correctly deny compound commands outright.
   if (create.kind === 'issue') {
+    // Auto mode: never rewrite. The auto mode classifier reviews the call
+    // before PreToolUse hooks run, and a changed input voids that review, so
+    // CC refuses the call ("a hook changed this call's input after auto mode
+    // reviewed it") and every sibling call in the same response. The advisory
+    // below costs the model one re-run with the flag; the rewrite cost a wall.
     if (isCompoundCommand(command) || create.nested || create.advisoryOnly || hasBackgroundOperator(command)
-      || hasShellComment(command)) {
+      || hasShellComment(command) || isAutoMode(input)) {
       // Appending --label to a compound string cannot target the right
       // segment without a real parser, so this stays an advisory. The same
       // holds for a create inside `bash -c "..."` or `eval`: text appended to
       // the outer command would reach the shell, not gh.
+      const why = isAutoMode(input)
+        ? '(Not rewritten: in auto mode a changed input voids the classifier review\nand Claude Code refuses the call.)'
+        : '(Not blocking: this command chains other work, and denying it here would\ndiscard the earlier segments without running them.)';
       const advisory = `[gh-label-enforcer] This \`gh issue create\` has no --label. Add one when you re-run it:
   --label bug        (defect or error)
   --label enhancement (new feature or improvement)
   --label chore      (maintenance task)
   --label docs       (documentation)
 
-(Not blocking: this command chains other work, and denying it here would
-discard the earlier segments without running them.)`;
-      ctx.log('gh-label-enforcer', 'Advisory: compound gh issue create without --label');
+${why}`;
+      ctx.log('gh-label-enforcer', 'Advisory: gh issue create without --label, not rewritten');
       // outputPreToolAdvisory, NOT outputAllowWithContext: the latter sets
       // permissionDecision:'allow', which silently skips the permission prompt
       // as a side effect of a labelling nit. An advisory must inform without

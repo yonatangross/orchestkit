@@ -5,8 +5,7 @@
  * Unified Advisory Dispatcher — PreToolUse Bash Hook
  * Consolidates 8 advisory hooks into a single dispatcher to reduce process spawns.
  *
- * Hooks consolidated here:
- * - default-timeout-setter (input modifier — runs first)
+ * Hooks consolidated here (context only; this dispatcher never rewrites input):
  * - sdlc-skill-nudge (context, #4629)
  * - error-pattern-warner (context)
  * - affected-tests-finder (context)
@@ -22,14 +21,19 @@ import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
-  outputWithUpdatedInput,
   logHook,
   estimateTokenCount,
   extractContext,
 } from '../../lib/common.js';
 
 // Import hook implementations
-import { defaultTimeoutSetter } from './default-timeout-setter.js';
+// default-timeout-setter: retired. It wrote `timeout: 120000` into every Bash
+// call that had none, which is Claude Code's own default, so it changed no
+// behaviour. In auto mode any changed input voids the classifier review
+// ("a hook changed this call's input after auto mode reviewed it"): 425 calls
+// walled outright in 7 days, plus the sibling calls in the same response. It
+// also rebuilt the input from command/description only and dropped
+// run_in_background.
 import { errorPatternWarner } from './error-pattern-warner.js';
 // issue-docs-requirement: moved to pr-merge-gate (#915)
 // multi-instance-quality-gate: moved to pr-merge-gate (#915)
@@ -70,10 +74,7 @@ const ADVISORY_HOOKS: AdvisoryHookConfig[] = [
 ];
 
 /** Exposed for testing */
-export const registeredHookNames = () => [
-  'default-timeout-setter',
-  ...ADVISORY_HOOKS.map(h => h.name),
-];
+export const registeredHookNames = () => ADVISORY_HOOKS.map(h => h.name);
 
 // Hooks moved out (#915) — still available for agent-scoped use via entries
 // - issue-docs-requirement → pr-merge-gate
@@ -88,48 +89,20 @@ export const registeredHookNames = () => [
 /**
  * Unified dispatcher for advisory Bash PreToolUse hooks.
  *
- * Execution order:
- * 1. default-timeout-setter (input modifier)
- * 3. Advisory hooks (context producers, budget-capped)
+ * Runs the advisory hooks (context producers, budget-capped). Always all of
+ * them (browser safety retired 2026-08-31, #3835: URL policy re-homed to
+ * sandbox.network in the operator scope).
  */
 export function unifiedBashAdvisoryDispatcher(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
-  // --- Phase 1: Input modifier (default-timeout-setter) ---
-  let updatedInput: Record<string, unknown> | undefined;
-
-  try {
-    const timeoutResult = defaultTimeoutSetter(input, ctx);
-    if (timeoutResult.hookSpecificOutput?.updatedInput) {
-      updatedInput = timeoutResult.hookSpecificOutput.updatedInput as Record<string, unknown>;
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    ctx.log(HOOK_NAME, `default-timeout-setter failed: ${message}`, 'warn');
-  }
-
-  // --- Phase 3: Advisory hooks (context producers) ---
-  // Always run all advisory hooks (browser safety retired 2026-08-31, #3835:
-  // URL policy re-homed to sandbox.network in the operator scope)
-  return mergeAdvisoryContext(input, ctx, updatedInput, null);
+  return mergeAdvisoryContext(input, ctx);
 }
 
 /**
- * Run advisory hooks, merge context, and combine with any input modifications.
+ * Run advisory hooks and merge their context under the token budget.
  */
-function mergeAdvisoryContext(
-  input: HookInput,
-  ctx: HookContext,
-  updatedInput: Record<string, unknown> | undefined,
-  prependContext: string | null,
-): HookResult {
+function mergeAdvisoryContext(input: HookInput, ctx: HookContext): HookResult {
   const contextParts: string[] = [];
   let totalTokens = 0;
-
-  // Prepend high-priority context (e.g., browser safety warning)
-  if (prependContext) {
-    const tokens = estimateTokenCount(prependContext);
-    contextParts.push(prependContext);
-    totalTokens += tokens;
-  }
 
   // Run advisory hooks
   for (const hook of ADVISORY_HOOKS) {
@@ -154,35 +127,11 @@ function mergeAdvisoryContext(
     }
   }
 
-  // --- Combine results ---
-
-  // Case 1: Input modified + context produced
-  if (updatedInput && contextParts.length > 0) {
-    const consolidated = contextParts.join('\n\n---\n\n');
-    logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t + input mod`);
-    return {
-      continue: true,
-      suppressOutput: true,
-      hookSpecificOutput: {
-        hookEventName: 'PreToolUse',
-        updatedInput,
-        additionalContext: consolidated,
-      },
-    };
-  }
-
-  // Case 2: Input modified only
-  if (updatedInput) {
-    return outputWithUpdatedInput(updatedInput);
-  }
-
-  // Case 3: Context produced only
   if (contextParts.length > 0) {
     const consolidated = contextParts.join('\n\n---\n\n');
     logHook(HOOK_NAME, `Consolidated ${contextParts.length} hooks into ${totalTokens}t`);
     return outputWithContext(consolidated, input);
   }
 
-  // Case 4: Nothing produced
   return outputSilentSuccess();
 }

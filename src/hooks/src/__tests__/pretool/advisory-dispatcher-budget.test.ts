@@ -29,10 +29,6 @@ const ctxResult = (additionalContext: string) => ({
   hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext },
 });
 
-// Phase 1/2 hooks: benign no-ops so only the advisory budget logic is exercised
-vi.mock('../../pretool/bash/default-timeout-setter.js', () => ({
-  defaultTimeoutSetter: () => ({ continue: true, suppressOutput: true }),
-}));
 // Advisory hooks (in registry order): first small (fits), second huge (dropped by cap)
 vi.mock('../../pretool/bash/error-pattern-warner.js', () => ({
   errorPatternWarner: () => ctxResult(SMALL_CTX),

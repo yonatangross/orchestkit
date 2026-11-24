@@ -303,17 +303,29 @@ describe('run-hook.mjs emits exactly one envelope on stdout', () => {
 // The malformed-envelope CONSEQUENCE of the same race (sc34).
 //
 // When the watchdog fires, runHook runs on normalizeInput({}) — the hook
-// measured nothing. default-timeout-setter still emits an updatedInput for
-// it. Before the output-guard fix, that reached stdout as
+// measured nothing. The retired default-timeout-setter still emitted an
+// updatedInput for it. Before the output-guard fix, that reached stdout as
 //   {"continue":true,"suppressOutput":true,
 //    "hookSpecificOutput":{"updatedInput":{"command":"","timeout":120000}}}
 // — the guard stripped hookEventName ('unknown' is not allow-listed) and
 // kept the body, which is the exact envelope CC rejects with "hookSpecificOutput
 // is missing required field hookEventName". The empty-payload rule now drops
-// the envelope wholesale; a verdict computed on no input is noise.
+// the envelope wholesale; a verdict computed on no input is noise. That rule
+// is pinned on its own input by output-guard-cc-contract.test.ts ("drops the
+// whole envelope when the hook ran on an empty payload"). Here the runner path
+// is driven through gh-label-enforcer, the Bash hook left that builds an
+// updatedInput.
 // ---------------------------------------------------------------------------
 
-const TIMEOUT_HOOK = 'pretool/bash/default-timeout-setter'; // emits updatedInput even on {}
+const REWRITE_HOOK = 'pretool/bash/gh-label-enforcer';
+const ISSUE_PAYLOAD = JSON.stringify({
+  hook_event_name: 'PreToolUse',
+  session_id: '00000000-0000-4000-8000-000000000000',
+  cwd: '/tmp',
+  tool_name: 'Bash',
+  permission_mode: 'default',
+  tool_input: { command: 'gh issue create --title "fix crash" --body "Repro attached"' },
+});
 
 /**
  * Spawn HOOK, hold stdin silent past the 100ms watchdog, then deliver the
@@ -335,7 +347,7 @@ function runWatchdogRepro(hookKey: string): Promise<{ stdout: string; stderr: st
     child.stderr.on('data', (c) => {
       stderr += String(c);
       if (WARNING.test(stderr)) {
-        child.stdin.write(PAYLOAD);
+        child.stdin.write(ISSUE_PAYLOAD);
         child.stdin.end();
       }
     });
@@ -346,7 +358,7 @@ function runWatchdogRepro(hookKey: string): Promise<{ stdout: string; stderr: st
   });
 }
 
-/** Spawn HOOK and deliver PAYLOAD immediately — the in-time control. */
+/** Spawn HOOK and deliver ISSUE_PAYLOAD immediately — the in-time control. */
 function runInTime(hookKey: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const child = spawn('node', [RUN_HOOK, hookKey], {
@@ -364,17 +376,17 @@ function runInTime(hookKey: string): Promise<{ stdout: string; stderr: string }>
     child.stdin.on('error', () => {
       /* EPIPE if the child already exited */
     });
-    child.stdin.write(PAYLOAD);
+    child.stdin.write(ISSUE_PAYLOAD);
     child.stdin.end();
     child.on('close', () => resolve({ stdout, stderr }));
   });
 }
 
 describe('the watchdog path never emits a nameless hookSpecificOutput', () => {
-  // Positive control: FAILS on the pre-fix code, where stdout carried
-  // hookSpecificOutput.updatedInput with the hookEventName stripped off.
-  it('drops the noise verdict when the hook ran on an empty payload', async () => {
-    const { stdout, stderr } = await runWatchdogRepro(TIMEOUT_HOOK);
+  // The rewrite hook ran on {} (the payload landed after the watchdog), so
+  // whatever it built is a verdict on nothing and must not reach stdout.
+  it('emits no hookSpecificOutput when the hook ran on an empty payload', async () => {
+    const { stdout, stderr } = await runWatchdogRepro(REWRITE_HOOK);
     // The race actually happened — otherwise the assertion below measured
     // the in-time path and proved nothing (paired-probe discipline).
     expect(stderr).toMatch(WARNING);
@@ -388,7 +400,7 @@ describe('the watchdog path never emits a nameless hookSpecificOutput', () => {
   // self-describing envelope — the drop is scoped to empty payloads, not a
   // blanket suppression of updatedInput.
   it('keeps the labeled updatedInput when a real payload arrives in time', async () => {
-    const { stdout, stderr } = await runInTime(TIMEOUT_HOOK);
+    const { stdout, stderr } = await runInTime(REWRITE_HOOK);
     expect(stderr).not.toMatch(WARNING);
     const envelope = JSON.parse(stdout.trim()) as {
       hookSpecificOutput?: {
@@ -397,7 +409,9 @@ describe('the watchdog path never emits a nameless hookSpecificOutput', () => {
       };
     };
     expect(envelope.hookSpecificOutput?.hookEventName).toBe('PreToolUse');
-    expect(envelope.hookSpecificOutput?.updatedInput?.timeout).toBe(120000);
+    expect(envelope.hookSpecificOutput?.updatedInput?.command).toContain('--label bug');
+    // Nothing adds a timeout any more: Claude Code's own default applies.
+    expect(envelope.hookSpecificOutput?.updatedInput?.timeout).toBeUndefined();
   }, 15000);
 });
 
