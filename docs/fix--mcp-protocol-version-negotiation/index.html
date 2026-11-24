@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Recorded initialize calls to the hosted OrchestKit MCP servers with supported, unsupported and omitted protocol versions, before and after the fix.">
+<title>Hosted MCP servers negotiate the protocol version</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f1f4f4;color:#1d2e32;font:16px/1.55 system-ui,sans-serif}
+  main{max-width:900px;margin:auto;padding:48px 20px}
+  .eyebrow{margin:0;color:#386365;font-size:.75rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;letter-spacing:-.045em;margin:12px 0}
+  p{color:#42595e}header p{max-width:64ch}
+  section{background:#fff;border:1px solid #cedadb;border-radius:16px;margin-top:26px;padding:clamp(14px,4vw,28px)}
+  h2{font-size:1.15rem;margin:0 0 14px}
+  .controls{display:flex;gap:8px}
+  button{cursor:pointer;border:1px solid #8fa9aa;border-radius:8px;padding:8px 18px;background:#fff;color:#24464a;font:inherit;font-weight:650}
+  button[aria-pressed="true"]{background:#17494b;color:#fff;border-color:#17494b}
+  button:focus-visible{outline:3px solid #2762ab;outline-offset:3px}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;text-align:left;table-layout:fixed;min-width:560px}
+  .c-input{width:30%}
+  th,td{padding:8px 6px;border-bottom:1px solid #dfe6e6;vertical-align:top}
+  thead th{color:#45636a;font-size:.78rem}
+  tbody th{font-weight:550}
+  code{font:.85rem/1.4 ui-monospace,monospace;overflow-wrap:anywhere}
+  .ok{color:#1f6b3a;font-weight:700}.err{color:#a3361f;font-weight:700}
+  .note{font-size:.9rem;margin:12px 0 0}
+  footer{font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / Hosted MCP</p>
+    <h1>Negotiate the protocol version</h1>
+    <p>Each row is a real JSON-RPC <code>initialize</code> POST to a local dev server, once on main and once on the fix branch. Only <code>params.protocolVersion</code> changes between rows. The MCP lifecycle rule: a server that does not support the requested version answers with one it does support, and the client decides whether to continue.</p>
+  </header>
+  <section aria-labelledby="probe-title">
+    <h2 id="probe-title">protocolVersion returned by initialize</h2>
+    <div class="controls" role="group" aria-label="Server version">
+      <button type="button" id="before" aria-pressed="true">Before fix</button>
+      <button type="button" id="after" aria-pressed="false">After fix</button>
+    </div>
+    <p id="summary" aria-live="polite"></p>
+    <div class="scroll">
+    <table aria-labelledby="probe-title">
+      <colgroup><col class="c-input"><col><col></colgroup>
+      <thead><tr><th scope="col">Requested</th><th scope="col">/api/mcp</th><th scope="col">/api/mcp/actions</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    </div>
+    <p class="note">Supported: 2025-06-18 (latest), 2025-03-26 and 2024-11-05. Every row returned HTTP 200 on both endpoints.</p>
+  </section>
+  <section aria-labelledby="sdk-title">
+    <h2 id="sdk-title">Real MCP TypeScript SDK client (1.32.2)</h2>
+    <p>The SDK asks for its newest version, 2025-11-25, which these servers do not implement. After the fix it is offered 2025-06-18, accepts it, and lists the same tools as before.</p>
+    <div class="scroll">
+    <table aria-labelledby="sdk-title">
+      <colgroup><col class="c-input"><col><col></colgroup>
+      <thead><tr><th scope="col">Endpoint</th><th scope="col">Negotiated</th><th scope="col">tools/list</th></tr></thead>
+      <tbody id="sdk"></tbody>
+    </table>
+    </div>
+  </section>
+  <footer><p>A normal initialize (2025-06-18) plus tools/list exchange on both endpoints was byte-identical between main and the fix branch. The stdio server in src/mcp-server is unchanged.</p></footer>
+</main>
+<script>
+  var requested = ['2025-06-18', '2025-03-26', '2024-11-05', '2025-11-25', '2099-01-01', 'not-a-date', '(omitted)'];
+  var runs = {
+    before: {
+      summary: 'Before: every requested string is echoed back, so a client is told the server speaks 2099-01-01.',
+      rows: ['2025-06-18', '2025-03-26', '2024-11-05', '2025-11-25', '2099-01-01', 'not-a-date', '2025-06-18'],
+      sdk: '2025-11-25'
+    },
+    after: {
+      summary: 'After: supported versions are still echoed; anything else is answered with 2025-06-18.',
+      rows: ['2025-06-18', '2025-03-26', '2024-11-05', '2025-06-18', '2025-06-18', '2025-06-18', '2025-06-18'],
+      sdk: '2025-06-18'
+    }
+  };
+  var tools = {
+    '/api/mcp': 'orchestkit_docs_search, orchestkit_docs_get, orchestkit_skill_get, orchestkit_install',
+    '/api/mcp/actions': 'orchestkit_list_skills, orchestkit_install_plan, orchestkit_doctor_check'
+  };
+  var supported = { '2025-06-18': true, '2025-03-26': true, '2024-11-05': true };
+  var before = document.getElementById('before');
+  var after = document.getElementById('after');
+  var summary = document.getElementById('summary');
+  var rowsBody = document.getElementById('rows');
+  var sdkBody = document.getElementById('sdk');
+  function cell(tag, text, cls) {
+    var el = document.createElement(tag);
+    if (cls) el.className = cls;
+    el.textContent = text;
+    return el;
+  }
+  function codeCell(text, cls) {
+    var td = document.createElement('td');
+    td.appendChild(cell('code', text, cls));
+    return td;
+  }
+  function rowHeader(text) {
+    var th = document.createElement('th');
+    th.scope = 'row';
+    th.appendChild(cell('code', text));
+    return th;
+  }
+  function clear(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+  function show(fixed) {
+    var run = fixed ? runs.after : runs.before;
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    summary.textContent = run.summary;
+    clear(rowsBody);
+    run.rows.forEach(function (got, i) {
+      var tr = document.createElement('tr');
+      var cls = supported[got] ? 'ok' : 'err';
+      tr.appendChild(rowHeader(requested[i]));
+      tr.appendChild(codeCell(got, cls));
+      tr.appendChild(codeCell(got, cls));
+      rowsBody.appendChild(tr);
+    });
+    clear(sdkBody);
+    Object.keys(tools).forEach(function (endpoint) {
+      var tr = document.createElement('tr');
+      tr.appendChild(rowHeader(endpoint));
+      tr.appendChild(codeCell(run.sdk, supported[run.sdk] ? 'ok' : 'err'));
+      tr.appendChild(codeCell(tools[endpoint]));
+      sdkBody.appendChild(tr);
+    });
+  }
+  before.addEventListener('click', function () { show(false); });
+  after.addEventListener('click', function () { show(true); });
+  show(false);
+</script>
+</body>
+</html>

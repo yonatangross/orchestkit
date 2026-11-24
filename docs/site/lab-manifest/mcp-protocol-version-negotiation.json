@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-protocol-version-negotiation",
+  "source": "docs/fix--mcp-protocol-version-negotiation/index.html",
+  "title": "Hosted MCP servers negotiate the protocol version",
+  "description": "Compare recorded initialize calls to /api/mcp and /api/mcp/actions with supported, unsupported and omitted protocol versions, before and after the fix.",
+  "tags": ["mcp", "docs", "bugfix"],
+  "date": "2026-11-24"
+}
