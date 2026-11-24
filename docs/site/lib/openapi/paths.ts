@@ -77,6 +77,14 @@ const LIMIT_PARAM = {
 	schema: { type: "integer", minimum: 1, maximum: 100 },
 } as const;
 
+const ASK_LIMIT_PARAM = {
+	name: "limit",
+	in: "query",
+	required: false,
+	description: "Maximum number of matching documentation results to return.",
+	schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+} as const;
+
 const CURSOR_PARAM = {
 	name: "cursor",
 	in: "query",
@@ -192,6 +200,7 @@ export const OPENAPI_PATHS = {
 					description: "Set to `true` for an SSE stream instead of a JSON document.",
 					schema: { type: "boolean", default: false },
 				},
+				ASK_LIMIT_PARAM,
 				IDEMPOTENCY_KEY_PARAM,
 			],
 			responses: ASK_RESPONSES,
@@ -202,7 +211,7 @@ export const OPENAPI_PATHS = {
 			description:
 				"NLWeb endpoint. Accepts a natural-language query (JSON or form-encoded body) and returns matching documentation as structured JSON (with a `_meta` block). Send `Accept: text/event-stream`, `streaming: true`, or `prefer.streaming: true` to stream results as Server-Sent Events.",
 			tags: ["ask"],
-			parameters: [IDEMPOTENCY_KEY_PARAM],
+			parameters: [ASK_LIMIT_PARAM, IDEMPOTENCY_KEY_PARAM],
 			requestBody: {
 				required: true,
 				content: {

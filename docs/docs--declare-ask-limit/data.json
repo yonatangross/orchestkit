@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/lib/openapi/paths.ts"],
+  "page": "docs/docs--declare-ask-limit/index.html",
+  "lab_slug": "ask-openapi-limit",
+  "purpose": "Compare recorded OpenAPI limit declarations for GET and POST /ask"
+}

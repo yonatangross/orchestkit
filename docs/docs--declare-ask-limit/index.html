@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>The /ask limit in OpenAPI</title>
+<meta name="description" content="Compare the published GET and POST /ask limit parameter before and after the OpenAPI change.">
+<style>
+  :root { color-scheme: dark; background: #101719; color: #edf4f2; font: 16px/1.55 system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  main { width: min(100% - 40px, 1024px); margin: 0 auto; padding: 48px 0; }
+  header { border-bottom: 1px solid #35474c; padding-bottom: 20px; margin-bottom: 24px; }
+  .eyebrow, small { color: #8ce0c0; font: 13px/1.4 ui-monospace, monospace; }
+  .eyebrow { letter-spacing: .12em; text-transform: uppercase; }
+  h1 { font-size: clamp(32px, 6vw, 54px); letter-spacing: -.04em; line-height: 1.1; margin: 12px 0; }
+  p { color: #b9c8c9; }
+  header p { max-width: 62ch; margin: 0; }
+  label { font-weight: 600; }
+  select { margin-inline-start: 10px; padding: 7px 12px; font: inherit; color: inherit; border: 1px solid #567171; border-radius: 6px; background: #182326; }
+  select:focus-visible { outline: 2px solid #8ce0c0; outline-offset: 3px; }
+  .label { margin: 14px 0; font-size: 14px; }
+  .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  article { background: #182326; border: 1px solid #35474c; border-radius: 10px; }
+  article > div { border-bottom: 1px solid #35474c; padding: 12px 16px; }
+  h2 { font-size: 18px; margin: 0 0 2px; }
+  pre { margin: 0; padding: 14px 16px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 ui-monospace, monospace; }
+  footer { margin-top: 20px; font-size: 14px; }
+  @media (max-width: 640px) { main { padding: 28px 0; } .panels { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">OrchestKit · API contract</div>
+    <h1>The <code>/ask</code> limit in OpenAPI</h1>
+    <p>Both methods already accept a result limit in the URL. The spec now tells clients where to send it, what values it accepts, and what happens if they omit it.</p>
+  </header>
+  <label for="method">HTTP method</label>
+  <select id="method"><option value="get">GET</option><option value="post">POST</option></select>
+  <p id="selection" class="label" role="status"></p>
+  <section class="panels" aria-label="Recorded OpenAPI parameter comparison">
+    <article><div><h2>Before</h2><small>main · not advertised</small></div><pre id="before"></pre></article>
+    <article><div><h2>After</h2><small>branch · advertised</small></div><pre id="after"></pre></article>
+  </section>
+  <footer><p>Recorded from local <code>/openapi.json</code> responses, filtered to parameters named <code>limit</code>. Request handling did not change.</p></footer>
+</main>
+<script>
+  const before = {"get":[],"post":[]};
+  const after = {"get":[{"name":"limit","in":"query","required":false,"description":"Maximum number of matching documentation results to return.","schema":{"type":"integer","minimum":1,"maximum":100,"default":10}}],"post":[{"name":"limit","in":"query","required":false,"description":"Maximum number of matching documentation results to return.","schema":{"type":"integer","minimum":1,"maximum":100,"default":10}}]};
+  const method = document.getElementById("method");
+  function render() {
+    const key = method.value;
+    document.getElementById("selection").textContent = key.toUpperCase() + " /ask · limit entries in the parameter list";
+    document.getElementById("before").textContent = JSON.stringify(before[key], null, 2);
+    document.getElementById("after").textContent = JSON.stringify(after[key], null, 2);
+  }
+  method.addEventListener("change", render);
+  render();
+</script>
+</body>
+</html>
