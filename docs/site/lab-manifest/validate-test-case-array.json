@@ -1,0 +1,8 @@
+{
+  "slug": "validate-test-case-array",
+  "source": "docs/fix--validate-test-case-array/index.html",
+  "title": "Test-case rule validation",
+  "description": "Compare recorded validator output for a malformed testCases object and a clean catalog.",
+  "tags": ["ci", "validation"],
+  "date": "2026-11-24"
+}

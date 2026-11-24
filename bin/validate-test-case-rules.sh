@@ -7,7 +7,7 @@
 #
 # Exit codes:
 #   0 - All rule references valid
-#   1 - Missing rule files detected
+#   1 - Invalid test-case files or missing rule files detected
 
 set -euo pipefail
 
@@ -28,13 +28,29 @@ for test_file in "$SKILLS_DIR"/*/test-cases.json; do
   rules_dir="$skill_dir/rules"
 
   # Extract rule values from testCases[].rule (skip null/empty)
-  rules=$(node -e "
-    const d = require('$test_file');
-    const cases = d.testCases || d.test_cases || (Array.isArray(d) ? d : []);
-    cases.forEach(c => {
-      if (c.rule && c.rule !== 'null') console.log(c.rule);
-    });
-  " 2>/dev/null || true)
+  if ! rules=$(node -e '
+    let d;
+    try {
+      d = require(process.argv[1]);
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      console.log("invalid JSON");
+      process.exit(1);
+    }
+    const key = d?.testCases !== undefined ? "testCases" :
+      d?.test_cases !== undefined ? "test_cases" : null;
+    const cases = key ? d[key] : (Array.isArray(d) ? d : []);
+    if (!Array.isArray(cases)) {
+      console.log(`${key} must be an array`);
+      process.exit(1);
+    }
+    const rules = cases.map(c => c.rule).filter(rule => rule && rule !== "null");
+    rules.forEach(rule => console.log(rule));
+  ' "$test_file"); then
+    echo -e "  ${RED}✗${NC} src/skills/$skill_name/test-cases.json: ${rules:-could not extract rule references}"
+    ERRORS=$((ERRORS + 1))
+    continue
+  fi
 
   for rule in $rules; do
     [[ -z "$rule" ]] && continue

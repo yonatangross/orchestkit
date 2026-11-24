@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Test-case rule validation</title>
+<meta name="description" content="Recorded validator output for a malformed testCases object and a clean catalog.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f6f4;color:#182623;font:16px/1.6 system-ui,sans-serif}
+  main{max-width:860px;margin:auto;padding:52px 22px}
+  h1{margin:0;font-size:clamp(2rem,6vw,3rem);line-height:1.15;letter-spacing:-.03em}
+  h2{margin:0;font-size:1.05rem}
+  .eyebrow{font-weight:700;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 12px}
+  button{font:inherit;font-weight:650;color:#15372c;background:#fff;border:1px solid #587368;border-radius:8px;cursor:pointer;padding:9px 16px}
+  button[aria-pressed="true"]{background:#15372c;color:#fff}
+  button:focus-visible{outline:3px solid #126c95;outline-offset:3px}
+  section{background:#fff;border:1px solid #c7d3cd;border-radius:12px;padding:16px 18px;margin-top:16px}
+  pre{background:#14231e;color:#edf8f2;border-radius:7px;padding:14px;margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+  code,pre{font-family:ui-monospace,monospace}
+  [hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit Lab / Validator regression</p>
+  <h1>Test-case rule validation</h1>
+  <p>An object in <code>testCases</code> used to report success even though no rules were checked. Switch between validator versions to compare recorded runs.</p>
+  <div class="controls" role="group" aria-label="Validator version">
+    <button type="button" id="before" aria-pressed="true">Before fix</button>
+    <button type="button" id="after" aria-pressed="false">After fix</button>
+  </div>
+  <section aria-labelledby="fixture-label">
+    <h2 id="fixture-label">Malformed fixture</h2>
+    <pre>{"testCases":{"rule":"missing"}}</pre>
+    <div aria-live="polite">
+      <pre id="before-output">  ✓ All test-cases.json rule references match actual files
+object exit=0</pre>
+      <pre id="after-output" hidden>  ✗ src/skills/sample/test-cases.json: testCases must be an array
+
+Rule reference validation FAILED: 1 error(s)
+object exit=1</pre>
+    </div>
+  </section>
+  <section aria-labelledby="catalog-label">
+    <h2 id="catalog-label">Real catalog (97 files, both versions)</h2>
+    <pre>  ✓ All test-cases.json rule references match actual files
+catalog exit=0</pre>
+  </section>
+  <p>These are recorded runs, not a live shell. Try the regression with <code>bash tests/unit/test-validate-test-case-rules.sh</code>.</p>
+</main>
+<script>
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  const beforeOutput = document.getElementById('before-output');
+  const afterOutput = document.getElementById('after-output');
+
+  function showVersion(fixed) {
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    beforeOutput.hidden = fixed;
+    afterOutput.hidden = !fixed;
+  }
+
+  before.addEventListener('click', () => showVersion(false));
+  after.addEventListener('click', () => showVersion(true));
+</script>
+</body>
+</html>
