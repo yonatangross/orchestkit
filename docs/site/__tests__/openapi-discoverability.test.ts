@@ -93,6 +93,21 @@ describe("published /ask limit", () => {
 	});
 });
 
+describe("published Markdown batch retry correlation", () => {
+	it.each([
+		["JSON", getOpenApiJson],
+		["YAML", getOpenApiYaml],
+	] as const)("documents the optional echo on both success responses in %s", async (_format, getSpec) => {
+		const spec: ReturnType<typeof buildOpenApiSpec> = await getSpec().json();
+		const { responses } = spec.paths["/api/md/batch"].post;
+		for (const status of ["200", "202"] as const) {
+			expect(responses[status].headers["Idempotency-Key"]).toMatchObject({
+				schema: { type: "string" },
+			});
+		}
+	});
+});
+
 describe("orank probe paths are registered as served", () => {
 	it("/openapi.json and /api/openapi.yaml resolve to served paths", () => {
 		// /openapi.json is a top-level .json rewrite → must be in SERVED_EXACT so

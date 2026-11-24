@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>A retry key on async Markdown batches | OrchestKit Lab</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d1719; color: #e9f4ed; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1000px; margin: auto; padding: 36px 24px 24px; }
+  h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3.3rem); line-height: 1.1; letter-spacing: -.045em; }
+  h2 { margin: 0; font-size: 1rem; }
+  p { margin: 6px 0; color: #b8cbc4; }
+  .label { color: #9debbf; font-size: .75rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+  code, pre { font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+  pre { margin: 10px 0; padding: 12px; background: #101f21; border-radius: 8px; white-space: pre-wrap; font-size: .9rem; }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+  article { padding: 14px 16px; background: #162729; border: 1px solid #34504d; border-radius: 12px; }
+  .before { border-top: 3px solid #edac92; }
+  .after { border-top: 3px solid #9debbf; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: .875rem; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #34504d; }
+  small { color: #b8cbc4; }
+  @media (max-width: 570px) { main { padding: 24px 16px; } .comparison { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A retry key on async Markdown batches"><meta property="og:description" content="Compare recorded HTTP responses to see which Markdown batch responses echo the retry key."><meta property="og:url" content="https://orchestkit.dev/lab/md-batch-async-idempotency-key.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A retry key on async Markdown batches"><meta name="twitter:description" content="Compare recorded HTTP responses to see which Markdown batch responses echo the retry key."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="label">OrchestKit Lab / Recorded HTTP probes</p>
+    <h1>A retry key on async Markdown batches</h1>
+    <p>A successful submission now echoes the client’s retry key even when the result comes later at the poll URL.</p>
+    <pre>POST /api/md/batch
+Prefer: respond-async
+Idempotency-Key: scout-correlation</pre>
+  </header>
+  <div class="comparison">
+    <article class="before">
+      <h2>Before: production and local main</h2>
+      <pre>202 Accepted
+Preference-Applied: respond-async
+Idempotency-Key: absent</pre>
+    </article>
+    <article class="after">
+      <h2>After: local fix</h2>
+      <pre>202 Accepted
+Preference-Applied: respond-async
+Idempotency-Key: scout-correlation</pre>
+    </article>
+  </div>
+  <section aria-labelledby="controls">
+    <h2 id="controls">What stayed the same</h2>
+    <table aria-labelledby="controls">
+      <thead><tr><th scope="col">Request</th><th scope="col">HTTP</th><th scope="col">Echo</th><th scope="col">Body SHA-256 prefix</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Keyed sync batch</th><td>200</td><td>Yes</td><td><code>d137c9d57d20</code></td></tr>
+        <tr><th scope="row">Unkeyed async batch</th><td>202</td><td>No</td><td><code>20e6d60a4863</code></td></tr>
+        <tr><th scope="row">Keyed batch with <code>respond-async</code> only in a quoted parameter</th><td>200</td><td>Yes</td><td><code>d137c9d57d20</code></td></tr>
+        <tr><th scope="row">Poll the <code>Location</code> URL</th><td>200</td><td>No</td><td><code>177523b4868c</code></td></tr>
+      </tbody>
+    </table>
+    <p><small>Each batch requested <code>/docs/foundations/overview</code>. The keyed 202 body also kept the same bytes (<code>20e6d60a4863</code>) and job URL. Polling returned the same Markdown as the sync batch.</small></p>
+  </section>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

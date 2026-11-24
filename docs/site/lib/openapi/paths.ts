@@ -37,13 +37,17 @@ const TOO_MANY_REQUESTS_RESPONSE = {
 	},
 } as const;
 
+const IDEMPOTENCY_KEY_HEADER = {
+	"Idempotency-Key": {
+		description: "Echo of the request's Idempotency-Key, when sent.",
+		schema: { type: "string" },
+	},
+} as const;
+
 const ASK_OK_RESPONSE = {
 	description: "Structured answer with matching documentation.",
 	headers: {
-		"Idempotency-Key": {
-			description: "Echo of the request's Idempotency-Key, when sent.",
-			schema: { type: "string" },
-		},
+		...IDEMPOTENCY_KEY_HEADER,
 		...RATE_LIMIT_HEADER_REFS,
 	},
 	content: {
@@ -248,7 +252,7 @@ export const OPENAPI_PATHS = {
 			responses: {
 				"200": {
 					description: "Per-path results, in request order.",
-					headers: { ...RATE_LIMIT_HEADER_REFS, ...DEPRECATION_HEADER_REFS },
+					headers: { ...IDEMPOTENCY_KEY_HEADER, ...RATE_LIMIT_HEADER_REFS, ...DEPRECATION_HEADER_REFS },
 					content: {
 						"application/json": {
 							schema: { $ref: "#/components/schemas/BatchMarkdownResponse" },
@@ -259,6 +263,7 @@ export const OPENAPI_PATHS = {
 					description:
 						"Async accepted (when `Prefer: respond-async` or `?async=1` is sent). `Location` points at the job status URL.",
 					headers: {
+						...IDEMPOTENCY_KEY_HEADER,
 						...RATE_LIMIT_HEADER_REFS,
 						Location: {
 							description: "Job status URL (`/api/jobs/{jobId}`).",

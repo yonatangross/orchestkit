@@ -62,6 +62,14 @@ export async function POST(req: Request) {
 		);
 	}
 
+	// Batch reads are naturally idempotent; echo the key so clients can
+	// correlate retries.
+	const idempotencyKey = req.headers.get("idempotency-key");
+	const successHeaders = {
+		...rateLimitHeaders(rate),
+		...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+	};
+
 	// RFC 7240 async-job pattern: `Prefer: respond-async` (or ?async=1) gets a
 	// 202 + Location pointing at the stateless job endpoint. The job id encodes
 	// the request itself (deterministic read), so the status endpoint can
@@ -88,7 +96,7 @@ export async function POST(req: Request) {
 			{
 				status: 202,
 				headers: {
-					...rateLimitHeaders(rate),
+					...successHeaders,
 					Location: statusUrl,
 					"Preference-Applied": "respond-async",
 				},
@@ -98,16 +106,12 @@ export async function POST(req: Request) {
 
 	const results = await readDocBatch(paths as string[]);
 
-	const idempotencyKey = req.headers.get("idempotency-key");
 	return Response.json(
 		{ results },
 		{
 			headers: {
-				...rateLimitHeaders(rate),
+				...successHeaders,
 				"Cache-Control": "public, max-age=300",
-				// Batch reads are naturally idempotent; echo the key so clients can
-				// correlate retries.
-				...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
 			},
 		},
 	);

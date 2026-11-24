@@ -18,10 +18,17 @@ const boundaryPath = "/docs/" + "a".repeat(
 );
 const oversizedPaths = Array.from({ length: 20 }, (_, index) => "/docs/" + "a".repeat(160) + index);
 
-function submit(paths: string[], { prefer, query = "" }: { prefer?: string; query?: string } = {}) {
+function submit(
+	paths: string[],
+	{ prefer, query = "", idempotencyKey }: { prefer?: string; query?: string; idempotencyKey?: string } = {},
+) {
 	return POST(new Request(origin + "/api/md/batch" + query, {
 		method: "POST",
-		headers: { "Content-Type": "application/json", ...(prefer ? { Prefer: prefer } : {}) },
+		headers: {
+			"Content-Type": "application/json",
+			...(prefer ? { Prefer: prefer } : {}),
+			...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+		},
 		body: JSON.stringify({ paths }),
 	}));
 }
@@ -49,6 +56,44 @@ describe("Markdown batch async preferences", () => {
 		expect(res.status).toBe(202);
 		expect(res.headers.get("Preference-Applied")).toBe("respond-async");
 		expect(res.headers.get("Location")).toMatch(/^\/api\/jobs\//);
+	});
+});
+
+describe("Markdown batch retry correlation", () => {
+	const paths = ["/docs/getting-started/installation"];
+	const idempotencyKey = "batch-retry";
+
+	it.each([
+		{ prefer: "respond-async" },
+		{ query: "?async=1" },
+	])("echoes the key on async acceptance ($prefer $query)", async (options) => {
+		const sync = await submit(paths, { idempotencyKey });
+		expect(sync.status).toBe(200);
+		expect(sync.headers.get("Idempotency-Key")).toBe(idempotencyKey);
+
+		const submission = await submit(paths, { ...options, idempotencyKey });
+		expect(submission.status).toBe(202);
+		expect(submission.headers.get("Idempotency-Key")).toBe(idempotencyKey);
+
+		const { job_id: token, status_url: statusUrl } = await submission.json();
+		expect(submission.headers.get("Location")).toBe(statusUrl);
+		expect(statusUrl).toBe(`/api/jobs/${token}`);
+		const poll = await GET(new Request(origin + statusUrl), {
+			params: Promise.resolve({ token }),
+		});
+		expect(poll.status).toBe(200);
+		expect(poll.headers.has("Idempotency-Key")).toBe(false);
+		expect(await poll.json()).toEqual({
+			job_id: token,
+			status: "completed",
+			result: await sync.json(),
+		});
+	});
+
+	it("omits the key from async acceptance when it was not sent", async () => {
+		const submission = await submit(paths, { prefer: "respond-async" });
+		expect(submission.status).toBe(202);
+		expect(submission.headers.has("Idempotency-Key")).toBe(false);
 	});
 });
 
