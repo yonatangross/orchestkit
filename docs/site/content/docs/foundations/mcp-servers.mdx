@@ -376,7 +376,18 @@ The servers above are ones OrchestKit *consumes*. OrchestKit also *publishes* on
 | Local stdio image | `docker run -i --rm ghcr.io/yonatangross/orchestkit-docs-mcp` |
 | Registry entry | `io.github.yonatangross/orchestkit` on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.yonatangross/orchestkit) |
 
-Four read-only tools: `orchestkit_docs_search` (ranked pages with titles and URLs), `orchestkit_docs_get` (one page as Markdown by path), `orchestkit_skill_get` (one skill as a card: what it does, which plugin ships it, the install line) and `orchestkit_install` (a picker for Claude Code, Cursor and Codex with the exact install command). In a host that supports MCP Apps, the search results, the skill card and the install picker render inline in the chat. The same API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.dev/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
+The hosted endpoint exposes four read-only tools. The local stdio image exposes only docs search and page fetch.
+
+| Tool | Hosted HTTP | Local stdio |
+|------|-------------|-------------|
+| `orchestkit_docs_search`: Find ranked pages with titles and URLs | Yes | Yes |
+| `orchestkit_docs_get`: Fetch a page as Markdown by path | Yes | Yes |
+| `orchestkit_skill_get`: Show what a skill does, which plugin ships it, and how to install it | Yes | No |
+| `orchestkit_install`: Show the install command for Claude Code, Cursor or Codex | Yes | No |
+
+On the hosted endpoint, search results, the skill card and the install picker render inline in hosts that support MCP Apps. The stdio image does not provide MCP Apps.
+
+The hosted API is described by the [OrchestKit OpenAPI 3.1 spec](https://orchestkit.dev/openapi.json); every developer surface is indexed at the [OrchestKit developer resources hub](/developers).
 
 ## OrchestKit Actions MCP Server
 
