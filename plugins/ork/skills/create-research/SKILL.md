@@ -4,7 +4,7 @@ description: "Documents how code works today for a task's questions, with file:l
 argument-hint: "<task> <question or questions file>"
 user-invocable: true
 allowed-tools: "Bash Read Write Grep Glob Agent"
-compatibility: "Claude Code 2.1.327+. Node 22+."
+compatibility: "Claude Code 2.1.328+. Node 22+."
 metadata:
   version: "1.0.0"
   author: "OrchestKit"

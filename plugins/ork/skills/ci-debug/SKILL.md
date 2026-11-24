@@ -1,7 +1,7 @@
 ---
 name: ci-debug
 license: MIT
-compatibility: "Claude Code 2.1.327+ — uses `gh` CLI for GitHub Actions log inspection. Works in interactive sessions and headless `claude -p` invocations."
+compatibility: "Claude Code 2.1.328+ — uses `gh` CLI for GitHub Actions log inspection. Works in interactive sessions and headless `claude -p` invocations."
 description: "Diagnoses one failing CI run or PR check against an 11-pattern playbook and proposes the exact fix, never applying it unasked. Use when a GitHub Actions job failed; sweep mode covers all red PRs. Not for app test failures."
 argument-hint: "<PR-number | run-URL | job-URL> | sweep [install|status|enable|disable]"
 context: fork

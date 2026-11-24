@@ -4,8 +4,7 @@
 /**
  * Shell argument sanitization for safe command construction
  *
- * Prevents shell injection by validating arguments against strict allowlists
- * or quoting them safely for shell consumption.
+ * Prevents shell injection by validating arguments before command execution.
  */
 
 /**
@@ -27,28 +26,6 @@ export function assertSafeShellArg(arg: string, label = 'argument'): string {
 }
 
 /**
- * Quote a string for safe use in a single-quoted shell argument.
- * Wraps in single quotes with internal single-quote escaping.
- * Safe for arbitrary content including spaces and special characters.
- */
-export function shellQuote(arg: string): string {
-  return `'${arg.replace(/'/g, "'\\''")}'`;
-}
-
-/**
- * Validate that a string looks like a git ref (branch name, tag, or SHA).
- * Allows: alphanumeric, dots, slashes, hyphens, underscores.
- * First character must not be a hyphen (prevents git option injection).
- * Rejects shell metacharacters, spaces, and anything suspicious.
- */
-export function assertSafeGitRef(ref: string, label = 'git ref'): string {
-  if (!ref || !/^[a-zA-Z0-9._/][a-zA-Z0-9._/-]*$/.test(ref)) {
-    throw new Error(`Unsafe ${label}: ${JSON.stringify(ref)}`);
-  }
-  return ref;
-}
-
-/**
  * Validate that a string is a simple command name (no path separators or spaces).
  * For use with `command -v` / `which` checks.
  */
@@ -57,28 +34,6 @@ export function assertSafeCommandName(cmd: string): string {
     throw new Error(`Unsafe command name: ${JSON.stringify(cmd)}`);
   }
   return cmd;
-}
-
-/**
- * Validate that a string is a safe filename glob pattern.
- * Allows: alphanumeric, dots, underscores, hyphens, asterisks (for globs).
- * For use with `find -name` inside double quotes (shell won't expand globs).
- */
-export function assertSafeGlobPattern(pattern: string, label = 'glob pattern'): string {
-  if (!pattern || !/^[a-zA-Z0-9._*-]+$/.test(pattern)) {
-    throw new Error(`Unsafe ${label}: ${JSON.stringify(pattern)}`);
-  }
-  return pattern;
-}
-
-/**
- * Validate that a string looks like a GitHub issue number (digits only).
- */
-export function assertSafeIssueNumber(num: string): string {
-  if (!num || !/^\d+$/.test(num)) {
-    throw new Error(`Unsafe issue number: ${JSON.stringify(num)}`);
-  }
-  return num;
 }
 
 /**

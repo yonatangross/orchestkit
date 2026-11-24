@@ -1,7 +1,7 @@
 ---
 name: database-patterns
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Schema design, Alembic migrations and database versioning. Use when creating migrations, designing or normalizing schemas, or fixing schema drift."
 user-invocable: false
 disable-model-invocation: false

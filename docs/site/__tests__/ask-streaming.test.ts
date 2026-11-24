@@ -8,9 +8,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/doc-search", () => ({
-	searchDocs: () => [
-		{ id: "x", title: "OrchestKit", url: "/docs/overview", content: "c" },
-	],
+	searchDocs: (_query: string, limit = 10) => Array.from({ length: Math.min(limit, 15) }, (_, i) => ({
+		id: String(i), title: `OrchestKit ${i}`, url: `/docs/overview-${i}`, content: "c",
+	})),
 }));
 
 import { GET, POST } from "@/app/api/ask/route";
@@ -22,6 +22,22 @@ function askReq(headers: Record<string, string>): Request {
 		body: JSON.stringify({ query: "what is orchestkit" }),
 	});
 }
+
+describe("/ask result limits", () => {
+	it.each([["&limit=2", 2], ["", 10], ["&limit=12", 12]])("honors the bound for %j", async (param, count) => {
+		const res = await GET(new Request(`https://orchestkit.dev/ask?query=orchestkit${param}`));
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.results).toHaveLength(count);
+		expect(body._meta.count).toBe(count);
+	});
+
+	it.each(["", "0", "-3", "2.5", "abc", "101"])("rejects invalid limit %j", async (limit) => {
+		const res = await GET(new Request(`https://orchestkit.dev/ask?query=orchestkit&limit=${limit}`));
+		expect(res.status).toBe(400);
+		expect(await res.json()).toMatchObject({ title: "Invalid limit", status: 400 });
+	});
+});
 
 describe("/ask streaming triggers", () => {
 	it("Prefer: streaming → text/event-stream", async () => {

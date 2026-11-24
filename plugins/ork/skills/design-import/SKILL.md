@@ -1,7 +1,7 @@
 ---
 name: design-import
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires: design-to-code skill."
+compatibility: "Claude Code 2.1.328+. Requires: design-to-code skill."
 description: "Old name of design-to-code import mode, kept so the typed command still works. Use when /ork:design-import is typed; new work calls design-to-code import."
 argument-hint: "<export.zip | export.html | folder>"
 user-invocable: true

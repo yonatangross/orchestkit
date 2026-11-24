@@ -38,7 +38,7 @@ COMMANDS
   help               Show this message
 
 OPTIONS
-  --limit <n>        Max search results (default 5)
+  --limit <n>        Max results for search (default 5) or ask (default 10)
   --json             Emit raw JSON instead of formatted text
   --base-url <url>   Override the API origin (env: ORCHESTKIT_BASE_URL)
   --version          Print the CLI version
@@ -55,7 +55,7 @@ per minute per IP per endpoint. Policy: https://orchestkit.dev/api-policy
 export type ParsedArgs = {
 	command: string;
 	positional: string[];
-	limit: number;
+	limit?: number;
 	json: boolean;
 	all: boolean;
 	baseUrl?: string;
@@ -71,7 +71,7 @@ function isOptionToken(value: string): boolean {
 
 export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
-	let limit = 5;
+	let limit: number | undefined;
 	let json = false;
 	let all = false;
 	let help = false;
@@ -200,7 +200,7 @@ export async function run(
 			case "search": {
 				const query = args.positional.join(" ").trim();
 				if (!query) return fail("Usage: orchestkit search <query>\n", 2);
-				const { results, rateLimit } = await search(client, query, args.limit);
+				const { results, rateLimit } = await search(client, query, args.limit ?? 5);
 				return ok(
 					args.json
 						? `${JSON.stringify(results, null, 2)}\n`
@@ -211,7 +211,7 @@ export async function run(
 			case "ask": {
 				const query = args.positional.join(" ").trim();
 				if (!query) return fail("Usage: orchestkit ask <question>\n", 2);
-				const { data } = await ask(client, query);
+				const { data } = await ask(client, query, args.limit);
 				return ok(`${JSON.stringify(data, null, 2)}\n`);
 			}
 
@@ -228,8 +228,10 @@ export async function run(
 					process.versions.node.split(".")[0] ?? "0",
 					10,
 				);
+				const nodeSupported = major >= 20;
+				let failed = !nodeSupported;
 				checks.push(
-					major >= 20
+					nodeSupported
 						? `  ok    node ${process.versions.node} (>= 20 required)`
 						: `  FAIL  node ${process.versions.node}, OrchestKit CLI needs Node >= 20`,
 				);
@@ -244,11 +246,11 @@ export async function run(
 							: `  ok    rate limit ${rateLimit.remaining}/${rateLimit.limit}, resets in ${rateLimit.reset}s`,
 					);
 				} catch (err) {
+					failed = true;
 					checks.push(
 						`  FAIL  API unreachable at ${client.baseUrl}: ${err instanceof Error ? err.message : String(err)}`,
 					);
 				}
-				const failed = checks.some((c) => c.includes("FAIL"));
 				const body = `orchestkit doctor\n\n${checks.join("\n")}\n`;
 				return failed ? { stdout: body, stderr: "", exitCode: 1 } : ok(body);
 			}

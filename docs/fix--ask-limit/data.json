@@ -1,0 +1,6 @@
+{
+  "serves": ["packages/cli/src/api.ts", "docs/site/app/api/ask/route.ts"],
+  "page": "docs/fix--ask-limit/index.html",
+  "lab_slug": "ask-limit-cli-api",
+  "purpose": "PR playground: compare the ten-result ask response with the bounded CLI and API response"
+}

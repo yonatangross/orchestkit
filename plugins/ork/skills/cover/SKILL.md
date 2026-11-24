@@ -1,7 +1,7 @@
 ---
 name: cover
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires network access."
+compatibility: "Claude Code 2.1.328+. Requires network access."
 description: "Writes tests that do not exist yet across unit, integration and end-to-end tiers, healing failures up to 3 times. Use when code lacks tests. Not for grading existing tests (use verify) or running a suite."
 argument-hint: "[scope-or-feature]"
 user-invocable: true

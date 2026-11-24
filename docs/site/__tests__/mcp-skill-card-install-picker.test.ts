@@ -101,6 +101,22 @@ describe("tools and resources list", () => {
 		expect(server.description).toMatch(/skill card/i);
 		expect(server.description).toMatch(/install/i);
 	});
+
+	it("attributes all hosted tools and only the two docs tools to stdio", async () => {
+		const { GET } = await import("@/app/api/well-known/mcp-server-card/route");
+		const card = await (await GET()).json();
+		const { tools: hostedTools } = await rpc("tools/list");
+		const namesOn = (transport: string) =>
+			card.tools
+				.filter((tool: { transports: string[] }) => tool.transports.includes(transport))
+				.map((tool: { name: string }) => tool.name)
+				.sort();
+
+		expect(namesOn("streamable-http")).toEqual(
+			hostedTools.map((tool: { name: string }) => tool.name).sort(),
+		);
+		expect(namesOn("stdio")).toEqual(["orchestkit_docs_get", "orchestkit_docs_search"]);
+	});
 });
 
 describe("orchestkit_skill_get", () => {

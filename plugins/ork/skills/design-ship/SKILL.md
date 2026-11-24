@@ -1,7 +1,7 @@
 ---
 name: design-ship
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires: design-to-code skill."
+compatibility: "Claude Code 2.1.328+. Requires: design-to-code skill."
 description: "Alias: runs design-to-code in ship mode (design export to an opened PR) for people who still type the earlier command. Use only when someone types /ork:design-ship."
 argument-hint: "<export.zip | export.html | folder>"
 user-invocable: true

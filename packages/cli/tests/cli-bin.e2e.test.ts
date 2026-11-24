@@ -110,6 +110,13 @@ describe.skipIf(!built)("built binary, networked commands", () => {
 		expect(code).toBe(0);
 	});
 
+	it("doctor exits 0 when a healthy API base URL contains uppercase FAIL", async () => {
+		const baseUrl = "https://FAIL.example.invalid";
+		const { stdout, code } = await spawnBin(["doctor", "--base-url", baseUrl], true);
+		expect(stdout).toContain(`ok    API reachable at ${baseUrl} (ok)`);
+		expect(code).toBe(0);
+	});
+
 	it("doctor exits non-zero when the API is unreachable", async () => {
 		const { stdout, code } = await spawnBin(
 			["doctor", "--base-url", "https://unreachable.test"],

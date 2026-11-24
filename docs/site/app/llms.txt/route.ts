@@ -5,8 +5,8 @@ import { SECTION_ORDER, orderedPages } from "@/lib/docs-content";
 
 // /llms.txt — lean navigation index (kept well under the 30,000-char
 // recommendation). One link per top-level section plus the machine-readable
-// resource map. The exhaustive page list lives in /docs/llms.txt and the full
-// content in /llms-full.txt.
+// resource map. The exhaustive page list lives in /docs/llms.txt and the
+// budgeted content in /llms-full.txt.
 export const revalidate = false;
 
 const SECTION: Record<string, { title: string; blurb: string }> = {
@@ -109,7 +109,7 @@ export function GET() {
 		"",
 		"## Machine-readable resources",
 		"",
-		"- [Full documentation, one file](/llms-full.txt)",
+		"- [Budgeted documentation dump](/llms-full.txt)",
 		"- [Full page index](/docs/llms.txt)",
 		// Every developer-surface line below names the product. An agent that
 		// searches this file for "OrchestKit API" / "OrchestKit MCP" has to hit
@@ -120,7 +120,7 @@ export function GET() {
 		"- [Agent skills on skills.sh (official, self-published)](https://www.skills.sh/yonatangross/orchestkit)",
 		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md) · [scoped index](/developers/llms.txt)`,
 		`- [${SITE.name} llms.txt navigation index](/llms.txt)`,
-		`- [${SITE.name} llms-full.txt full docs dump](/llms-full.txt)`,
+		`- [${SITE.name} llms-full.txt budgeted docs dump](/llms-full.txt)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
 		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",

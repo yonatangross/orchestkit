@@ -1,0 +1,8 @@
+{
+  "slug": "docs-rss-markdown",
+  "source": "docs/fix--docs-rss-markdown/index.html",
+  "title": "Release feed reader",
+  "description": "Read the live OrchestKit release feed and check which pages advertise it to readers.",
+  "tags": ["rss", "release-notes", "docs"],
+  "date": "2026-11-24"
+}
