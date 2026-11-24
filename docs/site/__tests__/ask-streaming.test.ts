@@ -50,6 +50,27 @@ describe("/ask streaming triggers", () => {
 		expect(res.headers.get("Content-Type")).toBe("text/event-stream; charset=utf-8");
 	});
 
+	it.each([
+		'return=representation; note="respond-async"',
+		'return="a; b", wait=5; note="escaped \\" quote, streaming, tail"',
+		"return=respond-async; streaming",
+		"not-respond-async, streaming-extra",
+	])("keeps JSON for Prefer: %s", async (prefer) => {
+		const res = await POST(askReq({ prefer }));
+		expect(res.status).toBe(200);
+		expect(res.headers.get("Content-Type")).toContain("application/json");
+	});
+
+	it.each(["ReSpOnD-AsYnC", "StReAmInG"])("streams for a top-level %s in a preference list", async (token) => {
+		const res = await POST(askReq({ prefer: `return="a, b; c", ${token}; wait=5` }));
+		expect(res.headers.get("Content-Type")).toBe("text/event-stream; charset=utf-8");
+	});
+
+	it("streams for the explicit streaming query option without Prefer", async () => {
+		const res = await GET(new Request("https://orchestkit.dev/ask?query=hooks&streaming=true"));
+		expect(res.headers.get("Content-Type")).toBe("text/event-stream; charset=utf-8");
+	});
+
 	it("no streaming signal → JSON with _meta", async () => {
 		const res = await POST(askReq({}));
 		expect(res.headers.get("Content-Type")).toContain("application/json");

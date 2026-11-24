@@ -26,6 +26,32 @@ function submit(paths: string[], { prefer, query = "" }: { prefer?: string; quer
 	}));
 }
 
+describe("Markdown batch async preferences", () => {
+	const paths = ["/docs/getting-started/installation"];
+
+	it.each([
+		'return=representation; note="respond-async"',
+		'return="a; b", wait=5; note="escaped \\" quote, respond-async, tail"',
+		"return=respond-async; respond-async",
+		"not-respond-async, respond-async-extra",
+	])("keeps the response synchronous for Prefer: %s", async (prefer) => {
+		const res = await submit(paths, { prefer });
+		expect(res.status).toBe(200);
+		expect(res.headers.has("Preference-Applied")).toBe(false);
+		expect(await res.json()).toMatchObject({ results: [{ path: paths[0], ok: true }] });
+	});
+
+	it.each([
+		{ prefer: 'return="a, b; c", ReSpOnD-AsYnC; wait=5' },
+		{ query: "?async=1" },
+	])("accepts an explicit async request ($prefer $query)", async (options) => {
+		const res = await submit(paths, options);
+		expect(res.status).toBe(202);
+		expect(res.headers.get("Preference-Applied")).toBe("respond-async");
+		expect(res.headers.get("Location")).toMatch(/^\/api\/jobs\//);
+	});
+});
+
 describe("Markdown batch job tokens", () => {
 	it("returns a working poll URL at the inclusive 4096-character boundary", async () => {
 		const submission = await submit([boundaryPath], { prefer: "respond-async" });
