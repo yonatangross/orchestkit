@@ -1,0 +1,8 @@
+{
+  "slug": "ask-limit-cli-api",
+  "source": "docs/fix--ask-limit/index.html",
+  "title": "Ask respects the result limit",
+  "description": "Interactive before and after fixture for orchestkit ask --limit: the CLI sends and applies the requested bound, while /api/ask validates and slices it.",
+  "tags": ["cli", "api", "regression"],
+  "date": "2026-11-24"
+}
