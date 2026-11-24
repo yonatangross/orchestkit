@@ -1,0 +1,6 @@
+{
+  "serves": ["bin/validate-frontmatter.sh"],
+  "page": "docs/perf--1795500952-validate-frontmatter-one-process/index.html",
+  "lab_slug": "validate-frontmatter-one-process",
+  "purpose": "Compare catalog validation timings and Node launch counts on the same checkout"
+}
