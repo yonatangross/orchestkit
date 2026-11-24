@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
 import { SetupWizard } from "@/components/setup-wizard";
 import { SITE } from "@/lib/constants";
 import { SKILLS_SH_STARTER } from "@/lib/host-installs";
@@ -85,6 +85,39 @@ describe("SetupWizard", () => {
 		render(<SetupWizard />);
 		copyLine(SITE.installCommand);
 		expect(writeTextMock).toHaveBeenCalledWith(SITE.installCommand);
+	});
+
+	it("copies the Claude command once from the shortcut and resets to the Claude host step", async () => {
+		let finishWrite!: () => void;
+		writeTextMock.mockReturnValueOnce(new Promise<void>((resolve) => {
+			finishWrite = resolve;
+		}));
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Codex" }));
+		fireEvent.click(screen.getByRole("button", { name: "Next" }));
+		fireEvent.click(screen.getByRole("button", { name: /I'm on Claude Code, just copy/i }));
+
+		expect(screen.getByRole("button", { name: "Step 1: Host" })).toHaveAttribute("aria-current", "step");
+		expect(screen.getByRole("button", { name: "Claude Code" })).toHaveAttribute("aria-pressed", "true");
+		expect(writeTextMock.mock.calls).toEqual([[SITE.installCommand]]);
+		const copiedLabel = `Copied ${SITE.installCommand}`;
+		expect(screen.queryByRole("button", { name: copiedLabel })).not.toBeInTheDocument();
+
+		await act(async () => finishWrite());
+		expect(screen.getByRole("button", { name: copiedLabel })).toBeInTheDocument();
+	});
+
+	it("does not show shortcut success when the clipboard rejects the write", async () => {
+		writeTextMock.mockRejectedValueOnce(new Error("Clipboard denied"));
+		render(<SetupWizard />);
+		fireEvent.click(screen.getByRole("button", { name: "Codex" }));
+		await act(async () => {
+			fireEvent.click(screen.getByRole("button", { name: /I'm on Claude Code, just copy/i }));
+		});
+
+		expect(screen.getByRole("button", { name: "Claude Code" })).toHaveAttribute("aria-pressed", "true");
+		expect(writeTextMock.mock.calls).toEqual([[SITE.installCommand]]);
+		expect(screen.getByRole("button", { name: `Copy ${SITE.installCommand} to clipboard` })).toBeInTheDocument();
 	});
 
 	it("switches the clipboard payload when Cursor is selected", () => {

@@ -1,0 +1,7 @@
+{
+  "serves": [
+    "docs/site/components/setup-wizard.tsx",
+    "docs/site/components/install-snippet.tsx"
+  ],
+  "description": "Replay the recorded installation wizard shortcut on main and on the fix."
+}

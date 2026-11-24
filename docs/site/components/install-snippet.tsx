@@ -37,23 +37,23 @@ export function useTrackedCopy(
 		},
 		[],
 	);
-	const copy = () => {
+	const copyPayload = (text: string, { host, surface }: typeof props) => {
 		// The click is the funnel signal, so it is tracked either way; the
 		// "Copied" state only shows once the clipboard write succeeded.
 		const eventProps: Record<string, string> = {};
-		if (props.host) eventProps.host = props.host;
-		if (props.surface) eventProps.surface = props.surface;
+		if (host) eventProps.host = host;
+		if (surface) eventProps.surface = surface;
 		track(event, eventProps);
 		navigator.clipboard
-			.writeText(payload)
+			?.writeText(text)
 			.then(() => {
 				if (timer.current) clearTimeout(timer.current);
-				setCopiedPayload(payload);
+				setCopiedPayload(text);
 				timer.current = setTimeout(() => setCopiedPayload(null), 2000);
 			})
 			.catch(() => {});
 	};
-	return { copied, copy };
+	return { copied, copy: () => copyPayload(payload, props), copyPayload };
 }
 
 /**
@@ -86,6 +86,10 @@ export function CommandText({ line }: { line: string }) {
 	);
 }
 
+export function getSnippetPayload(lines: string[], prompt: boolean, copyText?: string) {
+	return copyText ?? lines.join(prompt ? " && " : "\n");
+}
+
 export function InstallSnippet({
 	text,
 	prompt = true,
@@ -108,13 +112,36 @@ export function InstallSnippet({
 	surface?: CopySurface;
 }) {
 	const lines = typeof text === "string" ? [text] : text;
-	const payload = copyText ?? lines.join(prompt ? " && " : "\n");
+	const payload = getSnippetPayload(lines, prompt, copyText);
 	const { copied, copy } = useTrackedCopy(payload, event, { host, surface });
+	return (
+		<InstallSnippetButton
+			lines={lines}
+			prompt={prompt}
+			payload={payload}
+			copied={copied}
+			onCopy={copy}
+		/>
+	);
+}
 
+export function InstallSnippetButton({
+	lines,
+	prompt,
+	payload,
+	copied,
+	onCopy,
+}: {
+	lines: string[];
+	prompt: boolean;
+	payload: string;
+	copied: boolean;
+	onCopy: () => void;
+}) {
 	return (
 		<button
 			type="button"
-			onClick={copy}
+			onClick={onCopy}
 			className="group flex w-full cursor-pointer items-start gap-3 rounded-lg border border-fd-border bg-[var(--color-fd-surface-raised)] px-3 py-2.5 text-left transition-colors hover:border-fd-primary/50"
 			aria-label={
 				copied ? `Copied ${payload}` : `Copy ${payload} to clipboard`
@@ -135,6 +162,7 @@ export function InstallSnippet({
 				))}
 			</div>
 			<span aria-live="polite" className="mt-0.5 shrink-0 text-fd-muted-foreground">
+				<span className="sr-only">{copied ? "Copied" : ""}</span>
 				{copied ? (
 					<Check className="h-4 w-4 text-fd-primary" aria-hidden="true" />
 				) : (

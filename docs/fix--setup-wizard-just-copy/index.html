@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>One click to copy the Claude Code install</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --pg-bg: hsl(237 24% 8%);
+    --pg-ink: hsl(230 22% 94%);
+    --pg-muted: hsl(230 18% 72%);
+    --pg-edge: hsl(230 30% 85% / .18);
+    --pg-glass: hsl(230 35% 93% / .07);
+    --pg-accent: hsl(244 88% 82%);
+    --pg-dark: hsl(237 29% 13%);
+    --pg-shadow: 0 20px 60px -22px hsl(237 40% 2% / .7), 0 4px 12px -6px hsl(237 40% 2% / .5);
+    --pg-ease: cubic-bezier(.2,.8,.25,1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-block-size: 100vh; color: var(--pg-ink); font: 16px/1.55 system-ui, sans-serif;
+    background: radial-gradient(ellipse at 85% 0%, hsl(248 51% 26% / .64), transparent 54%),
+      radial-gradient(ellipse at 0% 80%, hsl(224 48% 22% / .55), transparent 50%), var(--pg-bg);
+    background-attachment: fixed; }
+  main { max-inline-size: 840px; margin: auto; padding: 48px 24px; }
+  .eyebrow { margin: 0; color: var(--pg-accent); font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  h1 { margin: 8px 0; max-inline-size: 16ch; font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.08; letter-spacing: -.035em; }
+  p { margin: 0; }
+  .lede { max-inline-size: 60ch; color: var(--pg-muted); }
+  .transport { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 24px 0 12px; }
+  button { color: inherit; background: var(--pg-glass); border: 1px solid var(--pg-edge); border-radius: 9px;
+    font: inherit; font-size: .875rem; font-weight: 650; padding: 8px 12px; cursor: pointer; transition: background 200ms var(--pg-ease); }
+  button:hover { background: hsl(248 58% 70% / .18); }
+  button[aria-pressed="true"], #play { border-color: var(--pg-accent); color: var(--pg-accent); }
+  button:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 3px; }
+  .frame { overflow: hidden; border: 1px solid var(--pg-edge); border-radius: 24px; background: var(--pg-glass); box-shadow: var(--pg-shadow); }
+  .bar, .panel { padding: 16px 24px; }
+  .bar { border-block-end: 1px solid var(--pg-edge); color: var(--pg-muted); font-size: .8125rem; }
+  .panel { display: grid; gap: 16px; padding-block: 24px; }
+  .trigger { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .host { color: var(--pg-muted); }
+  .host strong { color: var(--pg-ink); }
+  .result { display: grid; gap: 8px; border: 1px solid var(--pg-edge); border-radius: 16px; background: var(--pg-dark); padding: 16px; }
+  .result h2 { margin: 0; font-size: 1rem; }
+  .count { font-variant-numeric: tabular-nums; color: var(--pg-accent); font-weight: 650; }
+  code { font-size: .8125rem; overflow-wrap: anywhere; }
+  .foot { color: var(--pg-muted); margin-block-start: 16px; font-size: .8125rem; }
+  .copyrow { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / Recorded browser replay</p>
+    <h1>One click should be enough.</h1>
+    <p class="lede">A user on the Codex pane asks for the Claude Code command. Compare what the same shortcut did on main and on the fix.</p>
+  </header>
+  <div class="transport" role="group" aria-label="Recorded build">
+    <button type="button" id="before" aria-pressed="true">Before · main</button>
+    <button type="button" id="after" aria-pressed="false">After · fix</button>
+  </div>
+  <section class="frame" aria-label="Installation wizard replay">
+    <p class="bar">Installation / Interactive install picker</p>
+    <div class="panel">
+      <div class="trigger">
+        <p class="host">Selected host: <strong id="host">Codex</strong></p>
+        <button type="button" id="play">I'm on Claude Code, just copy</button>
+      </div>
+      <div class="result" aria-live="polite">
+        <h2 id="feedback">Ready to replay</h2>
+        <p class="count" id="count">0 clipboard writes</p>
+        <code id="payload" hidden>claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit</code>
+      </div>
+    </div>
+  </section>
+  <p class="foot">Source: the same 1400 × 1000 Chromium viewport and the native clipboard method wrapped only to count successful writes. The replay itself does not change your clipboard.</p>
+  <div class="copyrow">
+    <button type="button" id="copy-prompt">Copy reproduction steps</button>
+    <span id="copy-status" role="status"></span>
+  </div>
+</main>
+<script>
+  const before = document.getElementById("before");
+  const after = document.getElementById("after");
+  const host = document.getElementById("host");
+  const feedback = document.getElementById("feedback");
+  const count = document.getElementById("count");
+  const payload = document.getElementById("payload");
+  function select(fixed) {
+    before.setAttribute("aria-pressed", String(!fixed));
+    after.setAttribute("aria-pressed", String(fixed));
+    host.textContent = "Codex";
+    feedback.textContent = "Ready to replay";
+    count.textContent = "0 clipboard writes";
+    payload.hidden = true;
+  }
+  before.addEventListener("click", () => select(false));
+  after.addEventListener("click", () => select(true));
+  document.getElementById("play").addEventListener("click", () => {
+    const fixed = after.getAttribute("aria-pressed") === "true";
+    host.textContent = "Claude Code";
+    feedback.textContent = fixed ? "✓ Copied" : "No copy feedback";
+    count.textContent = fixed ? "1 clipboard write" : "0 clipboard writes";
+    payload.hidden = !fixed;
+  });
+  document.getElementById("copy-prompt").addEventListener("click", async () => {
+    const status = document.getElementById("copy-status");
+    try {
+      await navigator.clipboard.writeText("On the installation page, select Codex in the Interactive install picker, then click I'm on Claude Code, just copy. Verify the Claude Code host is selected, its install command is copied once, and its copy control shows a check.");
+      status.textContent = "Copied";
+    } catch {
+      status.textContent = "Clipboard unavailable";
+    }
+  });
+</script>
+</body>
+</html>

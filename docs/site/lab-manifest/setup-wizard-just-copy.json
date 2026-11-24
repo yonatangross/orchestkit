@@ -1,0 +1,8 @@
+{
+  "slug": "setup-wizard-just-copy",
+  "source": "docs/fix--setup-wizard-just-copy/index.html",
+  "title": "One click to copy the Claude Code install",
+  "description": "Replay the recorded browser outcomes for the install wizard shortcut before and after the fix.",
+  "tags": ["docs", "installation", "polish"],
+  "date": "2026-11-24"
+}
