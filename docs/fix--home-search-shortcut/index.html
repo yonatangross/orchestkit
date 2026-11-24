@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Compare the desktop search shortcut hint on macOS, Linux, and Windows.">
+<title>Homepage search shortcut | OrchestKit Lab</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; background: #0b0d15; color: #e9ebf4; font: 16px/1.55 system-ui, sans-serif; color-scheme: dark }
+  main { max-width: 900px; margin: auto; padding: clamp(24px, 6vw, 64px) clamp(16px, 4vw, 32px) }
+  header { padding-top: 20px; border-top: 2px solid #a9a5f5 }
+  .eyebrow { color: #bcb9ff; font: 700 12px/1.4 ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase }
+  h1 { margin: 8px 0; font-size: clamp(30px, 5vw, 48px); line-height: 1.1; letter-spacing: -.04em }
+  p { margin: 0; color: #b3b7c7 }
+  .control { display: flex; align-items: center; gap: 12px; margin: 28px 0 16px }
+  select { font: inherit; padding: 7px 10px; background: #171a27; color: inherit; border: 1px solid #464d64; border-radius: 6px }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+  article { padding: 16px; border: 1px solid #31364a; border-radius: 10px; background: #10131f }
+  h2 { margin: 0 0 12px; color: #b3b7c7; font-size: 14px; font-weight: 600 }
+  .after h2, a { color: #c3bfff }
+  .preview { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid #363b50; border-radius: 8px; background: #171a27; color: #cdd0dd; font-size: 14px }
+  kbd { display: inline-block; padding: 2px 6px; border: 1px solid #464d64; border-radius: 4px; font: 12px/1.4 ui-monospace, monospace; white-space: nowrap }
+  footer { margin-top: 20px; font-size: 14px }
+  a { text-underline-offset: 3px }
+  :focus-visible { outline: 2px solid #c3bfff; outline-offset: 3px }
+  @media (max-width: 560px) { .comparison { grid-template-columns: 1fr } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">OrchestKit Lab / Search</div>
+    <h1>Homepage search shortcut</h1>
+    <p>Choose a desktop platform to compare the old and new search hints.</p>
+  </header>
+  <div class="control">
+    <label for="platform">Platform</label>
+    <select id="platform">
+      <option value="linux">Linux</option>
+      <option value="windows">Windows</option>
+      <option value="mac">macOS</option>
+    </select>
+  </div>
+  <div class="comparison">
+    <article>
+      <h2>Before</h2>
+      <div class="preview"><span>Search skills, agents, hooks, docs…</span><kbd>⌘K</kbd></div>
+    </article>
+    <article class="after">
+      <h2>After</h2>
+      <div class="preview">
+        <span>Search skills, agents, hooks, docs…</span>
+        <output for="platform"><kbd id="shortcut">Ctrl+K</kbd></output>
+      </div>
+    </article>
+  </div>
+  <footer><p>This preview shows the label only. <a href="/">Try the shortcut on the homepage</a>.</p></footer>
+</main>
+<script>
+  const platform = document.getElementById("platform");
+  const shortcut = document.getElementById("shortcut");
+  function updateShortcut() {
+    shortcut.textContent = platform.value === "mac" ? "⌘K" : "Ctrl+K";
+  }
+  platform.addEventListener("change", updateShortcut);
+  updateShortcut();
+</script>
+</body>
+</html>
