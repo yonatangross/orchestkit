@@ -260,8 +260,9 @@ def private_lanes(home: Path) -> tuple[Path, ...]:
     Every installed list contributes (a stale older copy can only widen the
     set). An absent list means no lanes (a plain ork install). A list
     that is present but unreadable, not valid JSON, or whose private_lanes key
-    is not a list raises LaneListError: a lane we cannot read is a lane we
-    cannot protect, so the caller refuses to size or delete anything.
+    is not a list, or that holds a non-string or blank entry, raises
+    LaneListError: a lane we cannot read is a lane we cannot protect, so the
+    caller refuses to size or delete anything.
     """
     out: list[Path] = []
     projects = home / ".claude" / "projects"
@@ -276,7 +277,7 @@ def private_lanes(home: Path) -> tuple[Path, ...]:
             raise LaneListError(f"{cfg} is present but its private_lanes key is not a list")
         for entry in entries:
             if not isinstance(entry, str) or not entry.strip():
-                continue
+                raise LaneListError(f"{cfg} is present but has an entry that is not a path string")
             p = Path(entry)
             if entry == "~" or entry.startswith("~/"):
                 p = home if entry == "~" else home / entry[2:]

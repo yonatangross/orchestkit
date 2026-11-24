@@ -386,6 +386,29 @@ def test_lane_list_whose_key_is_not_a_list_refuses_the_run(home, capsys, payload
     assert_refused(home, *refused_run(home, capsys))
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        '{"private_lanes": ["~/.floor", 5]}',
+        '{"private_lanes": ["~/.floor", null]}',
+        '{"private_lanes": ["~/.floor", ""]}',
+        '{"private_lanes": ["~/.floor", "   "]}',
+        '{"private_lanes": [["~/.floor"]]}',
+    ],
+)
+def test_lane_list_with_a_bad_entry_refuses_the_run(home, capsys, payload):
+    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg.write_text(payload)
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+def test_empty_lane_list_is_valid_and_runs(home):
+    write_lane_list(home)
+    assert dc.private_lanes(home) == ()
+
+
 def test_refusal_applies_to_a_dry_run_and_leaves_no_report(home, tmp_path, capsys):
     cfg = write_lane_list(home)
     cfg.write_text("{not json")
