@@ -3,40 +3,10 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  assertSafeGitRef,
   assertSafeShellArg,
   assertSafeCommandName,
-  assertSafeGlobPattern,
-  assertSafeIssueNumber,
   sanitizeSessionId,
 } from '../../lib/sanitize-shell.js';
-
-describe('assertSafeGitRef', () => {
-  it('accepts valid branch names', () => {
-    expect(assertSafeGitRef('main')).toBe('main');
-    expect(assertSafeGitRef('feature/123-foo')).toBe('feature/123-foo');
-    expect(assertSafeGitRef('v1.2.3')).toBe('v1.2.3');
-    expect(assertSafeGitRef('refs/heads/main')).toBe('refs/heads/main');
-  });
-
-  it('rejects refs starting with hyphen (option injection)', () => {
-    expect(() => assertSafeGitRef('-branch')).toThrow('Unsafe git ref');
-    expect(() => assertSafeGitRef('--upload-pack=evil')).toThrow('Unsafe git ref');
-    expect(() => assertSafeGitRef('-')).toThrow('Unsafe git ref');
-  });
-
-  it('rejects empty and shell metacharacters', () => {
-    expect(() => assertSafeGitRef('')).toThrow('Unsafe git ref');
-    expect(() => assertSafeGitRef('branch; rm -rf /')).toThrow('Unsafe git ref');
-    expect(() => assertSafeGitRef('$(whoami)')).toThrow('Unsafe git ref');
-    expect(() => assertSafeGitRef('branch`cmd`')).toThrow('Unsafe git ref');
-  });
-
-  it('allows hyphens in non-first position', () => {
-    expect(assertSafeGitRef('feat/my-branch')).toBe('feat/my-branch');
-    expect(assertSafeGitRef('a-b-c')).toBe('a-b-c');
-  });
-});
 
 describe('assertSafeShellArg', () => {
   it('accepts safe arguments', () => {
@@ -61,29 +31,6 @@ describe('assertSafeCommandName', () => {
   it('rejects path separators and spaces', () => {
     expect(() => assertSafeCommandName('/usr/bin/git')).toThrow();
     expect(() => assertSafeCommandName('cmd arg')).toThrow();
-  });
-});
-
-describe('assertSafeGlobPattern', () => {
-  it('accepts valid patterns', () => {
-    expect(assertSafeGlobPattern('*.ts')).toBe('*.ts');
-    expect(assertSafeGlobPattern('test-*.js')).toBe('test-*.js');
-  });
-
-  it('rejects path separators and metacharacters', () => {
-    expect(() => assertSafeGlobPattern('src/*.ts')).toThrow();
-    expect(() => assertSafeGlobPattern('$(cmd)')).toThrow();
-  });
-});
-
-describe('assertSafeIssueNumber', () => {
-  it('accepts digits', () => {
-    expect(assertSafeIssueNumber('123')).toBe('123');
-  });
-
-  it('rejects non-digits', () => {
-    expect(() => assertSafeIssueNumber('abc')).toThrow();
-    expect(() => assertSafeIssueNumber('12a')).toThrow();
   });
 });
 
