@@ -144,17 +144,27 @@ export async function getMarkdown(
 	}));
 }
 
-export async function search(
+async function searchDocs(
 	client: Client,
 	query: string,
 	limit: number,
+	pageOnly: boolean,
 ): Promise<{ results: SearchHit[]; rateLimit: RateLimit }> {
 	const qs = new URLSearchParams({ query, limit: String(limit) });
+	if (pageOnly) qs.set("maxSnippets", "0");
 	const { data, rateLimit } = await getJson<SearchHit[]>(
 		client,
 		`/api/search?${qs}`,
 	);
 	return { results: data, rateLimit };
+}
+
+export function search(client: Client, query: string, limit: number) {
+	return searchDocs(client, query, limit, false);
+}
+
+export function searchPages(client: Client, query: string, limit: number) {
+	return searchDocs(client, query, limit, true);
 }
 
 export async function ask(

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Compare real OrchestKit CLI search results before and after ranking one result per docs page.">
+<title>OrchestKit CLI: Distinct search results</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f2f4f7; color: #192438; font: 1rem/1.55 system-ui, sans-serif; }
+  main { max-width: 86rem; margin: auto; padding: clamp(1rem, 5vw, 4.5rem) clamp(1rem, 4vw, 3.5rem); }
+  h1 { margin: .25rem 0 .5rem; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.12; letter-spacing: -.04em; }
+  h2 { margin: .25rem 0 1rem; font-size: 1.2rem; }
+  p { margin: 0 0 1rem; }
+  .eyebrow { margin: 0; color: #40546d; font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  .intro { max-width: 42rem; color: #40546d; }
+  .command { display: inline-block; margin: .75rem 0 1.5rem; padding: .65rem .9rem; border-radius: .5rem; background: #e0e7ef; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  section { display: flex; flex-direction: column; padding: clamp(1rem, 2vw, 1.5rem); border: 1px solid #ccd6e2; border-radius: .85rem; background: #fff; }
+  section:last-child { border-color: #76ad98; }
+  section:last-child .eyebrow { color: #22634c; }
+  pre { flex: 1; margin: 0; padding: 1rem; border-radius: .55rem; background: #182337; color: #eef3fa; white-space: pre-wrap; overflow-wrap: anywhere; font: .8rem/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .note { margin: 1.15rem 0 0; color: #40546d; }
+  @media (max-width: 48rem) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit CLI / Search</p>
+  <h1>Three results, three pages</h1>
+  <p class="intro">Formatted search now counts ranked documentation pages, not snippets from the same page.</p>
+  <code class="command">orchestkit search hooks --limit 3</code>
+  <div class="grid">
+    <section aria-labelledby="before">
+      <p class="eyebrow">Before</p>
+      <h2 id="before">One destination</h2>
+      <pre>  1. Hooks
+     https://orchestkit.dev/docs/hooks
+  2. Writing hooks: Adding a hook, registering it, and keeping counts in sync.
+     https://orchestkit.dev/docs/hooks
+  3. Overview: What hooks do and when they fire.
+     https://orchestkit.dev/docs/hooks
+
+119/120 requests left in this window (resets in 60s).</pre>
+    </section>
+    <section aria-labelledby="after">
+      <p class="eyebrow">After</p>
+      <h2 id="after">Three destinations</h2>
+      <pre>  1. Hooks
+     https://orchestkit.dev/docs/hooks
+  2. 163 Hooks: What Fires When
+     https://orchestkit.dev/docs/hooks/overview
+  3. Hook Architecture
+     https://orchestkit.dev/docs/hooks/architecture
+
+119/120 requests left in this window (resets in 60s).</pre>
+    </section>
+  </div>
+  <p class="note">Captured from the built CLI against orchestkit.dev. With <code>--json</code>, both runs returned the same page and two snippet rows byte for byte.</p>
+</main>
+</body>
+</html>
