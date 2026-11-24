@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Read the live OrchestKit release feed and check where readers can discover it.">
+<title>Release feed reader | OrchestKit Lab</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; background: #f3f4ee; color: #1d2c28; font: 15px/1.55 system-ui, sans-serif }
+  main { max-width: 800px; margin: auto; padding: 35px 30px 0 }
+  header { border-top: 3px solid #28755b; padding: 20px 0 21px }
+  .eyebrow, .meta, .badge { font: 700 11px/1.4 ui-monospace, monospace; letter-spacing: .09em; text-transform: uppercase }
+  .eyebrow, .meta { color: #42675b }
+  h1 { margin: 9px 0 3px; font: 500 clamp(32px, 7vw, 49px)/1.05 Georgia, serif; letter-spacing: -.045em }
+  p { margin: 0; color: #4d655d }
+  a { color: #146a51; text-underline-offset: .16em }
+  a:focus-visible, select:focus-visible { outline: 2px solid #28755b; outline-offset: 3px }
+  .discovery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px }
+  .badge { border: 1px solid #cdd9ce; border-radius: 4px; padding: 5px 8px; color: #425953 }
+  .badge[data-found="true"] { background: #e5f1e6; color: #216148 }
+  .badge[data-found="false"] { background: #f8eae1; color: #893d2b; border-color: #e6ccbf }
+  article { background: #fffefa; border: 1px solid #d9ded5; border-radius: 9px; box-shadow: 0 7px 24px #1d2c280a }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 21px; border-bottom: 1px solid #e1e6dc }
+  select { min-width: 105px; border: 1px solid #cdd9ce; border-radius: 4px; padding: 5px 8px; background: #fffefa; color: #1d2c28; font: inherit }
+  .entry { padding: 20px 21px 22px }
+  h2 { margin: 1px 0 14px; font: 500 29px/1.15 Georgia, serif; letter-spacing: -.025em }
+  h3 { margin: 15px 0 5px; font-size: 15px; line-height: 1.4 }
+  #body ul, #body ol { margin: 3px 0; padding-left: 19px }
+  #body li { margin: 3px 0; overflow-wrap: anywhere }
+  #body p { color: inherit }
+  #body pre, .raw { overflow-wrap: anywhere; white-space: pre-wrap }
+  .raw { line-height: 1.75 }
+  #status:not(:empty) { margin-top: 12px }
+  @media (max-width: 520px) { main { padding: 22px 16px 0 } .entry, .toolbar { padding-inline: 14px } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Release feed reader"><meta property="og:description" content="Read the live OrchestKit release feed and check which pages advertise it to readers."><meta property="og:url" content="https://orchestkit.dev/lab/docs-rss-markdown.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Release feed reader"><meta name="twitter:description" content="Read the live OrchestKit release feed and check which pages advertise it to readers."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">OrchestKit Lab / Live RSS reader</div>
+    <h1>Release feed reader</h1>
+    <p>Reads the live <a href="/rss.xml">/rss.xml</a> and looks for its subscription link in each page head.</p>
+    <div class="discovery" role="group" aria-label="RSS autodiscovery" aria-live="polite">
+      <span class="badge" id="home-status">Home · checking</span>
+      <span class="badge" id="changelog-status">Changelog · checking</span>
+    </div>
+  </header>
+  <article aria-labelledby="title">
+    <div class="toolbar">
+      <label class="meta" for="release">Release</label>
+      <select id="release" disabled></select>
+    </div>
+    <div class="entry">
+      <time class="meta" id="date"></time>
+      <h2 id="title">Loading releases</h2>
+      <div id="body"></div>
+    </div>
+  </article>
+  <p id="status" role="status"></p>
+</main>
+<script>
+  const parser = new DOMParser();
+  const choice = document.querySelector("#release");
+  const body = document.querySelector("#body");
+  const allowed = new Set(["A", "BLOCKQUOTE", "BR", "CODE", "EM", "H3", "LI", "OL", "P", "PRE", "STRONG", "UL"]);
+
+  function parseUrl(value) {
+    try {
+      return new URL(value, location.origin);
+    } catch {
+      return null;
+    }
+  }
+
+  function appendContent(source, target) {
+    for (const node of source.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        target.append(node.textContent);
+      } else if (allowed.has(node.tagName)) {
+        const element = document.createElement(node.tagName.toLowerCase());
+        if (node.tagName === "A" && node.hasAttribute("href")) {
+          const href = parseUrl(node.getAttribute("href"));
+          if (href && ["http:", "https:"].includes(href.protocol)) {
+            element.href = href.href;
+          }
+        }
+        appendContent(node, element);
+        target.append(element);
+      }
+    }
+  }
+
+  async function read(path, type) {
+    const res = await fetch(path, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return parser.parseFromString(await res.text(), type);
+  }
+
+  async function discover(path, badge, label) {
+    try {
+      const page = await read(path, "text/html");
+      const links = page.head.querySelectorAll('link[rel="alternate"][type="application/rss+xml"][href]');
+      const found = [...links].some((link) => parseUrl(link.getAttribute("href"))?.pathname === "/rss.xml");
+      badge.dataset.found = String(found);
+      badge.textContent = `${label} · ${found ? "feed advertised" : "no feed link"}`;
+    } catch {
+      badge.textContent = `${label} · unavailable`;
+    }
+  }
+
+  async function load() {
+    const feed = await read("/rss.xml", "application/xml");
+    const items = [...feed.querySelectorAll("channel > item")];
+    if (!items.length) throw new Error("No RSS items");
+    for (const [i, item] of items.entries()) {
+      const title = item.querySelector("title").textContent;
+      choice.add(new Option(title.replace(/^OrchestKit /, ""), String(i)));
+    }
+    const show = () => {
+      const item = items[Number(choice.value)];
+      const description = item.querySelector("description").textContent;
+      const date = new Date(item.querySelector("pubDate").textContent);
+      const time = document.querySelector("#date");
+      time.dateTime = date.toISOString();
+      time.textContent = new Intl.DateTimeFormat("en", { dateStyle: "long", timeZone: "UTC" }).format(date);
+      document.querySelector("#title").textContent = item.querySelector("title").textContent;
+      body.replaceChildren();
+      const html = /^\s*<(h3|ul|ol|p)\b/i.test(description);
+      body.classList.toggle("raw", !html);
+      if (html) appendContent(parser.parseFromString(description, "text/html").body, body);
+      else body.textContent = description;
+    };
+    choice.disabled = false;
+    choice.addEventListener("change", show);
+    show();
+  }
+
+  discover("/", document.querySelector("#home-status"), "Home");
+  discover("/changelog", document.querySelector("#changelog-status"), "Changelog");
+  load().catch(() => {
+    document.querySelector("#title").textContent = "Feed unavailable";
+    document.querySelector("#status").textContent = "The release feed could not be loaded.";
+  });
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

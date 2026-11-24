@@ -14,7 +14,10 @@ export const metadata: Metadata = {
   // (content/docs/changelog/index.mdx), which names this page as canonical.
   title: { absolute: `${SITE.name} Changelog: Every Claude Code Plugin Release` },
   description: `Every ${SITE.name} release, newest first, with what changed, why it matters and the PR to open. Follows Keep a Changelog and Semantic Versioning. RSS too.`,
-  alternates: { canonical: `${SITE.domain}/changelog` },
+  alternates: {
+    canonical: `${SITE.domain}/changelog`,
+    types: { "application/rss+xml": `${SITE.domain}/rss.xml` },
+  },
 };
 
 export default function ChangelogPage() {

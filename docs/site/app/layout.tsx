@@ -53,7 +53,10 @@ export const metadata: Metadata = {
 		// middleware.ts only maps "/" and "/docs/*", so a rel="alternate" on a
 		// marketing page would point at a URL that answers with HTML, which is
 		// worse for an agent than no link at all.
-		types: { "text/markdown": `${SITE.domain}/index.md` },
+		types: {
+			"text/markdown": `${SITE.domain}/index.md`,
+			"application/rss+xml": `${SITE.domain}/rss.xml`,
+		},
 	},
 	// Do not set openGraph/twitter title or description here. Next merges those
 	// objects shallowly, so a fixed root title would override every child page
