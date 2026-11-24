@@ -5,6 +5,12 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.17.1](https://github.com/yonatangross/orchestkit/compare/v10.17.0...v10.17.1) (2026-11-24)
+
+### Bug Fixes
+
+* **cli:** honor `ask --limit` in the CLI and docs API
+
 ## [10.17.0](https://github.com/yonatangross/orchestkit/compare/v10.16.0...v10.17.0) (2026-11-23)
 
 
