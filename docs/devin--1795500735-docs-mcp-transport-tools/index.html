@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Docs MCP tools by transport</title>
+<meta name="description" content="Compare the recorded tools/list responses for hosted HTTP and local stdio.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f5f0; color: #1b2d2a; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 720px; margin: auto; padding: clamp(24px, 6vw, 64px) 24px; }
+  .eyebrow { color: #366b60; font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  h1 { margin: .25rem 0 .75rem; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; letter-spacing: -.04em; }
+  p { margin: .5rem 0 1.25rem; }
+  fieldset { margin: 2rem 0 0; padding: 0; border: 0; min-width: 0; }
+  legend { margin-bottom: .5rem; font-weight: 650; }
+  label { display: inline-block; margin: 0 1rem .75rem .2rem; }
+  input { accent-color: #25675a; }
+  section { display: none; padding: 1.25rem; border: 1px solid #c8d4cc; border-radius: 12px; background: #fff; }
+  #hosted:checked ~ #hosted-result, #stdio:checked ~ #stdio-result { display: block; }
+  h2 { margin: 0; font-size: 1.125rem; }
+  section p { color: #435a51; }
+  pre { margin: 0; padding: 1rem; border-radius: 8px; background: #eaf2ed; white-space: pre-wrap; overflow-wrap: anywhere; }
+  a { color: #195e50; }
+  .docs-link { margin-top: 1.25rem; }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">OrchestKit / Docs MCP</div>
+  <h1>Docs MCP tools by transport</h1>
+  <p>Switch transports to compare the tool names returned by real <code>tools/list</code> requests. These results are recorded, not live.</p>
+  <fieldset>
+    <legend>Transport</legend>
+    <input type="radio" name="transport" id="hosted" checked><label for="hosted">Hosted HTTP</label>
+    <input type="radio" name="transport" id="stdio"><label for="stdio">Local stdio</label>
+    <section id="hosted-result" aria-labelledby="hosted-title">
+      <h2 id="hosted-title">4 tools</h2>
+      <p>JSON-RPC POST to <code>https://orchestkit.dev/api/mcp</code>. Hosts that support MCP Apps can render search results, skill cards and the install picker inline.</p>
+      <pre>orchestkit_docs_search
+orchestkit_docs_get
+orchestkit_skill_get
+orchestkit_install</pre>
+    </section>
+    <section id="stdio-result" aria-labelledby="stdio-title">
+      <h2 id="stdio-title">2 tools</h2>
+      <p>SDK stdio client connected to the built <code>dist/docs-server.mjs</code>, the Docker image's entry point. No MCP Apps.</p>
+      <pre>orchestkit_docs_search
+orchestkit_docs_get</pre>
+    </section>
+  </fieldset>
+  <p class="docs-link"><a href="/docs/foundations/mcp-servers#orchestkit-docs-mcp-server">Read the Docs MCP setup guide</a></p>
+</main>
+</body>
+</html>

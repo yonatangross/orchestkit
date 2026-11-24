@@ -10,14 +10,14 @@ export function GET() {
 	const d = SITE.domain;
 	const card = {
 		name: `${SITE.name} Docs MCP`,
-		description: `Model Context Protocol server for the ${SITE.name} documentation (${COUNTS.skills} skills, ${COUNTS.agents} agents). Search the docs, fetch pages as Markdown, and open a skill card or an install picker.`,
+		description: `Model Context Protocol server for the ${SITE.name} documentation (${COUNTS.skills} skills, ${COUNTS.agents} agents). Both transports search the docs and fetch pages as Markdown. Only hosted Streamable HTTP offers skill cards, the install picker, and inline MCP Apps.`,
 		version: SITE.version,
 		serverUrl: `${d}/api/mcp`,
 		// `url` + `remotes` mirror the official MCP registry server.json schema so
 		// discovery checkers matching either field shape find the endpoint.
 		url: `${d}/api/mcp`,
 		remotes: [{ type: "streamable-http", url: `${d}/api/mcp` }],
-		// Second surface: the same server as a local stdio process, distributed as
+		// Second surface: a local stdio variant, distributed as
 		// a multi-arch OCI image (mirrors the registry server.json packages shape).
 		packages: [
 			{
@@ -45,24 +45,28 @@ export function GET() {
 		tools: [
 			{
 				name: "orchestkit_docs_search",
+				transports: ["streamable-http", "stdio"],
 				description:
 					"Search the OrchestKit documentation; returns ranked pages with titles and URLs.",
 				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
 			{
 				name: "orchestkit_docs_get",
+				transports: ["streamable-http", "stdio"],
 				description:
 					"Fetch one OrchestKit documentation page as Markdown by its path.",
 				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
 			{
 				name: "orchestkit_skill_get",
+				transports: ["streamable-http"],
 				description:
 					"Show one OrchestKit skill as a card: what it does, which plugin ships it, and the install line. Renders inline in hosts that support MCP Apps.",
 				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
 			{
 				name: "orchestkit_install",
+				transports: ["streamable-http"],
 				description:
 					"Show an install picker for Claude Code, Cursor and Codex with the exact command for the picked host. Renders inline in hosts that support MCP Apps.",
 				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },

@@ -1,0 +1,7 @@
+{
+  "serves": [
+    "docs/site/content/docs/foundations/mcp-servers.mdx",
+    "docs/site/app/api/well-known/mcp-server-card/route.ts"
+  ],
+  "description": "Recorded tools/list responses from the hosted endpoint and the built stdio server."
+}
