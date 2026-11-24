@@ -1,0 +1,8 @@
+{
+  "slug": "demo-dialog-focus-restore",
+  "source": "docs/fix--demo-dialog-focus-restore/index.html",
+  "title": "Demo gallery keyboard focus",
+  "description": "Compare keyboard focus before and after closing a demo composition dialog.",
+  "tags": ["accessibility", "keyboard", "docs"],
+  "date": "2026-11-24"
+}

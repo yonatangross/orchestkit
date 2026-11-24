@@ -358,39 +358,47 @@ describe("DemoGallery", () => {
   it("closes modal when Close button is clicked", () => {
     render(<DemoGallery />);
 
-    fireEvent.click(
-      screen.getByLabelText("View details for Scrapbook Demo"),
-    );
+    const opener = screen.getByRole("button", {
+      name: "View details for Scrapbook Demo",
+    });
+    fireEvent.click(opener);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText("Close"));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
   });
 
   it("closes modal on Escape key", () => {
     render(<DemoGallery />);
 
-    fireEvent.click(
-      screen.getByLabelText("View details for Scrapbook Demo"),
-    );
+    const opener = screen.getByRole("button", {
+      name: "View details for Scrapbook Demo",
+    });
+    opener.focus();
+    fireEvent.click(opener);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Close")).toHaveFocus();
 
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
   });
 
   it("closes modal when backdrop is clicked", () => {
     render(<DemoGallery />);
 
-    fireEvent.click(
-      screen.getByLabelText("View details for Scrapbook Demo"),
-    );
+    const opener = screen.getByRole("button", {
+      name: "View details for Scrapbook Demo",
+    });
+    fireEvent.click(opener);
 
     const backdrop = screen.getByRole("dialog");
     // Click the backdrop (the outer div with role="dialog")
     fireEvent.click(backdrop);
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
   });
 
   it("shows composition metadata in modal", () => {

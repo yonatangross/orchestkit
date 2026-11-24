@@ -90,8 +90,10 @@ export function DemoGallery() {
   const [formatFilter, setFormatFilter] = useState<FormatFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [modalComposition, setModalComposition] =
-    useState<Composition | null>(null);
+  const [modal, setModal] = useState<{
+    composition: Composition;
+    opener: HTMLButtonElement;
+  } | null>(null);
 
   const filtered = useMemo(() => {
     return COMPOSITIONS.filter((comp) => {
@@ -276,17 +278,22 @@ export function DemoGallery() {
             <GalleryCard
               key={comp.id}
               composition={comp}
-              onClick={() => setModalComposition(comp)}
+              onClick={(event) =>
+                setModal({ composition: comp, opener: event.currentTarget })
+              }
             />
           ))}
         </div>
       )}
 
       {/* Modal */}
-      {modalComposition && (
+      {modal && (
         <CompositionModal
-          composition={modalComposition}
-          onClose={() => setModalComposition(null)}
+          composition={modal.composition}
+          onClose={() => {
+            setModal(null);
+            if (modal.opener.isConnected) modal.opener.focus();
+          }}
         />
       )}
     </div>
@@ -299,7 +306,7 @@ function GalleryCard({
   onClick,
 }: {
   composition: Composition;
-  onClick: () => void;
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
 }) {
   const catMeta = COMP_CATEGORY_META[composition.category];
   const formatLabel = FORMAT_LABELS[composition.format] ?? composition.format;
