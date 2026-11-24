@@ -1,0 +1,8 @@
+{
+  "slug": "disk-cleanup-lane-guard",
+  "source": "docs/fix--disk-guard-lane-skip/index.html",
+  "title": "What the disk guard skips and what it still cleans",
+  "description": "Compare the folders disk-cleanup leaves alone as private lanes with the ones it still sizes and clears.",
+  "tags": ["disk-cleanup", "privacy", "guard"],
+  "date": "2026-11-24"
+}

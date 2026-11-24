@@ -14,6 +14,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -280,6 +281,336 @@ def test_transcripts_are_ask_first_with_printed_command(home):
     assert item.tier == "ask"
     assert item.ask_cmd.startswith("find ")
     assert item.action is None
+
+
+# ---------------------------------------------------------------- private lanes
+
+
+def lane_env(home: Path) -> tuple[Path, Path, tuple[Path, ...]]:
+    """A private lane under a fixture home, its projects slug dir, the lanes tuple."""
+    lane = home / "lanes" / "example-lane"
+    lane.mkdir(parents=True)
+    slug_dir = home / ".claude" / "projects" / dc.lane_slug(lane)
+    slug_dir.mkdir(parents=True)
+    lanes = (Path(os.path.realpath(lane)), Path(os.path.realpath(slug_dir)))
+    return lane, slug_dir, lanes
+
+
+def write_lane_list(home: Path, *lanes: str) -> Path:
+    cfg = (
+        home
+        / ".claude"
+        / "plugins"
+        / "cache"
+        / "mp"
+        / "plugin"
+        / "1.0.0"
+        / "configs"
+        / "private-lanes.json"
+    )
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(json.dumps({"private_lanes": list(lanes)}))
+    return cfg
+
+
+def test_private_lanes_loads_the_installed_list_and_slug_dirs(home):
+    lane = home / "lanes" / "example-lane"
+    write_lane_list(home, "~/lanes/example-lane")
+    got = dc.private_lanes(home)
+    assert Path(os.path.realpath(lane)) in got
+    assert (home / ".claude" / "projects" / dc.lane_slug(lane)) in got
+
+
+def test_private_lanes_without_a_plugin_list_is_empty(home):
+    assert dc.private_lanes(home) == ()
+
+
+def refused_run(home: Path, capsys, *extra: str) -> tuple[int, str, str, Path]:
+    """Run main over a home that holds a clearable cache; return rc, out, err, cache file."""
+    cache_file = write(home / ".npm" / "_cacache" / "x.bin", 200_000)
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--apply", *extra],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+        now=time.time() + LATER,
+    )
+    cap = capsys.readouterr()
+    return rc, cap.out, cap.err, cache_file
+
+
+def assert_refused(home: Path, rc: int, out: str, err: str, cache_file: Path) -> None:
+    assert rc == 2
+    assert out == ""
+    assert "refusing to run" in err
+    assert "private-lanes.json" in err
+    assert cache_file.exists()
+    assert not (home / ".local" / "state" / "ork" / "disk-cleanup-ledger.jsonl").exists()
+
+
+def test_unreadable_lane_list_refuses_the_run(home, capsys):
+    cfg = write_lane_list(home, "~/lanes/example-lane")
+    cfg.unlink()
+    cfg.mkdir()  # present but cannot be read as a file
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+@pytest.mark.skipif(not hasattr(os, "geteuid") or os.geteuid() == 0, reason="root reads any file")
+def test_permission_denied_lane_list_refuses_the_run(home, capsys):
+    cfg = write_lane_list(home, "~/lanes/example-lane")
+    cfg.chmod(0)
+    try:
+        with pytest.raises(dc.LaneListError):
+            dc.private_lanes(home)
+        assert_refused(home, *refused_run(home, capsys))
+    finally:
+        cfg.chmod(0o600)
+
+
+def test_malformed_json_lane_list_refuses_the_run(home, capsys):
+    cfg = write_lane_list(home, "~/lanes/example-lane")
+    cfg.write_text("{not json")
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+@pytest.mark.parametrize(
+    "payload",
+    ['{"private_lanes": "~/lanes"}', '{"private_lanes": null}', "{}", "[]", '"x"'],
+)
+def test_lane_list_whose_key_is_not_a_list_refuses_the_run(home, capsys, payload):
+    cfg = write_lane_list(home, "~/lanes/example-lane")
+    cfg.write_text(payload)
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        '{"private_lanes": ["~/lanes", 5]}',
+        '{"private_lanes": ["~/lanes", null]}',
+        '{"private_lanes": ["~/lanes", ""]}',
+        '{"private_lanes": ["~/lanes", "   "]}',
+        '{"private_lanes": [["~/lanes"]]}',
+    ],
+)
+def test_lane_list_with_a_bad_entry_refuses_the_run(home, capsys, payload):
+    cfg = write_lane_list(home, "~/lanes/example-lane")
+    cfg.write_text(payload)
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+def test_empty_lane_list_is_valid_and_runs(home):
+    write_lane_list(home)
+    assert dc.private_lanes(home) == ()
+
+
+def test_refusal_applies_to_a_dry_run_and_leaves_no_report(home, tmp_path, capsys):
+    cfg = write_lane_list(home)
+    cfg.write_text("{not json")
+    report = tmp_path / "report.txt"
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--report", str(report)],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+    )
+    assert rc == 2
+    assert not report.exists()
+    assert "refusing to run" in capsys.readouterr().err
+
+
+def test_one_bad_list_refuses_even_when_another_is_good(home, capsys):
+    write_lane_list(home, "~/lanes/example-lane")
+    other = home / ".claude" / "plugins" / "cache" / "mp2" / "plugin" / "1.0.0" / "configs"
+    other.mkdir(parents=True)
+    (other / "private-lanes.json").write_text("{not json")
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+def test_absent_lane_list_still_runs(home, capsys):
+    cache_file = write(home / ".npm" / "_cacache" / "x.bin", 200_000)
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--apply"],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+        now=time.time() + LATER,
+    )
+    assert rc == 0
+    assert "refusing" not in capsys.readouterr().err
+    assert not cache_file.exists()
+
+
+def test_realpath_error_counts_as_in_lane(monkeypatch, tmp_path):
+    def boom(_path):
+        raise OSError("cannot resolve")
+
+    monkeypatch.setattr(dc.os.path, "realpath", boom)
+    assert dc.in_lanes(tmp_path / "anything", (tmp_path / "lane",)) is True
+    assert dc.in_lanes(tmp_path / "anything", ()) is True
+
+
+def test_measure_prunes_private_lanes(home):
+    _lane, slug_dir, lanes = lane_env(home)
+    write(slug_dir / "s.jsonl", 500_000)
+    write(home / ".claude" / "projects" / "other" / "s.jsonl", 70_000)
+    got = dc.measure(home / ".claude" / "projects", None, lanes)
+    assert got < blocks(slug_dir / "s.jsonl") + 1
+    assert dc.measure(slug_dir, None, lanes) == 0
+
+
+def test_transcript_ask_cmd_prunes_private_lanes(home):
+    _lane, slug_dir, lanes = lane_env(home)
+    write(home / ".claude" / "projects" / "p" / "s.jsonl", 70_000)
+    item = by_id(dc.build_inventory(make_env(home, lanes=lanes)), "agent-transcripts")
+    assert "-not -path" in item.ask_cmd
+    assert str(slug_dir) in item.ask_cmd
+
+
+def run_ask_cmd(cmd: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["/bin/sh", "-c", cmd], capture_output=True, text=True, check=False)
+
+
+def old_session(path: Path) -> Path:
+    return write(path, 70_000, age_days=60)
+
+
+def test_transcript_ask_cmd_run_for_real_keeps_lane_files(home):
+    """The printed command is copied and run by a person: run it, do not grep it.
+
+    -prune is a no-op under -delete on macOS (-delete implies -d), so the
+    exclusion has to be -not -path.
+    """
+    _lane, slug_dir, lanes = lane_env(home)
+    kept = old_session(slug_dir / "s.jsonl")
+    kept_deep = old_session(slug_dir / "sub" / "deep.jsonl")
+    gone = old_session(home / ".claude" / "projects" / "other" / "s.jsonl")
+    item = by_id(dc.build_inventory(make_env(home, lanes=lanes)), "agent-transcripts")
+    done = run_ask_cmd(item.ask_cmd)
+    assert done.returncode == 0, done.stderr
+    assert kept.exists() and kept_deep.exists()
+    assert not gone.exists()
+
+
+def test_transcript_ask_cmd_run_for_real_with_a_symlinked_home(tmp_path):
+    real = tmp_path / "real-home"
+    real.mkdir()
+    link = tmp_path / "link-home"
+    link.symlink_to(real)
+    lane = real / "lanes" / "example-lane"
+    lane.mkdir(parents=True)
+    write_lane_list(real, "~/lanes/example-lane")
+    slug_dir = real / ".claude" / "projects" / dc.lane_slug(lane)
+    kept = old_session(slug_dir / "s.jsonl")
+    gone = old_session(real / ".claude" / "projects" / "other" / "s.jsonl")
+    lanes = dc.private_lanes(link)
+    item = by_id(dc.build_inventory(make_env(link, lanes=lanes)), "agent-transcripts")
+    done = run_ask_cmd(item.ask_cmd)
+    assert done.returncode == 0, done.stderr
+    assert kept.exists()
+    assert not gone.exists()
+
+
+def test_session_slug_of_a_lane_subfolder_is_in_the_lane(home):
+    """A session started in lane/repo writes to projects/<lane slug>-repo, a sibling."""
+    lane = home / "lanes" / "example-lane"
+    (lane / "repo").mkdir(parents=True)
+    write_lane_list(home, "~/lanes/example-lane")
+    projects = home / ".claude" / "projects"
+    sub_slug = projects / dc.lane_slug(lane / "repo")
+    wt_slug = projects / (dc.lane_slug(lane) + "--worktrees-feat")
+    stranger = projects / (dc.lane_slug(lane) + "x")
+    for d in (sub_slug, wt_slug, stranger):
+        write(d / "s.jsonl", 10)
+    lanes = dc.private_lanes(home)
+    assert dc.in_lanes(sub_slug / "s.jsonl", lanes)
+    assert dc.in_lanes(wt_slug, lanes)
+    # a different folder whose name merely starts with the same letters is not a lane
+    assert not dc.in_lanes(stranger, lanes)
+
+
+def test_lane_given_through_a_symlink_protects_the_real_folders_slug(home, tmp_path):
+    target = tmp_path / "elsewhere" / "desk"
+    target.mkdir(parents=True)
+    (home / "desk-link").symlink_to(target)
+    write_lane_list(home, "~/desk-link")
+    slug_dir = home / ".claude" / "projects" / dc.lane_slug(Path(os.path.realpath(target)))
+    write(slug_dir / "s.jsonl", 10)
+    assert dc.in_lanes(slug_dir / "s.jsonl", dc.private_lanes(home))
+
+
+def test_env_resolves_a_symlinked_home(tmp_path):
+    real = tmp_path / "real-home"
+    real.mkdir()
+    link = tmp_path / "link-home"
+    link.symlink_to(real)
+    assert make_env(link).home == Path(os.path.realpath(real))
+
+
+def test_discover_repos_skips_private_lanes(home):
+    _lane, _slug_dir, lanes = lane_env(home)
+    inside_repo = home / "lanes" / "example-lane" / "repo"
+    (inside_repo / ".git").mkdir(parents=True)
+    outside_repo = home / "code" / "app"
+    (outside_repo / ".git").mkdir(parents=True)
+    found = dc.discover_repos(make_env(home, roots=[home], lanes=lanes))
+    assert outside_repo in found
+    assert inside_repo not in found
+
+
+def test_clear_dir_never_empties_a_lane_child(tmp_path):
+    lane_child = tmp_path / "lane-child"
+    write(lane_child / "s.jsonl", 10)
+    drop = tmp_path / "normal"
+    write(drop / "f", 10)
+    lanes = (Path(os.path.realpath(lane_child)),)
+    dc.clear_dir(tmp_path, None, lanes)
+    assert (lane_child / "s.jsonl").exists()
+    assert not (drop / "f").exists()
+
+
+def test_clear_dir_keeps_a_lane_nested_two_levels_under_a_cleared_child(tmp_path):
+    cache = tmp_path / "cache"
+    lane = cache / "child" / "deep" / "lane"
+    kept = write(lane / "s.jsonl", 10)
+    sibling = write(cache / "child" / "deep" / "other" / "f", 10)
+    plain = write(cache / "plain" / "f", 10)
+    lanes = (Path(os.path.realpath(lane)),)
+    errors = dc.clear_dir(cache, None, lanes)
+    assert errors == []
+    assert kept.exists()
+    assert not sibling.exists()
+    assert not plain.exists()
+
+
+def test_clear_dir_with_a_cutoff_keeps_a_nested_lane(tmp_path):
+    cache = tmp_path / "cache"
+    lane = cache / "child" / "deep" / "lane"
+    kept = write(lane / "s.jsonl", 10, age_days=90)
+    old = write(cache / "child" / "old.bin", 10, age_days=90)
+    lanes = (Path(os.path.realpath(lane)),)
+    dc.clear_dir(cache, time.time() - 30 * 86400, lanes)
+    assert kept.exists()
+    assert not old.exists()
+
+
+def test_apply_keeps_a_lane_nested_inside_a_cache_it_clears(home, capsys):
+    write_lane_list(home, "~/.npm/_cacache/nested/lane")
+    kept = write(home / ".npm" / "_cacache" / "nested" / "lane" / "s.jsonl", 200_000)
+    gone = write(home / ".npm" / "_cacache" / "nested" / "other" / "f.bin", 200_000)
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--apply", "--only", "npm-cache"],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+        now=time.time() + LATER,
+    )
+    capsys.readouterr()
+    assert rc == 0
+    assert kept.exists()
+    assert not gone.exists()
 
 
 # ---------------------------------------------------------------- dry run and apply (caches)
@@ -789,11 +1120,44 @@ def test_worktree_ask_commands_are_capped_in_text_output(repo, home, capsys):
 # ---------------------------------------------------------------- the skill is generic
 
 
-@pytest.mark.parametrize("fname", ["SKILL.md", "scripts/disk_cleanup.py"])
-def test_no_private_names_in_shipped_files(fname):
-    text = (SKILL_DIR / fname).read_text()
-    for banned in ("yonatan", "/Users/", "hq-ext", "floor-", "herdr", " hc ", "conductor"):
+REPO_ROOT = SKILL_DIR.parents[2]
+# Everything this skill publishes: the skill files, the plugin copy, and the
+# playground page with its Lab copies (orchestkit.dev/lab is public).
+PUBLISHED_FILES = [
+    SKILL_DIR / "SKILL.md",
+    SKILL_DIR / "scripts" / "disk_cleanup.py",
+    REPO_ROOT / "docs" / "fix--disk-guard-lane-skip" / "index.html",
+    REPO_ROOT / "docs" / "site" / "public" / "lab" / "disk-cleanup-lane-guard.html",
+    REPO_ROOT / "docs" / "site" / "lab-manifest" / "disk-cleanup-lane-guard.json",
+]
+# The private floor directory name, built so this file does not spell it either.
+FLOOR_DIR = "." + "floor"
+
+
+@pytest.mark.parametrize("path", PUBLISHED_FILES, ids=lambda p: p.name)
+def test_no_private_names_in_shipped_files(path):
+    text = path.read_text()
+    # The lab generator appends a public repo-link footer; it is not our content.
+    text = re.sub(
+        r"<!-- ork-lab-chrome:start -->.*?<!-- ork-lab-chrome:end -->", "", text, flags=re.S
+    )
+    banned_names = (
+        "yonatan",
+        "/Users/",
+        "hq-ext",
+        "floor-",
+        FLOOR_DIR,
+        "herdr",
+        " hc ",
+        "conductor",
+    )
+    for banned in banned_names:
         assert banned not in text.lower() if banned.islower() else banned not in text, (
-            fname,
+            path.name,
             banned,
         )
+
+
+def test_test_file_does_not_spell_the_private_floor_dir():
+    """The fixtures use a neutral example lane, not a real private path."""
+    assert FLOOR_DIR not in Path(__file__).read_text()

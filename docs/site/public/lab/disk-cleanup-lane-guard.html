@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>What the disk guard skips and what it still cleans</title>
+  <meta name="description" content="Which folders disk-cleanup leaves alone because they belong to a private lane, and which it still sizes and clears.">
+  <style>
+    body { margin: 0; background: #f6f8fa; color: #172b35; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: auto; padding: clamp(1rem, 5vw, 4rem) 1rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+    .eyebrow { color: #346557; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence, details { background: #fff; border: 1px solid #cedadd; border-radius: .75rem; margin-top: 1.25rem; }
+    .evidence { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    caption, th, td, details { padding: .65rem 1rem; }
+    th, td { border-top: 1px solid #dbe4e6; }
+    thead { background: #edf2f4; }
+    td.skip { background: #fff4e5; }
+    td.clean { background: #eff7f2; }
+    summary { cursor: pointer; font-weight: 700; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="What the disk guard skips and what it still cleans"><meta property="og:description" content="Compare the folders disk-cleanup leaves alone as private lanes with the ones it still sizes and clears."><meta property="og:url" content="https://orchestkit.dev/lab/disk-cleanup-lane-guard.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="What the disk guard skips and what it still cleans"><meta name="twitter:description" content="Compare the folders disk-cleanup leaves alone as private lanes with the ones it still sizes and clears."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <span class="eyebrow">disk-cleanup / Private lane guard</span>
+  <h1>What the disk guard skips and what it still cleans</h1>
+  <p>A plugin can list private lanes in <code>configs/private-lanes.json</code>. <code>disk_cleanup.py</code> never sizes, walks or deletes inside a lane, and it prints a <code>find</code> command that leaves the lane out too. Everything else is handled as before.</p>
+  <div class="evidence">
+    <table>
+      <caption>Fixture cases from tests/skills/integration/python/test_disk_cleanup.py, run on macOS</caption>
+      <thead><tr><th scope="col">Path</th><th scope="col">What it is</th><th scope="col">Outcome</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>~/lanes/example-lane/</code></th><td>A lane folder</td><td class="skip">Skipped: not sized, not searched for repos, not cleared</td></tr>
+        <tr><th scope="row"><code>~/.npm/_cacache/nested/lane/</code></th><td>A lane two levels under a cache that gets cleared</td><td class="skip">Skipped: <code>--apply</code> empties around it and never removes its parent whole</td></tr>
+        <tr><th scope="row"><code>~/.claude/projects/&lt;lane slug&gt;-repo/</code></th><td>Sessions started in a lane subfolder or worktree</td><td class="skip">Skipped: a sibling slug dir with a dash after the lane slug counts as the lane</td></tr>
+        <tr><th scope="row"><code>~/.claude/projects/other/</code></th><td>Old sessions from an ordinary folder</td><td class="clean">Still listed, and the printed <code>find</code> deletes files older than 30 days</td></tr>
+        <tr><th scope="row"><code>~/.npm/_cacache/nested/other/</code></th><td>A cache folder next to a nested lane</td><td class="clean">Still cleared by <code>--apply</code></td></tr>
+        <tr><th scope="row"><code>~/.claude/projects/&lt;lane slug&gt;x/</code></th><td>A folder that only shares the first letters</td><td class="clean">Not a lane, so handled as an ordinary folder</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>If a lane list is present but unreadable, not valid JSON, not a list, or holds a blank or non-string entry, the run refuses with exit 2 before it sizes or deletes anything. With no list installed there are no lanes and nothing changes.</p>
+  <details>
+    <summary>Run the checks</summary>
+    <pre><code>python -m pytest tests/skills/integration/python/test_disk_cleanup.py</code></pre>
+    <p>The command tests run the generated <code>find</code> on a fixture home, so the lane files are checked on disk, not in the printed text. Only macOS <code>find</code> was run.</p>
+  </details>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
