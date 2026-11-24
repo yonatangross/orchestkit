@@ -12,8 +12,13 @@ import {
 	Server,
 } from "lucide-react";
 import { HostMark, type HostId } from "@/components/host-marks";
-import { InstallSnippet } from "@/components/install-snippet";
-import { COUNTS } from "@/lib/constants";
+import {
+	getSnippetPayload,
+	InstallSnippet,
+	InstallSnippetButton,
+	useTrackedCopy,
+} from "@/components/install-snippet";
+import { COUNTS, SITE } from "@/lib/constants";
 import {
 	HOST_INSTALLS,
 	HOST_INSTALL_BY_ID,
@@ -66,6 +71,15 @@ export function SetupWizard() {
 	);
 	const hint = stackHintCopy(host, stack);
 	const note = honesty(host);
+	const payload = getSnippetPayload(
+		commands,
+		spec.prompt,
+		commands.join("\n") === spec.commands.join("\n") ? spec.copy : undefined,
+	);
+	const { copied, copy, copyPayload } = useTrackedCopy(payload, "install_copied", {
+		host,
+		surface: "setup-wizard",
+	});
 
 	const goNext = useCallback(() => {
 		setCurrentStep((s) => (s === 0 ? 1 : s));
@@ -75,10 +89,11 @@ export function SetupWizard() {
 		setCurrentStep((s) => (s === 1 ? 0 : s));
 	}, []);
 
-	const pickClaude = useCallback(() => {
+	const copyClaude = () => {
 		setHost("claude");
 		setCurrentStep(0);
-	}, []);
+		copyPayload(SITE.installCommand, { host: "claude", surface: "setup-wizard" });
+	};
 
 	const selectStack = useCallback((id: StackHint) => {
 		setStack((prev) => (prev === id ? null : id));
@@ -93,7 +108,7 @@ export function SetupWizard() {
 					</p>
 					<button
 						type="button"
-						onClick={pickClaude}
+						onClick={copyClaude}
 						aria-pressed={host === "claude" && currentStep === 0}
 						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
 							host === "claude"
@@ -328,16 +343,12 @@ export function SetupWizard() {
 						)}
 
 						<div className="space-y-2">
-							<InstallSnippet
-								text={commands}
-								copy={
-									spec.copy && commands.join("\n") === spec.commands.join("\n")
-										? spec.copy
-										: undefined
-								}
+							<InstallSnippetButton
+								lines={commands}
+								payload={payload}
 								prompt={spec.prompt}
-								host={host}
-								surface="setup-wizard"
+								copied={copied}
+								onCopy={copy}
 							/>
 							{spec.then ? (
 								<div className="space-y-1.5">
