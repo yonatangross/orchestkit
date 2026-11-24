@@ -1,0 +1,8 @@
+{
+  "slug": "hosted-mcp-json-rpc-envelopes",
+  "source": "docs/fix--hosted-mcp-json-rpc-envelopes/index.html",
+  "title": "Hosted MCP rejects invalid JSON-RPC envelopes",
+  "description": "Compare recorded HTTP responses from production, local main, and the fix branch for both hosted MCP endpoints.",
+  "tags": ["mcp", "docs", "bugfix"],
+  "date": "2026-11-24"
+}

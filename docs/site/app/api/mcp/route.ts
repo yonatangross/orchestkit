@@ -3,6 +3,7 @@ import { reportServerEvents } from "@/lib/analytics-server";
 import { SITE } from "@/lib/constants";
 import { getDocMarkdown } from "@/lib/doc-markdown";
 import { searchDocs } from "@/lib/doc-search";
+import { handleMcpPost, rpcError, type RpcRequest } from "@/lib/mcp-json-rpc";
 import { negotiateProtocolVersion } from "@/lib/mcp-protocol";
 import { mcpTelemetryEvents } from "@/lib/mcp-telemetry";
 import {
@@ -271,25 +272,16 @@ function errText(value: string): ToolResult {
 	return { content: [{ type: "text", text: value }], isError: true };
 }
 
-type RpcRequest = {
-	jsonrpc: "2.0";
-	id?: string | number | null;
-	method: string;
-	params?: Record<string, unknown>;
-};
-
 function rpcResult(id: RpcRequest["id"], result: unknown) {
 	return { jsonrpc: "2.0" as const, id, result };
 }
-function rpcError(id: RpcRequest["id"], code: number, message: string) {
-	return { jsonrpc: "2.0" as const, id, error: { code, message } };
-}
 
 async function dispatch(req: RpcRequest): Promise<object | null> {
+	const params = Array.isArray(req.params) ? undefined : req.params;
 	switch (req.method) {
 		case "initialize":
 			return rpcResult(req.id, {
-				protocolVersion: negotiateProtocolVersion(req.params?.protocolVersion),
+				protocolVersion: negotiateProtocolVersion(params?.protocolVersion),
 				capabilities: {
 					tools: { listChanged: false },
 					// MCP Apps: ui:// resources rendered inline by the host.
@@ -327,8 +319,8 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 				}),
 			});
 		case "tools/call": {
-			const name = req.params?.name as string;
-			const args = (req.params?.arguments as Record<string, unknown>) ?? {};
+			const name = params?.name as string;
+			const args = (params?.arguments as Record<string, unknown>) ?? {};
 			const tool = TOOLS.find((t) => t.name === name);
 			if (!tool) return rpcError(req.id, -32602, `Unknown tool: ${name}`);
 			return rpcResult(req.id, await tool.run(args));
@@ -343,7 +335,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 				})),
 			});
 		case "resources/read": {
-			const uri = req.params?.uri as string;
+			const uri = params?.uri as string;
 			const resource = UI_RESOURCES.find((r) => r.uri === uri);
 			if (!resource) return rpcError(req.id, -32602, `Unknown resource: ${uri}`);
 			return rpcResult(req.id, {
@@ -360,37 +352,18 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 }
 
 export async function POST(request: Request) {
-	let payload: unknown;
-	try {
-		payload = await request.json();
-	} catch {
-		return Response.json(rpcError(null, -32700, "Parse error"), { status: 400 });
-	}
-
-	const batch = Array.isArray(payload);
-	const requests = (batch ? payload : [payload]) as RpcRequest[];
-	const pairs = await Promise.all(
-		requests.map(async (r) => ({ request: r, response: await dispatch(r) })),
-	);
-	const responses = pairs
-		.map((p) => p.response)
-		.filter((r): r is object => r !== null);
-
 	// Fire-and-forget: `reportServerEvents` hands the send to Next's `after()`,
 	// so this adds nothing to the response path. The whole batch goes in ONE
 	// ingest POST rather than one per JSON-RPC request.
-	reportServerEvents(
-		request.headers,
-		mcpTelemetryEvents(pairs, {
-			ua_family: uaFamily(request.headers.get("user-agent")),
-			accept_family: acceptFamily(request.headers.get("accept") ?? ""),
-		}),
+	return handleMcpPost(request, dispatch, (pairs) =>
+		reportServerEvents(
+			request.headers,
+			mcpTelemetryEvents(pairs, {
+				ua_family: uaFamily(request.headers.get("user-agent")),
+				accept_family: acceptFamily(request.headers.get("accept") ?? ""),
+			}),
+		),
 	);
-
-	// A POST with only notifications produces no responses → 202 Accepted.
-	if (responses.length === 0) return new Response(null, { status: 202 });
-
-	return Response.json(batch ? responses : responses[0]);
 }
 
 // This stateless server initiates no server→client messages, so it does not open
