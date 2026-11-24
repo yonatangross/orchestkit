@@ -1,6 +1,6 @@
 ---
 name: chain-patterns
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "Multi-phase pipeline patterns: MCP detection, handoff files, checkpoint-resume, worktree agents, cron monitoring. Use when building or debugging a pipeline skill."
 user-invocable: false
 context: inherit

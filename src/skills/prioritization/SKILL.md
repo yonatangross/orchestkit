@@ -1,6 +1,6 @@
 ---
 name: prioritization
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "RICE, WSJF, ICE, MoSCoW and opportunity-cost scoring. Use when ranking a backlog or justifying roadmap trade-offs."
 user-invocable: false
 disable-model-invocation: false

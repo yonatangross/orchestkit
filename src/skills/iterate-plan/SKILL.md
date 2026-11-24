@@ -4,7 +4,7 @@ description: "Revises a create-plan file from its review comments or new instruc
 argument-hint: "<plan file> [instructions]"
 user-invocable: true
 allowed-tools: "Bash Read Write Grep Glob"
-compatibility: "Claude Code 2.1.327+. Node 22+."
+compatibility: "Claude Code 2.1.328+. Node 22+."
 metadata:
   version: "1.0.0"
   author: "OrchestKit"

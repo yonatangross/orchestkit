@@ -1,6 +1,6 @@
 ---
 name: dev
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "One-command dev loop: portless HTTPS subdomain, emulate API mocks, dev server and an agent-browser session keyed to the git branch. Use when starting a branch, switching worktrees or resuming a project."
 argument-hint: "[start|stop|status] [--share|--funnel|--live H]"
 user-invocable: true

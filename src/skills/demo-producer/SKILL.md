@@ -1,7 +1,7 @@
 ---
 name: demo-producer
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Demo videos for skills, plugins, CLIs and code walkthroughs: scripts, storyboards, VHS terminal recordings, Remotion. Use when producing a showcase or marketing video."
 argument-hint: "[topic-or-feature]"
 user-invocable: false

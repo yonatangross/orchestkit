@@ -1,7 +1,7 @@
 ---
 name: security-patterns
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Auth, defense in depth, input validation, OWASP Top 10, LLM prompt-injection defense and PII masking. Use when implementing auth or security layers."
 user-invocable: false
 disable-model-invocation: false
