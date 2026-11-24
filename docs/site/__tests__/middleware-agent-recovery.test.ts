@@ -191,6 +191,7 @@ describe("docs Markdown negotiation", () => {
 		["text/markdown; Q=0.000, */*;q=1", null],
 		["text/markdown-extra", null],
 		['text/html;note="see, text/markdown"', null],
+		['text/html;note="see, text/markdown; q=1', null],
 		["text/html", null],
 		["*/*", null],
 		["text/markdown", target],
