@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-docs-get-search-url",
+  "source": "docs/fix--mcp-docs-get-search-url/index.html",
+  "title": "Docs MCP read accepts search result URLs",
+  "description": "Compare recorded orchestkit_docs_get calls with the URL orchestkit_docs_search returns, before and after the fix.",
+  "tags": ["mcp", "docs", "bugfix"],
+  "date": "2026-11-24"
+}
