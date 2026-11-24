@@ -1,0 +1,6 @@
+{
+  "serves": "ork10",
+  "page": "docs/devin--1795499509-llms-full-index/index.html",
+  "lab_slug": "llms-full-index-coverage",
+  "purpose": "Show measured page URL coverage before and after reserving link space"
+}

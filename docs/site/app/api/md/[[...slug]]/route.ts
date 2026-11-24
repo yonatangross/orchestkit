@@ -46,7 +46,7 @@ function homepageMarkdown(): string {
 		"",
 		"## Machine-readable resources",
 		"",
-		`- Full docs in one file: [${SITE.domain}/llms-full.txt](/llms-full.txt)`,
+		`- Budgeted documentation dump: [${SITE.domain}/llms-full.txt](/llms-full.txt)`,
 		`- Navigation index: [${SITE.domain}/llms.txt](/llms.txt)`,
 		`- OpenAPI spec: [${SITE.domain}/api/openapi](/api/openapi)`,
 		`- Natural-language query: POST [${SITE.domain}/ask](/ask)`,
