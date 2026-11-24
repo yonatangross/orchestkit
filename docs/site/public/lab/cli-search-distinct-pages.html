@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Compare real OrchestKit CLI search results before and after ranking one result per docs page.">
+<title>OrchestKit CLI: Distinct search results</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f2f4f7; color: #192438; font: 1rem/1.55 system-ui, sans-serif; }
+  main { max-width: 86rem; margin: auto; padding: clamp(1rem, 5vw, 4.5rem) clamp(1rem, 4vw, 3.5rem); }
+  h1 { margin: .25rem 0 .5rem; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.12; letter-spacing: -.04em; }
+  h2 { margin: .25rem 0 1rem; font-size: 1.2rem; }
+  p { margin: 0 0 1rem; }
+  .eyebrow { margin: 0; color: #40546d; font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  .intro { max-width: 42rem; color: #40546d; }
+  .command { display: inline-block; margin: .75rem 0 1.5rem; padding: .65rem .9rem; border-radius: .5rem; background: #e0e7ef; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  section { display: flex; flex-direction: column; padding: clamp(1rem, 2vw, 1.5rem); border: 1px solid #ccd6e2; border-radius: .85rem; background: #fff; }
+  section:last-child { border-color: #76ad98; }
+  section:last-child .eyebrow { color: #22634c; }
+  pre { flex: 1; margin: 0; padding: 1rem; border-radius: .55rem; background: #182337; color: #eef3fa; white-space: pre-wrap; overflow-wrap: anywhere; font: .8rem/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .note { margin: 1.15rem 0 0; color: #40546d; }
+  @media (max-width: 48rem) { .grid { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit CLI: Distinct search results"><meta property="og:description" content="Compare real terminal runs before and after formatted search switched to one result per docs page."><meta property="og:url" content="https://orchestkit.dev/lab/cli-search-distinct-pages.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit CLI: Distinct search results"><meta name="twitter:description" content="Compare real terminal runs before and after formatted search switched to one result per docs page."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit CLI / Search</p>
+  <h1>Three results, three pages</h1>
+  <p class="intro">Formatted search now counts ranked documentation pages, not snippets from the same page.</p>
+  <code class="command">orchestkit search hooks --limit 3</code>
+  <div class="grid">
+    <section aria-labelledby="before">
+      <p class="eyebrow">Before</p>
+      <h2 id="before">One destination</h2>
+      <pre>  1. Hooks
+     https://orchestkit.dev/docs/hooks
+  2. Writing hooks: Adding a hook, registering it, and keeping counts in sync.
+     https://orchestkit.dev/docs/hooks
+  3. Overview: What hooks do and when they fire.
+     https://orchestkit.dev/docs/hooks
+
+119/120 requests left in this window (resets in 60s).</pre>
+    </section>
+    <section aria-labelledby="after">
+      <p class="eyebrow">After</p>
+      <h2 id="after">Three destinations</h2>
+      <pre>  1. Hooks
+     https://orchestkit.dev/docs/hooks
+  2. 163 Hooks: What Fires When
+     https://orchestkit.dev/docs/hooks/overview
+  3. Hook Architecture
+     https://orchestkit.dev/docs/hooks/architecture
+
+119/120 requests left in this window (resets in 60s).</pre>
+    </section>
+  </div>
+  <p class="note">Captured from the built CLI against orchestkit.dev. With <code>--json</code>, both runs returned the same page and two snippet rows byte for byte.</p>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

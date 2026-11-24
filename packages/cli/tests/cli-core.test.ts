@@ -288,20 +288,45 @@ describe("networked commands", () => {
 		},
 	);
 
-	it("search preserves API page titles, headings and text snippets", async () => {
-		const restore = stubFetch(() =>
-			jsonResponse([
-				{ id: "1", url: "/docs/blocks", type: "page", content: "The 3 Building Blocks" },
-				{ id: "2", url: "/docs/blocks#parallel", type: "heading", content: "Parallel Agents" },
-				{ id: "3", url: "/docs/blocks#parallel", type: "text", content: "Multiple agents work simultaneously." },
-			]),
-		);
+	it("search limits formatted results to ranked pages while JSON preserves snippets", async () => {
+		const pages = [
+			{ id: "1", url: "/docs/hooks", type: "page", content: "Hooks" },
+			{ id: "4", url: "/docs/hooks/overview", type: "page", content: "Hook Events" },
+			{ id: "5", url: "/docs/hooks/architecture", type: "page", content: "Hook Architecture" },
+		];
+		const raw = [
+			pages[0],
+			{ id: "2", url: "/docs/hooks", type: "heading", content: "Writing hooks" },
+			{ id: "3", url: "/docs/hooks", type: "text", content: "Hooks fire on lifecycle events." },
+			...pages.slice(1),
+		];
+		const queries: string[] = [];
+		const restore = stubFetch((url) => {
+			const { search, searchParams } = new URL(url);
+			queries.push(search);
+			const rows = searchParams.get("maxSnippets") === "0" ? pages : raw;
+			return jsonResponse(rows.slice(0, Number(searchParams.get("limit"))));
+		});
 		try {
-			const res = await run(["search", "parallel"], { version: "1.2.3" });
+			const args = ["search", "hooks", "--limit", "3", "--base-url", "https://example.test"];
+			const res = await run(args, { version: "1.2.3" });
 			expect(res.exitCode).toBe(0);
-			expect(res.stdout).toContain("1. The 3 Building Blocks");
-			expect(res.stdout).toContain("2. Parallel Agents");
-			expect(res.stdout).toContain("3. Multiple agents work simultaneously.");
+			expect(res.stdout).toBe(
+				`  1. Hooks
+     https://example.test/docs/hooks
+  2. Hook Events
+     https://example.test/docs/hooks/overview
+  3. Hook Architecture
+     https://example.test/docs/hooks/architecture
+
+119/120 requests left in this window (resets in 60s).
+`,
+			);
+
+			const json = await run([...args, "--json"], { version: "1.2.3" });
+			expect(json.exitCode).toBe(0);
+			expect(JSON.parse(json.stdout)).toEqual(raw.slice(0, 3));
+			expect(queries).toEqual(["?query=hooks&limit=3&maxSnippets=0", "?query=hooks&limit=3"]);
 		} finally {
 			restore();
 		}

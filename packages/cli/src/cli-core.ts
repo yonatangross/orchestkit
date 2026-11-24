@@ -10,6 +10,7 @@ import {
 	createClient,
 	readDoc,
 	search,
+	searchPages,
 } from "./api.js";
 import { type HostEnv, HOST_IDS, detectHosts, installText, isHostId } from "./hosts.js";
 import { type McpTransport, mcpConfig } from "./mcp-config.js";
@@ -207,7 +208,8 @@ export async function run(
 			case "search": {
 				const query = args.positional.join(" ").trim();
 				if (!query) return fail("Usage: orchestkit search <query>\n", 2);
-				const { results, rateLimit } = await search(client, query, args.limit ?? 5);
+				const searchDocs = args.json ? search : searchPages;
+				const { results, rateLimit } = await searchDocs(client, query, args.limit ?? 5);
 				return ok(
 					args.json
 						? `${JSON.stringify(results, null, 2)}\n`

@@ -1,0 +1,8 @@
+{
+  "slug": "cli-search-distinct-pages",
+  "source": "docs/fix--cli-search-distinct-pages/index.html",
+  "title": "OrchestKit CLI: Distinct search results",
+  "description": "Compare real terminal runs before and after formatted search switched to one result per docs page.",
+  "tags": ["cli"],
+  "date": "2026-11-24"
+}

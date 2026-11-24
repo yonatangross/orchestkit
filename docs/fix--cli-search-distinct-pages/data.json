@@ -1,0 +1,4 @@
+{
+  "serves": ["packages/cli/src/api.ts", "packages/cli/src/cli-core.ts"],
+  "description": "Before and after terminal output captured from the built search CLI against the production docs API."
+}
