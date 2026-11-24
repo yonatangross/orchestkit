@@ -1,0 +1,11 @@
+{
+  "serves": [
+    "docs/site/app/api/ask/route.ts",
+    "docs/site/lib/accept-event-stream.ts",
+    "docs/site/lib/media-ranges.ts",
+    "docs/site/lib/accept-markdown.ts"
+  ],
+  "page": "docs/fix--ask-accept-event-stream/index.html",
+  "lab_slug": "ask-accept-event-stream",
+  "purpose": "Compare recorded /ask Accept negotiation on production, local main, and the fix."
+}

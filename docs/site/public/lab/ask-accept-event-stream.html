@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Recorded HTTP probes show when the docs /ask endpoint streams Server-Sent Events for an Accept header.">
+<title>When Accept turns /ask into a stream | OrchestKit Lab</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f4ee; color: #203029; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1060px; margin: auto; padding: 40px 24px; }
+  h1 { margin: .2em 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.12; letter-spacing: -.045em; }
+  h2 { margin: 0; font-size: 1.15rem; }
+  p { margin: .45em 0; }
+  .eyebrow { color: #456553; font-size: .76rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  code, pre { font-family: ui-monospace, monospace; font-size: .9em; overflow-wrap: anywhere; }
+  pre { padding: 12px 16px; background: #e9ede5; border-radius: 8px; white-space: pre-wrap; }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 18px 0 26px; }
+  article { padding: 16px 18px; border: 1px solid #ccd4c9; border-radius: 10px; background: #fff; }
+  article p { font-size: .9rem; color: #47594e; }
+  .incorrect { border-top: 4px solid #a44d37; }
+  .correct { border-top: 4px solid #317653; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; background: #fff; font-size: .9rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #d9dfd3; vertical-align: top; }
+  thead { background: #e9ede5; }
+  .changed td:nth-child(3) { color: #317653; font-weight: 650; }
+  .method { color: #47594e; font-size: .9rem; margin-top: 16px; }
+  @media (max-width: 620px) { main { padding: 24px 16px; } .comparison { grid-template-columns: 1fr; } th, td { padding: 6px; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="When Accept turns /ask into a stream"><meta property="og:description" content="Recorded HTTP responses show /ask honoring an Accept header that rejects or down-weights Server-Sent Events."><meta property="og:url" content="https://orchestkit.dev/lab/ask-accept-event-stream.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="When Accept turns /ask into a stream"><meta name="twitter:description" content="Recorded HTTP responses show /ask honoring an Accept header that rejects or down-weights Server-Sent Events."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / Recorded HTTP probes</p>
+    <h1>When Accept turns /ask into a stream</h1>
+    <p>A client that gives Server-Sent Events a weight of zero is saying it cannot read them.</p>
+    <pre>GET /ask?query=hooks&amp;limit=1
+Accept: application/json, text/event-stream;q=0</pre>
+  </header>
+  <div class="comparison">
+    <article class="incorrect" id="before">
+      <h2>Before: production and local main</h2>
+      <p>A case-sensitive substring match streams anyway, and misses a mixed-case opt-in.</p>
+      <pre>SSE at q=0, JSON offered   SSE
+Text/Event-Stream          JSON</pre>
+    </article>
+    <article class="correct" id="after">
+      <h2>After: local fix</h2>
+      <p>Accept is read as media ranges: case-insensitive types and RFC 9110 weights.</p>
+      <pre>SSE at q=0, JSON offered   JSON
+Text/Event-Stream          SSE</pre>
+    </article>
+  </div>
+  <section aria-labelledby="table">
+    <h2 id="table">Every probe, before and after</h2>
+    <table aria-labelledby="table">
+      <thead><tr><th scope="col">Request signal</th><th scope="col">Production and local main</th><th scope="col">Local fix</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>Accept: application/json</code></th><td>JSON</td><td>JSON</td></tr>
+        <tr><th scope="row"><code>Accept: */*</code></th><td>JSON</td><td>JSON</td></tr>
+        <tr><th scope="row"><code>Accept: text/event-stream</code></th><td>SSE</td><td>SSE</td></tr>
+        <tr><th scope="row"><code>Accept: text/event-stream, application/json</code></th><td>SSE</td><td>SSE</td></tr>
+        <tr class="changed"><th scope="row"><code>Accept: Text/Event-Stream</code></th><td>JSON</td><td>SSE</td></tr>
+        <tr class="changed"><th scope="row"><code>Accept: application/json, text/event-stream;q=0</code></th><td>SSE</td><td>JSON</td></tr>
+        <tr><th scope="row"><code>Accept: application/json, Text/Event-Stream; Q=0</code></th><td>JSON</td><td>JSON</td></tr>
+        <tr class="changed"><th scope="row"><code>Accept: text/event-stream;q=0.1, application/json</code></th><td>SSE</td><td>JSON</td></tr>
+        <tr><th scope="row"><code>?streaming=true</code> with SSE at q=0</th><td>SSE</td><td>SSE</td></tr>
+        <tr><th scope="row"><code>Prefer: streaming</code> with SSE at q=0</th><td>SSE</td><td>SSE</td></tr>
+        <tr><th scope="row"><code>Prefer: respond-async</code></th><td>SSE</td><td>SSE</td></tr>
+        <tr><th scope="row">POST <code>"streaming": true</code> with SSE at q=0</th><td>SSE</td><td>SSE</td></tr>
+        <tr><th scope="row">POST <code>"prefer": {"streaming": true}</code> with SSE at q=0</th><td>SSE</td><td>SSE</td></tr>
+        <tr><th scope="row">POST JSON, no streaming signal</th><td>JSON</td><td>JSON</td></tr>
+      </tbody>
+    </table>
+    <p class="method">Captured on 2026-11-24 against orchestkit.dev, a local <code>next dev</code> on main, and the same server with the fix. All responses were 200. SSE means <code>text/event-stream; charset=utf-8</code>. Every SSE and JSON body that kept its format had the same result checksum in all three runs. The explicit query, body and Prefer opt-ins still stream when Accept rejects SSE.</p>
+  </section>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
