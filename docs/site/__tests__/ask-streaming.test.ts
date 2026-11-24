@@ -146,11 +146,10 @@ describe("/ask JSON query validation", () => {
 
 	it.each([
 		{ query: 7 },
+		{ query: ["hooks"] },
 		{ query: { text: 7 } },
 		{ query: { text: ["hooks"] } },
 		{ query: { text: { value: "hooks" } } },
-		{ query: { text: null } },
-		{ query: {} },
 		{ q: false },
 		{ question: ["hooks"] },
 	])("rejects a mistyped query in %j with a JSON problem", async (body) => {
@@ -171,8 +170,14 @@ describe("/ask JSON query validation", () => {
 		expect(await res.json()).toMatchObject({ query: "hooks" });
 	});
 
-	it("preserves the 200 probe when the JSON body omits the query", async () => {
-		const res = await postJson({});
+	it.each([
+		{},
+		{ query: null },
+		{ query: {} },
+		{ query: { text: null } },
+		{ q: null },
+	])("preserves the 200 probe for an absent query in %j", async (body) => {
+		const res = await postJson(body);
 		expect(res.status).toBe(200);
 		expect(await res.json()).toMatchObject({ query: "", results: [] });
 	});

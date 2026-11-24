@@ -118,6 +118,10 @@ function truthy(value: string | null | undefined): boolean {
 	return value === "true" || value === "1" || value === "yes";
 }
 
+function isOptionalString(value: unknown): value is string | null | undefined {
+	return value == null || typeof value === "string";
+}
+
 async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | null> {
 	const accept = req.headers.get("accept") ?? "";
 	// RFC 7240 Prefer header — agents/scanners signal streaming with
@@ -151,13 +155,13 @@ async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | nu
 				// NLWeb's canonical request body is { query: { text: "..." } }; also
 				// accept a bare string query and the q/question aliases.
 				let bodyQuery = body?.query;
-				if (bodyQuery !== null && typeof bodyQuery === "object" && "text" in bodyQuery) {
-					bodyQuery = bodyQuery.text;
+				if (bodyQuery !== null && typeof bodyQuery === "object" && !Array.isArray(bodyQuery)) {
+					bodyQuery = "text" in bodyQuery ? bodyQuery.text : undefined;
 				}
 				if (
-					(bodyQuery !== undefined && typeof bodyQuery !== "string") ||
-					(body?.q !== undefined && typeof body.q !== "string") ||
-					(body?.question !== undefined && typeof body.question !== "string")
+					!isOptionalString(bodyQuery) ||
+					!isOptionalString(body?.q) ||
+					!isOptionalString(body?.question)
 				) {
 					return "invalid-query";
 				}
