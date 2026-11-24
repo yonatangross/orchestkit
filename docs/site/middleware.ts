@@ -90,7 +90,9 @@ function mdTarget(pathname: string): string | null {
 // for API clients, and RateLimit headers on a marketing page are noise.
 function isMeteredSurface(pathname: string): boolean {
 	return (
-		(pathname.startsWith("/api/") || classifyAgentSurface(pathname) !== null) &&
+		(pathname === "/api" ||
+			pathname.startsWith("/api/") ||
+			classifyAgentSurface(pathname) !== null) &&
 		middlewareShouldMeter(pathname)
 	);
 }
