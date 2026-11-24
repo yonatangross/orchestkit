@@ -1,0 +1,4 @@
+{
+  "serves": ["src/hooks/src/posttool/chain-staleness-checker.ts"],
+  "description": "Recorded stale-chain event counts from the shipped PostToolUse runner before and after persisting the throttle."
+}
