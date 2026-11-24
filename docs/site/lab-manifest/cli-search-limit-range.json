@@ -1,0 +1,8 @@
+{
+  "slug": "cli-search-limit-range",
+  "source": "docs/fix--cli-search-limit-range/index.html",
+  "title": "OrchestKit CLI: Search limits",
+  "description": "Compare recorded search result counts and exit codes before and after the CLI limit fix.",
+  "tags": ["cli"],
+  "date": "2026-11-24"
+}
