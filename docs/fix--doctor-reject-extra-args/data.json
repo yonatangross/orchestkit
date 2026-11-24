@@ -1,0 +1,3 @@
+{
+  "serves": ["packages/cli/src/cli-core.ts"]
+}

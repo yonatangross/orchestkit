@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
 	HELP,
 	PLUGIN_INSTALL_COMMAND,
@@ -117,6 +117,33 @@ describe("invalid arguments", () => {
 		const res = await run(argv);
 		expect(res.exitCode).toBe(0);
 		expect(res.stdout).toContain(PLUGIN_INSTALL_COMMAND);
+	});
+});
+
+describe("doctor arguments", () => {
+	it.each([
+		{ label: "no positional arguments", args: [], exitCode: 0, stdout: "API reachable", stderr: "", requests: ["https://doctor.test/api/health"] },
+		{ label: "a stray positional argument", args: ["stray"], exitCode: 2, stdout: "", stderr: "doctor does not accept positional arguments.\n", requests: [] },
+		{ label: "help with a stray argument", args: ["stray", "--help"], exitCode: 0, stdout: HELP, stderr: "", requests: [] },
+		{ label: "version with a stray argument", args: ["stray", "--version"], exitCode: 0, stdout: "1.2.3\n", stderr: "", requests: [] },
+	])("handles $label", async ({ args, exitCode, stdout, stderr, requests }) => {
+		const fetch = vi.fn((_url: string) => jsonResponse({ status: "ok" }));
+		const restore = stubFetch(fetch);
+		try {
+			const clientFactory = vi.fn(createClient);
+			const res = await run(["doctor", ...args, "--base-url", "https://doctor.test"], {
+				version: "1.2.3",
+				clientFactory,
+			});
+			expect(res.exitCode).toBe(exitCode);
+			expect(res.stderr).toBe(stderr);
+			if (exitCode === 0) expect(res.stdout).toContain(stdout);
+			else expect(res.stdout).toBe("");
+			expect(fetch.mock.calls.flat()).toEqual(requests);
+			if (exitCode === 2) expect(clientFactory).not.toHaveBeenCalled();
+		} finally {
+			restore();
+		}
 	});
 });
 
