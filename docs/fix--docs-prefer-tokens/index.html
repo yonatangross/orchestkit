@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Recorded HTTP probes show exactly when the docs APIs honor a Prefer header.">
+<title>When Prefer changes the response | OrchestKit Lab</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f4ee; color: #203029; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1060px; margin: auto; padding: 40px 24px; }
+  h1 { margin: .2em 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.12; letter-spacing: -.045em; }
+  h2 { margin: 0; font-size: 1.15rem; }
+  p { margin: .45em 0; }
+  .eyebrow { color: #456553; font-size: .76rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  code, pre { font-family: ui-monospace, monospace; font-size: .9em; overflow-wrap: anywhere; }
+  pre { padding: 12px 16px; background: #e9ede5; border-radius: 8px; white-space: pre-wrap; }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 18px 0 26px; }
+  article { padding: 16px 18px; border: 1px solid #ccd4c9; border-radius: 10px; background: #fff; }
+  article p { font-size: .9rem; color: #47594e; }
+  .incorrect { border-top: 4px solid #a44d37; }
+  .correct { border-top: 4px solid #317653; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; background: #fff; font-size: .9rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #d9dfd3; vertical-align: top; }
+  thead { background: #e9ede5; }
+  .method { color: #47594e; font-size: .9rem; margin-top: 16px; }
+  @media (max-width: 620px) { main { padding: 24px 16px; } .comparison { grid-template-columns: 1fr; } th, td { padding: 6px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / Recorded HTTP probes</p>
+    <h1>When Prefer changes the response</h1>
+    <p>Only a top-level preference name should start an async job or switch JSON to an event stream.</p>
+    <pre>Prefer: return=representation; note="respond-async"</pre>
+  </header>
+  <div class="comparison">
+    <article class="incorrect" id="before">
+      <h2>Before: production and local main</h2>
+      <p>The APIs mistake the quoted parameter for a request to change formats.</p>
+      <pre>/api/md/batch   202 application/json
+Preference-Applied: respond-async
+/ask            200 text/event-stream</pre>
+    </article>
+    <article class="correct" id="after">
+      <h2>After: local fix</h2>
+      <p>Both APIs return JSON normally. No async preference is applied.</p>
+      <pre>/api/md/batch   200 application/json
+No Preference-Applied header
+/ask            200 application/json</pre>
+    </article>
+  </div>
+  <section aria-labelledby="controls">
+    <h2 id="controls">Controls: identical in all three runs</h2>
+    <table aria-labelledby="controls">
+      <thead><tr><th scope="col">Request signal</th><th scope="col">Batch</th><th scope="col">Ask</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">No <code>Prefer</code></th><td>200 JSON</td><td>200 JSON</td></tr>
+        <tr><th scope="row"><code>respond-async</code></th><td>202 JSON</td><td>200 SSE</td></tr>
+        <tr><th scope="row"><code>wait=5, respond-async</code></th><td>202 JSON</td><td>200 SSE</td></tr>
+        <tr><th scope="row"><code>streaming</code></th><td>200 JSON</td><td>200 SSE</td></tr>
+        <tr><th scope="row"><code>WAIT=5, STREAMING</code></th><td>200 JSON</td><td>200 SSE</td></tr>
+        <tr><th scope="row">Query flags: <code>?async=1</code> / <code>?streaming=true</code></th><td>202 JSON</td><td>200 SSE</td></tr>
+      </tbody>
+    </table>
+    <p class="method">Captured with curl on 2026-11-24. Batch requested <code>/docs/foundations/overview</code>; Ask POSTed <code>{"query":{"text":"hooks"}}</code>. All 202s carried <code>Preference-Applied: respond-async</code>. SSE means <code>text/event-stream; charset=utf-8</code>.</p>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "serves": [
+    "docs/site/app/api/ask/route.ts",
+    "docs/site/app/api/md/batch/route.ts",
+    "docs/site/lib/prefer.ts"
+  ],
+  "page": "docs/fix--docs-prefer-tokens/index.html",
+  "lab_slug": "docs-prefer-tokens",
+  "purpose": "Compare recorded response negotiation for Prefer headers on production, local main, and the fix."
+}

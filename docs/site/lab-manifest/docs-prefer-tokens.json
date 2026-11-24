@@ -1,0 +1,8 @@
+{
+  "slug": "docs-prefer-tokens",
+  "source": "docs/fix--docs-prefer-tokens/index.html",
+  "title": "When Prefer changes the response",
+  "description": "Recorded HTTP responses show why quoted parameters should not start async jobs or event streams.",
+  "tags": ["api", "http", "regression"],
+  "date": "2026-11-24"
+}

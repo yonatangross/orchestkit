@@ -3,6 +3,7 @@
 
 import { readDocBatch } from "@/lib/doc-markdown";
 import { encodeJobToken } from "@/lib/job-token";
+import { parsePrefer } from "@/lib/prefer";
 import { problemResponse } from "@/lib/problem";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
 	// execute it idempotently with no queue or store.
 	const url = new URL(req.url);
 	const prefersAsync =
-		(req.headers.get("prefer") ?? "").toLowerCase().includes("respond-async") ||
+		parsePrefer(req.headers.get("prefer")).has("respond-async") ||
 		url.searchParams.get("async") === "1";
 	if (prefersAsync) {
 		const token = encodeJobToken({ v: 1, kind: "md-batch", paths: paths as string[] });

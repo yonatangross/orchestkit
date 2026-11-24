@@ -3,6 +3,7 @@
 
 import { type DocHit, searchDocs } from "@/lib/doc-search";
 import { SITE } from "@/lib/constants";
+import { parsePrefer } from "@/lib/prefer";
 import { problemResponse } from "@/lib/problem";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
@@ -126,11 +127,12 @@ async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | nu
 	const accept = req.headers.get("accept") ?? "";
 	// RFC 7240 Prefer header — agents/scanners signal streaming with
 	// `Prefer: streaming` or the standard `Prefer: respond-async`.
-	const prefer = req.headers.get("prefer") ?? "";
+	const prefer = parsePrefer(req.headers.get("prefer"));
 	const params = new URL(req.url).searchParams;
 	let streaming =
 		accept.includes("text/event-stream") ||
-		/\b(streaming|respond-async)\b/i.test(prefer) ||
+		prefer.has("streaming") ||
+		prefer.has("respond-async") ||
 		truthy(params.get("streaming"));
 	let query = params.get("query") ?? params.get("q") ?? params.get("question") ?? "";
 	let mode = params.get("mode") ?? "list";
