@@ -112,7 +112,7 @@ function sseResponse(
 	});
 }
 
-type ParsedAsk = { query: string; mode: string; streaming: boolean };
+type ParsedAsk = { query: string; mode: string; streaming: boolean; limit: string | null };
 
 function truthy(value: string | null | undefined): boolean {
 	return value === "true" || value === "1" || value === "yes";
@@ -167,7 +167,7 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 	}
 
 	if (!NLWEB_MODES.has(mode)) mode = "list";
-	return { query, mode, streaming };
+	return { query, mode, streaming, limit: params.get("limit") };
 }
 
 async function handle(req: Request): Promise<Response> {
@@ -203,8 +203,20 @@ async function handle(req: Request): Promise<Response> {
 	if (!query) {
 		return noQueryResponse(headers);
 	}
+	const limit = parsed.limit === null ? undefined : Number(parsed.limit);
+	if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+		return problemResponse(
+			{
+				title: "Invalid limit",
+				status: 400,
+				detail: "`limit` must be an integer from 1 to 100; omit it for all results.",
+				instance: "/ask",
+			},
+			headers,
+		);
+	}
 
-	const hits = searchDocs(query);
+	const hits = searchDocs(query, limit);
 	return parsed.streaming
 		? sseResponse(query, parsed.mode, hits, headers)
 		: jsonResponse(query, parsed.mode, hits, headers);
