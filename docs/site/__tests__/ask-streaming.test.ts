@@ -80,6 +80,54 @@ describe("/ask streaming triggers", () => {
 	});
 });
 
+describe("/ask Accept negotiation", () => {
+	const SSE = "text/event-stream; charset=utf-8";
+	const get = (accept: string, extra = "") =>
+		GET(new Request(`https://orchestkit.dev/ask?query=hooks${extra}`, { headers: { accept } }));
+
+	it.each([
+		["application/json", "application/json"],
+		["*/*", "application/json"],
+		["text/event-stream", SSE],
+		["text/event-stream, application/json", SSE],
+		["application/json, text/event-stream", SSE],
+		["Text/Event-Stream", SSE],
+		["TEXT/EVENT-STREAM; charset=utf-8", SSE],
+		["text/event-stream;q=0.5, application/json;q=0.5", SSE],
+		["application/json, text/event-stream;q=0", "application/json"],
+		["application/json, Text/Event-Stream; Q=0", "application/json"],
+		["text/event-stream;q=0.000", "application/json"],
+		["text/event-stream;q=0.1, application/json", "application/json"],
+		["text/event-stream;q=0.5, */*", "application/json"],
+		["text/*", "application/json"],
+		['application/json; v="a, text/event-stream"', "application/json"],
+	])("Accept: %s -> %s", async (accept, type) => {
+		const res = await get(accept);
+		expect(res.status).toBe(200);
+		expect(res.headers.get("Content-Type")).toBe(type);
+	});
+
+	it("keeps the explicit query opt-in when Accept rejects SSE", async () => {
+		const res = await get("application/json, text/event-stream;q=0", "&streaming=true");
+		expect(res.headers.get("Content-Type")).toBe(SSE);
+	});
+
+	it.each([
+		[{ prefer: "streaming" }, { query: "hooks" }],
+		[{}, { query: "hooks", streaming: true }],
+		[{}, { query: "hooks", prefer: { streaming: true } }],
+	])("keeps the Prefer/body opt-in %j %j when Accept rejects SSE", async (headers, body) => {
+		const res = await POST(
+			new Request("https://orchestkit.dev/ask", {
+				method: "POST",
+				headers: { "content-type": "application/json", accept: "application/json, text/event-stream;q=0", ...headers },
+				body: JSON.stringify(body),
+			}),
+		);
+		expect(res.headers.get("Content-Type")).toBe(SSE);
+	});
+});
+
 // A bare probe (no `query`) must return a 200 NLWeb envelope, not a 400 — a 400
 // reads to agent-readiness scanners as "no NLWeb endpoint here".
 describe("/ask no-query probe → 200 NLWeb envelope", () => {

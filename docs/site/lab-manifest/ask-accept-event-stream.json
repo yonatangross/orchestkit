@@ -1,0 +1,8 @@
+{
+  "slug": "ask-accept-event-stream",
+  "source": "docs/fix--ask-accept-event-stream/index.html",
+  "title": "When Accept turns /ask into a stream",
+  "description": "Recorded HTTP responses show /ask honoring an Accept header that rejects or down-weights Server-Sent Events.",
+  "tags": ["api", "http", "regression"],
+  "date": "2026-11-24"
+}
