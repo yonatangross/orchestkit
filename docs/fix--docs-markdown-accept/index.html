@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Markdown Accept negotiation</title>
+<meta name="description" content="Compare recorded HTTP responses before and after the docs honor a Markdown quality of zero.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef3f0;color:#152821;font:16px/1.55 system-ui,sans-serif}
+  main{max-width:880px;margin:auto;padding:54px 22px}
+  h1,h2,p{margin:0}
+  h1{font-size:clamp(2rem,6vw,3.1rem);line-height:1.12;letter-spacing:-.035em}
+  h2{font-size:1rem;margin-bottom:8px}
+  .label{color:#35624f;font-size:.76rem;font-weight:750;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+  .intro{max-width:64ch;margin:15px 0 25px}
+  section,details{border:1px solid #b9cec3;background:#fff;border-radius:14px;padding:20px;margin-top:12px}
+  .responses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+  .result{padding:15px;background:#f8eeeb;border-radius:9px}
+  .result + .result{background:#e5f3eb}
+  code,pre{font-family:ui-monospace,monospace;overflow-wrap:anywhere}
+  pre{background:#152821;color:#eef3f0;padding:12px;border-radius:8px;margin:12px 0 0;white-space:pre-wrap}
+  summary{cursor:pointer;font-weight:700}
+  summary:focus-visible{outline:2px solid #286653;outline-offset:4px}
+  dl{margin:12px 0 0}
+  dt{font-weight:650;margin-top:10px}
+  dd{margin:0}
+  @media(max-width:540px){main{padding-top:32px}.responses{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <p class="label">OrchestKit Lab / Recorded HTTP requests</p>
+  <h1>Markdown Accept negotiation</h1>
+  <p class="intro">A quality of zero means “not acceptable.” The same docs request now gets HTML when it explicitly rejects Markdown.</p>
+  <section aria-label="Response comparison">
+    <h2>GET <code>/docs/foundations/overview</code></h2>
+    <p><code>Accept: text/html, text/markdown;q=0</code></p>
+    <div class="responses">
+      <div class="result"><h2>Before</h2><code>200 text/markdown</code></div>
+      <div class="result"><h2>After</h2><code>200 text/html</code></div>
+    </div>
+  </section>
+  <details>
+    <summary>Check Markdown clients and recovery responses</summary>
+    <dl>
+      <dt>Docs page, <code>Accept: text/markdown</code></dt>
+      <dd><code>200 text/markdown</code> before and after.</dd>
+      <dt>Docs page, <code>Accept: Text/Markdown;Q=0.5</code></dt>
+      <dd><code>200 text/html</code> before, <code>200 text/markdown</code> after.</dd>
+      <dt>Missing path, <code>Accept: application/json, text/markdown;q=0</code></dt>
+      <dd><code>404 text/markdown</code> before, <code>404 application/json</code> after.</dd>
+    </dl>
+  </details>
+  <details>
+    <summary>Reproduce against a local docs server</summary>
+    <pre>curl -sS -o /dev/null -w '%{http_code} %{content_type}\n' -H 'Accept: text/html, text/markdown;q=0' http://localhost:3000/docs/foundations/overview</pre>
+  </details>
+</main>
+</body>
+</html>

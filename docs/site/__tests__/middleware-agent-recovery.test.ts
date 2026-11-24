@@ -28,9 +28,14 @@ import { RATE_LIMIT } from "@/lib/rate-limit";
 
 const ORIGIN = "https://orchestkit.dev";
 
-function req(path: string, accept = "*/*", ip = "203.0.113.1") {
+function req(
+	path: string,
+	accept = "*/*",
+	ip = "203.0.113.1",
+	userAgent = "curl/8.7.1",
+) {
 	return new NextRequest(`${ORIGIN}${path}`, {
-		headers: { accept, "x-real-ip": ip, "user-agent": "curl/8.7.1" },
+		headers: { accept, "x-real-ip": ip, "user-agent": userAgent },
 	});
 }
 
@@ -58,6 +63,15 @@ describe("agent-friendly 404s", () => {
 		expect(body).toContain("[llms.txt](/llms.txt)");
 		expect(body).toContain("[Sitemap](/sitemap.xml)");
 		expect(body).toContain("/some-path-that-does-not-exist");
+	});
+
+	it.each([
+		["application/json, text/markdown;q=0", "application/json"],
+		["Text/Markdown;Q=0.5", "text/markdown"],
+	])("selects the recovery body for Accept: %s", (accept, type) => {
+		const res = middleware(req("/some-path-that-does-not-exist", accept)) as Response;
+		expect(res.status).toBe(404);
+		expect(res.headers.get("content-type")).toContain(type);
 	});
 
 	it("a `.md` suffix on an unknown page also yields Markdown, not HTML", async () => {
@@ -165,6 +179,36 @@ describe("rate-limit headers on every metered surface", () => {
 		const body = (await res.json()) as { status: number; detail: string };
 		expect(body.status).toBe(429);
 		expect(body.detail).toContain("/api-policy");
+	});
+});
+
+describe("docs Markdown negotiation", () => {
+	const path = "/docs/foundations/overview";
+	const target = `${ORIGIN}/api/md/foundations/overview`;
+
+	it.each([
+		["text/html, text/markdown;q=0", null],
+		["text/markdown; Q=0.000, */*;q=1", null],
+		["text/markdown-extra", null],
+		['text/html;note="see, text/markdown"', null],
+		["text/html", null],
+		["*/*", null],
+		["text/markdown", target],
+		["Text/Markdown;Q=0.001", target],
+		['text/markdown;note="a;q=0, b";q=0.5', target],
+	])("selects the docs representation for Accept: %s", (accept, rewrite) => {
+		const res = middleware(req(path, accept));
+		expect(res?.headers.get("x-middleware-rewrite")).toBe(rewrite);
+	});
+
+	it.each([
+		[path, "text/html, text/markdown;q=0", null],
+		[path, "text/html", target],
+		[`${path}.md`, "text/markdown;q=0", target],
+		[`${path}?mode=agent`, "text/markdown;q=0", target],
+	])("preserves URL overrides and gates bot fallback for %s (%s)", (url, accept, rewrite) => {
+		const res = middleware(req(url, accept, freshIp(), "GPTBot/1.0"));
+		expect(res?.headers.get("x-middleware-rewrite")).toBe(rewrite);
 	});
 });
 
