@@ -10,7 +10,25 @@ import {
 } from "fumadocs-core/mdx-plugins";
 import lastModified from "fumadocs-mdx/plugins/last-modified";
 import { pageSchema } from "fumadocs-core/source/schema";
+import type { JSXSpreadChild, Node } from "estree-jsx";
 import type { Nodes, Root } from "mdast";
+
+function staticJsxText(node: Node | JSXSpreadChild | undefined): string {
+  switch (node?.type) {
+    case "ExpressionStatement":
+    case "JSXExpressionContainer":
+      return staticJsxText(node.expression);
+    case "JSXElement":
+    case "JSXFragment":
+      return node.children.map(staticJsxText).join("");
+    case "JSXText":
+      return node.value;
+    case "Literal":
+      return typeof node.value === "string" ? node.value : "";
+    default:
+      return "";
+  }
+}
 
 function remarkCardSearchText() {
   return (tree: Root) => {
@@ -24,9 +42,11 @@ function remarkCardSearchText() {
           const prop = node.attributes.find(
             (attr) => attr.type === "mdxJsxAttribute" && attr.name === name,
           );
-          return prop?.type === "mdxJsxAttribute" && typeof prop.value === "string"
-            ? prop.value.replace(/\s+/g, " ").trim()
-            : "";
+          const value = prop?.type === "mdxJsxAttribute" ? prop.value : undefined;
+          const text = typeof value === "string"
+            ? value
+            : staticJsxText(value?.data?.estree?.body[0]);
+          return text.replace(/\s+/g, " ").trim();
         };
         const content = [getLabel("title"), getLabel("description")].filter(Boolean).join(": ");
         if (content) (node.data ??= {}).structuredData = { contents: [{ heading: undefined, content }] };

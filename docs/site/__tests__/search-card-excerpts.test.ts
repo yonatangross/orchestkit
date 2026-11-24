@@ -19,6 +19,7 @@ describe("MDX search excerpts", () => {
         '  />',
         '  <Card title={<Counter />} description="See lifecycle events." href="/docs/hooks" />',
         '  <Card title="Overview" href="/docs/overview" />',
+        '  <Card title={<><Count k="skills" /> Skills</>} href="/docs/reference/skills" description={<>Reusable knowledge modules: <Count k="commands" /> commands you invoke plus <Count k="references" /> references agents load for you</>} />',
         '</Cards>',
         "",
         'Use `<Card title="Code" />` in this example.',
@@ -30,6 +31,7 @@ describe("MDX search excerpts", () => {
       { heading: "hook-guides", content: "Writing hooks: Set up hooks & register them." },
       { heading: "hook-guides", content: "See lifecycle events." },
       { heading: "hook-guides", content: "Overview" },
+      { heading: "hook-guides", content: "Skills: Reusable knowledge modules: commands you invoke plus references agents load for you" },
       { heading: "hook-guides", content: 'Use `<Card title="Code" />` in this example.' },
     ]);
     expect(String(file)).toContain('href: "/docs/hooks/writing-hooks"');
