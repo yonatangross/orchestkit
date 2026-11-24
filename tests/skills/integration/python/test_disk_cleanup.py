@@ -14,6 +14,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -287,7 +288,7 @@ def test_transcripts_are_ask_first_with_printed_command(home):
 
 def lane_env(home: Path) -> tuple[Path, Path, tuple[Path, ...]]:
     """A private lane under a fixture home, its projects slug dir, the lanes tuple."""
-    lane = home / ".floor" / "desks" / "personal-desk"
+    lane = home / "lanes" / "example-lane"
     lane.mkdir(parents=True)
     slug_dir = home / ".claude" / "projects" / dc.lane_slug(lane)
     slug_dir.mkdir(parents=True)
@@ -313,8 +314,8 @@ def write_lane_list(home: Path, *lanes: str) -> Path:
 
 
 def test_private_lanes_loads_the_installed_list_and_slug_dirs(home):
-    lane = home / ".floor" / "desks" / "personal-desk"
-    write_lane_list(home, "~/.floor/desks/personal-desk")
+    lane = home / "lanes" / "example-lane"
+    write_lane_list(home, "~/lanes/example-lane")
     got = dc.private_lanes(home)
     assert Path(os.path.realpath(lane)) in got
     assert (home / ".claude" / "projects" / dc.lane_slug(lane)) in got
@@ -346,7 +347,7 @@ def assert_refused(home: Path, rc: int, out: str, err: str, cache_file: Path) ->
 
 
 def test_unreadable_lane_list_refuses_the_run(home, capsys):
-    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg = write_lane_list(home, "~/lanes/example-lane")
     cfg.unlink()
     cfg.mkdir()  # present but cannot be read as a file
     with pytest.raises(dc.LaneListError):
@@ -356,7 +357,7 @@ def test_unreadable_lane_list_refuses_the_run(home, capsys):
 
 @pytest.mark.skipif(not hasattr(os, "geteuid") or os.geteuid() == 0, reason="root reads any file")
 def test_permission_denied_lane_list_refuses_the_run(home, capsys):
-    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg = write_lane_list(home, "~/lanes/example-lane")
     cfg.chmod(0)
     try:
         with pytest.raises(dc.LaneListError):
@@ -367,7 +368,7 @@ def test_permission_denied_lane_list_refuses_the_run(home, capsys):
 
 
 def test_malformed_json_lane_list_refuses_the_run(home, capsys):
-    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg = write_lane_list(home, "~/lanes/example-lane")
     cfg.write_text("{not json")
     with pytest.raises(dc.LaneListError):
         dc.private_lanes(home)
@@ -376,10 +377,10 @@ def test_malformed_json_lane_list_refuses_the_run(home, capsys):
 
 @pytest.mark.parametrize(
     "payload",
-    ['{"private_lanes": "~/.floor"}', '{"private_lanes": null}', "{}", "[]", '"x"'],
+    ['{"private_lanes": "~/lanes"}', '{"private_lanes": null}', "{}", "[]", '"x"'],
 )
 def test_lane_list_whose_key_is_not_a_list_refuses_the_run(home, capsys, payload):
-    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg = write_lane_list(home, "~/lanes/example-lane")
     cfg.write_text(payload)
     with pytest.raises(dc.LaneListError):
         dc.private_lanes(home)
@@ -389,15 +390,15 @@ def test_lane_list_whose_key_is_not_a_list_refuses_the_run(home, capsys, payload
 @pytest.mark.parametrize(
     "payload",
     [
-        '{"private_lanes": ["~/.floor", 5]}',
-        '{"private_lanes": ["~/.floor", null]}',
-        '{"private_lanes": ["~/.floor", ""]}',
-        '{"private_lanes": ["~/.floor", "   "]}',
-        '{"private_lanes": [["~/.floor"]]}',
+        '{"private_lanes": ["~/lanes", 5]}',
+        '{"private_lanes": ["~/lanes", null]}',
+        '{"private_lanes": ["~/lanes", ""]}',
+        '{"private_lanes": ["~/lanes", "   "]}',
+        '{"private_lanes": [["~/lanes"]]}',
     ],
 )
 def test_lane_list_with_a_bad_entry_refuses_the_run(home, capsys, payload):
-    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg = write_lane_list(home, "~/lanes/example-lane")
     cfg.write_text(payload)
     with pytest.raises(dc.LaneListError):
         dc.private_lanes(home)
@@ -423,7 +424,7 @@ def test_refusal_applies_to_a_dry_run_and_leaves_no_report(home, tmp_path, capsy
 
 
 def test_one_bad_list_refuses_even_when_another_is_good(home, capsys):
-    write_lane_list(home, "~/.floor/desks/personal-desk")
+    write_lane_list(home, "~/lanes/example-lane")
     other = home / ".claude" / "plugins" / "cache" / "mp2" / "plugin" / "1.0.0" / "configs"
     other.mkdir(parents=True)
     (other / "private-lanes.json").write_text("{not json")
@@ -500,9 +501,9 @@ def test_transcript_ask_cmd_run_for_real_with_a_symlinked_home(tmp_path):
     real.mkdir()
     link = tmp_path / "link-home"
     link.symlink_to(real)
-    lane = real / ".floor" / "desks" / "personal-desk"
+    lane = real / "lanes" / "example-lane"
     lane.mkdir(parents=True)
-    write_lane_list(real, "~/.floor/desks/personal-desk")
+    write_lane_list(real, "~/lanes/example-lane")
     slug_dir = real / ".claude" / "projects" / dc.lane_slug(lane)
     kept = old_session(slug_dir / "s.jsonl")
     gone = old_session(real / ".claude" / "projects" / "other" / "s.jsonl")
@@ -516,9 +517,9 @@ def test_transcript_ask_cmd_run_for_real_with_a_symlinked_home(tmp_path):
 
 def test_session_slug_of_a_lane_subfolder_is_in_the_lane(home):
     """A session started in lane/repo writes to projects/<lane slug>-repo, a sibling."""
-    lane = home / ".floor" / "desks" / "personal-desk"
+    lane = home / "lanes" / "example-lane"
     (lane / "repo").mkdir(parents=True)
-    write_lane_list(home, "~/.floor/desks/personal-desk")
+    write_lane_list(home, "~/lanes/example-lane")
     projects = home / ".claude" / "projects"
     sub_slug = projects / dc.lane_slug(lane / "repo")
     wt_slug = projects / (dc.lane_slug(lane) + "--worktrees-feat")
@@ -552,7 +553,7 @@ def test_env_resolves_a_symlinked_home(tmp_path):
 
 def test_discover_repos_skips_private_lanes(home):
     _lane, _slug_dir, lanes = lane_env(home)
-    inside_repo = home / ".floor" / "desks" / "personal-desk" / "repo"
+    inside_repo = home / "lanes" / "example-lane" / "repo"
     (inside_repo / ".git").mkdir(parents=True)
     outside_repo = home / "code" / "app"
     (outside_repo / ".git").mkdir(parents=True)
@@ -1119,11 +1120,44 @@ def test_worktree_ask_commands_are_capped_in_text_output(repo, home, capsys):
 # ---------------------------------------------------------------- the skill is generic
 
 
-@pytest.mark.parametrize("fname", ["SKILL.md", "scripts/disk_cleanup.py"])
-def test_no_private_names_in_shipped_files(fname):
-    text = (SKILL_DIR / fname).read_text()
-    for banned in ("yonatan", "/Users/", "hq-ext", "floor-", "herdr", " hc ", "conductor"):
+REPO_ROOT = SKILL_DIR.parents[2]
+# Everything this skill publishes: the skill files, the plugin copy, and the
+# playground page with its Lab copies (orchestkit.dev/lab is public).
+PUBLISHED_FILES = [
+    SKILL_DIR / "SKILL.md",
+    SKILL_DIR / "scripts" / "disk_cleanup.py",
+    REPO_ROOT / "docs" / "fix--disk-guard-lane-skip" / "index.html",
+    REPO_ROOT / "docs" / "site" / "public" / "lab" / "disk-cleanup-lane-guard.html",
+    REPO_ROOT / "docs" / "site" / "lab-manifest" / "disk-cleanup-lane-guard.json",
+]
+# The private floor directory name, built so this file does not spell it either.
+FLOOR_DIR = "." + "floor"
+
+
+@pytest.mark.parametrize("path", PUBLISHED_FILES, ids=lambda p: p.name)
+def test_no_private_names_in_shipped_files(path):
+    text = path.read_text()
+    # The lab generator appends a public repo-link footer; it is not our content.
+    text = re.sub(
+        r"<!-- ork-lab-chrome:start -->.*?<!-- ork-lab-chrome:end -->", "", text, flags=re.S
+    )
+    banned_names = (
+        "yonatan",
+        "/Users/",
+        "hq-ext",
+        "floor-",
+        FLOOR_DIR,
+        "herdr",
+        " hc ",
+        "conductor",
+    )
+    for banned in banned_names:
         assert banned not in text.lower() if banned.islower() else banned not in text, (
-            fname,
+            path.name,
             banned,
         )
+
+
+def test_test_file_does_not_spell_the_private_floor_dir():
+    """The fixtures use a neutral example lane, not a real private path."""
+    assert FLOOR_DIR not in Path(__file__).read_text()

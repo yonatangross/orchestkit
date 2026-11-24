@@ -33,7 +33,7 @@
       <caption>Fixture cases from tests/skills/integration/python/test_disk_cleanup.py, run on macOS</caption>
       <thead><tr><th scope="col">Path</th><th scope="col">What it is</th><th scope="col">Outcome</th></tr></thead>
       <tbody>
-        <tr><th scope="row"><code>~/.floor/desks/personal-desk/</code></th><td>A lane folder</td><td class="skip">Skipped: not sized, not searched for repos, not cleared</td></tr>
+        <tr><th scope="row"><code>~/lanes/example-lane/</code></th><td>A lane folder</td><td class="skip">Skipped: not sized, not searched for repos, not cleared</td></tr>
         <tr><th scope="row"><code>~/.npm/_cacache/nested/lane/</code></th><td>A lane two levels under a cache that gets cleared</td><td class="skip">Skipped: <code>--apply</code> empties around it and never removes its parent whole</td></tr>
         <tr><th scope="row"><code>~/.claude/projects/&lt;lane slug&gt;-repo/</code></th><td>Sessions started in a lane subfolder or worktree</td><td class="skip">Skipped: a sibling slug dir with a dash after the lane slug counts as the lane</td></tr>
         <tr><th scope="row"><code>~/.claude/projects/other/</code></th><td>Old sessions from an ordinary folder</td><td class="clean">Still listed, and the printed <code>find</code> deletes files older than 30 days</td></tr>
