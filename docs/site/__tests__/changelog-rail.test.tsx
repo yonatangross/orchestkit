@@ -4,7 +4,7 @@ import { ChangelogRail } from "@/components/changelog-rail";
 import { CHANGELOG_ENTRIES } from "@/lib/generated/changelog-data";
 
 const olderVersion = CHANGELOG_ENTRIES[8].version;
-const encodedOlderHash = `#${olderVersion.replace(".", "%2E")}`;
+const encodedOlderHash = `#${olderVersion.replaceAll(".", "%2E")}`;
 
 function setHash(hash: string) {
   window.history.replaceState(null, "", `/changelog${hash}`);
