@@ -143,7 +143,12 @@ function ChangeItem({ raw, glyph }: { raw: string; glyph: string }) {
 
 function hashVersion(): string {
   if (typeof window === "undefined") return "";
-  return decodeURIComponent(window.location.hash.replace(/^#/, ""));
+  const fragment = window.location.hash.slice(1);
+  try {
+    return decodeURIComponent(fragment);
+  } catch {
+    return "";
+  }
 }
 
 export function ChangelogRail({
