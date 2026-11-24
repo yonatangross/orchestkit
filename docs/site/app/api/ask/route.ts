@@ -118,7 +118,11 @@ function truthy(value: string | null | undefined): boolean {
 	return value === "true" || value === "1" || value === "yes";
 }
 
-async function readQuery(req: Request): Promise<ParsedAsk | null> {
+function isOptionalString(value: unknown): value is string | null | undefined {
+	return value == null || typeof value === "string";
+}
+
+async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | null> {
 	const accept = req.headers.get("accept") ?? "";
 	// RFC 7240 Prefer header — agents/scanners signal streaming with
 	// `Prefer: streaming` or the standard `Prefer: respond-async`.
@@ -141,19 +145,26 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 				if (truthy(form.get("streaming"))) streaming = true;
 			} else {
 				const body = (await req.json()) as {
-					query?: string | { text?: string };
-					q?: string;
-					question?: string;
+					query?: unknown;
+					q?: unknown;
+					question?: unknown;
 					mode?: string;
 					streaming?: boolean | string;
 					prefer?: { streaming?: boolean };
 				};
 				// NLWeb's canonical request body is { query: { text: "..." } }; also
-				// accept a bare string query and the q/question aliases. (Treating
-				// `query` as a string previously 500'd on the NLWeb object form, which
-				// agent-readiness scanners send — reading it as "no /ask endpoint".)
-				const bodyQuery =
-					typeof body?.query === "string" ? body.query : body?.query?.text;
+				// accept a bare string query and the q/question aliases.
+				let bodyQuery = body?.query;
+				if (bodyQuery !== null && typeof bodyQuery === "object" && !Array.isArray(bodyQuery)) {
+					bodyQuery = "text" in bodyQuery ? bodyQuery.text : undefined;
+				}
+				if (
+					!isOptionalString(bodyQuery) ||
+					!isOptionalString(body?.q) ||
+					!isOptionalString(body?.question)
+				) {
+					return "invalid-query";
+				}
 				query = bodyQuery ?? body?.q ?? body?.question ?? query;
 				mode = body?.mode ?? mode;
 				if (body?.prefer?.streaming || body?.streaming === true || truthy(String(body?.streaming))) {
@@ -193,6 +204,17 @@ async function handle(req: Request): Promise<Response> {
 	};
 
 	const parsed = await readQuery(req);
+	if (parsed === "invalid-query") {
+		return problemResponse(
+			{
+				title: "Invalid query",
+				status: 400,
+				detail: "`query` must be a string or an object with a string `text`; `q` and `question` must be strings.",
+				instance: "/ask",
+			},
+			headers,
+		);
+	}
 	// A bare probe — no readable query at all — gets a 200 NLWeb envelope with a
 	// usage hint, not a 400. Scanners treat a 400 as "no endpoint here".
 	if (!parsed) {
