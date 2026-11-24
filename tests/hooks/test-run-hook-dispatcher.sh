@@ -244,14 +244,18 @@ OVERRIDE_EOF
 cp "$TEMP_AF12/.claude/hook-overrides.json" "$HOME_AF12/.claude/hook-overrides.json"
 
 run_hook "pretool/bash/sync-bash-dispatcher" \
-  "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo safe\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12\"}" \
+  "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh issue create --title fixcrash --body x\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12\"}" \
   "CLAUDE_PROJECT_DIR=$TEMP_AF12" "HOME=$HOME_AF12"
 # Silent-skip path from isHookDisabled: exactly continue+suppressOutput, no
-# hookSpecificOutput. A live dispatcher injects default timeout via
-# updatedInput: that proves the override was ignored and the hook ran.
-if [[ $LAST_EXIT -eq 0 ]] \
-  && grep -q "cannot disable security hook" <<<"$LAST_STDERR" \
-  && python3 -c "import json,sys; d=json.load(sys.stdin); ui=((d.get('hookSpecificOutput') or {}).get('updatedInput') or {}); assert d.get('continue') is True and ui.get('timeout')==120000" <<<"$LAST_STDOUT" 2>/dev/null; then
+# hookSpecificOutput. A live dispatcher runs gh-label-enforcer, which appends
+# --label to a plain `gh issue create` via updatedInput (outside auto mode):
+# that proves the override was ignored and the hook ran. (The retired
+# default-timeout-setter's timeout:120000 was the signal before 2026-11-24.)
+if [[ $LAST_EXIT -eq 0 \
+  && "$LAST_STDERR" == *"cannot disable security hook"* \
+  && "$LAST_STDOUT" == *'"continue":true'* \
+  && "$LAST_STDOUT" == *'"updatedInput"'* \
+  && "$LAST_STDOUT" == *'--label'* ]]; then
   pass "AF-12: sync-bash-dispatcher override rejected (warning + hook ran)"
 else
   fail "AF-12: sync-bash-dispatcher still disableable (exit=$LAST_EXIT, stderr=$LAST_STDERR, stdout=$LAST_STDOUT)"
@@ -260,23 +264,24 @@ fi
 # 3d. AF-12: project-level hook-overrides.json is ignored once loadOverrides
 # reads user-scope only (HOME/.claude). Clean HOME (no overrides); plant a
 # project disable of a non-security hook whose live path is distinguishable
-# from SILENT_OK (default-timeout-setter injects timeout=120000).
+# from SILENT_OK (gh-label-enforcer appends --label to a plain gh issue create;
+# default-timeout-setter's timeout=120000 was the signal before 2026-11-24).
 TEMP_AF12b=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 HOME_AF12b=$(mktemp -d "${TMPDIR:-/tmp}/ork.XXXXXX")
 mkdir -p "$TEMP_AF12b/.claude" "$HOME_AF12b/.claude"
 cat > "$TEMP_AF12b/.claude/hook-overrides.json" << 'OVERRIDE_EOF'
 {
   "disabled": [
-    "pretool/bash/default-timeout-setter"
+    "pretool/bash/gh-label-enforcer"
   ]
 }
 OVERRIDE_EOF
 # HOME_AF12b/.claude exists but has NO hook-overrides.json
 
-run_hook "pretool/bash/default-timeout-setter" \
-  "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo safe\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12b\"}" \
+run_hook "pretool/bash/gh-label-enforcer" \
+  "{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh issue create --title fixcrash --body x\"},\"hook_event\":\"PreToolUse\",\"project_dir\":\"$TEMP_AF12b\"}" \
   "CLAUDE_PROJECT_DIR=$TEMP_AF12b" "HOME=$HOME_AF12b"
-if [[ $LAST_EXIT -eq 0 ]] && grep -q '"timeout":120000' <<<"$LAST_STDOUT"; then
+if [[ $LAST_EXIT -eq 0 && "$LAST_STDOUT" == *'--label'* ]]; then
   pass "AF-12: project-level hook-overrides.json ignored (user-scope only)"
 else
   fail "AF-12: project-level override still applied (exit=$LAST_EXIT, stdout=$LAST_STDOUT)"
