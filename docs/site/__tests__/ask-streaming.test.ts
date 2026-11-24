@@ -159,17 +159,57 @@ describe("/ask no-query probe → 200 NLWeb envelope", () => {
 		expect(typeof body._meta.usage).toBe("string");
 	});
 
-	it("POST /ask with an unreadable body → 200 envelope, not 400", async () => {
+	it.each([undefined, ""])("POST /ask with empty body %j → 200 envelope", async (requestBody) => {
 		const res = await POST(
 			new Request("https://orchestkit.dev/ask", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
-				body: "{ not json",
+				body: requestBody,
 			}),
 		);
 		expect(res.status).toBe(200);
 		const body = await res.json();
 		expect(body.results).toEqual([]);
+		expect(body._meta.count).toBe(0);
+		expect(typeof body._meta.usage).toBe("string");
+	});
+});
+
+describe("/ask request bodies", () => {
+	it.each(['{"query":"hooks"', "   "])("rejects malformed JSON %j with a JSON problem", async (body) => {
+		const res = await POST(new Request("https://orchestkit.dev/ask", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body,
+		}));
+		expect(res.status).toBe(400);
+		expect(res.headers.get("Content-Type")).toContain("application/json");
+		expect(await res.json()).toMatchObject({
+			type: "about:blank",
+			title: "Invalid JSON body",
+			status: 400,
+			detail: expect.any(String),
+			instance: "/ask",
+		});
+	});
+
+	it("still honors a URL query when JSON parsing fails", async () => {
+		const res = await POST(new Request("https://orchestkit.dev/ask?query=hooks&limit=1", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: '{"query":"ignored"',
+		}));
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({ query: "hooks", _meta: { count: 1 } });
+	});
+
+	it("still accepts a form-encoded query", async () => {
+		const res = await POST(new Request("https://orchestkit.dev/ask", {
+			method: "POST",
+			body: new URLSearchParams({ query: "hooks" }),
+		}));
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({ query: "hooks" });
 	});
 });
 

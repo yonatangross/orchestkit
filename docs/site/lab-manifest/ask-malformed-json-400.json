@@ -1,0 +1,8 @@
+{
+  "slug": "ask-malformed-json-400",
+  "source": "docs/fix--ask-malformed-json-400/index.html",
+  "title": "Malformed JSON is not an empty query",
+  "description": "Recorded before and after responses for malformed JSON on /ask, with valid requests and URL fallback controls.",
+  "tags": ["api", "nlweb", "regression"],
+  "date": "2026-11-24"
+}

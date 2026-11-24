@@ -124,7 +124,7 @@ function isOptionalString(value: unknown): value is string | null | undefined {
 	return value == null || typeof value === "string";
 }
 
-async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | null> {
+async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | "invalid-json"> {
 	// RFC 7240 Prefer header — agents/scanners signal streaming with
 	// `Prefer: streaming` or the standard `Prefer: respond-async`.
 	const prefer = parsePrefer(req.headers.get("prefer"));
@@ -146,14 +146,23 @@ async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | nu
 				mode = form.get("mode") ?? mode;
 				if (truthy(form.get("streaming"))) streaming = true;
 			} else {
-				const body = (await req.json()) as {
+				const rawBody = await req.text();
+				let body: {
 					query?: unknown;
 					q?: unknown;
 					question?: unknown;
 					mode?: string;
 					streaming?: boolean | string;
 					prefer?: { streaming?: boolean };
-				};
+				} | null = null;
+				if (rawBody !== "") {
+					try {
+						body = JSON.parse(rawBody);
+					} catch {
+						// A POST with malformed JSON still honors a usable URL query.
+						if (!query.trim()) return "invalid-json";
+					}
+				}
 				// NLWeb's canonical request body is { query: { text: "..." } }; also
 				// accept a bare string query and the q/question aliases.
 				let bodyQuery = body?.query;
@@ -174,8 +183,7 @@ async function readQuery(req: Request): Promise<ParsedAsk | "invalid-query" | nu
 				}
 			}
 		} catch {
-			// A POST with an unreadable body still honors query-string params.
-			if (!query) return null;
+			// Keep the query when reading the body or interpreting optional hints fails.
 		}
 	}
 
@@ -206,6 +214,17 @@ async function handle(req: Request): Promise<Response> {
 	};
 
 	const parsed = await readQuery(req);
+	if (parsed === "invalid-json") {
+		return problemResponse(
+			{
+				title: "Invalid JSON body",
+				status: 400,
+				detail: "The request body must contain valid JSON.",
+				instance: "/ask",
+			},
+			headers,
+		);
+	}
 	if (parsed === "invalid-query") {
 		return problemResponse(
 			{
@@ -217,12 +236,6 @@ async function handle(req: Request): Promise<Response> {
 			headers,
 		);
 	}
-	// A bare probe — no readable query at all — gets a 200 NLWeb envelope with a
-	// usage hint, not a 400. Scanners treat a 400 as "no endpoint here".
-	if (!parsed) {
-		return noQueryResponse(headers);
-	}
-
 	const query = parsed.query.trim();
 	if (!query) {
 		return noQueryResponse(headers);

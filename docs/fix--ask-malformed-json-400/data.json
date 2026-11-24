@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/app/api/ask/route.ts"],
+  "page": "docs/fix--ask-malformed-json-400/index.html",
+  "lab_slug": "ask-malformed-json-400",
+  "purpose": "Compare recorded NLWeb HTTP responses before and after rejecting malformed JSON."
+}
