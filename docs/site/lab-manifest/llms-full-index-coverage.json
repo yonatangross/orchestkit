@@ -1,0 +1,8 @@
+{
+  "slug": "llms-full-index-coverage",
+  "source": "docs/devin--1795499509-llms-full-index/index.html",
+  "title": "Every indexed URL fits in the docs dump",
+  "description": "Compare the page links in the budgeted docs dump before and after reserving link space.",
+  "tags": ["docs", "markdown", "agents"],
+  "date": "2026-11-24"
+}

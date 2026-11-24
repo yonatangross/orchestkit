@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Every indexed URL fits in the docs dump</title>
+<meta name="description" content="Compare the page links in the budgeted docs dump before and after reserving link space.">
+<style>
+  :root { color-scheme: light; font: 16px/1.55 system-ui, sans-serif; color: #172a35; background: #f1f5f7; }
+  body { margin: 0; }
+  main { max-width: 53rem; margin: auto; padding: clamp(1.5rem, 6vw, 4rem) 1.25rem; }
+  h1 { font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.08; letter-spacing: -.035em; margin: .5rem 0 1rem; }
+  p { max-width: 64ch; }
+  .tag { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #285868; }
+  table { width: 100%; border-collapse: collapse; background: #fff; margin-block: 1.5rem; }
+  caption { text-align: left; font-weight: 700; margin-bottom: .45rem; }
+  th, td { padding: .65rem .8rem; border-bottom: 1px solid #d4e0e6; text-align: left; }
+  td { font-variant-numeric: tabular-nums; }
+  .fixed { background: #e5f6ef; color: #174c3a; font-weight: 700; }
+  details { background: #fff; border: 1px solid #d4e0e6; border-radius: .65rem; padding: .8rem 1rem; }
+  summary { cursor: pointer; font-weight: 700; }
+  code { overflow-wrap: anywhere; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Every indexed URL fits in the docs dump"><meta property="og:description" content="Compare the page links in the budgeted docs dump before and after reserving link space."><meta property="og:url" content="https://orchestkit.dev/lab/llms-full-index-coverage.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Every indexed URL fits in the docs dump"><meta name="twitter:description" content="Compare the page links in the budgeted docs dump before and after reserving link space."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <p class="tag">OrchestKit Docs / HTTP probe</p>
+  <h1>Every indexed URL fits in the docs dump</h1>
+  <p><code>/llms-full.txt</code> now reserves room for page links before adding narrative content. It still fits within the 190,000-character budget and links to <code>/docs/llms.txt</code> in its header.</p>
+  <table>
+    <caption>Local Next.js responses, same documentation corpus</caption>
+    <thead><tr><th scope="col">Measure</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Dump characters</th><td>190,167</td><td>189,953</td></tr>
+      <tr><th scope="row">Indexed page URLs</th><td>332</td><td>332</td></tr>
+      <tr><th scope="row">Indexed URLs absent from dump</th><td>277</td><td class="fixed">0</td></tr>
+    </tbody>
+  </table>
+  <details>
+    <summary>Inspect a recovered page URL</summary>
+    <p><code>/docs/cookbook/roles/security-engineer</code> was in the page index but missing from the old dump. Its Markdown endpoint already returned HTTP 200. The new dump includes the URL in its link-only list.</p>
+    <p>The updated feed contains 39 page bodies and 293 link-only pages. The full page index remains available for navigation by section.</p>
+  </details>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
