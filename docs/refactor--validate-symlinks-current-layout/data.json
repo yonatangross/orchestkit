@@ -1,0 +1,6 @@
+{
+  "serves": "validate-symlinks-current-layout",
+  "page": "docs/refactor--validate-symlinks-current-layout/index.html",
+  "lab_slug": "validate-symlinks-current-layout",
+  "purpose": "Show recorded before and after output from the plugin symlink validator"
+}

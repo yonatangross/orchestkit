@@ -268,7 +268,7 @@ No agent ships an agent-scoped hook today: #3461 removed all of them from agent 
 
 ### Skill-Scoped Hooks
 
-Defined in a SKILL.md file's frontmatter. Fire only when that skill is active. Currently, one skill-scoped hook exists: `skill/redact-secrets`, which is registered in hooks.json under `PostToolUse > Bash` and runs after every Bash command to scan output for leaked secrets.
+Defined in a SKILL.md file's frontmatter. Fire only when that skill is active. Currently, one skill-scoped hook exists: `skill/redact-secrets`, which is registered in hooks.json under `PostToolUse > Bash` and `PostToolUse > Write|Edit` and runs after every Bash command and file write to warn about leaked secrets in the output.
 
 Skill-scoped hooks are the narrowest scope: they activate only when the associated skill is loaded into the session.
 

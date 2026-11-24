@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Lint hooks accept Windows paths</title>
+  <meta name="description" content="Compare regression results for Windows paths in auto-lint and ascii-lint.">
+  <style>
+    body { margin: 0; background: #f6f8fa; color: #172b35; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: auto; padding: clamp(1rem, 5vw, 4rem) 1rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+    .eyebrow { color: #346557; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence, details { background: #fff; border: 1px solid #cedadd; border-radius: .75rem; margin-top: 1.25rem; }
+    .evidence { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    caption, th, td, details { padding: .65rem 1rem; }
+    th, td { border-top: 1px solid #dbe4e6; }
+    thead { background: #edf2f4; }
+    td:last-child { background: #eff7f2; }
+    summary { cursor: pointer; font-weight: 700; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Lint hooks accept Windows paths"><meta property="og:description" content="Compare regression results for drive-letter, network-share, and relative paths in both lint hooks."><meta property="og:url" content="https://orchestkit.dev/lab/windows-lint-paths.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Lint hooks accept Windows paths"><meta name="twitter:description" content="Compare regression results for drive-letter, network-share, and relative paths in both lint hooks."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <span class="eyebrow">PostToolUse / Regression evidence</span>
+  <h1>Lint hooks accept Windows paths</h1>
+  <p>Auto-lint no longer prefixes an absolute Windows path with the project directory. ASCII lint recognizes <code>src</code> with Windows separators and reports the file name without its parent directories.</p>
+  <div class="evidence">
+    <table>
+      <caption>Vitest run using Node's Windows path implementation and mocked disk and formatter calls</caption>
+      <thead><tr><th scope="col">Check</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Auto-lint on drive and UNC paths</th><td>No formatter call</td><td>Biome gets the edited file path</td></tr>
+        <tr><th scope="row">ASCII lint on drive, UNC, and relative paths</th><td>No file read or warning</td><td>Width warning for <code>guide.md</code></td></tr>
+        <tr><th scope="row">Windows regression suite</th><td>10 failed, 3 passed</td><td>13 passed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <details>
+    <summary>Run the regression test</summary>
+    <pre><code>npm --prefix src/hooks test -- src/__tests__/posttool/lint-windows-paths.test.ts</code></pre>
+    <p>The suite runs on Linux using <code>node:path.win32</code>. It tests path handling, not formatter installation on Windows.</p>
+  </details>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

@@ -21,7 +21,7 @@ import { createHash } from 'node:crypto';
 import { load as loadYaml } from 'js-yaml';
 import type { HookInput, HookResult , HookContext} from '../types.js';
 import { outputSilentSuccess, getField } from '../lib/common.js';
-import { basename, dirname } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { assertSafeCommandName } from '../lib/sanitize-shell.js';
 import { safeProjectDir } from '../lib/paths.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -111,10 +111,10 @@ function hasConfig(filePath: string, projectDir: string, names: readonly string[
   let dir = dirname(filePath);
   while (dir) {
     for (const name of names) {
-      const candidate = `${dir}/${name}`;
+      const candidate = join(dir, name);
       if (existsSync(candidate) && configApplies(candidate)) return true;
     }
-    if (dir === projectDir) return false;
+    if (relative(dir, projectDir) === '') return false;
     const parent = dirname(dir);
     if (parent === dir) return false;
     dir = parent;
@@ -134,20 +134,20 @@ export function autoLint(input: HookInput, ctx: HookContext = NOOP_CTX): HookRes
   }
 
   const filePath = getField<string>(input, 'tool_input.file_path') || '';
+  if (!filePath) return outputSilentSuccess();
+
+  const projectDir = safeProjectDir();
+  const fullPath = isAbsolute(filePath) ? filePath : resolve(projectDir, filePath);
+  const filterPath = fullPath.split(sep).join('/');
 
   // Skip internal files
-  if (!filePath || filePath.includes('/.claude/') ||
-      filePath.includes('/node_modules/') ||
-      filePath.includes('/.git/') ||
-      filePath.includes('/dist/') ||
+  if (filterPath.includes('/.claude/') ||
+      filterPath.includes('/node_modules/') ||
+      filterPath.includes('/.git/') ||
+      filterPath.includes('/dist/') ||
       filePath.endsWith('.lock')) {
     return outputSilentSuccess();
   }
-
-  // Check if file exists
-  // Defense in depth: resolve relative paths even though CC >= 2.1.88 guarantees absolute
-  const projectDir = safeProjectDir();
-  const fullPath = filePath.startsWith('/') ? filePath : `${projectDir}/${filePath}`;
 
   if (!existsSync(fullPath)) {
     return outputSilentSuccess();

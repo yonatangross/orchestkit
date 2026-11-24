@@ -68,6 +68,7 @@ import { handoffInjector } from './handoff-injector.js';
 import { executorRouteNudge } from './executor-route-nudge.js';
 import { visualStyleNudge } from './visual-style-nudge.js';
 import { multiStepTaskNudge } from './multi-step-task-nudge.js';
+import { admitPromptTaskNudge } from '../lib/task-nudge-gate.js';
 // M140 G3 (#1790) — synchronous /goal tracking and budget brake
 import { goalTracker } from './goal-tracker.js';
 // M119 PR-2 (#1794 follow-up) — deferred worktree advisory delivery
@@ -106,6 +107,8 @@ interface PromptHookConfig {
   mustDeliverContext?: boolean;
   /** Called only after the final dispatcher response contains this context. */
   onContextDelivered?: (result: HookResult) => void;
+  /** After the budget admits this context: false drops only this part. */
+  admitContext?: (input: HookInput) => boolean;
   /**
    * Shrink this hook's context to the given room, or return null to drop it
    * this turn (#4922). Only hooks that can keep the undelivered part for a
@@ -168,7 +171,14 @@ const HOOKS: PromptHookConfig[] = [
   { name: 'visual-style-nudge', fn: visualStyleNudge, producesContext: true },
   // 3+ step work with no task list — advisory TaskCreate re-anchor. Goes
   // permanently silent for the session after the first TaskCreated event.
-  { name: 'multi-step-task-nudge', fn: multiStepTaskNudge, producesContext: true },
+  // The shared one-per-session nudge is claimed only after the budget keeps the
+  // text, and an unprompted reminder that loses the claim is dropped.
+  {
+    name: 'multi-step-task-nudge',
+    fn: multiStepTaskNudge,
+    producesContext: true,
+    admitContext: admitPromptTaskNudge,
+  },
   // antipattern-warning removed (#972) — now a type:prompt hook in hooks.json
 ];
 
@@ -586,9 +596,17 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
         ctx.log(HOOK_NAME, `Delivering ${hook.name} above the shared context budget (${contextTokens}t, cap=${tokenBudget}t)`);
       }
 
+      if (hook.admitContext && !hook.admitContext(input)) {
+        ctx.log(HOOK_NAME, `${hook.name}: not admitted, dropped from this response`);
+        continue;
+      }
+
       contextParts.push(context);
       totalTokens += contextTokens;
-      if (hook.onContextDelivered) deliveredContexts.push({ hook, result, partIndex: contextParts.length - 1 });
+      // Tracked context bypasses the delta skip: admitted text has already spent its claim.
+      if (hook.onContextDelivered || hook.admitContext) {
+        deliveredContexts.push({ hook, result, partIndex: contextParts.length - 1 });
+      }
 
       ctx.log(HOOK_NAME, `${hook.name}: +${contextTokens}t (total: ${totalTokens}t)`);
     } catch (error) {

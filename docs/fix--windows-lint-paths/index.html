@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Lint hooks accept Windows paths</title>
+  <meta name="description" content="Compare regression results for Windows paths in auto-lint and ascii-lint.">
+  <style>
+    body { margin: 0; background: #f6f8fa; color: #172b35; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: auto; padding: clamp(1rem, 5vw, 4rem) 1rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+    .eyebrow { color: #346557; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence, details { background: #fff; border: 1px solid #cedadd; border-radius: .75rem; margin-top: 1.25rem; }
+    .evidence { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    caption, th, td, details { padding: .65rem 1rem; }
+    th, td { border-top: 1px solid #dbe4e6; }
+    thead { background: #edf2f4; }
+    td:last-child { background: #eff7f2; }
+    summary { cursor: pointer; font-weight: 700; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+<main>
+  <span class="eyebrow">PostToolUse / Regression evidence</span>
+  <h1>Lint hooks accept Windows paths</h1>
+  <p>Auto-lint no longer prefixes an absolute Windows path with the project directory. ASCII lint recognizes <code>src</code> with Windows separators and reports the file name without its parent directories.</p>
+  <div class="evidence">
+    <table>
+      <caption>Vitest run using Node's Windows path implementation and mocked disk and formatter calls</caption>
+      <thead><tr><th scope="col">Check</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Auto-lint on drive and UNC paths</th><td>No formatter call</td><td>Biome gets the edited file path</td></tr>
+        <tr><th scope="row">ASCII lint on drive, UNC, and relative paths</th><td>No file read or warning</td><td>Width warning for <code>guide.md</code></td></tr>
+        <tr><th scope="row">Windows regression suite</th><td>10 failed, 3 passed</td><td>13 passed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <details>
+    <summary>Run the regression test</summary>
+    <pre><code>npm --prefix src/hooks test -- src/__tests__/posttool/lint-windows-paths.test.ts</code></pre>
+    <p>The suite runs on Linux using <code>node:path.win32</code>. It tests path handling, not formatter installation on Windows.</p>
+  </details>
+</main>
+</body>
+</html>

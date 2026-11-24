@@ -228,8 +228,10 @@ export async function run(
 					process.versions.node.split(".")[0] ?? "0",
 					10,
 				);
+				const nodeSupported = major >= 20;
+				let failed = !nodeSupported;
 				checks.push(
-					major >= 20
+					nodeSupported
 						? `  ok    node ${process.versions.node} (>= 20 required)`
 						: `  FAIL  node ${process.versions.node}, OrchestKit CLI needs Node >= 20`,
 				);
@@ -244,11 +246,11 @@ export async function run(
 							: `  ok    rate limit ${rateLimit.remaining}/${rateLimit.limit}, resets in ${rateLimit.reset}s`,
 					);
 				} catch (err) {
+					failed = true;
 					checks.push(
 						`  FAIL  API unreachable at ${client.baseUrl}: ${err instanceof Error ? err.message : String(err)}`,
 					);
 				}
-				const failed = checks.some((c) => c.includes("FAIL"));
 				const body = `orchestkit doctor\n\n${checks.join("\n")}\n`;
 				return failed ? { stdout: body, stderr: "", exitCode: 1 } : ok(body);
 			}

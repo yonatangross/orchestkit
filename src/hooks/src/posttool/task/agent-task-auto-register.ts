@@ -26,6 +26,7 @@ import {
   generateTaskCreateInstruction,
 } from '../../lib/task-integration.js';
 import { NOOP_CTX } from '../../lib/context.js';
+import { claimTaskNudge } from '../../lib/task-nudge-gate.js';
 
 const HOOK_NAME = 'agent-task-auto-register';
 
@@ -93,10 +94,20 @@ export function agentTaskAutoRegister(input: HookInput, ctx: HookContext = NOOP_
     return outputSilentSuccess();
   }
 
+  // Registration above is the side effect and runs for every eligible agent. The
+  // text is limited to one task-tracking nudge per session across all three
+  // hooks. It stays because it is the fallback when the pre hook's nudge was
+  // discarded by a permission ask, which leaves the nudge unspent.
+  const projectDir = input.project_dir || process.env.CLAUDE_PROJECT_DIR || '';
+  if (!claimTaskNudge(input.session_id, projectDir)) {
+    ctx.log(HOOK_NAME, `Nudge suppressed for ${subagentType} (already sent or session has tasks)`);
+    return outputSilentSuccess();
+  }
+
   const agentLabel = name || subagentType;
   return outputWithContext(
     `[Auto-Task] Agent "${agentLabel}" launched without a TaskCreate. ` +
-    `Suggested: TaskCreate(subject="${instruction.subject}", ` +
-    `activeForm="${instruction.activeForm}")`, input,
+    `If TaskCreate is in this session's tool set, suggested: TaskCreate(subject="${instruction.subject}", ` +
+    `activeForm="${instruction.activeForm}"); otherwise disregard.`, input,
   );
 }

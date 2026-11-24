@@ -1,0 +1,6 @@
+{
+  "serves": "sitemap-canonical-dedupe",
+  "page": "docs/fix--sitemap-canonical-dedupe/index.html",
+  "lab_slug": "sitemap-canonical-dedupe",
+  "purpose": "Compare the measured sitemap URLs before and after dropping the changelog alias."
+}

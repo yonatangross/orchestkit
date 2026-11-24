@@ -1,0 +1,8 @@
+{
+  "slug": "sitemap-canonical-dedupe",
+  "source": "docs/fix--sitemap-canonical-dedupe/index.html",
+  "title": "One canonical changelog in the sitemap",
+  "description": "Compare the real sitemap responses: 355 URLs before, 354 after, and only the canonical changelog URL remains.",
+  "tags": ["docs-site", "seo"],
+  "date": "2026-11-23"
+}

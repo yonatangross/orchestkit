@@ -868,6 +868,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "Agent spawns (Task hooks)",
       "PostToolUse Safety",
       "Secret Handler",
+      "Redact Secrets",
       "Failure Handler",
       "Customizing Safety Hooks",
       "Hook Overrides",
