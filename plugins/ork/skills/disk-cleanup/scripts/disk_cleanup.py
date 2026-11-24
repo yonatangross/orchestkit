@@ -111,7 +111,8 @@ class Env:
     # Folders the cleanup never walks or empties: every private lane from any
     # installed plugin's configs/private-lanes.json plus each lane's
     # ~/.claude/projects slug dir. Loaded by private_lanes(home); empty when no
-    # such list is installed.
+    # such list is installed. A present but unreadable list never gets here: the
+    # run refuses first.
     lanes: tuple[Path, ...] = ()
 
     @property
@@ -249,11 +250,18 @@ def lane_slug(path: Path) -> str:
     return re.sub(r"[^A-Za-z0-9]", "-", str(path))
 
 
+class LaneListError(Exception):
+    """A private-lanes.json exists but cannot be trusted; the run must refuse."""
+
+
 def private_lanes(home: Path) -> tuple[Path, ...]:
     """Resolved private-lane folders plus their projects slug dirs.
 
     Every installed list contributes (a stale older copy can only widen the
-    set); an absent or unreadable list means no lanes.
+    set). An absent list means no lanes (a plain ork install). A list
+    that is present but unreadable, not valid JSON, or whose private_lanes key
+    is not a list raises LaneListError: a lane we cannot read is a lane we
+    cannot protect, so the caller refuses to size or delete anything.
     """
     out: list[Path] = []
     projects = home / ".claude" / "projects"
@@ -261,10 +269,12 @@ def private_lanes(home: Path) -> tuple[Path, ...]:
     for cfg in sorted(cache.glob("*/*/*/configs/private-lanes.json")):
         try:
             data = json.loads(cfg.read_text())
-        except (OSError, ValueError):
-            continue
+        except (OSError, ValueError) as exc:
+            raise LaneListError(f"{cfg} is present but unreadable or malformed ({exc})") from exc
         entries = data.get("private_lanes") if isinstance(data, dict) else None
-        for entry in entries if isinstance(entries, list) else ():
+        if not isinstance(entries, list):
+            raise LaneListError(f"{cfg} is present but its private_lanes key is not a list")
+        for entry in entries:
             if not isinstance(entry, str) or not entry.strip():
                 continue
             p = Path(entry)
@@ -274,8 +284,6 @@ def private_lanes(home: Path) -> tuple[Path, ...]:
                 p = home / p
             out.append(Path(os.path.realpath(p)))
             out.append(Path(os.path.realpath(projects / lane_slug(p))))
-        # One malformed list fails closed for that file only; the others still
-        # contribute, matching the union-above comment.
     return tuple(dict.fromkeys(out))
 
 
@@ -283,7 +291,7 @@ def in_lanes(path: Path, lanes: tuple[Path, ...]) -> bool:
     try:
         real = os.path.realpath(path)
     except OSError:
-        return False
+        return True  # cannot resolve it, so cannot prove it is outside a lane
     return any(real == str(lane) or real.startswith(str(lane) + os.sep) for lane in lanes)
 
 
@@ -1302,6 +1310,15 @@ def main(
     if not home.is_dir():
         print(f"home is not a directory: {home}", file=sys.stderr)
         return 2
+    # Before anything is sized, deleted or created (the report file included).
+    try:
+        lanes = private_lanes(home)
+    except LaneListError as exc:
+        print(
+            f"refusing to run: {exc}. Fix or remove that file; nothing was sized or deleted.",
+            file=sys.stderr,
+        )
+        return 2
     report_fd: int | None = None
     if args.report:
         report_fd, why = open_report(args.report)
@@ -1309,7 +1326,7 @@ def main(
             print(f"refusing to write {args.report}: {why}", file=sys.stderr)
             return 2
     try:
-        return _run(args, out, home, platform, runner, now, disk_usage, cwd, report_fd)
+        return _run(args, out, home, platform, runner, now, disk_usage, cwd, report_fd, lanes)
     finally:
         if report_fd is not None:
             os.close(report_fd)
@@ -1363,6 +1380,7 @@ def _run(
     disk_usage: Callable[[Path], tuple[int, int, int]] | None,
     cwd: Path | None,
     report_fd: int | None,
+    lanes: tuple[Path, ...],
 ) -> int:
     run = runner or Runner()
     roots = [Path(r) for r in args.root]
@@ -1380,7 +1398,7 @@ def _run(
         uid=os.getuid() if hasattr(os, "getuid") else -1,
         idle_minutes=args.idle_minutes,
         ledger=Path(args.ledger) if args.ledger else None,
-        lanes=private_lanes(home),
+        lanes=lanes,
     )
     if disk_usage:
         env.disk_usage = disk_usage

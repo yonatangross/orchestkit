@@ -324,6 +324,112 @@ def test_private_lanes_without_a_plugin_list_is_empty(home):
     assert dc.private_lanes(home) == ()
 
 
+def refused_run(home: Path, capsys, *extra: str) -> tuple[int, str, str, Path]:
+    """Run main over a home that holds a clearable cache; return rc, out, err, cache file."""
+    cache_file = write(home / ".npm" / "_cacache" / "x.bin", 200_000)
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--apply", *extra],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+        now=time.time() + LATER,
+    )
+    cap = capsys.readouterr()
+    return rc, cap.out, cap.err, cache_file
+
+
+def assert_refused(home: Path, rc: int, out: str, err: str, cache_file: Path) -> None:
+    assert rc == 2
+    assert out == ""
+    assert "refusing to run" in err
+    assert "private-lanes.json" in err
+    assert cache_file.exists()
+    assert not (home / ".local" / "state" / "ork" / "disk-cleanup-ledger.jsonl").exists()
+
+
+def test_unreadable_lane_list_refuses_the_run(home, capsys):
+    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg.unlink()
+    cfg.mkdir()  # present but cannot be read as a file
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+@pytest.mark.skipif(not hasattr(os, "geteuid") or os.geteuid() == 0, reason="root reads any file")
+def test_permission_denied_lane_list_refuses_the_run(home, capsys):
+    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg.chmod(0)
+    try:
+        with pytest.raises(dc.LaneListError):
+            dc.private_lanes(home)
+        assert_refused(home, *refused_run(home, capsys))
+    finally:
+        cfg.chmod(0o600)
+
+
+def test_malformed_json_lane_list_refuses_the_run(home, capsys):
+    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg.write_text("{not json")
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+@pytest.mark.parametrize(
+    "payload",
+    ['{"private_lanes": "~/.floor"}', '{"private_lanes": null}', "{}", "[]", '"x"'],
+)
+def test_lane_list_whose_key_is_not_a_list_refuses_the_run(home, capsys, payload):
+    cfg = write_lane_list(home, "~/.floor/desks/personal-desk")
+    cfg.write_text(payload)
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+def test_refusal_applies_to_a_dry_run_and_leaves_no_report(home, tmp_path, capsys):
+    cfg = write_lane_list(home)
+    cfg.write_text("{not json")
+    report = tmp_path / "report.txt"
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--report", str(report)],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+    )
+    assert rc == 2
+    assert not report.exists()
+    assert "refusing to run" in capsys.readouterr().err
+
+
+def test_one_bad_list_refuses_even_when_another_is_good(home, capsys):
+    write_lane_list(home, "~/.floor/desks/personal-desk")
+    other = home / ".claude" / "plugins" / "cache" / "mp2" / "plugin" / "1.0.0" / "configs"
+    other.mkdir(parents=True)
+    (other / "private-lanes.json").write_text("{not json")
+    with pytest.raises(dc.LaneListError):
+        dc.private_lanes(home)
+    assert_refused(home, *refused_run(home, capsys))
+
+
+def test_absent_lane_list_still_runs(home, capsys):
+    cache_file = write(home / ".npm" / "_cacache" / "x.bin", 200_000)
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--apply"],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+        now=time.time() + LATER,
+    )
+    assert rc == 0
+    assert "refusing" not in capsys.readouterr().err
+    assert not cache_file.exists()
+
+
+def test_realpath_error_counts_as_in_lane(monkeypatch, tmp_path):
+    def boom(_path):
+        raise OSError("cannot resolve")
+
+    monkeypatch.setattr(dc.os.path, "realpath", boom)
+    assert dc.in_lanes(tmp_path / "anything", (tmp_path / "lane",)) is True
+    assert dc.in_lanes(tmp_path / "anything", ()) is True
+
+
 def test_measure_prunes_private_lanes(home):
     _lane, slug_dir, lanes = lane_env(home)
     write(slug_dir / "s.jsonl", 500_000)
