@@ -1,9 +1,9 @@
 {
   "$schema": "./cc-support.schema.json",
-  "latest": "2.1.330",
+  "latest": "2.1.331",
   "latest_known": "2.1.331",
-  "supported_floor": "2.1.327",
-  "drop_after": "2.1.326",
+  "supported_floor": "2.1.328",
+  "drop_after": "2.1.327",
   "policy": "latest + 3 previous minors",
   "policy_doc": "shared/rules/cc-support-policy.md",
   "manual_override": {

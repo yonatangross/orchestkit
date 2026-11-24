@@ -1,7 +1,7 @@
 ---
 name: design-context-extract
 license: MIT
-compatibility: "Claude Code 2.1.327+. Optional: stitch (official Google Stitch) MCP server."
+compatibility: "Claude Code 2.1.328+. Optional: stitch (official Google Stitch) MCP server."
 description: "Extracts design DNA (colors, type, spacing, components, motion) from screenshots, URLs or recordings as tokens or Tailwind config. Use to match a visual identity."
 argument-hint: "[screenshot-path | video-path | url | 'current project']"
 context: fork

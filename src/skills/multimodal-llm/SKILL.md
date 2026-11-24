@@ -1,7 +1,7 @@
 ---
 name: multimodal-llm
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: Vision, audio, video generation, and multimodal LLM patterns. Use when processing images, transcribing audio, generating speech, generating AI video (Kling v3, Sora 2, Veo 3.1, Runway Gen-4.5), or building multimodal AI pipelines.
 user-invocable: false
 effort: high

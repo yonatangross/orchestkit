@@ -1,6 +1,6 @@
 ---
 name: audit-activation
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "Audits sub-agent activation from telemetry: attempted, started, completed, unattributed spawns, and zero-start agents. Use when agents feel under-used or before pruning the catalog."
 user-invocable: true
 disable-model-invocation: true

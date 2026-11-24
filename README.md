@@ -5,7 +5,7 @@
 
 **<!--ork:skills-->115<!--/ork--> skills · <!--ork:agents-->36<!--/ork--> agents · <!--ork:hooks-->163<!--/ork--> hooks**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.327-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.328-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 [![Community](https://img.shields.io/badge/Community-WhatsApp-25D366?style=for-the-badge&logo=whatsapp)](https://platform.yonyon.ai/circle?ref=readme)
@@ -65,7 +65,7 @@ Measured 2026-09-08 on pi 0.85, Codex CLI and cursor-agent. Details, commands an
 
 | Host | Skills | Agents | Hooks | Install | Needs |
 |---|---|---|---|---|---|
-| Claude Code | 82 + 33 ork-extras | 36 | 163 | plugin (CLI) | Claude Code 2.1.327 or newer |
+| Claude Code | 82 + 33 ork-extras | 36 | 163 | plugin (CLI) | Claude Code 2.1.328 or newer |
 | Cursor | 82 + 33 ork-extras | 36 | not yet (#4004) | plugin (Settings) |  |
 | Codex | 9 | 4 roles | not yet (#4004) | ork-codex pack |  |
 | Devin | 82 | 36 | 58 of 103 | plugin (git) |  |
@@ -650,7 +650,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.327** (supported floor; Opus 5 as the default Opus, Opus 5.5 from 2.1.280, `xhigh` effort, dynamic workflows, `sandbox.network.strictAllowlist`, native binary, hardened `Bash(rm:*)`/`Bash(find:*)` rules). Check with `claude --version`.
+Requires **≥2.1.328** (supported floor; Opus 5 as the default Opus, Opus 5.5 from 2.1.280, `xhigh` effort, dynamic workflows, `sandbox.network.strictAllowlist`, native binary, hardened `Bash(rm:*)`/`Bash(find:*)` rules). Check with `claude --version`.
 
 Raising this floor is a breaking change and ships as a major release. See [STABILITY.md](STABILITY.md) for the full contract, and `shared/cc-support.json` for the authoritative window.
 </details>

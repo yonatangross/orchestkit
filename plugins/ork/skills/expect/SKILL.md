@@ -1,7 +1,7 @@
 ---
 name: expect
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires agent-browser >= 0.31.1 (Rust-native, no Playwright; 0.27.1 documented broken on prod pages)."
+compatibility: "Claude Code 2.1.328+. Requires agent-browser >= 0.31.1 (Rust-native, no Playwright; 0.27.1 documented broken on prod pages)."
 description: "Diff-aware browser testing: maps the git diff to affected pages, plans and runs targeted checks via agent-browser. Use when testing UI changes before merge. Not for writing tests (use cover), grading a suite (use verify) or unit tests."
 argument-hint: "[-m <instruction>] [--target unstaged|branch|commit] [--flow <slug>] [-y]"
 context: fork

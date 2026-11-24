@@ -1,7 +1,7 @@
 ---
 name: zustand-patterns
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Zustand 5.x state management reference: slices, middleware, Immer, useShallow, persistence, selectors, devtools, with TypeScript examples. Use when building React state management with Zustand instead of Redux."
 context: inherit
 allowed-tools: "Read Write Grep Glob"

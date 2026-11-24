@@ -6,7 +6,7 @@ export const COMPAT_ROWS: CompatRow[] = [
     "id": "claude",
     "name": "Claude Code",
     "route": "plugin (CLI)",
-    "minVersion": "2.1.327",
+    "minVersion": "2.1.328",
     "roles": null,
     "hooksIssue": null,
     "extraSkills": 33,

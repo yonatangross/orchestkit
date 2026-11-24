@@ -1,7 +1,7 @@
 ---
 name: devops-deployment
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "CI/CD, containers and infrastructure as code: GitHub Actions, Docker, Kubernetes, Helm, Terraform. Use when setting up pipelines or deployments."
 user-invocable: false
 disable-model-invocation: false

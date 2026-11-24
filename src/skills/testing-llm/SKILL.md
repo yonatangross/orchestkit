@@ -1,7 +1,7 @@
 ---
 name: testing-llm
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "LLM testing patterns: mocked responses, DeepEval and RAGAS evaluation, structured output checks, agentic tests. Use when testing AI features."
 user-invocable: false
 disable-model-invocation: false

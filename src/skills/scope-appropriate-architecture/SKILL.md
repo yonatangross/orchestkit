@@ -1,7 +1,7 @@
 ---
 name: scope-appropriate-architecture
 license: MIT
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "Classifies a project into 6 tiers to right-size its architecture and prevent over-engineering. Use when choosing patterns for a project's scope."
 user-invocable: false
 context: inherit

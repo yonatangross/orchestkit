@@ -1,7 +1,7 @@
 ---
 name: review-pr
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires memory MCP server, gh CLI."
+compatibility: "Claude Code 2.1.328+. Requires memory MCP server, gh CLI."
 description: "Reviews a PR, branch or diff range with parallel agents (quality, security, tests, architecture, performance) and gives an approve or request-changes verdict. Use before merging. Not for design scores (use assess)."
 argument-hint: "[pr-number-or-branch] [--post] [--post-verdict]"
 user-invocable: true

@@ -1,6 +1,6 @@
 ---
 name: emulate-seed
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "Seed configs for Vercel emulate: stateful GitHub, Vercel, Google, Slack, Stripe, AWS and more, not mocks. Use when setting up test environments, CI or offline development."
 user-invocable: false
 disable-model-invocation: false

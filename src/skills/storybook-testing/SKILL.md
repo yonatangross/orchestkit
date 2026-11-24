@@ -1,7 +1,7 @@
 ---
 name: storybook-testing
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Storybook 10 testing: Vitest integration, CSF3 factories, play() interaction tests, Chromatic TurboSnap, automocking, a11y addon, autodocs. Use when writing component stories, setting up visual regression, Storybook CI, or migrating from Storybook 9."
 user-invocable: false
 # Reference skill: fenced Storybook MCP names teach CSF/testing patterns; this

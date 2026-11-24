@@ -1,6 +1,6 @@
 ---
 name: okr-design
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "OKR trees, KPIs, North Star metric, leading and lagging indicators, experiment guardrails. Use when setting goals or success metrics."
 user-invocable: false
 disable-model-invocation: false

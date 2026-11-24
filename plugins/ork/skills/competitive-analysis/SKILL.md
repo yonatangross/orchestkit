@@ -1,6 +1,6 @@
 ---
 name: competitive-analysis
-compatibility: "Claude Code 2.1.327+"
+compatibility: "Claude Code 2.1.328+"
 description: "Porter's Five Forces, SWOT, competitor profiles, feature gaps and battlecards. Use when analyzing market position or building sales battlecards."
 user-invocable: false
 disable-model-invocation: false

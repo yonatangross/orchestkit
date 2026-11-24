@@ -3,7 +3,7 @@ name: prd-to-goal
 description: "Turns a PRD, issue or spec into one copy-paste /goal line of AND-joined boolean checks. Use when running /goal against a spec."
 argument-hint: "[prd-text | issue#N | path/to/spec.md]"
 license: MIT
-compatibility: "Claude Code 2.1.327+ (uses GA `/goal` loop)."
+compatibility: "Claude Code 2.1.328+ (uses GA `/goal` loop)."
 user-invocable: true
 context: inherit
 allowed-tools: "Read Write Bash Grep Agent"

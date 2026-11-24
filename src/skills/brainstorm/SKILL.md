@@ -1,7 +1,7 @@
 ---
 name: brainstorm
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.328+. Requires memory MCP server."
 description: "Design ideation with parallel agents: 10+ ideas, feasibility filter, devil's-advocate scoring, trade-offs. Use when brainstorming or comparing alternatives. Not for building or fixing code (use implement or fix-issue) or scoring a design (use assess)."
 argument-hint: "[topic-or-idea]"
 disable-model-invocation: false  # #3194: true also blocked USER-typed mid-turn invocations

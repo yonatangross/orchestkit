@@ -1,7 +1,7 @@
 ---
 name: architecture-patterns
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Clean and layered architecture patterns, project structure and test-standard validation. Use when designing system boundaries or enforcing structure. For tier sizing, use scope-appropriate-architecture."
 skills: [scope-appropriate-architecture]
 user-invocable: false

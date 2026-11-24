@@ -1,7 +1,7 @@
 ---
 name: audit-full
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires memory MCP server."
+compatibility: "Claude Code 2.1.328+. Requires memory MCP server."
 description: "Whole-codebase audit in one 1M-token pass: security, architecture and dependencies with severity-ranked findings. Use before a release or security review. Too big for one pass: use audit-full-mapreduce."
 argument-hint: "[scope]"
 user-invocable: true

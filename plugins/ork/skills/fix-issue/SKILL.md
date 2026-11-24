@@ -1,7 +1,7 @@
 ---
 name: fix-issue
 license: MIT
-compatibility: "Claude Code 2.1.327+. Requires memory MCP server, context7 MCP server, gh CLI."
+compatibility: "Claude Code 2.1.328+. Requires memory MCP server, context7 MCP server, gh CLI."
 description: "Triages and fixes a GitHub issue given its number or URL: root cause and culprit (stack trace, blame), a fix with tests, a linked PR, prevention notes. Use for issue #N or a URL; it stops without one."
 argument-hint: "[issue-number]"
 context: fork

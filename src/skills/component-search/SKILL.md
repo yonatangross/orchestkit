@@ -1,7 +1,7 @@
 ---
 name: component-search
 license: MIT
-compatibility: "Claude Code 2.1.327+. Optional: 21st-dev-magic MCP server."
+compatibility: "Claude Code 2.1.328+. Optional: 21st-dev-magic MCP server."
 description: "Searches the 21st.dev registry for production React components, ranked with install steps. Use when looking for a UI component or an alternative to one."
 argument-hint: "[component description]"
 context: fork

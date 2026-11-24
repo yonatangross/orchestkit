@@ -1,7 +1,7 @@
 ---
 name: testing-perf
 license: MIT
-compatibility: "Claude Code 2.1.327+."
+compatibility: "Claude Code 2.1.328+."
 description: "Load and performance tests with k6 and Locust, plus pytest speed (xdist). Use when writing load tests or speeding up a test suite."
 user-invocable: false
 disable-model-invocation: false
