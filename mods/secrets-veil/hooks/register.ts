@@ -371,7 +371,7 @@ function errorText(answer: Record<string, unknown>): string {
   if (typeof answer.text === "string" && answer.text.length > 0) return answer.text;
   if (typeof answer.result === "string" && answer.result.length > 0) return answer.result;
   const json = answer.result === undefined ? undefined : JSON.stringify(answer.result);
-  return json !== undefined && json.length > 0 ? json : WITHHELD;
+  return json !== undefined && json.length > 0 ? json : `${WITHHELD} Cause: the error had no text.`;
 }
 
 /**
@@ -527,6 +527,18 @@ export interface Registration {
 /** The answer when anything goes wrong after the tool ran: withhold, never pass through. */
 export const WITHHELD = "secrets-veil could not mask this result, so it is withheld rather than shown unmasked.";
 
+/**
+ * The withheld line with the path that fired (2026-11-24: a Write of a plain floor script came back withheld and
+ * nobody could tell which of three paths did it; its text masked nothing on replay). Still fail closed. Only the
+ * veil's own fixed refusal reasons are named; any other error is named generically, never by its message, which
+ * could carry result text.
+ */
+export const RUNTIME_STOPPED = "the mod runtime stopped the hook (a throw it saw, or the hook ran past its budget)";
+export function withheldFor(err: unknown): string {
+  const cause = err instanceof VeilRefusal ? err.message : "an error inside the veil";
+  return `${WITHHELD} Cause: ${cause}.`;
+}
+
 export function register(on: (event: string, hook: unknown) => Registration, _options?: unknown): void {
   on("session.start", async ($: DollarAPI, e: { cwd: string }, next: (ev: { cwd: string }) => Promise<unknown>) => {
     const named = await readNamed($);
@@ -600,11 +612,11 @@ export function register(on: (event: string, hook: unknown) => Registration, _op
         }
       }
       return answerFor(masked, stats.values > 0);
-    } catch {
-      return { deny: WITHHELD };
+    } catch (err) {
+      return { deny: withheldFor(err) };
     }
   })
     // The runtime's own failure path (a throw it sees, or the hook overrunning
     // its budget) also answers { deny }: the last resort, never pass-through.
-    .catch(() => ({ deny: WITHHELD }));
+    .catch(() => ({ deny: `${WITHHELD} Cause: ${RUNTIME_STOPPED}.` }));
 }

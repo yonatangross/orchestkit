@@ -92,7 +92,7 @@ describe("nothing fails open after next(e) ran", () => {
     hooksOf();
     const handler = catches.get("tool.call");
     expect(handler).toBeTypeOf("function");
-    expect(handler!()).toEqual({ deny: WITHHELD });
+    expect(handler!()).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
   });
 
   test("a throw where the old code had no guard (reading the event's tool name) is a deny", async () => {
@@ -108,7 +108,7 @@ describe("nothing fails open after next(e) ran", () => {
       hostileEvent,
       next({ result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } })
     )) as { deny?: string; result?: unknown };
-    expect(out).toEqual({ deny: WITHHELD });
+    expect(out).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
   });
 
   test("a result over the size cap is withheld", async () => {
@@ -120,7 +120,7 @@ describe("nothing fails open after next(e) ran", () => {
     const out = (await hooks.get("tool.call")!(fake$({}), { tool: "Bash", args: {} }, next({ result: { lines } }))) as {
       deny?: string;
     };
-    expect(out).toEqual({ deny: WITHHELD });
+    expect(out).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
   });
 
   test("masking that runs past its time cap is withheld (forced overrun)", async () => {
@@ -135,7 +135,7 @@ describe("nothing fails open after next(e) ran", () => {
         { tool: "Bash", args: {} },
         next({ result: { stdout: `FAKE_TOKEN=${FAKE_GH}\n` } })
       )) as { deny?: string };
-      expect(out).toEqual({ deny: WITHHELD });
+      expect(out).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
     } finally {
       spy.mockRestore();
     }
@@ -148,7 +148,7 @@ describe("nothing fails open after next(e) ran", () => {
       { tool: "Read", args: {} },
       next({ result: Buffer.from(`FAKE_TOKEN=${FAKE_GH}`) })
     )) as { deny?: string };
-    expect(out).toEqual({ deny: WITHHELD });
+    expect(out).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
   });
 
   test("a Map inside a result is withheld", async () => {
@@ -158,7 +158,7 @@ describe("nothing fails open after next(e) ran", () => {
       { tool: "Read", args: {} },
       next({ result: { meta: new Map([["k", FAKE_GH]]) } })
     )) as { deny?: string };
-    expect(out).toEqual({ deny: WITHHELD });
+    expect(out).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
   });
 });
 
@@ -170,6 +170,46 @@ describe("one oversized value is withheld before mask() runs", () => {
       { tool: "Bash", args: {} },
       next({ result: { stdout: "b".repeat(MAX_STRING_CHARS + 1) } })
     )) as { deny?: string };
-    expect(out).toEqual({ deny: WITHHELD });
+    expect(out).toEqual({ deny: expect.stringMatching(new RegExp(`^${WITHHELD.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Cause: `)) });
+  });
+});
+
+describe("the withheld line names the path that fired (2026-11-24)", () => {
+  test("a time cap names the time cap", async () => {
+    const hooks = hooksOf();
+    const realNow = Date.now;
+    let calls = 0;
+    const spy = vi.spyOn(Date, "now").mockImplementation(() => (calls++ === 0 ? realNow() : realNow() + MAX_MASK_MS + 1));
+    try {
+      const out = (await hooks.get("tool.call")!(fake$({}), { tool: "Bash", args: {} }, next({ result: { stdout: "x" } }))) as { deny?: string };
+      expect(out.deny).toBe(`${WITHHELD} Cause: masking ran past its time cap.`);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  test("an error that is not the veil's own refusal is named generically, never by its message", async () => {
+    const hooks = hooksOf();
+    const hostile = { get stdout(): string { throw new Error("leaked-result-text-123"); } };
+    const out = (await hooks.get("tool.call")!(fake$({}), { tool: "Bash", args: {} }, next({ result: hostile }))) as { deny?: string };
+    expect(out.deny).toBe(`${WITHHELD} Cause: an error inside the veil.`);
+    expect(out.deny).not.toContain("leaked-result-text-123");
+  });
+
+  test("the runtime catch names the runtime", () => {
+    hooksOf();
+    const handler = catches.get("tool.call");
+    expect(handler!()).toEqual({
+      deny: `${WITHHELD} Cause: the mod runtime stopped the hook (a throw it saw, or the hook ran past its budget).`,
+    });
+  });
+
+  test("control: a real token shape is still masked, not withheld", async () => {
+    const hooks = hooksOf();
+    const token = `${FAKE_GH}${"a".repeat(36)}`;
+    const out = await hooks.get("tool.call")!(fake$({}), { tool: "Bash", args: {} }, next({ result: { stdout: `T=${token}\n` } }));
+    const text = JSON.stringify(out);
+    expect(text).not.toContain(WITHHELD);
+    expect(text).not.toContain(token);
   });
 });
