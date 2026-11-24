@@ -1,0 +1,8 @@
+{
+  "slug": "md-batch-async-idempotency-key",
+  "source": "docs/fix--md-batch-async-idempotency-key/index.html",
+  "title": "A retry key on async Markdown batches",
+  "description": "Compare recorded HTTP responses to see which Markdown batch responses echo the retry key.",
+  "tags": ["api", "http", "regression"],
+  "date": "2026-11-24"
+}

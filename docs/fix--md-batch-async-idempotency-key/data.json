@@ -1,0 +1,9 @@
+{
+  "serves": [
+    "docs/site/app/api/md/batch/route.ts",
+    "docs/site/lib/openapi/paths.ts"
+  ],
+  "page": "docs/fix--md-batch-async-idempotency-key/index.html",
+  "lab_slug": "md-batch-async-idempotency-key",
+  "purpose": "Compare recorded Markdown batch retry correlation before and after the fix."
+}
