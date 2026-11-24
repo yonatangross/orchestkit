@@ -77,7 +77,6 @@ the hook named in the last column. Set them in your shell before you start Claud
 | `ORK_STRAY_PLAYGROUND_MIN_AGE_HOURS` | `1` | how old a playground page must be before that warning names it | `lifecycle/stray-playground-pages` |
 | `ORK_EXPECT_AUTO` | on | `0` stops the browser-test suggestion after UI file edits | `posttool/ui-change-detector` |
 | `ORK_NO_PRECOMPACT_PROMPT` | unset | `1` stops the "mark finished tasks done" prompt before compaction | `lifecycle/pre-compact-task-done-prompt` |
-| `ORK_TASK_NUDGE_MAX_UNANSWERED` | `3` | after this many ignored nudges, the task-list nudge gets quieter (2 to 1000) | `prompt/multi-step-task-nudge` |
 | `ORK_NO_MEMORY_LINT` | unset | `1` turns off the checks that come from your memory files | `lib/memory-lint` |
 | `ORK_VISUAL_STYLE_NUDGE` | unset (off) | `1` turns on a reminder, on prompts that want a shaped answer, to render it visually | `prompt/visual-style-nudge` |
 | `ORK_VISUAL_STYLE_NUDGE_FILE` | unset | path to a text file with your own reminder (first 1500 characters); without it the reminder is one short neutral line | `prompt/visual-style-nudge` |
@@ -86,6 +85,10 @@ The visual-style reminder is off until you turn it on. Set `ORK_VISUAL_STYLE_NUD
 in your shell, or in the `env` block of your Claude Code settings, to get it. Put your
 own wording in a file and point `ORK_VISUAL_STYLE_NUDGE_FILE` at it if you want a
 specific style.
+
+Upgrading: `ORK_TASK_NUDGE_MAX_UNANSWERED` is gone and has no effect, so you can delete
+it from your shell. The task hooks now send one unprompted reminder per session, and an
+explicit todo-list ask still gets an answer.
 
 ## Copy as prompt
 
