@@ -2,6 +2,7 @@
 // Created: 2026-06-05
 
 import { type NextRequest, NextResponse } from "next/server";
+import { markdownAccept } from "@/lib/accept-markdown";
 import {
 	prefersJsonError,
 	prefersMarkdownError,
@@ -214,11 +215,12 @@ function routeRequest(
 	// the User-Agent token a shared cache is free to hand a browser the copy it
 	// stored for GPTBot, which is a worse bug than never serving bots Markdown.
 	const isAiBot = isAiBotFamily(audience.ua_family);
+	const acceptMarkdown = markdownAccept(accept);
 	const wantsMarkdown =
-		accept.includes("text/markdown") ||
+		acceptMarkdown === "accepted" ||
 		pathname.endsWith(".md") ||
 		searchParams.get("mode") === "agent" ||
-		isAiBot;
+		(isAiBot && acceptMarkdown !== "rejected");
 
 	if (wantsMarkdown) {
 		const target = mdTarget(pathname);
@@ -233,7 +235,7 @@ function routeRequest(
 			reportServerEvent(req.headers, "agent:api-request", pathname, {
 				...audience,
 				surface: "md",
-				trigger: accept.includes("text/markdown")
+				trigger: acceptMarkdown === "accepted"
 					? "accept-header"
 					: pathname.endsWith(".md")
 						? "dot-md-suffix"

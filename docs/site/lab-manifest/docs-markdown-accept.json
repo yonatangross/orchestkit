@@ -1,0 +1,8 @@
+{
+  "slug": "docs-markdown-accept",
+  "source": "docs/fix--docs-markdown-accept/index.html",
+  "title": "Markdown Accept negotiation",
+  "description": "Compare recorded HTTP responses before and after the docs honor a Markdown quality of zero.",
+  "tags": ["docs", "api"],
+  "date": "2026-11-24"
+}

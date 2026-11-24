@@ -16,6 +16,7 @@
 // is safe to answer agents with JSON. Kept in sync with the route tree by
 // agent-404.test.ts, which derives the actual routes from app/ and fails if one
 // is missing here.
+import { markdownAccept } from "./accept-markdown";
 import { INDEXNOW_KEY_PATH } from "./indexnow";
 
 export const SERVED_EXACT: ReadonlySet<string> = new Set([
@@ -154,14 +155,15 @@ export function shouldJsonError(
 
 // A request prefers a Markdown error when it asked for Markdown by any of the
 // three routes the site documents: the Accept header, a `.md` suffix, or
-// ?mode=agent. Checked BEFORE prefersJsonError so an explicit `text/markdown`
-// wins over the JSON default.
+// ?mode=agent. An acceptable Markdown range wins over the JSON default.
 export function prefersMarkdownError(
 	pathname: string,
 	accept: string,
 	mode?: string | null,
 ): boolean {
 	return (
-		accept.includes("text/markdown") || pathname.endsWith(".md") || mode === "agent"
+		markdownAccept(accept) === "accepted" ||
+		pathname.endsWith(".md") ||
+		mode === "agent"
 	);
 }

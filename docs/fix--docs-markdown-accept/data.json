@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/middleware.ts", "docs/site/lib/agent-404.ts", "docs/site/lib/accept-markdown.ts"],
+  "page": "docs/fix--docs-markdown-accept/index.html",
+  "lab_slug": "docs-markdown-accept",
+  "purpose": "Compare recorded HTTP responses before and after respecting explicit Markdown rejection."
+}
