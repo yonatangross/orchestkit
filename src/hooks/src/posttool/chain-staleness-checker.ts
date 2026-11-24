@@ -17,13 +17,15 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { appendEvent } from '../lib/event-log.js';
 import { acquireLock, atomicWriteSync, releaseLock } from '../lib/atomic-write.js';
+import { getHomeDir } from '../lib/paths.js';
+import { stateRootDir } from '../lib/session-state.js';
 
 const HOOK_NAME = 'posttool/chain-staleness-checker';
 
@@ -33,7 +35,6 @@ const STALE_THRESHOLD_MS = 30 * 60 * 1000;
 const RATE_LIMIT_MS = 5 * 60 * 1000;
 
 const CHAIN_STATE_REL = join('.claude', 'chain', 'state.json');
-const THROTTLE_REL = join('.claude', 'chain', 'stale-throttle.json');
 const LOCK_TIMEOUT_MS = 200;
 
 interface ChainState {
@@ -59,10 +60,12 @@ function readThrottle(path: string, nowMs: number): Map<string, number> {
 }
 
 function claimEmission(projectDir: string, sid: string): boolean {
-  const path = join(projectDir, THROTTLE_REL);
-  const key = createHash('sha256').update(sid).digest('hex');
+  const dir = stateRootDir(getHomeDir());
+  const path = join(dir, 'stale-throttle.json');
+  const key = createHash('sha256').update(JSON.stringify([resolve(projectDir), sid])).digest('hex');
   const lock = `${path}.lock`;
   try {
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
     if (!acquireLock(lock, LOCK_TIMEOUT_MS)) return true;
     try {
       const nowMs = Date.now();

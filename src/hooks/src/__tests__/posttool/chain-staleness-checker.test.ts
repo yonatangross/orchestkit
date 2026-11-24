@@ -18,7 +18,9 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
   utimesSync,
 } from 'node:fs';
@@ -60,9 +62,11 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     eventsPath = join(eventsDir, 'events.jsonl');
     prevEventsEnv = process.env.ORK_EVENTS_LOG;
     process.env.ORK_EVENTS_LOG = eventsPath;
+    vi.stubEnv('HOME', eventsDir);
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     if (prevEventsEnv === undefined) delete process.env.ORK_EVENTS_LOG;
     else process.env.ORK_EVENTS_LOG = prevEventsEnv;
     rmSync(projectDir, { recursive: true, force: true });
@@ -166,6 +170,34 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     const events = readAllEvents();
     expect(events).toHaveLength(2);
     expect(new Set(events.map(e => e.sid))).toEqual(new Set(['sid-a', 'sid-b']));
+  });
+
+  it('keeps throttle files out of the checkout and scopes the window to each project', () => {
+    const otherProject = join(eventsDir, 'other-project');
+    const sid = 'sid-shared';
+    const state = { status: 'running', updated_at: Date.now() - chainInternals.STALE_THRESHOLD_MS };
+    for (const dir of [projectDir, otherProject]) {
+      writeChainState(dir, state);
+      chainStalenessChecker(input(sid), createTestContext({ projectDir: dir, sessionId: sid }));
+      expect(readdirSync(join(dir, '.claude', 'chain'))).toEqual(['state.json']);
+    }
+    expect(readAllEvents().map(event => event.sid)).toEqual([sid, sid]);
+  });
+
+  it('does not write into the target of a symlinked chain directory', () => {
+    const external = join(eventsDir, 'external');
+    const claudeDir = join(projectDir, '.claude');
+    mkdirSync(external);
+    mkdirSync(claudeDir);
+    symlinkSync(external, join(claudeDir, 'chain'), 'junction');
+    writeChainState(projectDir, { status: 'running', updated_at: Date.now() - chainInternals.STALE_THRESHOLD_MS });
+
+    const sid = 'sid-link';
+    const ctx = createTestContext({ projectDir, sessionId: sid });
+    chainStalenessChecker(input(sid), ctx);
+    chainStalenessChecker(input(sid), ctx);
+    expect(readAllEvents()).toHaveLength(1);
+    expect(readdirSync(external)).toEqual(['state.json']);
   });
 
   it('keeps the per-session window when each invocation loads a fresh hook', async () => {
