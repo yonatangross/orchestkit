@@ -1,0 +1,8 @@
+{
+  "slug": "openapi-v1-server-path",
+  "source": "docs/fix--openapi-v1-server-path/index.html",
+  "title": "When search gets an extra prefix",
+  "description": "Compare recorded search requests before and after the OpenAPI server URL fix, with the v1 alias still working.",
+  "tags": ["api", "openapi", "search"],
+  "date": "2026-11-24"
+}

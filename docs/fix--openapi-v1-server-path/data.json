@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/lib/openapi/spec.ts"],
+  "page": "docs/fix--openapi-v1-server-path/index.html",
+  "lab_slug": "openapi-v1-server-path",
+  "purpose": "Compare the recorded before and after OpenAPI search requests and the unchanged v1 alias"
+}

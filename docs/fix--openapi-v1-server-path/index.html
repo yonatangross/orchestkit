@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OpenAPI search URL composition</title>
+<meta name="description" content="Compare real search requests made from the advertised OpenAPI servers before and after the fix.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eef2f6; color: #152940; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 880px; margin: auto; padding: 52px 24px; }
+  h1 { margin: 8px 0; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.04em; line-height: 1.1; }
+  h2 { font-size: 1.12rem; margin: 0; }
+  p { margin: 8px 0; color: #405671; }
+  code { overflow-wrap: anywhere; font: .9em ui-monospace, monospace; }
+  .eyebrow { color: #32547e; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+  .controls { display: flex; gap: 8px; margin: 24px 0 12px; }
+  button { padding: 8px 20px; font: inherit; font-weight: 650; color: #173d68; background: #fff; border: 1px solid #8499b1; border-radius: 8px; cursor: pointer; }
+  button[aria-pressed="true"] { background: #173d68; color: #fff; }
+  button:focus-visible { outline: 3px solid #2364a9; outline-offset: 3px; }
+  #summary { min-height: 3.1em; }
+  .card { background: #fff; padding: 18px 20px; border: 1px solid #bbc9d8; border-radius: 10px; margin: 12px 0; }
+  ul { padding: 0; list-style: none; margin: 12px 0 0; }
+  li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 0; }
+  li[hidden] { display: none; }
+  li + li { border-top: 1px solid #d8e1eb; }
+  .status { white-space: nowrap; font-size: .8rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; background: #e5f4ec; color: #21563c; }
+  .failure { background: #fee9e4; color: #983328; }
+  footer { font-size: .875rem; margin-top: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Docs API regression</div>
+    <h1>When search gets an extra prefix</h1>
+    <p>OpenAPI clients append the operation path <code>/api/search</code> to the selected server URL. Compare the URLs and HTTP responses from both versions of the spec.</p>
+  </header>
+  <div class="controls" role="group" aria-label="OpenAPI spec version">
+    <button type="button" id="before" aria-pressed="true">Before</button>
+    <button type="button" id="after" aria-pressed="false">After</button>
+  </div>
+  <p id="summary" aria-live="polite">Two servers were advertised. The second generates a search URL that does not exist.</p>
+  <section class="card" aria-labelledby="generated">
+    <h2 id="generated">Requests from the advertised servers</h2>
+    <ul>
+      <li><code>/api/search?query=hooks</code><span class="status">200 OK</span></li>
+      <li id="doubled"><code>/api/v1/api/search?query=hooks</code><span class="status failure">404 Not Found</span></li>
+    </ul>
+  </section>
+  <section class="card" aria-labelledby="alias">
+    <h2 id="alias">Direct request to the versioned alias</h2>
+    <ul><li><code>/api/v1/search?query=hooks</code><span class="status">200 OK</span></li></ul>
+    <p>The alias is documented and still works. It is not a server base URL for this spec.</p>
+  </section>
+  <footer><p>Recorded HTTP probes against the local Next.js server, not live requests from this page. Production reproduced the same before results.</p></footer>
+</main>
+<script>
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  const doubled = document.getElementById('doubled');
+  const summary = document.getElementById('summary');
+
+  function show(isBefore) {
+    before.setAttribute('aria-pressed', String(isBefore));
+    after.setAttribute('aria-pressed', String(!isBefore));
+    doubled.hidden = !isBefore;
+    summary.textContent = isBefore
+      ? 'Two servers were advertised. The second generates a search URL that does not exist.'
+      : 'One server is advertised. The composed search URL works without a duplicated prefix.';
+  }
+
+  before.addEventListener('click', () => show(true));
+  after.addEventListener('click', () => show(false));
+</script>
+</body>
+</html>
