@@ -66,6 +66,14 @@
   const body = document.querySelector("#body");
   const allowed = new Set(["A", "BLOCKQUOTE", "BR", "CODE", "EM", "H3", "LI", "OL", "P", "PRE", "STRONG", "UL"]);
 
+  function parseUrl(value) {
+    try {
+      return new URL(value, location.origin);
+    } catch {
+      return null;
+    }
+  }
+
   function appendContent(source, target) {
     for (const node of source.childNodes) {
       if (node.nodeType === Node.TEXT_NODE) {
@@ -73,7 +81,7 @@
       } else if (allowed.has(node.tagName)) {
         const element = document.createElement(node.tagName.toLowerCase());
         if (node.tagName === "A" && node.hasAttribute("href")) {
-          const href = URL.parse(node.getAttribute("href"), location.origin);
+          const href = parseUrl(node.getAttribute("href"));
           if (href && ["http:", "https:"].includes(href.protocol)) {
             element.href = href.href;
           }
@@ -94,7 +102,7 @@
     try {
       const page = await read(path, "text/html");
       const links = page.head.querySelectorAll('link[rel="alternate"][type="application/rss+xml"][href]');
-      const found = [...links].some((link) => URL.parse(link.getAttribute("href"), location.origin)?.pathname === "/rss.xml");
+      const found = [...links].some((link) => parseUrl(link.getAttribute("href"))?.pathname === "/rss.xml");
       badge.dataset.found = String(found);
       badge.textContent = `${label} · ${found ? "feed advertised" : "no feed link"}`;
     } catch {
