@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Recorded stale-chain event counts from five separate PostToolUse runner processes.">
+<title>Stale-chain throttle across hook processes</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f1f4f4;color:#1d2e32;font:16px/1.55 system-ui,sans-serif}
+  main{max-width:860px;margin:auto;padding:48px 20px}
+  .eyebrow{margin:0;color:#386365;font-size:.75rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;letter-spacing:-.045em;margin:12px 0}
+  p{color:#42595e}header p{max-width:62ch}
+  section{background:#fff;border:1px solid #cedadb;border-radius:16px;margin-top:26px;padding:clamp(14px,4vw,28px)}
+  h2{font-size:1.15rem;margin:0 0 14px}
+  .controls{display:flex;gap:8px}
+  button{cursor:pointer;border:1px solid #8fa9aa;border-radius:8px;padding:8px 18px;background:#fff;color:#24464a;font:inherit;font-weight:650}
+  button[aria-pressed="true"]{background:#17494b;color:#fff;border-color:#17494b}
+  button:focus-visible{outline:3px solid #2762ab;outline-offset:3px}
+  table{width:100%;border-collapse:collapse;text-align:left}
+  th,td{padding:8px 6px;border-bottom:1px solid #dfe6e6}
+  thead th{color:#45636a;font-size:.78rem;vertical-align:bottom}
+  tbody th{font-weight:550}
+  .count{font-weight:750;font-variant-numeric:tabular-nums;text-align:right}
+  footer{font-size:.9rem}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Stale-chain throttle across hook processes"><meta property="og:description" content="Compare recorded stale-chain event counts from five separate PostToolUse runner processes."><meta property="og:url" content="https://orchestkit.dev/lab/chain-stale-throttle.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Stale-chain throttle across hook processes"><meta name="twitter:description" content="Compare recorded stale-chain event counts from five separate PostToolUse runner processes."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OrchestKit Lab / PostToolUse</p>
+    <h1>Stale-chain throttle</h1>
+    <p>Each row starts a fresh Node process using the shipped PostToolUse runner. The table shows cumulative <code>chain_stale</code> records in an isolated event log.</p>
+  </header>
+  <section aria-labelledby="probe-title">
+    <h2 id="probe-title">Recorded runner probe</h2>
+    <div class="controls" role="group" aria-label="Runner version">
+      <button type="button" id="before" aria-pressed="true">Before fix</button>
+      <button type="button" id="after" aria-pressed="false">After fix</button>
+    </div>
+    <p id="summary" aria-live="polite">Before: every stale call writes a record, even when the session is unchanged.</p>
+    <table aria-labelledby="probe-title">
+      <thead><tr><th scope="col">Invocation</th><th scope="col">Chain status</th><th scope="col" class="count">Events</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">1 · Session A</th><td>Completed</td><td class="count" data-count>0</td></tr>
+        <tr><th scope="row">2 · Session A</th><td>Running</td><td class="count" data-count>1</td></tr>
+        <tr><th scope="row">3 · Session A</th><td>Running</td><td class="count" data-count>2</td></tr>
+        <tr><th scope="row">4 · Session A</th><td>Running</td><td class="count" data-count>3</td></tr>
+        <tr><th scope="row">5 · Session B</th><td>Running</td><td class="count" data-count>4</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <footer><p>All five calls exited 0 in both runs. The calls were less than five minutes apart. A separate regression test advances the clock to check expiry without sleeping.</p></footer>
+</main>
+<script>
+  const before = document.getElementById('before');
+  const after = document.getElementById('after');
+  const summary = document.getElementById('summary');
+  const counts = document.querySelectorAll('[data-count]');
+  const beforeCounts = Array.from(counts, cell => cell.textContent);
+  const beforeSummary = summary.textContent;
+  function show(fixed) {
+    before.setAttribute('aria-pressed', String(!fixed));
+    after.setAttribute('aria-pressed', String(fixed));
+    summary.textContent = fixed
+      ? 'After: repeat calls in Session A add no records. Session B gets its own record.'
+      : beforeSummary;
+    const values = fixed ? [0, 1, 1, 1, 2] : beforeCounts;
+    counts.forEach((cell, index) => { cell.textContent = String(values[index]); });
+  }
+  before.addEventListener('click', () => show(false));
+  after.addEventListener('click', () => show(true));
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

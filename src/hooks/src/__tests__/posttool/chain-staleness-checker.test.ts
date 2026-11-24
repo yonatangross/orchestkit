@@ -13,12 +13,14 @@
  *   - missing chain file = silent success.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
   utimesSync,
 } from 'node:fs';
@@ -60,11 +62,11 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     eventsPath = join(eventsDir, 'events.jsonl');
     prevEventsEnv = process.env.ORK_EVENTS_LOG;
     process.env.ORK_EVENTS_LOG = eventsPath;
-    chainInternals.lastCheck.clear();
+    vi.stubEnv('HOME', eventsDir);
   });
 
   afterEach(() => {
-    chainInternals.lastCheck.clear();
+    vi.unstubAllEnvs();
     if (prevEventsEnv === undefined) delete process.env.ORK_EVENTS_LOG;
     else process.env.ORK_EVENTS_LOG = prevEventsEnv;
     rmSync(projectDir, { recursive: true, force: true });
@@ -168,6 +170,73 @@ describe('posttool/chain-staleness-checker (#1913)', () => {
     const events = readAllEvents();
     expect(events).toHaveLength(2);
     expect(new Set(events.map(e => e.sid))).toEqual(new Set(['sid-a', 'sid-b']));
+  });
+
+  it('keeps throttle files out of the checkout and scopes the window to each project', () => {
+    const otherProject = join(eventsDir, 'other-project');
+    const sid = 'sid-shared';
+    const state = { status: 'running', updated_at: Date.now() - chainInternals.STALE_THRESHOLD_MS };
+    for (const dir of [projectDir, otherProject]) {
+      writeChainState(dir, state);
+      chainStalenessChecker(input(sid), createTestContext({ projectDir: dir, sessionId: sid }));
+      expect(readdirSync(join(dir, '.claude', 'chain'))).toEqual(['state.json']);
+    }
+    expect(readAllEvents().map(event => event.sid)).toEqual([sid, sid]);
+  });
+
+  it('does not write into the target of a symlinked chain directory', () => {
+    const external = join(eventsDir, 'external');
+    const claudeDir = join(projectDir, '.claude');
+    mkdirSync(external);
+    mkdirSync(claudeDir);
+    symlinkSync(external, join(claudeDir, 'chain'), 'junction');
+    writeChainState(projectDir, { status: 'running', updated_at: Date.now() - chainInternals.STALE_THRESHOLD_MS });
+
+    const sid = 'sid-link';
+    const ctx = createTestContext({ projectDir, sessionId: sid });
+    chainStalenessChecker(input(sid), ctx);
+    chainStalenessChecker(input(sid), ctx);
+    expect(readAllEvents()).toHaveLength(1);
+    expect(readdirSync(external)).toEqual(['state.json']);
+  });
+
+  it('keeps the per-session window when each invocation loads a fresh hook', async () => {
+    const now = Date.now();
+    const updated_at = now - chainInternals.STALE_THRESHOLD_MS - 60_000;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(now);
+
+    async function invoke(sid: string) {
+      vi.resetModules();
+      const { chainStalenessChecker: freshChecker } = await import('../../posttool/chain-staleness-checker.js');
+      const ctx = createTestContext({ projectDir, sessionId: sid });
+      expect(freshChecker(input(sid), ctx)).toEqual({ continue: true, suppressOutput: true });
+      return readAllEvents().map(event => event.sid);
+    }
+
+    try {
+      writeChainState(projectDir, { status: 'completed', updated_at });
+      const completed = await invoke('sid-a');
+      writeChainState(projectDir, { status: 'running', updated_at });
+      const first = await invoke('sid-a');
+      const repeat = await invoke('sid-a');
+      const otherSession = await invoke('sid-b');
+      vi.setSystemTime(now + chainInternals.RATE_LIMIT_MS - 1);
+      const stillThrottled = await invoke('sid-a');
+      vi.setSystemTime(now + chainInternals.RATE_LIMIT_MS);
+      const expired = await invoke('sid-a');
+
+      expect({ completed, first, repeat, otherSession, stillThrottled, expired }).toEqual({
+        completed: [],
+        first: ['sid-a'],
+        repeat: ['sid-a'],
+        otherSession: ['sid-a', 'sid-b'],
+        stillThrottled: ['sid-a', 'sid-b'],
+        expired: ['sid-a', 'sid-b', 'sid-a'],
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('falls back to file mtime when updated_at is absent', () => {

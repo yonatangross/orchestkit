@@ -11,28 +11,31 @@
  * `chain_stale` event into the cross-session event log so other
  * sessions / monitors can react.
  *
- * Rate-limited to once per RATE_LIMIT_MS per session — a hot tool-use
- * loop touches the chain file at most once every five minutes per sid.
+ * Emits at most once per RATE_LIMIT_MS per session across hook processes.
  *
  * Hook event: PostToolUse (async, timeout: 3s, matcher: catchall).
  */
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
 import { appendEvent } from '../lib/event-log.js';
-import { createHash } from 'node:crypto';
+import { acquireLock, atomicWriteSync, releaseLock } from '../lib/atomic-write.js';
+import { getHomeDir } from '../lib/paths.js';
+import { stateRootDir } from '../lib/session-state.js';
 
 const HOOK_NAME = 'posttool/chain-staleness-checker';
 
 /** 30 minutes. */
 const STALE_THRESHOLD_MS = 30 * 60 * 1000;
-/** 5 minutes — per-session check frequency. */
+/** Five minutes between events for the same session. */
 const RATE_LIMIT_MS = 5 * 60 * 1000;
 
 const CHAIN_STATE_REL = join('.claude', 'chain', 'state.json');
+const LOCK_TIMEOUT_MS = 200;
 
 interface ChainState {
   chain_id?: string;
@@ -41,8 +44,43 @@ interface ChainState {
   updated_at?: string | number;
 }
 
-// Module-level rate-limit cache: last check timestamp (ms) per sid.
-const lastCheck = new Map<string, number>();
+function readThrottle(path: string, nowMs: number): Map<string, number> {
+  try {
+    const data: unknown = JSON.parse(readFileSync(path, 'utf8'));
+    if (data === null || typeof data !== 'object' || Array.isArray(data)) return new Map();
+    return new Map(Object.entries(data).filter(([, ts]) =>
+      typeof ts === 'number' && ts <= nowMs && nowMs - ts < RATE_LIMIT_MS,
+    ));
+  } catch (err) {
+    if (err instanceof SyntaxError || (err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return new Map();
+    }
+    throw err;
+  }
+}
+
+function claimEmission(projectDir: string, sid: string): boolean {
+  const dir = stateRootDir(getHomeDir());
+  const path = join(dir, 'stale-throttle.json');
+  const key = createHash('sha256').update(JSON.stringify([resolve(projectDir), sid])).digest('hex');
+  const lock = `${path}.lock`;
+  try {
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    if (!acquireLock(lock, LOCK_TIMEOUT_MS)) return true;
+    try {
+      const nowMs = Date.now();
+      const recent = readThrottle(path, nowMs);
+      if (recent.has(key)) return false;
+      recent.set(key, nowMs);
+      atomicWriteSync(path, JSON.stringify(Object.fromEntries(recent)));
+    } finally {
+      releaseLock(lock);
+    }
+  } catch {
+    // Throttle storage is best effort, like the event log.
+  }
+  return true;
+}
 
 function hashRepo(repoPath: string): string {
   return createHash('sha256').update(repoPath).digest('hex').slice(0, 12);
@@ -66,12 +104,6 @@ export function chainStalenessChecker(
   if (!sid) return outputSilentSuccess();
 
   const nowMs = Date.now();
-  const prev = lastCheck.get(sid) ?? 0;
-  if (nowMs - prev < RATE_LIMIT_MS) {
-    return outputSilentSuccess();
-  }
-  lastCheck.set(sid, nowMs);
-
   const projectDir = ctx.projectDir;
   if (!projectDir) return outputSilentSuccess();
 
@@ -100,6 +132,7 @@ export function chainStalenessChecker(
 
   const ageMs = nowMs - updatedAtMs;
   if (ageMs < STALE_THRESHOLD_MS) return outputSilentSuccess();
+  if (!claimEmission(projectDir, sid)) return outputSilentSuccess();
 
   try {
     appendEvent({
@@ -121,7 +154,6 @@ export function chainStalenessChecker(
 
 /** Exposed for tests. */
 export const __internals = {
-  lastCheck,
   STALE_THRESHOLD_MS,
   RATE_LIMIT_MS,
   CHAIN_STATE_REL,

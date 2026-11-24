@@ -1,0 +1,8 @@
+{
+  "slug": "chain-stale-throttle",
+  "source": "docs/fix--chain-stale-throttle/index.html",
+  "title": "Stale-chain throttle across hook processes",
+  "description": "Compare recorded stale-chain event counts from five separate PostToolUse runner processes.",
+  "tags": ["hooks", "telemetry", "bugfix"],
+  "date": "2026-11-24"
+}
