@@ -35,7 +35,8 @@
         <tr><th scope="row">Path with a newline in dry run</th><td>Truncated at the newline</td><td>Reported whole</td></tr>
         <tr><th scope="row">Unrelated decoy directory next to it</th><td>Deleted on apply</td><td>Left in place</td></tr>
         <tr><th scope="row">Real newline worktree on apply</th><td>Missed</td><td>Linked to the main tree</td></tr>
-        <tr><th scope="row">Whole test file</th><td>13 passed, 3 failed</td><td>16 passed, 0 failed</td></tr>
+        <tr><th scope="row">Unreadable subtree under a worktree</th><td>Aborts, nothing linked</td><td>Still aborts, nothing linked</td></tr>
+        <tr><th scope="row">Whole test file</th><td>16 passed, 3 failed</td><td>19 passed, 0 failed</td></tr>
       </tbody>
     </table>
   </div>

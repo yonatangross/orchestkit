@@ -91,7 +91,7 @@ while IFS= read -r dir; do
     if [[ -n "$dir" ]]; then
         DIRS+=("$dir")
     fi
-done <<< "$DIR_LIST"
+done <<< "$DIR_LIST"  # pipebuf: bounded-small (the canonical symlink list, 117 B today, one short path per line)
 
 if [[ -z "$DIR_LIST" ]]; then
     echo "Error: $CONFIG_SCRIPT --list returned nothing; refusing to no-op." >&2
@@ -112,9 +112,18 @@ for wt in "${WORKTREES[@]}"; do
     name=$(basename "$wt")
 
     # In-flight install guard.
-    recent=""
-    if IFS= read -r -d '' recent < <(find "$wt" -maxdepth 4 -name node_modules -type d \
-        -not -path "*/node_modules/*" -mmin "-$STALE_MINUTES" -print0 -quit); then
+    # The find status is checked on its own, never swallowed by a process
+    # substitution: a subtree find cannot read may hide the very install this
+    # guard looks for, so "could not look" must stop the run, not read as
+    # "nothing recent". -print -quit keeps a path with a newline in one piece
+    # (only the trailing newline is trimmed, and a node_modules path never ends
+    # in one).
+    if ! recent=$(find "$wt" -maxdepth 4 -name node_modules -type d \
+        -not -path "*/node_modules/*" -mmin "-$STALE_MINUTES" -print -quit); then
+        echo "Error: cannot read all of $wt; refusing to reclaim (nothing changed for it)" >&2
+        exit 1
+    fi
+    if [[ -n "$recent" ]]; then
         printf '%-26s SKIP  node_modules touched < %s min ago (%s)\n' \
             "$name" "$STALE_MINUTES" "$(basename "$(dirname "$recent")")"
         skipped=$((skipped + 1))

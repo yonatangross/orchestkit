@@ -300,7 +300,50 @@ else
 fi
 rm -rf "$NL_FIXTURE"
 
-echo "=== Results ==="
+echo ""
+echo "=== 9. reclaim aborts when a worktree subtree cannot be read ==="
+# A directory the walk cannot read hides whether an install is in flight below
+# it. The script must stop (non-zero, no LINK) rather than treat "could not
+# look" as "nothing recent" and go on to delete node_modules.
+if [[ "$(id -u)" -eq 0 ]]; then
+    info "running as root - chmod 000 does not block reads, section 9 skipped"
+else
+    UR_FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/ork-reclaim-unreadable.XXXXXX")
+    UR_FIXTURE=$(cd "$UR_FIXTURE" && pwd -P)
+    UR_MAIN="$UR_FIXTURE/main"
+    UR_WT="$UR_FIXTURE/wt"
+    git init -q "$UR_MAIN"
+    git -C "$UR_MAIN" -c user.name=Test -c user.email=test@example.invalid \
+        -c commit.gpgsign=false commit -qm initial --allow-empty
+    git -C "$UR_MAIN" worktree add -q -b reclaim-unreadable "$UR_WT"
+    mkdir -p "$UR_MAIN/node_modules" "$UR_WT/node_modules" "$UR_WT/pkg/locked"
+    touch -t 200001010000 "$UR_WT/node_modules"
+    chmod 000 "$UR_WT/pkg/locked"
+    UR_OUT=""
+    UR_RC=0
+    UR_OUT=$(cd "$UR_MAIN" && bash "$RECLAIM" --dry-run 2>&1) || UR_RC=$?
+    if [[ "$UR_RC" -ne 0 ]]; then
+        pass "dry-run aborts non-zero on an unreadable subtree"
+    else
+        fail "dry-run exited 0 with an unreadable subtree"
+    fi
+    if [[ "$UR_OUT" != *"LINK"* && "$UR_OUT" != *"ADD "* ]]; then
+        pass "dry-run reports no LINK for a worktree it could not fully read"
+    else
+        fail "dry-run reported LINK for a worktree with an unreadable subtree"
+    fi
+    UR_RC=0
+    (cd "$UR_MAIN" && bash "$RECLAIM" --apply > /dev/null 2>&1) || UR_RC=$?
+    if [[ "$UR_RC" -ne 0 && -d "$UR_WT/node_modules" && ! -L "$UR_WT/node_modules" ]]; then
+        pass "apply aborts and leaves node_modules in place"
+    else
+        fail "apply went ahead with an unreadable subtree"
+    fi
+    chmod 755 "$UR_WT/pkg/locked"
+    rm -rf "$UR_FIXTURE"
+fi
+
+echo "=== Results ===" 
 echo -e "${GREEN}Passed: $PASS${NC}"
 if [ "$FAIL" -gt 0 ]; then
     echo -e "${RED}Failed: $FAIL${NC}"
