@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The timeout nobody asked for</title><style>
+:root{--bg:hsl(232 26% 7%);--ink:hsl(220 18% 93%);--muted:hsl(220 14% 64%);--faint:hsl(220 12% 46%);
+--glass:hsl(0 0% 100% / .05);--edge:hsl(0 0% 100% / .18);--accent:hsl(248 84% 68%);--ok:hsl(162 62% 52%);--bad:hsl(354 78% 62%);--warn:hsl(38 90% 60%)}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(54rem 36rem at 88% -6%,hsl(248 70% 26% / .38),transparent 62%),var(--bg);
+background-attachment:fixed;color:var(--ink);font:15px/1.65 -apple-system,system-ui,sans-serif}
+.wrap{max-width:900px;margin-inline:auto;padding:48px 24px 80px}
+.eyebrow{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+color:var(--faint);border:1px solid var(--edge);border-radius:999px;background:var(--glass);padding:6px 12px}
+h1{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin:14px 0 10px}h1 span{color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 28px}.lede b{color:var(--ink)}
+h2{font-size:17px;margin:30px 0 8px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:hsl(0 0% 100% / .07);padding:1px 5px;border-radius:5px}
+.seg{display:inline-flex;border:1px solid var(--edge);border-radius:999px;overflow:hidden;margin:6px 0 14px}
+.seg button{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;padding:7px 16px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:#fff}
+.flow{display:grid;gap:8px}
+.step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;border:1px solid var(--edge);border-radius:12px;background:var(--glass);padding:10px 12px}
+.step .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:hsl(0 0% 100% / .08)}
+.step.bad{border-color:hsl(354 78% 62% / .55)}.step.bad .n{background:var(--bad);color:#fff}
+.step.ok{border-color:hsl(162 62% 52% / .5)}.step.ok .n{background:var(--ok);color:#06231a}
+.step small{display:block;color:var(--faint);font-size:12px}
+.bars{display:grid;gap:9px;margin-top:8px}
+.bar{display:grid;grid-template-columns:200px 1fr 64px;gap:10px;align-items:center;font-size:13px;cursor:pointer}
+.bar .track{height:14px;border-radius:7px;background:hsl(0 0% 100% / .06);overflow:hidden}
+.bar .fill{height:100%;border-radius:7px;transition:width .35s ease}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums}
+.bar.dim{opacity:.35}
+.note{font-size:13px;color:var(--muted);min-height:2.6em;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:var(--glass);margin-top:10px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);padding:9px 11px;border-bottom:1px solid var(--edge)}
+td{padding:9px 11px;border-bottom:1px solid hsl(0 0% 100% / .06);vertical-align:top}tr:last-child td{border-bottom:none}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.foot{margin-top:32px;font-size:12px;color:var(--faint);line-height:1.9}
+</style></head><body><div class="wrap">
+<div class="eyebrow">HOOKS &middot; AUTO MODE &middot; #5436</div>
+<h1>The timeout <span>nobody asked for</span></h1>
+<p class="lede"><code>default-timeout-setter</code> wrote <code>timeout: 120000</code> into every Bash call
+that had none. That is Claude Code's own default, so it changed nothing. In auto mode it changed
+<b>everything</b>: any hook that edits a call's input voids the classifier's review, and Claude Code
+refuses that call and every sibling call in the same response.</p>
+
+<h2>One Bash call in auto mode</h2>
+<div class="seg" role="group" aria-label="Before or after this PR">
+<button id="b-before" aria-pressed="true">Before</button><button id="b-after" aria-pressed="false">After</button>
+</div>
+<div class="flow" id="flow"></div>
+
+<h2>Where the 1,454 walls came from (7 days, one machine)</h2>
+<p class="lede" style="margin:0">Click a row to read how it was counted. Source: <code>~/.claude/permission-denials.jsonl</code>,
+18 to 24 Nov 2026, 1,454 "Classifier unavailable" rows against 16 real verdicts. Each walled call's
+input was diffed against the input the hook produced.</p>
+<div class="bars" id="bars"></div>
+<div class="note" id="note">Pick a row.</div>
+
+<h2>Also in this PR</h2>
+<table>
+<tr><th>Change</th><th>Before</th><th>After</th></tr>
+<tr><td><code>unified-advisory-dispatcher</code></td><td class="bad">could emit <code>updatedInput</code></td><td class="ok">advisory only, input untouched</td></tr>
+<tr><td><code>gh-label-enforcer</code> in auto mode</td><td class="bad">appended <code>--label</code> (input rewrite, wall)</td><td class="ok">advises; other modes still append</td></tr>
+<tr><td>Handoff injector on floor seats</td><td class="bad">a seat started from a brief got the global previous-session handoff</td><td class="ok">a seat brief skips the global fallback</td></tr>
+<tr><td>secrets veil withhold line</td><td class="bad">"withheld" with no cause</td><td class="ok">names the withheld path as the cause</td></tr>
+<tr><td><code>run_in_background</code> calls</td><td class="bad">setter rebuilt input from <code>command</code> + <code>description</code>, dropping the flag</td><td class="ok">input passes through unchanged</td></tr>
+</table>
+
+<div class="foot">Tests: <code>sync-bash-dispatcher-input-chain.test.ts</code> runs the real dispatcher in five
+permission modes plus a background call and <code>gh issue create</code> in and out of auto mode; against
+the old source it fails 10 of 12. AF-12 rows in <code>test-run-hook-dispatcher.sh</code> now read
+<code>gh-label-enforcer</code> as the live-hook signal. Wall counts after release need a week of the denial log.</div>
+</div>
+<script>
+(function(){
+var FLOW={
+ before:[
+  ['ok','Claude emits Bash { command }','no timeout given'],
+  ['ok','Auto-mode classifier reviews that exact input','verdict: allow'],
+  ['bad','PreToolUse: default-timeout-setter adds timeout: 120000','input changed after review'],
+  ['bad','Claude Code: "a hook changed this call\'s input after auto mode reviewed it"','call refused, and every sibling call in the response']],
+ after:[
+  ['ok','Claude emits Bash { command }','no timeout given'],
+  ['ok','Auto-mode classifier reviews that exact input','verdict: allow'],
+  ['ok','PreToolUse hooks advise only','no updatedInput, input byte-identical'],
+  ['ok','Call runs','Claude Code applies its own 120000 ms default']]
+};
+var BARS=[
+ ['Setter timeout only',425,'var(--bad)','425 walled calls whose only difference from the hook output was timeout: 120000. This PR removes the cause.'],
+ ['rtk rewrites',190,'var(--warn)','About 190 were rtk command rewrites, a user-level hook outside OrchestKit, fixed in a separate claude-main PR.'],
+ ['Sibling calls voided',804,'var(--accent)','804 were innocent calls refused only because a sibling in the same response was walled.'],
+ ['Other',35,'var(--faint)','The remainder (1,454 minus 425, about 190 and 804) did not match one of the three classes; about 35, since the rtk count is approximate.']
+];
+var max=804,flow=document.getElementById('flow'),bars=document.getElementById('bars'),note=document.getElementById('note');
+function show(k){
+ document.getElementById('b-before').setAttribute('aria-pressed',k==='before');
+ document.getElementById('b-after').setAttribute('aria-pressed',k==='after');
+ flow.innerHTML='';
+ FLOW[k].forEach(function(s,i){
+  var d=document.createElement('div');d.className='step '+s[0];
+  d.innerHTML='<div class="n">'+(i+1)+'</div><div></div>';
+  var t=d.lastChild;t.textContent=s[1];var sm=document.createElement('small');sm.textContent=s[2];t.appendChild(sm);
+  flow.appendChild(d);
+ });
+}
+document.getElementById('b-before').onclick=function(){show('before')};
+document.getElementById('b-after').onclick=function(){show('after')};
+BARS.forEach(function(b){
+ var r=document.createElement('div');r.className='bar';r.tabIndex=0;
+ r.innerHTML='<span></span><div class="track"><div class="fill"></div></div><span class="v"></span>';
+ r.firstChild.textContent=b[0];r.lastChild.textContent=(b[0]==='rtk rewrites'||b[0]==='Other'?'~':'')+b[1].toLocaleString('en-US');
+ var f=r.querySelector('.fill');f.style.background=b[2];f.style.width=(b[1]/max*100)+'%';
+ function pick(){Array.prototype.forEach.call(bars.children,function(c){c.classList.toggle('dim',c!==r)});note.textContent=b[3]}
+ r.onclick=pick;r.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
+ bars.appendChild(r);
+});
+show('before');
+})();
+</script>
+</body></html>
