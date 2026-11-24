@@ -1,0 +1,12 @@
+{
+  "slug": "cc-adopt-2-1-331",
+  "source": "docs/chore--cc-2.1.331-adoption/index.html",
+  "title": "CC 2.1.331 adoption",
+  "description": "Filter the Claude Code 2.1.331 items that matter to ork by verdict and copy a selection as a prompt.",
+  "tags": [
+    "cc-adoption",
+    "triage",
+    "hooks"
+  ],
+  "date": "2026-11-24"
+}
