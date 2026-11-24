@@ -1,0 +1,8 @@
+{
+  "slug": "doctor-exit-on-fail-url",
+  "source": "docs/fix--doctor-exit-on-fail-url/index.html",
+  "title": "OrchestKit CLI: Doctor exit status",
+  "description": "Compare recorded doctor output and exit codes for healthy and unreachable APIs.",
+  "tags": ["cli"],
+  "date": "2026-11-24"
+}
