@@ -59,3 +59,20 @@ describe("row 12: docs MCP usability", () => {
 		expect(r.content[0].text).toBe("# X\n\nBody.");
 	});
 });
+
+describe("docs MCP protocol version negotiation", () => {
+	it.each(["2025-06-18", "2025-03-26", "2024-11-05"])("echoes supported version %s", async (version) => {
+		const r = await rpc("initialize", { protocolVersion: version });
+		expect(r.protocolVersion).toBe(version);
+	});
+
+	it.each(["2099-01-01", "not-a-date", 20250618])("answers unsupported version %s with the latest supported one", async (version) => {
+		const r = await rpc("initialize", { protocolVersion: version });
+		expect(r.protocolVersion).toBe("2025-06-18");
+	});
+
+	it("answers an omitted version with the latest supported one", async () => {
+		const r = await rpc("initialize");
+		expect(r.protocolVersion).toBe("2025-06-18");
+	});
+});

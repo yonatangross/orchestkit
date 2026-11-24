@@ -15,10 +15,9 @@
 
 import { SITE } from "@/lib/constants";
 import { SKILLS } from "@/lib/generated/skills-data";
+import { negotiateProtocolVersion } from "@/lib/mcp-protocol";
 
 export const dynamic = "force-dynamic";
-
-const PROTOCOL_VERSION = "2025-06-18";
 
 type ToolResult = {
 	content: Array<{ type: "text"; text: string }>;
@@ -448,8 +447,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 	switch (req.method) {
 		case "initialize":
 			return rpcResult(req.id, {
-				protocolVersion:
-					(req.params?.protocolVersion as string) ?? PROTOCOL_VERSION,
+				protocolVersion: negotiateProtocolVersion(req.params?.protocolVersion),
 				capabilities: {
 					tools: { listChanged: false },
 				},

@@ -1,0 +1,4 @@
+{
+  "serves": ["docs/site/app/api/mcp/route.ts", "docs/site/app/api/mcp/actions/route.ts", "docs/site/lib/mcp-protocol.ts"],
+  "description": "Recorded initialize probes against both hosted MCP endpoints, before and after protocol version negotiation."
+}

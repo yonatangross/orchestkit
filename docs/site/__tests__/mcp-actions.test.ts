@@ -41,6 +41,32 @@ describe("Product MCP Actions Server", () => {
 		});
 	});
 
+	describe("initialize protocol version negotiation", () => {
+		async function negotiated(params?: Record<string, unknown>) {
+			const { POST } = await import("@/app/api/mcp/actions/route");
+			const res = await POST(
+				new Request("https://orchestkit.dev/api/mcp/actions", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(rpcRequest("initialize", params)),
+				}),
+			);
+			return (await res.json()).result.protocolVersion;
+		}
+
+		it.each(["2025-06-18", "2025-03-26", "2024-11-05"])("echoes supported version %s", async (version) => {
+			expect(await negotiated({ protocolVersion: version })).toBe(version);
+		});
+
+		it.each(["2099-01-01", "not-a-date", 20250618])("answers unsupported version %s with the latest supported one", async (version) => {
+			expect(await negotiated({ protocolVersion: version })).toBe("2025-06-18");
+		});
+
+		it("answers an omitted version with the latest supported one", async () => {
+			expect(await negotiated()).toBe("2025-06-18");
+		});
+	});
+
 	describe("tools/list", () => {
 		it("returns all three action tools with correct annotations", async () => {
 			const { POST } = await import("@/app/api/mcp/actions/route");

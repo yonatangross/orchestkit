@@ -3,6 +3,7 @@ import { reportServerEvents } from "@/lib/analytics-server";
 import { SITE } from "@/lib/constants";
 import { getDocMarkdown } from "@/lib/doc-markdown";
 import { searchDocs } from "@/lib/doc-search";
+import { negotiateProtocolVersion } from "@/lib/mcp-protocol";
 import { mcpTelemetryEvents } from "@/lib/mcp-telemetry";
 import {
 	buildInstallPicker,
@@ -24,8 +25,6 @@ import {
 // wrap the real documentation search, so nothing here is fabricated.
 // Spec: https://modelcontextprotocol.io/specification (Streamable HTTP transport)
 export const dynamic = "force-dynamic";
-
-const PROTOCOL_VERSION = "2025-06-18";
 
 const SITE_ORIGIN = new URL(SITE.domain).origin;
 
@@ -290,8 +289,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 	switch (req.method) {
 		case "initialize":
 			return rpcResult(req.id, {
-				protocolVersion:
-					(req.params?.protocolVersion as string) ?? PROTOCOL_VERSION,
+				protocolVersion: negotiateProtocolVersion(req.params?.protocolVersion),
 				capabilities: {
 					tools: { listChanged: false },
 					// MCP Apps: ui:// resources rendered inline by the host.
