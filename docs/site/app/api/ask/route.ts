@@ -112,7 +112,7 @@ function sseResponse(
 	});
 }
 
-type ParsedAsk = { query: string; mode: string; streaming: boolean };
+type ParsedAsk = { query: string; mode: string; streaming: boolean; limit: number | null };
 
 function truthy(value: string | null | undefined): boolean {
 	return value === "true" || value === "1" || value === "yes";
@@ -130,6 +130,7 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 		truthy(params.get("streaming"));
 	let query = params.get("query") ?? params.get("q") ?? params.get("question") ?? "";
 	let mode = params.get("mode") ?? "list";
+	let limitRaw: string | null = params.get("limit");
 
 	if (req.method !== "GET") {
 		const contentType = req.headers.get("content-type") ?? "";
@@ -138,6 +139,7 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 				const form = new URLSearchParams(await req.text());
 				query = form.get("query") ?? form.get("q") ?? form.get("question") ?? query;
 				mode = form.get("mode") ?? mode;
+				limitRaw = form.get("limit") ?? limitRaw;
 				if (truthy(form.get("streaming"))) streaming = true;
 			} else {
 				const body = (await req.json()) as {
@@ -147,6 +149,7 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 					mode?: string;
 					streaming?: boolean | string;
 					prefer?: { streaming?: boolean };
+					limit?: number | string;
 				};
 				// NLWeb's canonical request body is { query: { text: "..." } }; also
 				// accept a bare string query and the q/question aliases. (Treating
@@ -156,6 +159,7 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 					typeof body?.query === "string" ? body.query : body?.query?.text;
 				query = bodyQuery ?? body?.q ?? body?.question ?? query;
 				mode = body?.mode ?? mode;
+				if (body?.limit !== undefined) limitRaw = String(body.limit);
 				if (body?.prefer?.streaming || body?.streaming === true || truthy(String(body?.streaming))) {
 					streaming = true;
 				}
@@ -167,7 +171,13 @@ async function readQuery(req: Request): Promise<ParsedAsk | null> {
 	}
 
 	if (!NLWEB_MODES.has(mode)) mode = "list";
-	return { query, mode, streaming };
+	const limit = limitRaw === null ? null : Number(limitRaw);
+	return {
+		query,
+		mode,
+		streaming,
+		limit: limit !== null && (!Number.isInteger(limit) || limit < 1 || limit > 100) ? Number.NaN : limit,
+	};
 }
 
 async function handle(req: Request): Promise<Response> {
@@ -203,8 +213,19 @@ async function handle(req: Request): Promise<Response> {
 	if (!query) {
 		return noQueryResponse(headers);
 	}
+	if (Number.isNaN(parsed.limit)) {
+		return problemResponse(
+			{
+				title: "Invalid limit",
+				status: 400,
+				detail: "`limit` must be an integer from 1 to 100; omit it for all results.",
+				instance: "/ask",
+			},
+			rateLimitHeaders(rate),
+		);
+	}
 
-	const hits = searchDocs(query);
+	const hits = searchDocs(query).slice(0, parsed.limit ?? undefined);
 	return parsed.streaming
 		? sseResponse(query, parsed.mode, hits, headers)
 		: jsonResponse(query, parsed.mode, hits, headers);

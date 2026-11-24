@@ -160,9 +160,14 @@ export async function search(
 export async function ask(
 	client: Client,
 	query: string,
+	limit: number,
 ): Promise<{ data: unknown; rateLimit: RateLimit }> {
-	const qs = new URLSearchParams({ query });
-	return getJson<unknown>(client, `/ask?${qs}`);
+	const qs = new URLSearchParams({ query, limit: String(limit) });
+	const { data, rateLimit } = await getJson<unknown>(client, `/ask?${qs}`);
+	if (data && typeof data === "object" && "results" in data && Array.isArray(data.results)) {
+		return { data: { ...data, results: data.results.slice(0, limit) }, rateLimit };
+	}
+	return { data, rateLimit };
 }
 
 /**

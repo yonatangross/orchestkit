@@ -211,7 +211,7 @@ export async function run(
 			case "ask": {
 				const query = args.positional.join(" ").trim();
 				if (!query) return fail("Usage: orchestkit ask <question>\n", 2);
-				const { data } = await ask(client, query);
+				const { data } = await ask(client, query, args.limit);
 				return ok(`${JSON.stringify(data, null, 2)}\n`);
 			}
 

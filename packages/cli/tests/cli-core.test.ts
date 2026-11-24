@@ -228,6 +228,24 @@ describe("help and version flags", () => {
 });
 
 describe("networked commands", () => {
+	it("ask sends --limit and caps the returned results", async () => {
+		const urls: string[] = [];
+		const restore = stubFetch((url) => {
+			urls.push(url);
+			return jsonResponse({
+				results: Array.from({ length: 10 }, (_, i) => ({ id: String(i), url: `/docs/${i}` })),
+			});
+		});
+		try {
+			const res = await run(["ask", "hooks", "--limit", "2"], { version: "1.2.3" });
+			expect(res.exitCode).toBe(0);
+			expect(urls[0]).toContain("/ask?query=hooks&limit=2");
+			expect(JSON.parse(res.stdout).results).toHaveLength(2);
+		} finally {
+			restore();
+		}
+	});
+
 	it("search preserves API page titles, headings and text snippets", async () => {
 		const restore = stubFetch(() =>
 			jsonResponse([
