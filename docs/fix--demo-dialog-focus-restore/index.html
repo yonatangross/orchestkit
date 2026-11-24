@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Demo gallery keyboard focus</title>
+<meta name="description" content="Compare where focus lands before and after closing a demo composition dialog.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f7f6f2; color: #202b35; font: 16px/1.6 system-ui, sans-serif; }
+  main { max-width: 940px; margin: auto; padding: 56px 24px 32px; }
+  h1 { font-size: clamp(34px, 5vw, 56px); letter-spacing: -.045em; line-height: 1.05; margin: 12px 0 20px; }
+  p { margin: 0 0 20px; }
+  .eyebrow { color: #456658; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 26px 0; }
+  section { background: white; border: 1px solid #d7ddd9; border-radius: 12px; padding: 20px; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  dl { margin: 0; }
+  dt { color: #53606a; font-size: 14px; margin-top: 12px; }
+  dd { margin: 0; font-weight: 600; }
+  kbd { font: 600 .9em ui-monospace, monospace; background: #e7eae6; border-radius: 4px; padding: 2px 5px; }
+  a { color: #215641; }
+  a:focus-visible { outline: 3px solid #3574a8; outline-offset: 3px; }
+  @media (max-width: 640px) { main { padding-top: 28px; } .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Docs accessibility / browser trace</p>
+  <h1>Keep your place in the gallery.</h1>
+  <p>When a demo dialog closes, focus should return to the card that opened it, so the next <kbd>Tab</kbd> continues through the gallery.</p>
+  <div class="grid">
+    <section aria-labelledby="before">
+      <h2 id="before">Before</h2>
+      <dl>
+        <dt><kbd>Enter</kbd> on Implement</dt><dd>Dialog Close button</dd>
+        <dt><kbd>Escape</kbd></dt><dd>Page body</dd>
+        <dt><kbd>Tab</kbd></dt><dd>OrchestKit Skills Reference link</dd>
+      </dl>
+    </section>
+    <section aria-labelledby="after">
+      <h2 id="after">After</h2>
+      <dl>
+        <dt><kbd>Enter</kbd> on Implement</dt><dd>Dialog Close button</dd>
+        <dt><kbd>Escape</kbd></dt><dd>Implement card</dd>
+        <dt><kbd>Tab</kbd></dt><dd>Verify card</dd>
+      </dl>
+    </section>
+  </div>
+  <p>This trace was recorded in Chromium on the actual Reference page.</p>
+  <a href="/docs/reference#demo-compositions">Try the keyboard sequence in the demo gallery</a>
+</main>
+</body>
+</html>

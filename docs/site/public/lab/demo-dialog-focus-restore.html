@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Demo gallery keyboard focus</title>
+<meta name="description" content="Compare where focus lands before and after closing a demo composition dialog.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f7f6f2; color: #202b35; font: 16px/1.6 system-ui, sans-serif; }
+  main { max-width: 940px; margin: auto; padding: 56px 24px 32px; }
+  h1 { font-size: clamp(34px, 5vw, 56px); letter-spacing: -.045em; line-height: 1.05; margin: 12px 0 20px; }
+  p { margin: 0 0 20px; }
+  .eyebrow { color: #456658; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 26px 0; }
+  section { background: white; border: 1px solid #d7ddd9; border-radius: 12px; padding: 20px; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  dl { margin: 0; }
+  dt { color: #53606a; font-size: 14px; margin-top: 12px; }
+  dd { margin: 0; font-weight: 600; }
+  kbd { font: 600 .9em ui-monospace, monospace; background: #e7eae6; border-radius: 4px; padding: 2px 5px; }
+  a { color: #215641; }
+  a:focus-visible { outline: 3px solid #3574a8; outline-offset: 3px; }
+  @media (max-width: 640px) { main { padding-top: 28px; } .grid { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Demo gallery keyboard focus"><meta property="og:description" content="Compare keyboard focus before and after closing a demo composition dialog."><meta property="og:url" content="https://orchestkit.dev/lab/demo-dialog-focus-restore.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Demo gallery keyboard focus"><meta name="twitter:description" content="Compare keyboard focus before and after closing a demo composition dialog."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <p class="eyebrow">Docs accessibility / browser trace</p>
+  <h1>Keep your place in the gallery.</h1>
+  <p>When a demo dialog closes, focus should return to the card that opened it, so the next <kbd>Tab</kbd> continues through the gallery.</p>
+  <div class="grid">
+    <section aria-labelledby="before">
+      <h2 id="before">Before</h2>
+      <dl>
+        <dt><kbd>Enter</kbd> on Implement</dt><dd>Dialog Close button</dd>
+        <dt><kbd>Escape</kbd></dt><dd>Page body</dd>
+        <dt><kbd>Tab</kbd></dt><dd>OrchestKit Skills Reference link</dd>
+      </dl>
+    </section>
+    <section aria-labelledby="after">
+      <h2 id="after">After</h2>
+      <dl>
+        <dt><kbd>Enter</kbd> on Implement</dt><dd>Dialog Close button</dd>
+        <dt><kbd>Escape</kbd></dt><dd>Implement card</dd>
+        <dt><kbd>Tab</kbd></dt><dd>Verify card</dd>
+      </dl>
+    </section>
+  </div>
+  <p>This trace was recorded in Chromium on the actual Reference page.</p>
+  <a href="/docs/reference#demo-compositions">Try the keyboard sequence in the demo gallery</a>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
