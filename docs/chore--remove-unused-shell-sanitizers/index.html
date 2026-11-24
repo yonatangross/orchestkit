@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Four unused shell helpers</title>
+<meta name="description" content="Compare the shell sanitizer module before and after removing four exports that no hook called.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f6f7f9; color: #1d2736; font: 16px/1.6 system-ui, sans-serif; }
+  main { width: min(100%, 56rem); margin: auto; padding: 3rem 1.25rem; }
+  .eyebrow { color: #235d54; font-size: .8rem; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+  h1 { margin: .35rem 0 .65rem; font-size: clamp(2rem, 6vw, 3.3rem); line-height: 1.08; letter-spacing: -.05em; }
+  h2 { margin: 0; font-size: 1.15rem; }
+  p { margin: .65rem 0 0; }
+  .intro { max-width: 42rem; color: #435065; }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-block: 1.65rem; }
+  article, details { padding: 1.15rem 1.25rem; background: #fff; border: 1px solid #d8dee7; border-radius: .85rem; }
+  article:last-child { border-color: #a3cbbf; background: #f3fbf8; }
+  ul { padding-left: 1.15rem; margin-bottom: 0; }
+  code, pre { font: .9rem/1.6 ui-monospace, monospace; }
+  pre { margin-bottom: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  summary { cursor: pointer; font-weight: 700; }
+  summary:focus-visible { outline: 2px solid #235d54; outline-offset: .25rem; }
+  @media (max-width: 40rem) { .comparison { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Hook maintenance / caller audit</div>
+    <h1>Four unused shell helpers</h1>
+    <p class="intro">The repository search found these exports only where they were defined or tested. No hook imported them. The validators hooks actually use stay in place.</p>
+  </header>
+  <section class="comparison" aria-label="Module comparison">
+    <article>
+      <h2>Before: unused exports</h2>
+      <ul>
+        <li><code>shellQuote</code></li>
+        <li><code>assertSafeGitRef</code></li>
+        <li><code>assertSafeGlobPattern</code></li>
+        <li><code>assertSafeIssueNumber</code></li>
+      </ul>
+      <p>None had a production caller.</p>
+    </article>
+    <article>
+      <h2>After: hook behavior unchanged</h2>
+      <ul>
+        <li>Git option validation</li>
+        <li>Command-name validation</li>
+        <li>Session ID sanitization</li>
+      </ul>
+      <p>These live checks and the separate shell-argument validator were not changed.</p>
+    </article>
+  </section>
+  <details>
+    <summary>Show the repository search and its result</summary>
+    <pre><code>git grep -l -w -E 'shellQuote|assertSafeGitRef|assertSafeGlobPattern|assertSafeIssueNumber' c10e66227
+
+c10e66227:src/hooks/src/__tests__/lib/sanitize-shell.test.ts
+c10e66227:src/hooks/src/lib/sanitize-shell.ts</code></pre>
+  </details>
+</main>
+</body>
+</html>

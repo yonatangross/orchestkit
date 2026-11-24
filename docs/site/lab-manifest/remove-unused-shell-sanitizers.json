@@ -1,0 +1,8 @@
+{
+  "slug": "remove-unused-shell-sanitizers",
+  "source": "docs/chore--remove-unused-shell-sanitizers/index.html",
+  "title": "Four unused shell helpers",
+  "description": "Compare the shell sanitizer module before and after removing four exports that no hook called.",
+  "tags": ["hooks", "refactoring"],
+  "date": "2026-11-24"
+}
