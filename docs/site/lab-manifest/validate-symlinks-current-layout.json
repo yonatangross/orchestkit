@@ -1,0 +1,8 @@
+{
+  "slug": "validate-symlinks-current-layout",
+  "source": "docs/refactor--validate-symlinks-current-layout/index.html",
+  "title": "Plugin symlink validation",
+  "description": "Compare real checkout output before and after narrowing validation to broken plugin symlinks.",
+  "tags": ["ci"],
+  "date": "2026-11-23"
+}

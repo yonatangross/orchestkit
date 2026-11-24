@@ -112,6 +112,7 @@ Categories available:
 - operator `permissions.deny` rules (written by `/ork:setup`, enforced by Claude Code)
 - network egress guard (DENY tier, inside the Bash dispatcher)
 - secret handler (PostToolUse output scan; logs only by default, `ORK_SECRET_HOOK=REDACT` to redact)
+- redact-secrets (PostToolUse on Bash and Write|Edit; warns on likely API keys and credentials in output, never blocks)
 
 **Toggleable Hooks:**
 - Productivity (auto-approve, logging)

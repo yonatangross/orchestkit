@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>When two dots are part of the name</title>
+  <meta name="description" content="Compare recorded write retry results before and after fixing project path containment.">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7f6; color: #182923; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 52rem; margin: auto; padding: clamp(1.5rem, 6vw, 4rem) max(1rem, 4vw); }
+    header { max-width: 38rem; }
+    .eyebrow { color: #27654d; font-size: .8rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { font-size: clamp(2rem, 6vw, 3.25rem); letter-spacing: -.045em; line-height: 1.08; margin: .5rem 0 1rem; }
+    p { color: #41554c; }
+    table { width: 100%; margin: 1.75rem 0 1rem; border-spacing: 0; background: white; border: 1px solid #bfcfc7; border-radius: .7rem; }
+    caption { text-align: left; padding-bottom: .5rem; font-weight: 700; }
+    th, td { padding: clamp(.55rem, 2vw, 1rem); text-align: left; border-bottom: 1px solid #d9e4de; }
+    tbody th { font-weight: 500; }
+    tbody tr:last-child > * { border-bottom: 0; }
+    .changed { background: #e3f4ea; color: #174d35; font-weight: 700; }
+    code { font-size: .9em; overflow-wrap: anywhere; }
+    .note { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">PermissionDenied / Write retry</p>
+      <h1>When two dots are part of the name</h1>
+      <p><code>..cache</code> is an ordinary directory name. A denied write there can be retried just like a denied write to <code>src</code>. Only the exact <code>..</code> path segment means “parent directory.”</p>
+    </header>
+    <table>
+      <caption>Recorded results from the built hook</caption>
+      <thead><tr><th scope="col">Path from project</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr class="changed"><th scope="row"><code>..cache/a.json</code></th><td>No retry</td><td>Retry</td></tr>
+        <tr><th scope="row"><code>src/a.ts</code></th><td>Retry</td><td>Retry</td></tr>
+        <tr><th scope="row"><code>../outside/a.json</code></th><td>No retry</td><td>No retry</td></tr>
+        <tr><th scope="row"><code>node_modules/a.json</code></th><td>No retry</td><td>No retry</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Each run sent a denied <code>Write</code> event for a real fixture file to the built dispatcher. “Retry” means it returned <code>retry: true</code>; the probe did not perform the denied write.</p>
+  </main>
+</body>
+</html>

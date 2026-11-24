@@ -5,6 +5,35 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.18.0](https://github.com/yonatangross/orchestkit/compare/v10.17.0...v10.18.0) (2026-11-24)
+
+
+### Features
+
+* **cc:** adopt Claude Code 2.1.331 ([#5399](https://github.com/yonatangross/orchestkit/issues/5399)) ([3528b3b](https://github.com/yonatangross/orchestkit/commit/3528b3bbf1552a3c2ee96a711f0bbb30820f6c46))
+
+
+### Bug Fixes
+
+* **cli:** accept full URLs and docs/ paths in read ([#5391](https://github.com/yonatangross/orchestkit/issues/5391)) ([ef39bb1](https://github.com/yonatangross/orchestkit/commit/ef39bb1f07c25ffb94eaf9390b9d4ce2ed39bdcb))
+* **cli:** derive doctor exit code from check outcomes ([#5400](https://github.com/yonatangross/orchestkit/issues/5400)) ([1c0f158](https://github.com/yonatangross/orchestkit/commit/1c0f1580ecdb2ab335077e44181346abf659c7af))
+* **docs:** retain indexed URLs in the budgeted dump ([#5402](https://github.com/yonatangross/orchestkit/issues/5402)) ([310715f](https://github.com/yonatangross/orchestkit/commit/310715f49a1bad58206337b6769c3d1835d0a746))
+* **hooks:** limit task-tracking nudges to one per session ([#5349](https://github.com/yonatangross/orchestkit/issues/5349)) ([ed558ca](https://github.com/yonatangross/orchestkit/commit/ed558ca016e75462228b7a1d5f7a5f87900ee61a))
+* **hooks:** report the installed plugin version ([#5398](https://github.com/yonatangross/orchestkit/issues/5398)) ([f57caeb](https://github.com/yonatangross/orchestkit/commit/f57caebbedb07ec5e846cc9d57428c1c3b1f1af4))
+* **hooks:** treat two-dot path names as inside the project ([#5384](https://github.com/yonatangross/orchestkit/issues/5384)) ([9bfcfda](https://github.com/yonatangross/orchestkit/commit/9bfcfda346f2c1387735c8383a4edc003450d2b2))
+* **mcp:** bound Docs response body reads ([#5386](https://github.com/yonatangross/orchestkit/issues/5386)) ([6766e57](https://github.com/yonatangross/orchestkit/commit/6766e572945e7c5afd5929f47099f0343a95285a))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the vitest group across 1 directory with 2 updates ([#5372](https://github.com/yonatangross/orchestkit/issues/5372)) ([cbc3e7d](https://github.com/yonatangross/orchestkit/commit/cbc3e7d0b73e5c16efdf9e2c5697f368f413e7f2))
+
+
+### Code Refactoring
+
+* **bin:** remove unused validate-mdx-counts.sh ([#5377](https://github.com/yonatangross/orchestkit/issues/5377)) ([a757038](https://github.com/yonatangross/orchestkit/commit/a757038c9af1da21e4f4f1f830cdbf0cf4396595))
+* **hooks:** remove unused shell sanitizer helpers ([#5401](https://github.com/yonatangross/orchestkit/issues/5401)) ([a062815](https://github.com/yonatangross/orchestkit/commit/a06281500e5ae2a02483423a8b35964e8afdf1c0))
+
 ## [10.17.0](https://github.com/yonatangross/orchestkit/compare/v10.16.0...v10.17.0) (2026-11-23)
 
 

@@ -2,8 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/jobs/[token]/route";
 import { POST } from "@/app/api/md/batch/route";
 
-vi.mock("@/lib/source", () => ({ source: { getPage: () => undefined } }));
-vi.mock("@/lib/docs-content", () => ({ readDocBody: vi.fn() }));
+vi.mock("@/lib/source", () => ({
+	source: {
+		getPage: (slugs: string[]) =>
+			slugs.join("/") === "getting-started/installation"
+				? { slugs, data: { title: "Installation", description: "Install it." } }
+				: undefined,
+	},
+}));
+vi.mock("@/lib/docs-content", () => ({ readDocBody: async () => "Body." }));
 
 const origin = "https://orchestkit.dev";
 const boundaryPath = "/docs/" + "a".repeat(
@@ -57,5 +64,30 @@ describe("Markdown batch job tokens", () => {
 		const submission = await submit(oversizedPaths);
 		expect(submission.status).toBe(200);
 		expect((await submission.json()).results).toHaveLength(oversizedPaths.length);
+	});
+});
+
+describe("Markdown batch reads every published docs page", () => {
+	const paths = ["/docs/mcp", "/docs/sdk.md", "/docs/getting-started/installation", "/docs/nope"];
+	const expected = [
+		{ path: "/docs/mcp", ok: true, title: "OrchestKit MCP server", markdown: expect.stringMatching(/^# OrchestKit MCP server\n/) },
+		{ path: "/docs/sdk.md", ok: true, title: "OrchestKit SDK packages", markdown: expect.stringMatching(/^# OrchestKit SDK packages\n/) },
+		{ path: "/docs/getting-started/installation", ok: true, title: "Installation", markdown: "# Installation\n\nInstall it.\n\nBody.\n" },
+		{ path: "/docs/nope", ok: false, status: 404 },
+	];
+
+	it("resolves the /docs/mcp and /docs/sdk landing pages in a synchronous batch", async () => {
+		const res = await submit(paths);
+		expect(res.status).toBe(200);
+		expect((await res.json()).results).toMatchObject(expected);
+	});
+
+	it("resolves the same landing pages when the async job is polled", async () => {
+		const { status_url: statusUrl } = await (await submit(paths, { prefer: "respond-async" })).json();
+		const poll = await GET(new Request(origin + statusUrl), {
+			params: Promise.resolve({ token: statusUrl.split("/").at(-1)! }),
+		});
+		expect(poll.status).toBe(200);
+		expect((await poll.json()).result.results).toMatchObject(expected);
 	});
 });

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'">
+<title>GitHub flags: arguments, not body text</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111619;color:#e8efed}body{margin:0}main{max-width:1100px;margin:auto;padding:54px 24px}header{border-bottom:1px solid #344440;padding-bottom:30px}.eyebrow{color:#88d6b1;letter-spacing:.16em;font-size:12px;text-transform:uppercase}h1{font-size:clamp(30px,5vw,52px);letter-spacing:-.04em;max-width:800px;margin:16px 0}p{line-height:1.6;color:#b8c9c2;max-width:850px}.badge{display:inline-block;border:1px solid #4a7561;border-radius:20px;padding:5px 12px;color:#9de6bb;font-size:13px}nav{display:flex;gap:10px;margin:28px 0;flex-wrap:wrap}button{font:inherit;border:1px solid #52675d;border-radius:8px;background:#1a2420;color:#e8efed;padding:10px 16px;cursor:pointer}button[aria-pressed=true]{background:#b0e8c6;color:#14261b}article{border:1px solid #344440;border-radius:12px;padding:24px;margin:16px 0;background:#151e1a}h2{font-size:20px;margin:0 0 12px}code,pre{font-family:ui-monospace,monospace;font-size:13px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101612;padding:16px;border-radius:8px;line-height:1.6}code{color:#d4e9dd}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px}.before,.after{border-top:2px solid;padding-top:10px}.before{border-color:#e6b291}.after{border-color:#91dbad}h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase}small{color:#a1b5aa}footer{margin-top:32px;border-top:1px solid #344440;padding-top:20px}@media(max-width:600px){main{padding:30px 16px}article{padding:16px}.comparison{grid-template-columns:1fr}pre{font-size:12px}}
+</style>
+</head>
+<body><main>
+<header><span class="eyebrow">OrchestKit / hook regression evidence</span>
+<h1>Arguments are flags.<br>Body text is not.</h1>
+<p>The GitHub label and milestone enforcers now read quoted shell words instead of searching raw command text. Equals syntax stays untouched. A shell example inside an issue body cannot impersonate a label.</p>
+<span class="badge">Real built runner · PreToolUse JSON · No GitHub writes</span></header>
+<nav aria-label="Evidence filter"><button aria-pressed="true" data-filter="all">All cases</button><button aria-pressed="false" data-filter="regression">Regressions</button><button aria-pressed="false" data-filter="control">Controls</button></nav>
+<section aria-label="Before and after runner results">
+<article data-kind="regression"><h2>01 / Equals-form label</h2><pre>gh issue create --title "Fix crash" --label=bug</pre><div class="comparison"><div class="before"><h3>Before</h3><code>updatedInput.command</code><pre>... --label=bug --label bug</pre><p>A second label was appended.</p></div><div class="after"><h3>After</h3><pre>{"continue":true,"suppressOutput":true}</pre><p>Silent success. Original input preserved.</p></div></div></article>
+<article data-kind="regression"><h2>02 / A shell example in the body</h2><pre>gh issue create --title "Fix crash" --body "ls -l output"</pre><div class="comparison"><div class="before"><h3>Before</h3><pre>{"continue":true,"suppressOutput":true}</pre><p>False positive: the body concealed the missing label.</p></div><div class="after"><h3>After</h3><code>updatedInput.command</code><pre>gh issue create --title "Fix crash" --body "ls -l output" --label bug</pre><p>The missing label is inferred as intended.</p></div></div></article>
+<article data-kind="regression"><h2>03 / Equals-form milestone</h2><pre>gh issue create --title "Fix crash" --milestone="v1"
+gh issue create --title "Fix crash" --milestone=v1</pre><div class="comparison"><div class="before"><h3>Before / both commands</h3><code>additionalContext</code><pre>No --milestone set. Consider assigning to a milestone for sprint tracking.</pre><p>Incorrect advisory despite an explicit milestone.</p></div><div class="after"><h3>After / both commands</h3><pre>{"continue":true,"suppressOutput":true}</pre><p>No milestone advisory.</p></div></div></article>
+<article data-kind="control"><h2>04 / Existing spaced flags remain valid</h2><pre>gh issue create --title "Fix crash" --label bug
+gh issue create --title "Fix crash" --milestone v1</pre><div class="comparison"><div class="before"><h3>Before / both commands</h3><pre>{"continue":true,"suppressOutput":true}</pre></div><div class="after"><h3>After / both commands</h3><pre>{"continue":true,"suppressOutput":true}</pre></div></div></article>
+<article data-kind="regression"><h2>05 / Review: invocation identity and shell quoting</h2><p>Additional built-runner checks compare the original PR commit <code>a805e5c</code> with the reviewed fix.</p><pre>git commit -m "Document gh issue create --label bug"
+gh issue create --body $'It\'s ready' --label docs
+/usr/bin/gh issue create --label docs</pre><div class="comparison"><div class="before"><h3>Original PR / all three inputs</h3><pre>git commit ... --label bug
+gh issue create ... --label docs --label docs
+/usr/bin/gh issue create --label docs --label docs</pre><p>The raw guard and word parser disagreed, causing unwanted rewrites.</p></div><div class="after"><h3>Reviewed fix / all three inputs</h3><pre>{"continue":true,"suppressOutput":true}</pre><p>Quoted command mentions are not invocations. ANSI-C quoting and absolute executable paths preserve the real label.</p></div></div></article>
+</section>
+<footer><h2>Method and boundaries</h2><p>Captured from <code>src/hooks/bin/run-hook.mjs pretool/bash/gh-label-enforcer</code> and <code>pretool/bash/gh-milestone-enforcer</code>, using real PreToolUse JSON on stdin. Baseline bundles were built from unchanged main source at <code>bf977faa</code>; fixed bundles were built from this branch. Every invocation exited 0. Long rewrite payloads above show the changed command field.</p><p>Tests also cover attached shorthand, quoted values, escaped spaces, empty values, missing values, option terminators and malformed quoting. This is literal argv inspection, not shell expansion or GitHub API validation.</p></footer>
+</main><script>
+document.querySelectorAll('button[data-filter]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('button[data-filter]').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));document.querySelectorAll('article[data-kind]').forEach(card=>{card.hidden=button.dataset.filter!=='all'&&card.dataset.kind!==button.dataset.filter;});}));
+</script></body></html>

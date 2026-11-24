@@ -19,9 +19,9 @@ vi.mock('node:crypto', () => ({
   createHash: vi.fn(() => ({ update: mockUpdate })),
 }));
 
-vi.mock('node:path', () => {
-  const named = { basename: vi.fn((p: string) => p.split('/').pop() || ''), join: vi.fn((...a: string[]) => a.join('/')), dirname: vi.fn((p: string) => p.split('/').slice(0, -1).join('/')), resolve: vi.fn((...a: string[]) => a.join('/')), sep: '/' };
-  return { ...named, default: named };
+vi.mock('node:path', async (importOriginal) => {
+  const path = await importOriginal<typeof import('node:path')>();
+  return { ...path, ...path.posix, default: path.posix };
 });
 
 vi.mock('../../lib/sanitize-shell.js', () => ({

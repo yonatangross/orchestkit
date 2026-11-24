@@ -1,0 +1,6 @@
+{
+  "serves": "remove-unused-shell-sanitizers",
+  "page": "docs/chore--remove-unused-shell-sanitizers/index.html",
+  "lab_slug": "remove-unused-shell-sanitizers",
+  "purpose": "Show the caller search for the four removed shell sanitizer helpers"
+}

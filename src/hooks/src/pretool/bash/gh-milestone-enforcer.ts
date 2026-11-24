@@ -12,9 +12,9 @@
 import type { HookInput, HookResult , HookContext} from '../../types.js';
 import {
   outputSilentSuccess,
-  outputAllowWithContext,
+  outputPreToolAdvisory,
 } from '../../lib/common.js';
-import { hasExplicitRepoTarget } from '../../lib/gh-command.js';
+import { hasExplicitRepoTarget, getGhCreateCommands } from '../../lib/gh-command.js';
 import { NOOP_CTX } from '../../lib/context.js';
 
 /**
@@ -24,15 +24,8 @@ import { NOOP_CTX } from '../../lib/context.js';
 export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CTX): HookResult {
   const command = input.tool_input.command || '';
 
-  // Only process gh issue create
-  if (!/gh\s+issue\s+create/.test(command)) {
-    return outputSilentSuccess();
-  }
-
-  // Check if --milestone or -m flag is present
-  const hasMilestone = /--milestone\s+\S+|-m\s+\S+/.test(command);
-
-  if (hasMilestone) {
+  const creates = getGhCreateCommands(command, '--milestone', '-m');
+  if (!creates.some(create => create.kind === 'issue' && !create.hasFlag)) {
     return outputSilentSuccess();
   }
 
@@ -46,5 +39,5 @@ export function ghMilestoneEnforcer(input: HookInput, ctx: HookContext = NOOP_CT
 
   const context = 'No --milestone set. Consider assigning to a milestone for sprint tracking.';
   ctx.log('gh-milestone-enforcer', 'Advisory: gh issue create without --milestone');
-  return outputAllowWithContext(context);
+  return outputPreToolAdvisory(context);
 }

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five findings the repro pass could not reproduce, and two gaps found beside them</title>
+<meta name="description" content="Pick a command and a linked-worktree setup to see what the npm ci guard says on main and on this branch. Five Vercel findings were already blocked; a function header and a prefix the text does not show were not.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; --warn:#8a5a00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(2rem,5vw,3rem); line-height:1.1; max-width:780px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:780px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  code, pre { font-family:ui-monospace,monospace; }
+  pre { background:#fff; border:1px solid var(--line); border-radius:6px; padding:12px 14px; overflow-x:auto; margin:10px 0; }
+  .row { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; margin:12px 0; }
+  select { font:inherit; padding:6px 8px; max-width:100%; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:14px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .card h3 { margin:0 0 6px; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .verdict { font-size:1.4rem; font-weight:700; }
+  .deny { color:var(--good); } .ask { color:var(--warn); } .quiet { color:var(--muted); } .miss { color:var(--bad); }
+  button { font:inherit; padding:8px 14px; border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:6px; cursor:pointer; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">hooks / npm ci symlink guard</div>
+    <h1>Five findings that were already blocked, and two gaps beside them.</h1>
+    <p>The guard denies <code>npm ci</code> when it would run in a directory whose <code>node_modules</code> is a symlink, because that empties the tree the link points at. Issue #5336 listed five scanner findings (#29, #36, #38, #40, #51) as unproven. Each shape was run through the real guard here and every one is blocked. While doing it, two other shapes slipped through: a function header hid the <code>cd</code>, and a prefix the text does not show never made the guard look for a linked worktree. This branch fixes both.</p>
+  </header>
+
+  <section>
+    <h2>Pick a command</h2>
+    <p class="muted">Results are what the guard returned, not a model. Checked by 74 rows added to the guard test file. The guard is a pure function over injected symlink answers, so none of these commands is ever run.</p>
+    <div class="row">
+      <label for="cmd">command</label>
+      <select id="cmd"></select>
+    </div>
+    <div class="row">
+      <label for="linked">worktree</label>
+      <select id="linked">
+        <option value="yes">a linked worktree is reachable</option>
+        <option value="no">nothing is linked (control)</option>
+      </select>
+    </div>
+    <pre id="shown"></pre>
+    <p class="muted" id="where"></p>
+    <div class="grid" aria-live="polite">
+      <div class="card"><h3>On main</h3><div class="verdict" id="mainVerdict"></div><div class="muted" id="mainNote"></div></div>
+      <div class="card"><h3>On this branch</h3><div class="verdict" id="prVerdict"></div><div class="muted" id="prNote"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The two fixes</h2>
+    <p><strong>A function header.</strong> A segment that starts with <code>f()</code>, <code>f ()</code> or <code>function f</code> was read as a command named <code>f</code>, so the <code>cd</code> and the brace group after it were never followed. The header is now stripped before the segment is read.</p>
+    <p><strong>A prefix the text does not show.</strong> A <code>--prefix</code> operand that still holds a dollar sign or a backtick after expansion (a positional parameter, a <code>read</code> or <code>for</code> variable, an unquoted substitution) never marked the directory shaky, so the search for a linked worktree under <code>.worktrees</code> did not run. It now does, and the guard asks only when one is reachable.</p>
+    <p class="muted">Not a gap: an alias defined on the same line. A non-interactive bash does not expand it there.</p>
+  </section>
+
+  <section>
+    <h2>Take it to a session</h2>
+    <p class="muted">The button copies a prompt that names this branch and the one command that proves it.</p>
+    <button type="button" id="copy">Copy as prompt</button>
+    <span id="copied" class="muted" role="status"></span>
+  </section>
+
+  <footer>Playground for the branch test/npm-ci-guard-five-shapes. The shipped files are src/hooks/src/pretool/bash/npm-ci-symlink-guard.ts and its test file.</footer>
+</main>
+<script>
+// kind: 'finding' = blocked on main already; 'gap' = missed on main, fixed here.
+const ROWS = [
+  { id:'29', kind:'finding', label:'#29 heredoc apostrophe', cmd:"cat <<EOF\nit's\nEOF\nnpm ci --prefix /lw", where:'/lw is a linked worktree; cwd is /wt', result:'deny' },
+  { id:'36', kind:'finding', label:'#36 slash IFS', cmd:'IFS=/; d=/decoy/extra; cd $d; npm ci --prefix rel', where:'/wt/rel is linked; bash refuses the cd and stays in /wt', result:'deny' },
+  { id:'38', kind:'finding', label:'#38 "$@" operands', cmd:'set -- /decoy extra; cd "$@"; npm ci --prefix rel', where:'/wt/rel is linked; the cd fails and stays in /wt', result:'deny' },
+  { id:'40', kind:'finding', label:'#40 quoted $HOME', cmd:"cd '$HOME'; npm ci --prefix rel", where:'/wt/rel is linked; the quoted word is a literal that bash cannot enter', result:'ask' },
+  { id:'51', kind:'finding', label:'#51 two paths in one variable', cmd:'d="/decoy /wt"; cd $d; npm ci --prefix rel', where:'/wt/rel is linked; the cd gets two operands and fails', result:'deny' },
+  { id:'g1', kind:'gap', label:'function with a literal cd', cmd:'f() { cd /repo/.worktrees/lw; npm ci; }; f', where:'/repo/.worktrees/lw is linked; cwd is /repo', result:'deny' },
+  { id:'g2', kind:'gap', label:'function keyword', cmd:'function f { cd /repo/.worktrees/lw; npm ci; }; f', where:'/repo/.worktrees/lw is linked; cwd is /repo', result:'deny' },
+  { id:'g3', kind:'gap', label:'function cds to its argument', cmd:'f() { cd "$1"; npm ci; }; f /repo/.worktrees/lw', where:'/repo/.worktrees/lw is linked; cwd is /repo', result:'ask' },
+  { id:'g4', kind:'gap', label:'positional prefix', cmd:'npm ci --prefix "$1"', where:'a worktree under /repo/.worktrees is linked; cwd is /repo', result:'ask' },
+  { id:'g5', kind:'gap', label:'prefix from read', cmd:'read d <<< /repo/.worktrees/lw; npm ci --prefix $d', where:'/repo/.worktrees/lw is linked; cwd is /repo', result:'ask' },
+  { id:'g6', kind:'gap', label:'unquoted substitution as prefix', cmd:'npm ci --prefix $(echo /repo/.worktrees/lw)', where:'/repo/.worktrees/lw is linked; cwd is /repo', result:'ask' }
+];
+const sel = document.getElementById('cmd');
+ROWS.forEach((r, i) => {
+  const o = document.createElement('option');
+  o.value = String(i);
+  o.textContent = (r.kind === 'finding' ? 'finding ' : 'gap ') + r.label;
+  sel.appendChild(o);
+});
+const WORD = { deny:'DENIED', ask:'ASKS', quiet:'QUIET', miss:'MISSED' };
+function paint(el, noteEl, kind, note) {
+  el.textContent = WORD[kind];
+  el.className = 'verdict ' + kind;
+  noteEl.textContent = note;
+}
+function update() {
+  const r = ROWS[+sel.value];
+  const linked = document.getElementById('linked').value === 'yes';
+  document.getElementById('shown').textContent = r.cmd;
+  document.getElementById('where').textContent = linked ? r.where : 'nothing is linked anywhere, so a quiet answer is correct';
+  const mainV = document.getElementById('mainVerdict'), mainN = document.getElementById('mainNote');
+  const prV = document.getElementById('prVerdict'), prN = document.getElementById('prNote');
+  if (!linked) {
+    paint(mainV, mainN, 'quiet', 'nothing to protect, nothing said');
+    paint(prV, prN, 'quiet', 'the fix does not turn the guard into a blanket deny');
+  } else if (r.kind === 'finding') {
+    paint(mainV, mainN, r.result, 'already blocked on main');
+    paint(prV, prN, r.result, 'unchanged: pinned by a regression row');
+  } else {
+    paint(mainV, mainN, 'miss', 'the guard said nothing and the install would run');
+    paint(prV, prN, r.result, r.result === 'deny' ? 'the cd is read, so the linked tree is found' : 'the directory is not in the text, so it asks when a linked worktree is reachable');
+  }
+}
+sel.addEventListener('change', update);
+document.getElementById('linked').addEventListener('change', update);
+update();
+document.getElementById('copy').addEventListener('click', async () => {
+  const prompt = [
+    'Review the branch test/npm-ci-guard-five-shapes (orchestkit).',
+    'It grades five unproven npm ci guard findings (#29, #36, #38, #40, #51) as already blocked,',
+    'and fixes two gaps in src/hooks/src/pretool/bash/npm-ci-symlink-guard.ts:',
+    'a function header hiding the cd, and a prefix operand with an unexpanded dollar sign.',
+    'Run: npx --no-install vitest run src/__tests__/pretool/bash/npm-ci-symlink-guard.test.ts in src/hooks (488 expected).',
+    'Then run the same file against main\'s guard: 12 of the new rows should fail.'
+  ].join('\n');
+  try { await navigator.clipboard.writeText(prompt); document.getElementById('copied').textContent = ' copied'; }
+  catch (e) { document.getElementById('copied').textContent = ' copy failed: select the text yourself'; }
+});
+</script>
+</body>
+</html>

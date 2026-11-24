@@ -6,21 +6,23 @@ import { developerResourceLines } from "@/lib/developer-resources";
 import { PRODUCT_LINE } from "@/lib/host-support";
 import { orderedPages, readDocBody } from "@/lib/docs-content";
 
-// /llms-full.txt — the entire documentation as one Markdown file so an agent can
-// ingest everything in a single request. Narrative sections are included in full
-// first; once the budget is reached, remaining pages (the large auto-generated
-// reference) degrade to a titled link so the file stays under the 200,000-char
-// ceiling that lets a 64k-token agent read it in one pass.
 export const dynamic = "force-dynamic";
 
-// Stay comfortably under the 200k spec ceiling, leaving room for the header.
+// Stay comfortably under the 200k spec ceiling for 64k-token agents.
 const MAX_CHARS = 190_000;
+const LINKS_HEADING = "\n\n## Pages available by link\n\n";
+
+function coverageNote(linkOnly: number, omitted: number): string {
+	return `\n\n---\n\n> Link-only pages: ${linkOnly}. Omitted indexed pages: ${omitted}. Append \`.md\` to any page URL for its Markdown, or browse the [full page index](${SITE.domain}/docs/llms.txt).\n`;
+}
 
 function header(): string {
 	return [
-		`# ${SITE.name}: Full Documentation`,
+		`# ${SITE.name}: Budgeted Documentation Dump`,
 		"",
 		`> ${SITE.name} is ${PRODUCT_LINE}. On Claude Code: ${COUNTS.skills} skills, ${COUNTS.agents} agents, and ${COUNTS.hooks} lifecycle hooks with built-in security patterns and quality gates.`,
+		"",
+		`This file prioritizes narrative docs within a character budget. For every page URL, see the [Full page index](${SITE.domain}/docs/llms.txt).`,
 		"",
 		"## Quickstart (Claude Code)",
 		"",
@@ -54,37 +56,39 @@ function header(): string {
 export async function GET() {
 	const head = header();
 	const parts: string[] = [head];
-	let size = head.length;
-	let truncated = false;
+	const pages = orderedPages();
+	// Reserve space for links and the largest possible footer before adding bodies.
+	let budget = MAX_CHARS - head.length - LINKS_HEADING.length - coverageNote(pages.length, pages.length).length;
+	const entries = [];
+	for (const page of pages) {
+		const link = `- [${page.data.title}](${page.url})\n`;
+		if (link.length > budget) continue;
+		budget -= link.length;
+		entries.push({ page, link });
+	}
 
-	for (const page of orderedPages()) {
+	const linkOnly: string[] = [];
+	for (const { page, link } of entries) {
 		const url = `${SITE.domain}${page.url}`;
 		const heading = `\n\n## ${page.data.title}\n\n${page.data.description ?? ""}\n\n[${url}](${page.url})`;
-
-		if (size + heading.length > MAX_CHARS) {
-			truncated = true;
-			continue;
+		if (heading.length - link.length <= budget) {
+			const body = await readDocBody(page.slugs);
+			if (body) {
+				const block = `${heading}\n\n${body}`;
+				const extra = block.length - link.length;
+				if (extra <= budget) {
+					parts.push(block);
+					budget -= extra;
+					continue;
+				}
+			}
 		}
-
-		const body = await readDocBody(page.slugs);
-		const block = body ? `${heading}\n\n${body}` : heading;
-
-		if (size + block.length > MAX_CHARS) {
-			// Body would overflow — keep the titled link, drop the body.
-			parts.push(heading);
-			size += heading.length;
-			truncated = true;
-		} else {
-			parts.push(block);
-			size += block.length;
-		}
+		linkOnly.push(link);
 	}
 
-	if (truncated) {
-		parts.push(
-			`\n\n---\n\n> Some pages above are listed as links only to keep this file under 200,000 characters. Fetch any page's full Markdown by appending \`.md\` to its URL, or read the navigation index at ${SITE.domain}/llms.txt and per-section index at ${SITE.domain}/docs/llms.txt.\n`,
-		);
-	}
+	const omitted = pages.length - entries.length;
+	if (linkOnly.length) parts.push(LINKS_HEADING, ...linkOnly);
+	if (linkOnly.length || omitted) parts.push(coverageNote(linkOnly.length, omitted));
 
 	return new Response(parts.join(""), {
 		headers: {

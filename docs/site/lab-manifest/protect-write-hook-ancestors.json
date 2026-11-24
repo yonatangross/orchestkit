@@ -1,0 +1,8 @@
+{
+  "slug": "protect-write-hook-ancestors",
+  "source": "docs/fix--protect-write-hook-ancestors/index.html",
+  "title": "Protected paths stay protected above the project root",
+  "description": "See the protected-ancestor regression tests and compare built write-hook decisions before and after the shared check was restored.",
+  "tags": ["hooks", "permissions", "bugfix"],
+  "date": "2026-11-23"
+}

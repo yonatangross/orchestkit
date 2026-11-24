@@ -1262,3 +1262,124 @@ function measureGrowth(run: (n: number) => void, n: number, step: number): { sma
   }
   return { small, large, ratio: large / small };
 }
+
+// The five Vercel Security Review findings the #5336 repro pass could not reproduce (#29, #36, #38,
+// #40, #51). Each shape below was run against the current guard in the placement where a bypass would
+// hurt, and every one is blocked: the guard reads the install, or it cannot place the cd and asks.
+// These rows pin that result and each has a control, so a change that loosens the guard fails here.
+// The guard is a pure function over injected symlink answers: nothing here runs a command.
+describe('the five findings #5336 left unproven (#29, #36, #38, #40, #51)', () => {
+  const lwLinked = linksAt('/lw/node_modules');
+  const relLinked = linksAt('/wt/rel/node_modules');
+  const nothingLinked = linksAt();
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps) =>
+    npmCiSymlinkGuard(bash(command, '/wt'), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  // #29: apostrophes in a heredoc body must not hide an install around it.
+  const heredocs: Array<[string, string]> = [
+    ['an unquoted delimiter', "cat <<EOF\nit's\nEOF\nnpm ci --prefix /lw"],
+    ['a double-quoted delimiter', 'cat <<"EOF"\nit\'s\nEOF\nnpm ci --prefix /lw'],
+    ['a dash delimiter with tabbed lines', "cat <<-EOF\n\tit's\n\tEOF\nnpm ci --prefix /lw"],
+    ['a command substitution in an unquoted body', "cat <<EOF\nit's $(npm ci --prefix /lw)\nEOF"],
+    ['two heredocs on one line', "cat <<A <<B\nit's\nA\nit's\nB\nnpm ci --prefix /lw"],
+    ['a cd after the heredoc', "cat <<EOF\nit's\nEOF\ncd /lw; npm ci"],
+  ];
+  it.each(heredocs)('#29 %s: denied', (_name, command) => {
+    expect(decision(command, lwLinked)).toBe('deny');
+  });
+  it.each(heredocs)('#29 control, %s: quiet with nothing linked', (_name, command) => {
+    expect(decision(command, nothingLinked)).toBeUndefined();
+  });
+
+  // #36, #38, #40, #51 share one placement: bash refuses or redirects the cd, stays in /wt, and
+  // the install with a relative prefix then empties the linked /wt/rel while a reader that believed the cd
+  // would probe somewhere else.
+  const stayBehind: Array<[string, string]> = [
+    ['#36 a slash IFS', 'IFS=/; d=/decoy/extra; cd $d; npm ci --prefix rel'],
+    ['#36 a colon IFS', 'IFS=:; d=a:b; cd $d; npm ci --prefix rel'],
+    ['#36 a letter IFS', 'IFS=x; d=axb; cd $d; npm ci --prefix rel'],
+    ['#36 an IFS of blank and slash', 'IFS=" /"; d=/decoy/x; cd $d; npm ci --prefix rel'],
+    ['#36 an IFS with an unset variable', 'IFS=/; cd $d; npm ci --prefix rel'],
+    ['#38 "$@" after set --', 'set -- /decoy extra; cd "$@"; npm ci --prefix rel'],
+    ['#38 $* after set --', 'set -- /decoy extra; cd $*; npm ci --prefix rel'],
+    ['#38 two positional operands', 'set -- /decoy extra; cd $1 $2; npm ci --prefix rel'],
+    ['#38 positional operands in a function', 'f() { cd "$1" "$2"; }; f /decoy x; npm ci --prefix rel'],
+    ['#38 "$@" before a literal operand', 'cd "$@" /decoy; npm ci --prefix rel'],
+    ['#40 a single-quoted $HOME', "cd '$HOME'; npm ci --prefix rel"],
+    ['#40 a single-quoted tilde', "cd '~'; npm ci --prefix rel"],
+    ['#40 a double-quoted tilde', 'cd "~"; npm ci --prefix rel'],
+    ['#40 a single-quoted ${HOME}', "cd '${HOME}'; npm ci --prefix rel"],
+    ['#40 an escaped tilde', 'cd \\~; npm ci --prefix rel'],
+    ['#40 a single-quoted substitution', "cd '$(pwd)'; npm ci --prefix rel"],
+    ['#51 a variable holding two paths', 'd="/decoy /wt"; cd $d; npm ci --prefix rel'],
+    ['#51 a variable holding a space', "d='/a b'; cd $d; npm ci --prefix rel"],
+    ['#51 two variables as two operands', 'a=/decoy; b=extra; cd $a $b; npm ci --prefix rel'],
+    ['#51 an option word in a variable', 'd=-P; cd $d /decoy; npm ci --prefix rel'],
+    ['#51 a value with a blank', 'd="x y"; cd $d; npm ci --prefix rel'],
+  ];
+  it.each(stayBehind)('%s: denied or asked when /wt/rel is linked', (_name, command) => {
+    expect(['deny', 'ask']).toContain(decision(command, relLinked));
+  });
+  it.each(stayBehind)('control, %s: quiet when nothing is linked', (_name, command) => {
+    expect(decision(command, nothingLinked)).toBeUndefined();
+  });
+});
+
+// Found while grading the five above, against the real directory search: a function body hid its
+// cd behind `f()`, and a prefix the text does not show (a positional parameter, a loop or read
+// variable, an unquoted substitution) never marked the directory as uncertain, so a linked
+// worktree under .worktrees went unasked. cwd is /repo, the linked worktree is /repo/.worktrees/lw.
+describe('a function header and a prefix the text does not show', () => {
+  const W = '/repo/.worktrees/lw';
+  const withLink = (...linked: string[]): NpmCiSymlinkGuardDeps => ({
+    isSymlink: (p: string) => linked.includes(p),
+    listSubdirs: (p: string) => (p === '/repo/.worktrees' ? ['lw', 'other'] : p === '/repo' ? ['.worktrees', 'src'] : []),
+  });
+  const linked = withLink(`${W}/node_modules`);
+  const nothing = withLink();
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps) =>
+    npmCiSymlinkGuard(bash(command, '/repo'), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  it.each([
+    ['a function that cds to a literal path', `f() { cd ${W}; npm ci; }; f`],
+    ['a function with the function keyword', `function f { cd ${W}; npm ci; }; f`],
+    ['a subshell function', `f() ( cd ${W}; npm ci ); f`],
+    ['a header with a space before the parentheses', `f () { cd ${W}; npm ci; }; f`],
+  ])('%s: denied', (_name, command) => {
+    expect(decision(command, linked)).toBe('deny');
+  });
+
+  it.each([
+    ['a function that cds to its argument', `f() { cd "$1"; npm ci; }; f ${W}`],
+    ['a function whose prefix is its argument', `f() { npm ci --prefix "$1"; }; f ${W}`],
+    ['a quoted positional prefix', 'npm ci --prefix "$1"'],
+    ['an unquoted positional prefix after set --', `set -- ${W}; npm ci --prefix $1`],
+    ['a prefix variable that was never set', 'npm ci --prefix "$d"'],
+    ['a prefix from read', `read d <<< ${W}; npm ci --prefix $d`],
+    ['a prefix from a for loop', `for d in ${W}; do npm ci --prefix $d; done`],
+    ['an unquoted substitution as the prefix', `npm ci --prefix $(echo ${W})`],
+  ])('%s: asked, because the directory is not in the text', (_name, command) => {
+    expect(decision(command, linked)).toBe('ask');
+  });
+
+  it.each([
+    [`f() { cd ${W}; npm ci; }; f`],
+    [`f() { cd "$1"; npm ci; }; f ${W}`],
+    ['npm ci --prefix "$1"'],
+    [`npm ci --prefix $(echo ${W})`],
+  ])('control: %s is quiet when no worktree is linked', (command) => {
+    expect(decision(command, nothing)).toBeUndefined();
+  });
+
+  it.each([
+    [`f() { cd ${W}; npm install; }; f`],
+    ['npm install --prefix "$1"'],
+    [`f() { cd "$1"; npm test; }; f ${W}`],
+  ])('control: %s is not a clean install, so it is quiet while the worktree is linked', (command) => {
+    expect(decision(command, linked)).toBeUndefined();
+  });
+
+  it('a prefix variable the command set to a literal path is still denied outright', () => {
+    expect(decision(`d=${W}; npm ci --prefix "$d"`, linked)).toBe('deny');
+  });
+});

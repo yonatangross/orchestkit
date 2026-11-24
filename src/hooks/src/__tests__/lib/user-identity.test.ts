@@ -66,12 +66,13 @@ describe('User Identity System', () => {
     delete process.env.USERNAME;
     delete process.env.LOGNAME;
     // Claude Code sets these in its sessions; they outrank the mocked git identity.
-    delete process.env.CLAUDE_CODE_USER_EMAIL;
-    delete process.env.CLAUDE_CODE_ACCOUNT_UUID;
-    delete process.env.CLAUDE_CODE_ORGANIZATION_UUID;
+    vi.stubEnv('CLAUDE_CODE_USER_EMAIL', undefined);
+    vi.stubEnv('CLAUDE_CODE_ACCOUNT_UUID', undefined);
+    vi.stubEnv('CLAUDE_CODE_ORGANIZATION_UUID', undefined);
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     delete process.env.CLAUDE_PROJECT_DIR;
     delete process.env.CLAUDE_SESSION_ID;
   });

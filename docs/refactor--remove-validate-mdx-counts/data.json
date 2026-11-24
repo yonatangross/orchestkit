@@ -1,0 +1,6 @@
+{
+  "serves": "remove-validate-mdx-counts",
+  "page": "docs/refactor--remove-validate-mdx-counts/index.html",
+  "lab_slug": "remove-validate-mdx-counts",
+  "purpose": "Evidence that the MDX count scanner had no caller and that validate-counts still covers component counts"
+}

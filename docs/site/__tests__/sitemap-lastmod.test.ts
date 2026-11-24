@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MetadataRoute } from "next";
+import { docsHtmlCanonical } from "@/lib/docs-canonical";
 
 // The real generator (app/sitemap.ts) over the real docs tree. Only the
 // fumadocs loader is replaced: it needs the generated .source runtime, so the
@@ -79,5 +80,13 @@ describe("sitemap lastmod and loc", () => {
       .map((e) => e.url)
       .filter((u) => /\.(json|txt|xml|ya?ml)$/.test(u) || u.includes("/.well-known/"));
     expect(nonHtml).toEqual([]);
+  });
+
+  it("lists each canonical URL once, without docs aliases", async () => {
+    const urls = (await entries()).map((e) => e.url);
+    expect(new Set(urls).size).toBe(urls.length);
+    expect(urls.filter((url) => url.endsWith("/changelog"))).toEqual([
+      docsHtmlCanonical(["changelog"]),
+    ]);
   });
 });

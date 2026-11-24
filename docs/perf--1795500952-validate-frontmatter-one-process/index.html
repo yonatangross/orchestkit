@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>One process for frontmatter validation</title>
+<meta name="description" content="Measured before and after results for OrchestKit's agent and skill frontmatter validator.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f7f4; color: #192920; font: 16px/1.55 system-ui, sans-serif; }
+  main { width: min(100% - 2rem, 48rem); margin: 0 auto; padding: 3rem 0; }
+  .eyebrow { margin: 0; font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #42604c; }
+  h1 { margin: .45rem 0; font-size: clamp(2rem, 5vw, 3.15rem); line-height: 1.12; letter-spacing: -.035em; }
+  .lead { color: #46574c; margin: .8rem 0 1.6rem; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ced9d0; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; font-weight: 650; margin-bottom: .5rem; }
+  th, td { border-bottom: 1px solid #ced9d0; padding: .65rem clamp(.5rem, 2.5vw, 1rem); }
+  thead { background: #e4ede5; }
+  th { text-align: left; }
+  td, thead th:not(:first-child) { text-align: right; }
+  .method { color: #46574c; font-size: .92rem; }
+  code { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit performance lab</p>
+  <h1>One Node process for the whole catalog</h1>
+  <p class="lead">Batched frontmatter parsing cut median validation time by <strong>3.571 seconds</strong> (6.9× faster). The parser and Bash validation checks are unchanged.</p>
+  <table>
+    <caption>Full agent and skill catalog</caption>
+    <thead><tr><th scope="col">Metric</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Node launches</th><td>151</td><td>1</td></tr>
+      <tr><th scope="row">Median</th><td>4.176 s</td><td>0.605 s</td></tr>
+      <tr><th scope="row">Minimum</th><td>3.940 s</td><td>0.595 s</td></tr>
+      <tr><th scope="row">Maximum</th><td>4.694 s</td><td>0.621 s</td></tr>
+    </tbody>
+  </table>
+  <p class="method">Measured with 10 consecutive wall-clock runs of each version on the same Linux checkout and catalog, using Bash 5.1 and Node 24.22.3. Node launches were counted in separate <code>bash -x</code> runs. Catalog stdout, stderr and exit status matched.</p>
+  <p><strong>Try it:</strong> <code>bash bin/validate-frontmatter.sh</code></p>
+</main>
+</body>
+</html>

@@ -23,16 +23,12 @@ vi.mock('../../lib/common.js', async () => {
     ...actual,
     logHook: vi.fn(),
     outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
-    outputAllowWithContext: vi.fn((ctx: string) => ({
-      continue: true,
-      suppressOutput: true,
-      hookSpecificOutput: { additionalContext: ctx, hookEventName: 'PreToolUse' },
-    })),
+    outputPreToolAdvisory: vi.fn(actual.outputPreToolAdvisory),
   };
 });
 
 import { ghMilestoneEnforcer } from '../../pretool/bash/gh-milestone-enforcer.js';
-import { outputSilentSuccess, outputAllowWithContext } from '../../lib/common.js';
+import { outputSilentSuccess, outputPreToolAdvisory } from '../../lib/common.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // ---------------------------------------------------------------------------
@@ -55,6 +51,134 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 let testCtx: ReturnType<typeof createTestContext>;
 describe('gh-milestone-enforcer', () => {
+  it.each([
+    `gh issue create --title "$(( $(grep -c '(' f) ))"`,
+    `gh issue create --title "$(echo \${title//(/})"`,
+  ])('falls back to an advisory for an opaque computed title: %s', (command) => {
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
+  it.each(['x=$((1<<2))', '(( y <<= 1 ))'])('finds the gh invocation after arithmetic: %s', (arithmetic) => {
+    const result = ghMilestoneEnforcer(createBashInput(`${arithmetic}\ngh issue create --title x`), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+  });
+
+  it.each(['', ' --milestone v1'])('handles quoted command-substitution heredocs with trailing flags %s', (flags) => {
+    const command = [
+      'gh issue create --title x --body "$(cat <<\'EOF\'',
+      'A literal " and a lone ` with --label foo --milestone fake',
+      'gh issue create --title example',
+      'EOF',
+      `)"${flags}`,
+    ].join('\n');
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    if (flags) {
+      expect(outputSilentSuccess).toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+    } else {
+      expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+      expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+    }
+  });
+
+  it('finds the invocation after a comment mentioning its heredoc', () => {
+    const command = "# uses <<'ISSUE-BODY' below\ngh issue create --title x <<'ISSUE-BODY'\nbody\nISSUE-BODY";
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+  });
+
+  it('ignores gh examples and lone backticks in dotted-delimiter heredocs', () => {
+    const command = "cat <<'END.BODY'\nA lone `\ngh issue create --title x\nEND.BODY";
+    ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each(["'ISSUE-BODY'", '"ISSUE-BODY"'])('advises before a quoted heredoc with a lone backtick: %s', (delimiter) => {
+    const command = `gh issue create --title x --body-file - <<${delimiter}\nA lone \` in the body\nISSUE-BODY`;
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it('preserves flags following an unquoted backtick argument', () => {
+    ghMilestoneEnforcer(createBashInput('gh issue create --title `date` --label bug --milestone v1'), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'gh issue create --title x --body "ls -m output" --label bug',
+    'gh issue create --title x',
+  ])('advises without granting permission: %s', (command) => {
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+    expect(result.hookSpecificOutput).not.toHaveProperty('permissionDecision');
+  });
+
+  it.each([
+    'gh pr create --title y && gh issue create --title x',
+    'gh issue create --milestone v1; gh issue create --title x',
+    'gh issue create --title x && gh issue create --milestone v1',
+  ])('advises when any issue invocation lacks a milestone: %s', (command) => {
+    ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(outputPreToolAdvisory).toHaveBeenCalled();
+  });
+
+  it('does not advise about PR milestones in a mixed command', () => {
+    ghMilestoneEnforcer(createBashInput('gh pr create --title y && gh issue create --milestone v1'), testCtx);
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+    expect(outputSilentSuccess).toHaveBeenCalled();
+  });
+
+  it.each(['env FOO=1', 'command', 'VAR=val'])('enforces a missing flag through %s', (prefix) => {
+    const result = ghMilestoneEnforcer(createBashInput(`${prefix} gh issue create --title "Fix crash"`), testCtx);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('No --milestone');
+  });
+
+  it.each([
+    'git commit -m "Document gh issue create --milestone bug"',
+    'git commit -m "Document gh issue create"',
+    'echo gh issue create',
+    "gh issue create --body $'It\\'s ready' --milestone docs",
+    '/usr/bin/gh issue create --milestone docs',
+  ])('silently preserves reviewed input: %s', (command) => {
+    const result = ghMilestoneEnforcer(createBashInput(command), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+    expect(result.hookSpecificOutput?.updatedInput).toBeUndefined();
+  });
+
+  it.each([
+    '--milestone bug', '--milestone=bug', '--milestone="help wanted"',
+    "-m 'help wanted'", '-mbug', '-m=bug',
+    '--milestone help\\ wanted',
+    '--body "say \\"hello\\"" --milestone=bug',
+  ])('recognizes argv flag %s', (option) => {
+    ghMilestoneEnforcer(createBashInput(`gh issue create --title "Fix crash" ${option}`), testCtx);
+    expect(outputSilentSuccess).toHaveBeenCalled();
+    expect(outputPreToolAdvisory).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '--body "ls -m output"',
+    "--title '--milestone bug'",
+    '--body "--milestone=bug"',
+    '--body "-mbug"',
+    '--body "--milestone"',
+    '-- --milestone bug',
+    '--milestone ""',
+    '--milestone',
+    '',
+  ])('does not treat payload or missing values as flags: %s', (option) => {
+    ghMilestoneEnforcer(createBashInput(`gh issue create ${option}`), testCtx);
+    expect(outputPreToolAdvisory).toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     testCtx = createTestContext();
     vi.clearAllMocks();
@@ -103,14 +227,14 @@ describe('gh-milestone-enforcer', () => {
       const result = ghMilestoneEnforcer(input, testCtx);
 
       expect(result.continue).toBe(true);
-      expect(outputAllowWithContext).toHaveBeenCalled();
+      expect(outputPreToolAdvisory).toHaveBeenCalled();
     });
 
     it('advisory message mentions --milestone', () => {
       const input = createBashInput('gh issue create --title "Fix auth"');
       ghMilestoneEnforcer(input, testCtx);
 
-      const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
+      const ctxCall = vi.mocked(outputPreToolAdvisory).mock.calls[0][0];
       expect(ctxCall).toContain('--milestone');
     });
 
@@ -118,7 +242,7 @@ describe('gh-milestone-enforcer', () => {
       const input = createBashInput('gh issue create --title "Fix auth"');
       ghMilestoneEnforcer(input, testCtx);
 
-      const ctxCall = vi.mocked(outputAllowWithContext).mock.calls[0][0];
+      const ctxCall = vi.mocked(outputPreToolAdvisory).mock.calls[0][0];
       expect(ctxCall).toContain('milestone');
     });
 
@@ -151,7 +275,7 @@ describe('gh-milestone-enforcer', () => {
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
-      expect(outputAllowWithContext).not.toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     });
 
     it('returns silent success with --milestone and no space issue', () => {
@@ -209,7 +333,7 @@ describe('gh-milestone-enforcer', () => {
 
       expect(result.continue).toBe(true);
       expect(outputSilentSuccess).toHaveBeenCalled();
-      expect(outputAllowWithContext).not.toHaveBeenCalled();
+      expect(outputPreToolAdvisory).not.toHaveBeenCalled();
     });
   });
 });

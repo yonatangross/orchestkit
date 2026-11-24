@@ -8,15 +8,15 @@
 #   check-skill-invocable.sh <skill-name>   # one skill, human-readable verdict
 #   check-skill-invocable.sh --all          # sweep every src skill, report drift
 #
-# Why this exists: "is /ork:<name> invocable right now" has no single source of
+# Why this exists: "is /<plugin>:<name> invocable right now" has no single source of
 # truth. The answer is a CHAIN, and any silently-broken link makes a skill look
 # wired-up while being dead (the same shape as the #959 dead-hook class):
 #
 #   1. src/skills/<name>/SKILL.md exists
 #   2. src frontmatter has `name:` matching the directory
 #   3. src frontmatter has `user-invocable: true`
-#   4. manifests/ork.json includes it (skills: "all" or explicit list)
-#   5. built copy plugins/ork/skills/<name>/SKILL.md exists (build not skipped)
+#   4. a manifest includes it (skills: "all" minus skillsExclude, or explicit list)
+#   5. built copy plugins/<plugin>/skills/<name>/SKILL.md exists (build not skipped)
 #   6. built frontmatter user-invocable matches src (build not STALE)
 #
 # A negative answer from any one probe (e.g. a single grep of one listing) is
@@ -33,8 +33,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SRC="$PROJECT_ROOT/src/skills"
-BUILT="$PROJECT_ROOT/plugins/ork/skills"
-MANIFEST="$PROJECT_ROOT/manifests/ork.json"
+MANIFESTS="$PROJECT_ROOT/manifests"
 
 frontmatter_field() {
   # frontmatter_field <file> <key> — first YAML frontmatter value, trimmed
@@ -46,19 +45,35 @@ frontmatter_field() {
     }' "$1"
 }
 
-manifest_includes() {
-  # skills field is either the string "all" or a JSON array of names
-  python3 - "$MANIFEST" "$1" <<'PY'
+manifest_owner() {
+  python3 - "$1" "$MANIFESTS"/*.json <<'PY'
 import json, sys
-m = json.load(open(sys.argv[1]))
-sk = m.get("skills")
-ok = sk == "all" or (isinstance(sk, list) and sys.argv[2] in sk)
-sys.exit(0 if ok else 1)
+
+name, *paths = sys.argv[1:]
+owners = []
+for path in paths:
+    try:
+        with open(path, encoding="utf-8") as file:
+            manifest = json.load(file)
+    except (OSError, ValueError) as error:
+        print(f"ERROR: could not read manifest {path}: {error}", file=sys.stderr)
+        sys.exit(2)
+    skills = manifest.get("skills")
+    if (skills == "all" and name not in manifest.get("skillsExclude", [])) or (
+        isinstance(skills, list) and name in skills
+    ):
+        owners.append(manifest["name"])
+
+if len(owners) != 1:
+    print("multiple manifests include it: " + ", ".join(owners)
+          if owners else "no plugin manifest includes it")
+    sys.exit(1)
+print(owners[0])
 PY
 }
 
-# check_one <name> <mode> — prints "ok"/"FAIL" per link, returns 1 on any FAIL.
-# mode=invocable : all 6 links (answers "is /ork:<name> invocable?")
+# check_one <name> <mode> returns 1 on any FAIL.
+# mode=invocable : all 6 links plus the verdict
 # mode=consistency: links 1,2,4,5,6 only — a skill that is *consistently*
 #                   user-invocable:false everywhere is internal by design,
 #                   not drift. Used by --all so the sweep flags real breakage
@@ -66,10 +81,13 @@ PY
 #                   without condemning every internal knowledge module.
 check_one() {
   local name="$1" mode="${2:-invocable}" fails=0
-  local src_md="$SRC/$name/SKILL.md" built_md="$BUILT/$name/SKILL.md"
+  local src_md="$SRC/$name/SKILL.md" owner owner_status=0
 
   if [ ! -f "$src_md" ]; then
     echo "FAIL [1/6] no src skill: $src_md"
+    if [ "$mode" = "invocable" ]; then
+      echo "VERDICT: $name is NOT invocable (see FAIL lines above)"
+    fi
     return 1
   fi
   echo "ok   [1/6] src exists"
@@ -95,18 +113,25 @@ check_one() {
     echo "ok   [3/6] skipped (consistency mode — internal-by-design is not drift)"
   fi
 
-  if ! manifest_includes "$name"; then
-    echo "FAIL [4/6] not included by manifests/ork.json skills field"
-    fails=1
-  else
-    echo "ok   [4/6] manifest includes it"
+  owner=$(manifest_owner "$name") || owner_status=$?
+  if [ "$owner_status" -gt 1 ]; then
+    return 2
   fi
+  if [ "$owner_status" -eq 1 ]; then
+    echo "FAIL [4/6] ${owner:-could not resolve skill ownership from manifests}"
+    if [ "$mode" = "invocable" ]; then
+      echo "VERDICT: $name is NOT invocable (see FAIL lines above)"
+    fi
+    return 1
+  fi
+  echo "ok   [4/6] $owner manifest includes it"
 
+  local built_md="$PROJECT_ROOT/plugins/$owner/skills/$name/SKILL.md"
   if [ ! -f "$built_md" ]; then
     echo "FAIL [5/6] no built copy: $built_md — run 'npm run build'"
     fails=1
   else
-    echo "ok   [5/6] built copy exists"
+    echo "ok   [5/6] built copy exists: $built_md"
     local built_invoc
     built_invoc=$(frontmatter_field "$built_md" "user-invocable")
     if [ "$built_invoc" != "$fm_invoc" ]; then
@@ -117,6 +142,13 @@ check_one() {
     fi
   fi
 
+  if [ "$mode" = "invocable" ]; then
+    if [ "$fails" = 0 ]; then
+      echo "VERDICT: /$owner:$name is INVOCABLE"
+    else
+      echo "VERDICT: /$owner:$name is NOT invocable (see FAIL lines above)"
+    fi
+  fi
   return "$fails"
 }
 
@@ -132,7 +164,9 @@ case "${1:-}" in
       [ -f "$d/SKILL.md" ] || continue   # shared/ etc. carry no SKILL.md
       # Capture the full report; on failure surface only the FAIL lines.
       report=$(check_one "$name" consistency) && rc=0 || rc=$?
-      if [ "$rc" -ne 0 ]; then
+      if [ "$rc" -eq 2 ]; then
+        exit 2
+      elif [ "$rc" -ne 0 ]; then
         echo "DRIFT: $name"
         echo "$report" | { grep '^FAIL' || echo "  (no FAIL detail captured)"; } | sed 's/^/  /'
         drift=1
@@ -144,13 +178,6 @@ case "${1:-}" in
     exit "$drift"
     ;;
   * )
-    name="$1"
-    if check_one "$name"; then
-      echo "VERDICT: /ork:$name is INVOCABLE"
-      exit 0
-    else
-      echo "VERDICT: /ork:$name is NOT invocable (see FAIL lines above)"
-      exit 1
-    fi
+    check_one "$1"
     ;;
 esac

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Plugin symlink validation</title>
+<meta name="description" content="Real checkout output before and after narrowing plugin validation to broken symlinks.">
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; background: #f7f6f2; color: #202b35; font: 16px/1.6 system-ui, sans-serif }
+  main { max-width: 1000px; margin: auto; padding: 48px 24px }
+  h1 { font-size: clamp(29px, 5vw, 44px); line-height: 1.12; margin: 0 0 16px }
+  h2 { font-size: 18px; margin: 0 0 12px }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 24px 0 }
+  article { background: #fff; border: 1px solid #d7ddd9; border-top: 4px solid #97551e; border-radius: 10px; padding: 20px }
+  article:last-child { border-top-color: #2c6546 }
+  pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #203a31; line-height: 1.7 }
+  @media (max-width: 640px) { main { padding: 28px 16px } .comparison { grid-template-columns: 1fr } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Plugin symlink validation</h1>
+  <p>Recorded output from running <code>bash bin/validate-symlinks.sh</code> in the same checkout before and after the change. Both runs exited 0.</p>
+  <div class="comparison">
+    <article>
+      <h2>Before: 45 warnings</h2>
+      <pre>Warnings:  45
+Errors:    0
+
+VALIDATION PASSED WITH WARNINGS</pre>
+    </article>
+    <article>
+      <h2>After: no warnings</h2>
+      <pre>No broken symlinks in plugins/</pre>
+    </article>
+  </div>
+  <p><strong>What changed:</strong> The validator now checks only symlinks under <code>plugins/</code>. It reports unresolved targets and exits 1 if it finds any. Copied files and the absence of retired plugins are no longer warnings. Package assembly is unchanged.</p>
+</main>
+</body>
+</html>

@@ -9,7 +9,7 @@
  *
  * Reuses containment logic from auto-approve-project-writes.ts.
  *
- * SEC: Respects EXCLUDED_DIRS (node_modules, .git, dist, etc.)
+ * SEC: Respects protected and build-output directory exclusions
  * SEC: Never retries writes outside project or added dirs
  * SEC: Never retries hard-denied paths (same denylist as PermissionRequest auto-approve)
  *

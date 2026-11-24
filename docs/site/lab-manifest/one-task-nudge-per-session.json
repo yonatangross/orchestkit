@@ -1,0 +1,8 @@
+{
+  "slug": "one-task-nudge-per-session",
+  "source": "docs/fix--cut-task-nudges/one-task-nudge-per-session.html",
+  "title": "One task-tracking nudge per session",
+  "description": "Three hooks could each tell the model to use task tracking. They now share one per-session claim, so the first may nudge and the other two stay silent.",
+  "tags": ["hooks", "task-tracking", "noise"],
+  "date": "2026-11-22"
+}

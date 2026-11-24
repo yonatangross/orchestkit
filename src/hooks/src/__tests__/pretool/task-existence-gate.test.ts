@@ -7,6 +7,9 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
 import { mockCommonBasic } from '../fixtures/mock-common.js';
 
@@ -26,6 +29,7 @@ vi.mock('../../lib/common.js', () => mockCommonBasic({
 
 import { taskExistenceGate } from '../../pretool/task/task-existence-gate.js';
 import { outputSilentSuccess, outputWithContext } from '../../lib/common.js';
+import { claimTaskNudgeForInput } from '../../lib/task-nudge-gate.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
 // =============================================================================
@@ -50,8 +54,12 @@ function createAgentInput(subagentType: string, overrides: Partial<HookInput> = 
 // =============================================================================
 
 let testCtx: ReturnType<typeof createTestContext>;
+let pluginData: string;
 describe('task-existence-gate', () => {
   beforeEach(() => {
+    // Isolate the once-per-session marker from the real session storage.
+    pluginData = mkdtempSync(join(tmpdir(), 'task-gate-'));
+    process.env.CLAUDE_PLUGIN_DATA = pluginData;
     testCtx = createTestContext({ sessionId: 'test-session' });
     vi.clearAllMocks();
     mockGetTaskByAgent.mockReturnValue(undefined);
@@ -59,6 +67,8 @@ describe('task-existence-gate', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    rmSync(pluginData, { recursive: true, force: true });
+    delete process.env.CLAUDE_PLUGIN_DATA;
   });
 
   // ---------------------------------------------------------------------------
@@ -135,12 +145,35 @@ describe('task-existence-gate', () => {
         vi.clearAllMocks();
         mockGetTaskByAgent.mockReturnValue(undefined);
 
-        const input = createAgentInput(agent);
+        // one nudge per session, so each agent gets its own session here
+        const input = createAgentInput(agent, { session_id: `session-${agent}` });
         const result = taskExistenceGate(input, testCtx);
 
         expect(outputWithContext).toHaveBeenCalled();
         expect(result.continue).not.toBe(false);
       }
+    });
+  });
+
+  describe('once per session', () => {
+    test('second spawn in the same session gets no nudge after the first was delivered', () => {
+      mockGetTaskByAgent.mockReturnValue(undefined);
+      const first = createAgentInput('security-auditor');
+      taskExistenceGate(first, testCtx);
+      expect(outputWithContext).toHaveBeenCalledTimes(1);
+      expect(claimTaskNudgeForInput(first)).toBe(true); // what sync-task-dispatcher does
+
+      vi.clearAllMocks();
+      mockGetTaskByAgent.mockReturnValue(undefined);
+      taskExistenceGate(createAgentInput('test-generator'), testCtx);
+      expect(outputWithContext).not.toHaveBeenCalled();
+      expect(outputSilentSuccess).toHaveBeenCalled();
+    });
+
+    test('missing session_id stays quiet', () => {
+      mockGetTaskByAgent.mockReturnValue(undefined);
+      taskExistenceGate(createAgentInput('security-auditor', { session_id: '' }), testCtx);
+      expect(outputWithContext).not.toHaveBeenCalled();
     });
   });
 

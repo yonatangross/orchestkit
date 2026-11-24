@@ -1,7 +1,7 @@
 /**
  * Unit tests for lib/path-containment.ts
  *
- * Tests EXCLUDED_DIRS, isInsideDir(), hasExcludedDir(), resolveRealPath()
+ * Tests isInsideDir(), hasExcludedDir(), resolveRealPath()
  * These are security-critical: path traversal and symlink bypass prevention.
  */
 
@@ -19,7 +19,6 @@ vi.mock('node:fs', () => ({
 
 import { realpathSync, lstatSync, readlinkSync } from 'node:fs';
 import {
-  EXCLUDED_DIRS,
   isInsideDir,
   hasExcludedDir,
   resolveRealPath,
@@ -33,25 +32,6 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('EXCLUDED_DIRS', () => {
-  test('includes all expected directories', () => {
-    expect(EXCLUDED_DIRS).toContain('node_modules');
-    expect(EXCLUDED_DIRS).toContain('.git');
-    expect(EXCLUDED_DIRS).toContain('.github');
-    expect(EXCLUDED_DIRS).toContain('.claude');
-    expect(EXCLUDED_DIRS).toContain('.husky');
-    expect(EXCLUDED_DIRS).toContain('dist');
-    expect(EXCLUDED_DIRS).toContain('build');
-    expect(EXCLUDED_DIRS).toContain('__pycache__');
-    expect(EXCLUDED_DIRS).toContain('.venv');
-    expect(EXCLUDED_DIRS).toContain('venv');
-  });
-
-  test('has exactly 10 entries', () => {
-    expect(EXCLUDED_DIRS).toHaveLength(10);
-  });
-});
-
 describe('isInsideDir', () => {
   test('returns true for file inside directory', () => {
     expect(isInsideDir('/project/src/file.ts', '/project')).toBe(true);
@@ -63,6 +43,14 @@ describe('isInsideDir', () => {
 
   test('returns true for deeply nested file', () => {
     expect(isInsideDir('/project/a/b/c/d/file.ts', '/project')).toBe(true);
+  });
+
+  test.each(['..cache/a.json', '..foo/bar', '..file'])('returns true for the in-project path %s', (path) => {
+    expect(isInsideDir(join('/project', path), '/project')).toBe(true);
+  });
+
+  test('returns false for the parent directory itself', () => {
+    expect(isInsideDir('/project/..', '/project')).toBe(false);
   });
 
   test('returns false for file outside directory', () => {
@@ -88,6 +76,9 @@ describe('isInsideDir', () => {
 
 describe('hasExcludedDir', () => {
   const root = '/project';
+  const excludedDirs = [
+    'node_modules', '.git', '.github', '.claude', '.husky', 'dist', 'build', '__pycache__', '.venv', 'venv',
+  ];
 
   test('detects node_modules in middle of path', () => {
     expect(hasExcludedDir(`/project${sep}node_modules${sep}pkg${sep}index.js`, root)).toBe(true);
@@ -127,16 +118,28 @@ describe('hasExcludedDir', () => {
     expect(hasExcludedDir(`/project${sep}.gitignore${sep}x`, root)).toBe(true);
   });
 
-  test.each(EXCLUDED_DIRS)('detects %s as mid-path segment', (dir) => {
+  test.each(excludedDirs)('detects %s as mid-path segment', (dir) => {
     expect(hasExcludedDir(`/project${sep}${dir}${sep}file.ts`, root)).toBe(true);
   });
 
-  test.each(EXCLUDED_DIRS)('detects %s as terminal segment', (dir) => {
+  test.each(excludedDirs)('detects %s as terminal segment', (dir) => {
     expect(hasExcludedDir(`/project${sep}${dir}`, root)).toBe(true);
   });
 
   test('still detects an excluded name on the root itself', () => {
     expect(hasExcludedDir('/workspace/BUILD/src/file.ts', '/workspace/BUILD')).toBe(true);
+  });
+
+  test.each(['.claude', '.git', '.husky', '.ClAuDe', '.GiThUb', '.HuSkY'])(
+    'detects protected ancestor %s above the containing root',
+    (ancestor) => {
+      const containingRoot = join('/workspace', ancestor, 'project');
+      expect(hasExcludedDir(join(containingRoot, 'src', 'file.ts'), containingRoot)).toBe(true);
+    },
+  );
+
+  test('still ignores a case-insensitive build-output ancestor above the root', () => {
+    expect(hasExcludedDir('/workspace/BUILD/project/src/file.ts', '/workspace/BUILD/project')).toBe(false);
   });
 
   test('still scans excluded segments on a requested alias outside the root', () => {

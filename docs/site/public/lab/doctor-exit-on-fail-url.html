@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit doctor exit status</title>
+<meta name="description" content="Compare actual doctor output and exit codes before and after the fix.">
+<style>
+  body { margin: 0; background: #f4f6f6; color: #162825; font: 1rem/1.6 system-ui, sans-serif; }
+  main { max-width: 48rem; margin: auto; padding: 3rem 1.25rem; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); line-height: 1.2; margin: 0 0 .75rem; }
+  label, select { font: inherit; }
+  label { font-weight: 700; }
+  select { max-width: 100%; margin: .25rem .75rem .75rem 0; padding: .4rem; }
+  pre { margin: .75rem 0; padding: 1rem; background: #162825; color: #eef8f5; border-radius: .5rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  output { font-weight: 700; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit CLI: Doctor exit status"><meta property="og:description" content="Compare recorded doctor output and exit codes for healthy and unreachable APIs."><meta property="og:url" content="https://orchestkit.dev/lab/doctor-exit-on-fail-url.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit CLI: Doctor exit status"><meta name="twitter:description" content="Compare recorded doctor output and exit codes for healthy and unreachable APIs."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Doctor exit status</h1>
+  <p>Inspect recorded runs of the built CLI against a local fetch fixture. A healthy URL containing <code>FAIL</code> should not change the exit code.</p>
+  <label for="scenario">Scenario</label>
+  <select id="scenario">
+    <option value="uppercase">Healthy API, uppercase FAIL</option>
+    <option value="control">Healthy API, control</option>
+    <option value="unreachable">Unreachable API</option>
+  </select>
+  <label for="version">Version</label>
+  <select id="version">
+    <option value="before">Before</option>
+    <option value="after">After</option>
+  </select>
+  <pre id="terminal"></pre>
+  <output id="status" for="scenario version"></output>
+</main>
+<script>
+  const runs = {
+    uppercase: { url: "https://FAIL.example.invalid", before: 1, after: 0 },
+    control: { url: "https://control.example.invalid", before: 0, after: 0 },
+    unreachable: { url: "https://unreachable.test", before: 1, after: 1 },
+  };
+  const scenario = document.getElementById("scenario");
+  const version = document.getElementById("version");
+  const terminal = document.getElementById("terminal");
+  const status = document.getElementById("status");
+
+  function showRun() {
+    const { url, ...codes } = runs[scenario.value];
+    const apiOutput = scenario.value === "unreachable"
+      ? `  FAIL  API unreachable at ${url}: fetch failed`
+      : `  ok    API reachable at ${url} (ok)\n  ok    rate limit 118/120, resets in 60s`;
+    terminal.textContent = `$ orchestkit doctor --base-url ${url}\norchestkit doctor\n\n  ok    node 24.22.3 (>= 20 required)\n${apiOutput}`;
+    status.textContent = `Exit code: ${codes[version.value]}`;
+  }
+  scenario.addEventListener("change", showRun);
+  version.addEventListener("change", showRun);
+  showRun();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

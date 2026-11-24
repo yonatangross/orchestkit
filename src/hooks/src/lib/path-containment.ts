@@ -6,8 +6,7 @@
  *
  * SEC: resolveRealPath follows symlinks before containment checks (ME-001).
  * SEC: isInsideDir uses relative() not startsWith() to prevent prefix attacks.
- * SEC #4220 AF-13: EXCLUDED_DIRS includes .github / .claude / .husky; segments
- * matching .git* are also excluded.
+ * SEC #4220 AF-13: .git* / .claude / .husky are protected at any depth.
  * SEC #4220 AF-15: on ENOENT, realpath the parent so symlink-dir + new file
  * cannot escape via an unresolved lexical path.
  *
@@ -18,18 +17,9 @@ import { resolve, isAbsolute, relative, normalize, sep, dirname, basename, join 
 import { realpathSync, lstatSync, readlinkSync } from 'node:fs';
 import type { Stats } from 'node:fs';
 
-/**
- * Directories that should not be auto-approved or retried for writes.
- * #4220 AF-13: .github, .claude, .husky added. Any path segment matching
- * `.git*` (prefix) is also excluded in hasExcludedDir (covers .git, .github,
- * .gitignore dirs, etc.).
- */
-export const EXCLUDED_DIRS = [
+const PROTECTED_DIRS = ['.claude', '.husky'];
+const BUILD_OUTPUT_DIRS = [
   'node_modules',
-  '.git',
-  '.github',
-  '.claude',
-  '.husky',
   'dist',
   'build',
   '__pycache__',
@@ -43,26 +33,25 @@ export const EXCLUDED_DIRS = [
  */
 export function isInsideDir(filePath: string, rootDir: string): boolean {
   const rel = relative(normalize(rootDir), normalize(filePath));
-  return !rel.startsWith('..') && !isAbsolute(rel);
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel);
 }
 
 /**
- * Check for excluded segments at or below the matching root.
- * For a requested symlink path outside that root, still check the full path.
- * Exact EXCLUDED_DIRS matches, plus any segment starting with `.git` (#4220 AF-13).
- * Segment compares are case-insensitive.
+ * Check protected segments on the full path, and build-output names at or
+ * below the matching root. A requested alias outside the root is checked
+ * in full for both kinds of exclusion.
  */
 export function hasExcludedDir(filePath: string, rootDir: string): boolean {
-  const pathToCheck = isInsideDir(filePath, rootDir)
-    ? relative(dirname(resolve(rootDir)), filePath)
-    : normalize(filePath);
-  const parts = pathToCheck.split(sep).filter(Boolean);
-  for (const part of parts) {
+  const absolutePath = resolve(filePath);
+  if (absolutePath.split(sep).some(part => {
     const lower = part.toLowerCase();
-    if (lower.startsWith('.git')) return true;
-    if (EXCLUDED_DIRS.includes(lower)) return true;
-  }
-  return false;
+    return lower.startsWith('.git') || PROTECTED_DIRS.includes(lower);
+  })) return true;
+
+  const buildPath = isInsideDir(absolutePath, rootDir)
+    ? relative(dirname(resolve(rootDir)), absolutePath)
+    : absolutePath;
+  return buildPath.split(sep).some(part => BUILD_OUTPUT_DIRS.includes(part.toLowerCase()));
 }
 
 /**

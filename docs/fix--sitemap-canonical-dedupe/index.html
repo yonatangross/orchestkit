@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>One canonical changelog in the sitemap</title>
+<meta name="description" content="Compare the actual sitemap responses before and after removing the changelog alias.">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f6f8fa; color: #172b35; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1080px; margin: auto; padding: clamp(28px, 6vw, 64px) 24px; }
+  .eyebrow { color: #346557; font-size: .8rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+  h1 { margin: 10px 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.1; letter-spacing: -.04em; }
+  .intro { max-width: 68ch; color: #415660; }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 30px 0 20px; }
+  article { padding: 22px; background: #fff; border: 1px solid #cedadd; border-radius: 14px; }
+  h2 { margin: 0; font-size: 1.1rem; }
+  .count { margin: 8px 0 18px; font-size: 1.5rem; font-weight: 750; }
+  ul { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+  li { padding: 9px 10px; background: #e7f4ed; color: #174c39; border-radius: 8px; }
+  li.alias { background: #fff0e4; color: #763a19; }
+  code { overflow-wrap: anywhere; font: .83rem ui-monospace, monospace; }
+  li span { display: block; font-size: .76rem; font-weight: 700; }
+  details { padding: 14px 18px; background: #fff; border: 1px solid #cedadd; border-radius: 10px; }
+  summary { font-weight: 650; cursor: pointer; }
+  summary:focus-visible { outline: 2px solid #346557; outline-offset: 3px; }
+  details p { margin: 8px 0 0; }
+  @media (max-width: 680px) { .comparison { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Docs SEO / route evidence</div>
+    <h1>One canonical changelog in the sitemap</h1>
+    <p class="intro">The sitemap listed the changelog twice under different URLs. It now lists only the URL named by the docs page’s canonical tag.</p>
+  </header>
+  <div class="comparison">
+    <article aria-labelledby="before">
+      <h2 id="before">Before</h2>
+      <p class="count">355 sitemap URLs</p>
+      <ul aria-label="Changelog entries before">
+        <li><span>Canonical</span><code>https://orchestkit.dev/changelog</code></li>
+        <li class="alias"><span>Alias</span><code>https://orchestkit.dev/docs/changelog</code></li>
+      </ul>
+    </article>
+    <article aria-labelledby="after">
+      <h2 id="after">After</h2>
+      <p class="count">354 sitemap URLs</p>
+      <ul aria-label="Changelog entries after">
+        <li><span>Canonical</span><code>https://orchestkit.dev/changelog</code></li>
+      </ul>
+    </article>
+  </div>
+  <details>
+    <summary>How this was measured</summary>
+    <p>Both local Next.js responses to <code>GET /sitemap.xml</code> returned HTTP 200. Comparing the XML showed one removed URL, zero added URLs, and no changes to the remaining entries or their order.</p>
+  </details>
+</main>
+</body>
+</html>

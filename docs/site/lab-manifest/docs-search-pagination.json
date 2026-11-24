@@ -1,0 +1,8 @@
+{
+  "slug": "docs-search-pagination",
+  "source": "docs/devin--1795459339-search-limit-pagination/index.html",
+  "title": "Docs search keeps the full result set",
+  "description": "Compare the recorded search responses before and after moving pagination after ranking.",
+  "tags": ["docs-site", "search", "api"],
+  "date": "2026-11-23"
+}

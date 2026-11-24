@@ -40,6 +40,9 @@ function makeSearchAPI(tolerance: number) {
 		language: "english",
 		indexes: getIndexRecords,
 		search: {
+			// Pagination happens after reranking, not inside Fumadocs.
+			limit: Infinity,
+			groupBy: { properties: ["page_id"], maxResult: Infinity },
 			tolerance,
 			boost: { content: 1.5 },
 		},
@@ -156,6 +159,20 @@ export async function GET(req: Request) {
 		);
 	}
 
+	const limitRaw = url.searchParams.get("limit");
+	const limit = limitRaw === null ? null : Number(limitRaw);
+	if (limit !== null && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+		return problemResponse(
+			{
+				title: "Invalid limit",
+				status: 400,
+				detail: "`limit` must be an integer from 1 to 100; omit it for all results.",
+				instance: "/api/search",
+			},
+			rateLimitHeaders(rate),
+		);
+	}
+
 	const cursorRaw = url.searchParams.get("cursor");
 	const start = cursorRaw ? decodeCursor(cursorRaw) : 0;
 	if (start === null) {
@@ -174,6 +191,8 @@ export async function GET(req: Request) {
 	// tolerance only for queries ≥ 4 chars. Same response contract as before.
 	const searchUrl = new URL(url);
 	searchUrl.searchParams.set("query", expandQueryString(query));
+	searchUrl.searchParams.delete("limit");
+	searchUrl.searchParams.delete("cursor");
 	const api = getSearchAPI(typoToleranceFor(query));
 	// Server-Timing wraps the actual search execution (index build on a cold
 	// variant + the Orama query itself) so search:performed can carry a
@@ -183,9 +202,6 @@ export async function GET(req: Request) {
 	const res = await api.GET(new Request(searchUrl, { headers: req.headers }));
 	const searchDurationMs = performance.now() - searchStart;
 	if (!res.ok) return res;
-
-	const limitRaw = url.searchParams.get("limit");
-	const limit = limitRaw ? Number.parseInt(limitRaw, 10) : 0;
 
 	// Optional, additive: omit it and every matched snippet is returned, so the
 	// existing response contract is unchanged for current callers.
@@ -202,7 +218,7 @@ export async function GET(req: Request) {
 	const all = Array.isArray(results)
 		? rerankResults(results as FumaResult[], query, maxSnippets)
 		: [];
-	const end = Number.isFinite(limit) && limit > 0 ? start + limit : all.length;
+	const end = limit === null ? all.length : start + limit;
 	const page = all.slice(start, end);
 	const nextCursor = end < all.length ? encodeCursor(end) : null;
 

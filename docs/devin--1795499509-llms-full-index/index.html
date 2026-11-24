@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Every indexed URL fits in the docs dump</title>
+<meta name="description" content="Compare the page links in the budgeted docs dump before and after reserving link space.">
+<style>
+  :root { color-scheme: light; font: 16px/1.55 system-ui, sans-serif; color: #172a35; background: #f1f5f7; }
+  body { margin: 0; }
+  main { max-width: 53rem; margin: auto; padding: clamp(1.5rem, 6vw, 4rem) 1.25rem; }
+  h1 { font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.08; letter-spacing: -.035em; margin: .5rem 0 1rem; }
+  p { max-width: 64ch; }
+  .tag { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #285868; }
+  table { width: 100%; border-collapse: collapse; background: #fff; margin-block: 1.5rem; }
+  caption { text-align: left; font-weight: 700; margin-bottom: .45rem; }
+  th, td { padding: .65rem .8rem; border-bottom: 1px solid #d4e0e6; text-align: left; }
+  td { font-variant-numeric: tabular-nums; }
+  .fixed { background: #e5f6ef; color: #174c3a; font-weight: 700; }
+  details { background: #fff; border: 1px solid #d4e0e6; border-radius: .65rem; padding: .8rem 1rem; }
+  summary { cursor: pointer; font-weight: 700; }
+  code { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <p class="tag">OrchestKit Docs / HTTP probe</p>
+  <h1>Every indexed URL fits in the docs dump</h1>
+  <p><code>/llms-full.txt</code> now reserves room for page links before adding narrative content. It still fits within the 190,000-character budget and links to <code>/docs/llms.txt</code> in its header.</p>
+  <table>
+    <caption>Local Next.js responses, same documentation corpus</caption>
+    <thead><tr><th scope="col">Measure</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Dump characters</th><td>190,167</td><td>189,953</td></tr>
+      <tr><th scope="row">Indexed page URLs</th><td>332</td><td>332</td></tr>
+      <tr><th scope="row">Indexed URLs absent from dump</th><td>277</td><td class="fixed">0</td></tr>
+    </tbody>
+  </table>
+  <details>
+    <summary>Inspect a recovered page URL</summary>
+    <p><code>/docs/cookbook/roles/security-engineer</code> was in the page index but missing from the old dump. Its Markdown endpoint already returned HTTP 200. The new dump includes the URL in its link-only list.</p>
+    <p>The updated feed contains 39 page bodies and 293 link-only pages. The full page index remains available for navigation by section.</p>
+  </details>
+</main>
+</body>
+</html>

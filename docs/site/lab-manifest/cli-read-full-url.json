@@ -1,0 +1,8 @@
+{
+  "slug": "cli-read-full-url",
+  "source": "docs/fix--cli-read-full-url/index.html",
+  "title": "Read docs from a pasted link",
+  "description": "Compare recorded CLI output for full URLs, docs paths, and bare slugs before and after the read fix.",
+  "tags": ["cli", "docs", "regression"],
+  "date": "2026-11-23"
+}

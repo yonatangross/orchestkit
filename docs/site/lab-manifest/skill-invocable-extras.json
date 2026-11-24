@@ -1,0 +1,8 @@
+{
+  "slug": "skill-invocable-extras",
+  "source": "docs/fix--skill-invocable-extras/index.html",
+  "title": "Skill checks across plugin packs",
+  "description": "Compare the checker output for core and opt-in plugin skills before and after resolving ownership from manifests.",
+  "tags": ["skills", "plugins", "cli"],
+  "date": "2026-11-23"
+}
