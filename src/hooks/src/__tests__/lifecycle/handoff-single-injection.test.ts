@@ -142,7 +142,7 @@ describe('handoff injection is single-shot per session (#3329)', () => {
     const seatPrompts = [
       '<hc from="t8kj succ-424">You are guard-fixes. Read and execute /x/briefs/BRIEF-guard-fixes.md in full now.</hc>',
       'You are guard-fixes. Read and execute the brief now.',
-      'Read and execute /Users/x/.floor/desks/c/briefs/BRIEF-studio-r4.md, report to t8kj.',
+      'Read and execute /Users/me/.floor/desks/c/briefs/BRIEF-studio-r4.md, report to t8kj.',
     ];
 
     it.each(seatPrompts)('no global handoff for %s', (prompt) => {
