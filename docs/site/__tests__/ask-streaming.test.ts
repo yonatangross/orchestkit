@@ -8,7 +8,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/doc-search", () => ({
-	searchDocs: () => Array.from({ length: 10 }, (_, i) => ({
+	searchDocs: (_query: string, limit = 10) => Array.from({ length: Math.min(limit, 15) }, (_, i) => ({
 		id: String(i), title: `OrchestKit ${i}`, url: `/docs/overview-${i}`, content: "c",
 	})),
 }));
@@ -23,11 +23,13 @@ function askReq(headers: Record<string, string>): Request {
 	});
 }
 
-describe("/ask streaming triggers", () => {
-	it("honors a bounded limit", async () => {
-		const res = await GET(new Request("https://orchestkit.dev/ask?query=orchestkit&limit=2"));
+describe("/ask result limits", () => {
+	it.each([["&limit=2", 2], ["", 10], ["&limit=12", 12]])("honors the bound for %j", async (param, count) => {
+		const res = await GET(new Request(`https://orchestkit.dev/ask?query=orchestkit${param}`));
 		expect(res.status).toBe(200);
-		expect((await res.json()).results).toHaveLength(2);
+		const body = await res.json();
+		expect(body.results).toHaveLength(count);
+		expect(body._meta.count).toBe(count);
 	});
 
 	it.each(["", "0", "-3", "2.5", "abc", "101"])("rejects invalid limit %j", async (limit) => {
@@ -35,7 +37,9 @@ describe("/ask streaming triggers", () => {
 		expect(res.status).toBe(400);
 		expect(await res.json()).toMatchObject({ title: "Invalid limit", status: 400 });
 	});
+});
 
+describe("/ask streaming triggers", () => {
 	it("Prefer: streaming → text/event-stream", async () => {
 		const res = await POST(askReq({ prefer: "streaming" }));
 		expect(res.headers.get("Content-Type")).toBe("text/event-stream; charset=utf-8");

@@ -228,23 +228,30 @@ describe("help and version flags", () => {
 });
 
 describe("networked commands", () => {
-	it("ask sends --limit and caps the returned results", async () => {
-		const urls: string[] = [];
-		const restore = stubFetch((url) => {
-			urls.push(url);
-			return jsonResponse({
-				results: Array.from({ length: 10 }, (_, i) => ({ id: String(i), url: `/docs/${i}` })),
+	it.each([[[], null, 10], [["--limit", "2"], "2", 2]] as const)(
+		"ask preserves the default and honors an explicit limit (%j)",
+		async (options, sentLimit, count) => {
+			const urls: URL[] = [];
+			const restore = stubFetch((url) => {
+				urls.push(new URL(url));
+				return jsonResponse({
+					results: Array.from({ length: 10 }, (_, i) => ({ id: String(i), url: `/docs/${i}` })),
+					_meta: { version: "0.1", count: 10 },
+				});
 			});
-		});
-		try {
-			const res = await run(["ask", "hooks", "--limit", "2"], { version: "1.2.3" });
-			expect(res.exitCode).toBe(0);
-			expect(urls[0]).toContain("/ask?query=hooks&limit=2");
-			expect(JSON.parse(res.stdout).results).toHaveLength(2);
-		} finally {
-			restore();
-		}
-	});
+			try {
+				const res = await run(["ask", "hooks", ...options], { version: "1.2.3" });
+				expect(res.exitCode).toBe(0);
+				expect(urls).toHaveLength(1);
+				expect(urls[0]?.searchParams.get("limit")).toBe(sentLimit);
+				const body = JSON.parse(res.stdout);
+				expect(body.results).toHaveLength(count);
+				expect(body._meta).toEqual({ version: "0.1", count });
+			} finally {
+				restore();
+			}
+		},
+	);
 
 	it("search preserves API page titles, headings and text snippets", async () => {
 		const restore = stubFetch(() =>

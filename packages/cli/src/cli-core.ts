@@ -38,7 +38,7 @@ COMMANDS
   help               Show this message
 
 OPTIONS
-  --limit <n>        Max search results (default 5)
+  --limit <n>        Max results for search (default 5) or ask (default 10)
   --json             Emit raw JSON instead of formatted text
   --base-url <url>   Override the API origin (env: ORCHESTKIT_BASE_URL)
   --version          Print the CLI version
@@ -55,7 +55,7 @@ per minute per IP per endpoint. Policy: https://orchestkit.dev/api-policy
 export type ParsedArgs = {
 	command: string;
 	positional: string[];
-	limit: number;
+	limit?: number;
 	json: boolean;
 	all: boolean;
 	baseUrl?: string;
@@ -71,7 +71,7 @@ function isOptionToken(value: string): boolean {
 
 export function parseArgs(argv: readonly string[]): ParsedArgs {
 	const positional: string[] = [];
-	let limit = 5;
+	let limit: number | undefined;
 	let json = false;
 	let all = false;
 	let help = false;
@@ -200,7 +200,7 @@ export async function run(
 			case "search": {
 				const query = args.positional.join(" ").trim();
 				if (!query) return fail("Usage: orchestkit search <query>\n", 2);
-				const { results, rateLimit } = await search(client, query, args.limit);
+				const { results, rateLimit } = await search(client, query, args.limit ?? 5);
 				return ok(
 					args.json
 						? `${JSON.stringify(results, null, 2)}\n`

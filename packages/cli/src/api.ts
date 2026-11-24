@@ -160,12 +160,25 @@ export async function search(
 export async function ask(
 	client: Client,
 	query: string,
-	limit: number,
+	limit?: number,
 ): Promise<{ data: unknown; rateLimit: RateLimit }> {
-	const qs = new URLSearchParams({ query, limit: String(limit) });
+	const qs = new URLSearchParams({ query });
+	if (limit !== undefined) qs.set("limit", String(limit));
 	const { data, rateLimit } = await getJson<unknown>(client, `/ask?${qs}`);
-	if (data && typeof data === "object" && "results" in data && Array.isArray(data.results)) {
-		return { data: { ...data, results: data.results.slice(0, limit) }, rateLimit };
+	if (limit !== undefined && data && typeof data === "object" &&
+		"results" in data && Array.isArray(data.results) && data.results.length > limit) {
+		const metadata = "_meta" in data ? data._meta : null;
+		const results = data.results.slice(0, limit);
+		return {
+			data: {
+				...data,
+				results,
+				...(metadata && typeof metadata === "object" && "count" in metadata
+					? { _meta: { ...metadata, count: results.length } }
+					: {}),
+			},
+			rateLimit,
+		};
 	}
 	return { data, rateLimit };
 }
