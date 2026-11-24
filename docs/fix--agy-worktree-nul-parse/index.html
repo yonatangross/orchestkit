@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Worktree reclaim reads paths with newlines</title>
+  <meta name="description" content="Regression results for worktree-reclaim.sh on main and linked worktree paths that contain a newline.">
+  <style>
+    body { margin: 0; background: #f6f8fa; color: #172b35; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: auto; padding: clamp(1rem, 5vw, 4rem) 1rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+    .eyebrow { color: #346557; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence, details { background: #fff; border: 1px solid #cedadd; border-radius: .75rem; margin-top: 1.25rem; }
+    .evidence { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    caption, th, td, details { padding: .65rem 1rem; }
+    th, td { border-top: 1px solid #dbe4e6; }
+    thead { background: #edf2f4; }
+    td:last-child { background: #eff7f2; }
+    summary { cursor: pointer; font-weight: 700; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+<main>
+  <span class="eyebrow">Worktree tooling / Regression evidence</span>
+  <h1>Worktree reclaim reads paths with newlines</h1>
+  <p><code>bin/worktree-reclaim.sh</code> now reads <code>git worktree list --porcelain -z</code> and splits records on NUL. A main or linked worktree path that contains a newline stays one path, so the script no longer truncates it or touches a sibling directory that shares the first line.</p>
+  <div class="evidence">
+    <table>
+      <caption>tests/worktree/test-worktree-symlink-config.sh, section 8, run against the old and the new script</caption>
+      <thead><tr><th scope="col">Check</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Path with a newline in dry run</th><td>Truncated at the newline</td><td>Reported whole</td></tr>
+        <tr><th scope="row">Unrelated decoy directory next to it</th><td>Deleted on apply</td><td>Left in place</td></tr>
+        <tr><th scope="row">Real newline worktree on apply</th><td>Missed</td><td>Linked to the main tree</td></tr>
+        <tr><th scope="row">Whole test file</th><td>13 passed, 3 failed</td><td>16 passed, 0 failed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <details>
+    <summary>Run the regression test</summary>
+    <pre><code>bash tests/worktree/test-worktree-symlink-config.sh</code></pre>
+    <p>The same file also passes under macOS <code>/bin/bash</code> 3.2. The test builds throwaway repositories in a temp directory and never touches a real checkout.</p>
+  </details>
+</main>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "slug": "worktree-reclaim-newlines",
+  "source": "docs/fix--agy-worktree-nul-parse/index.html",
+  "title": "Worktree reclaim reads paths with newlines",
+  "description": "Compare regression results for worktree-reclaim.sh on main and linked worktree paths that contain a newline.",
+  "tags": ["worktree", "shell", "regression"],
+  "date": "2026-11-24"
+}
