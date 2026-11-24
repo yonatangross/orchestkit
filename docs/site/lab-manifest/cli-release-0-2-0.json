@@ -1,0 +1,8 @@
+{
+  "slug": "cli-release-0-2-0",
+  "source": "docs/fix--cli-release-0-2-0/index.html",
+  "title": "OrchestKit CLI install commands",
+  "description": "Compare recorded install instructions from npm 0.1.0 and the packed 0.2.0 release candidate for Claude Code and Codex.",
+  "tags": ["cli", "install", "regression"],
+  "date": "2026-11-24"
+}

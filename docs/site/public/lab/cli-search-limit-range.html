@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit CLI search limits</title>
+<meta name="description" content="Recorded before and after runs of OrchestKit CLI search against the production docs API.">
+<style>
+  body { margin: 0; background: #f4f6f6; color: #162825; font: 1rem/1.6 system-ui, sans-serif; }
+  main { max-width: 51rem; margin: auto; padding: 3rem 1.25rem; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.75rem); line-height: 1.2; margin: .25rem 0 .75rem; }
+  .eyebrow { color: #365c53; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  label { font-weight: 700; }
+  select { margin-inline-start: .5rem; padding: .4rem; font: inherit; }
+  pre { padding: 1.25rem; background: #162825; color: #eef8f5; border-radius: .5rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .note { color: #365c53; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit CLI: Search limits"><meta property="og:description" content="Compare recorded search result counts and exit codes before and after the CLI limit fix."><meta property="og:url" content="https://orchestkit.dev/lab/cli-search-limit-range.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit CLI: Search limits"><meta name="twitter:description" content="Compare recorded search result counts and exit codes before and after the CLI limit fix."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <div class="eyebrow">CLI regression / live API evidence</div>
+  <h1>Search returns the limit you ask for</h1>
+  <p>The docs API accepts limits from 1 to 100. The old CLI sent 50 when asked for 80, and sent 1 when asked for 0.</p>
+  <p><strong>API control:</strong> <code>/api/search?query=hooks&amp;limit=80</code> returned 80 results.</p>
+  <label for="version">CLI version</label>
+  <select id="version"><option value="before">Before</option><option value="after">After</option></select>
+  <pre id="terminal" aria-live="polite">$ orchestkit search hooks --limit 80 --json
+50 results (exit 0)
+
+$ orchestkit search hooks --limit 0 --json
+1 result (exit 0)</pre>
+  <p class="note">Recorded runs against orchestkit.dev. JSON output is summarized by result count; error messages are shown verbatim. This page does not run the CLI.</p>
+</main>
+<template id="fixed">$ orchestkit search hooks --limit 80 --json
+80 results (exit 0)
+
+$ orchestkit search hooks --limit 0 --json
+--limit must be between 1 and 100. (exit 2)
+
+$ orchestkit search hooks --limit 101 --json
+--limit must be between 1 and 100. (exit 2)</template>
+<script>
+  const version = document.getElementById("version");
+  const terminal = document.getElementById("terminal");
+  const before = terminal.textContent;
+  const after = document.getElementById("fixed").content.textContent;
+  function showRun() {
+    terminal.textContent = version.value === "after" ? after : before;
+  }
+  version.addEventListener("change", showRun);
+  showRun();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

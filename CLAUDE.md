@@ -16,7 +16,7 @@ ASCII art + 12 semantic emojis for any structured chat answer: status, compariso
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin for AI-assisted development with built-in best practices, security patterns, and quality gates.
+**OrchestKit**, a Claude Code plugin for AI-assisted development with built-in best practices, security patterns, and quality gates.
 
 For live component counts (skills / agents / hooks / per-session token cost) run `claude plugin details ork`.
 
@@ -67,11 +67,11 @@ Use TaskCreate for 3+ step work. Enforcement is layered: `task-existence-gate` r
 
 ## Session Resilience
 
-Commit after each logical unit of work — never batch all commits to end of session. Rate limits can kill a session at any time. If build/test fails mid-session, commit the passing work first, then fix the failure separately.
+Commit after each logical unit of work. Never batch all commits to end of session. Rate limits can kill a session at any time. If build/test fails mid-session, commit the passing work first, then fix the failure separately.
 
 ## GitHub CLI
 
-- Use `gh api` for milestone assignment — the `--milestone` flag is unreliable with milestone numbers.
+- Use `gh api` for milestone assignment, as the `--milestone` flag is unreliable with milestone numbers.
 - Issues close on merge from `Closes #N` in the PR body; closing by hand loses that PR link.
 - Use `gh issue comment` for progress updates, not close/reopen.
 
@@ -81,6 +81,6 @@ Single plugin `ork`. User-invocable skills surface as `/ork:<skillname>`. Counts
 
 ## Version
 
-- **Current**: 10.18.0 · **Claude Code**: >= 2.1.328 <!-- x-release-please-version -->
+- **Current**: 10.18.1 · **Claude Code**: >= 2.1.328 <!-- x-release-please-version -->
 
 See `CHANGELOG.md` for history. See `src/hooks/README.md` for hook architecture.

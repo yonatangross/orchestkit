@@ -684,6 +684,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.18.1](https://github.com/yonatangross/orchestkit/compare/v10.18.0...v10.18.1)** · 2026-11-24
+
+- **mcp:** clarify Docs MCP tools by transport (#5404)
+
 **[v10.18.0](https://github.com/yonatangross/orchestkit/compare/v10.17.0...v10.18.0)** · 2026-11-24
 
 - **cc:** adopt Claude Code 2.1.331 (#5399)
@@ -742,15 +746,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **ci:** the npm audit gate judges the change, not the tree (#5233)
 - **disk-cleanup:** ask before images, keep new snapshots, pin apply (#5213)
 - …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.12.0](https://github.com/yonatangross/orchestkit/compare/v10.11.0...v10.12.0)** · 2026-11-12
-
-- **hooks:** ship 2 hook processes per tool call, not 3 (#5214)
-- **skills:** add /ork:disk-cleanup (#5211)
-- **cursor:** commands run skill scripts only from the installed plugin (#5216)
-- **docs:** hook pages say when the shipped plugin skips an event (#5215)
-- **docs:** try Chromium before apt, so the mirror is not on every build (#5212)
-- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

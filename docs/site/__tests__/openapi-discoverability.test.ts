@@ -6,11 +6,14 @@
 // and /ask must honor the RFC 7240 `Prefer: streaming` header. Pure handler
 // invocations — no server, no network.
 
+import { globSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GET as getOpenApiJson } from "@/app/api/openapi/route";
 import { GET as getOpenApiYaml } from "@/app/api/openapi-yaml/route";
 import { buildOpenApiSpec } from "@/lib/openapi/spec";
 import { isServedPath } from "@/lib/agent-404";
+import nextConfig from "../next.config.mjs";
 
 describe("OpenAPI spec content", () => {
 	it("is a valid OpenAPI 3.1 document with paths + components", () => {
@@ -19,6 +22,30 @@ describe("OpenAPI spec content", () => {
 		expect(spec.info.title).toContain("OrchestKit");
 		expect(Object.keys(spec.paths).length).toBeGreaterThan(0);
 		expect(spec.components).toBeTruthy();
+	});
+
+	it("resolves every advertised server and path combination to a route handler", async () => {
+		const { servers, paths } = buildOpenApiSpec();
+		const rewrites = await nextConfig.rewrites();
+		const alias = rewrites.find(({ source }) => source === "/api/v1/:path*");
+		const handlers = new Set(
+			globSync("**/route.ts", { cwd: resolve(__dirname, "../app") }).map(
+				(file) => `/${file.replace(/\/route\.ts$/, "").replace(/\[\w+\]/g, "{}")}`,
+			),
+		);
+
+		expect(servers.length).toBeGreaterThan(0);
+		for (const { url } of servers) {
+			for (const path of Object.keys(paths)) {
+				const composed = `${url.replace(/\/$/, "")}${path}`;
+				const pathname = decodeURI(new URL(composed).pathname);
+				const direct = rewrites.find(({ source }) => source === pathname);
+				const target = direct?.destination ?? (alias && pathname.startsWith("/api/v1/")
+					? alias.destination.replace(":path*", pathname.slice("/api/v1/".length))
+					: pathname);
+				expect.soft(handlers.has(target.replace(/\{\w+\}/g, "{}")), composed).toBe(true);
+			}
+		}
 	});
 });
 

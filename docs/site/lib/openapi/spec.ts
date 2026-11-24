@@ -23,7 +23,6 @@ export function buildOpenApiSpec() {
 		},
 		servers: [
 			{ url: SITE.domain, description: "Production (latest)" },
-			{ url: `${SITE.domain}/api/v1`, description: "Production (v1 alias)" },
 		],
 		paths: OPENAPI_PATHS,
 		components: OPENAPI_COMPONENTS,

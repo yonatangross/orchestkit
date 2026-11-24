@@ -67,6 +67,24 @@ describe.skipIf(!built)("built binary, direct exec", () => {
 		expect(stdout).toContain("orchestkit <command>");
 	});
 
+	it.each([
+		["claude", [
+			"claude plugin marketplace add yonatangross/orchestkit && claude plugin install ork@orchestkit",
+		]],
+		["codex", [
+			"codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex",
+			"codex plugin add ork-codex@orchestkit-codex",
+		]],
+	])("prints the plugin install commands for %s", async (host, commands) => {
+		const { stdout, stderr, code } = await spawnBin(["install", host]);
+		expect(code).toBe(0);
+		expect(stderr).toBe("");
+		const printedCommands = stdout
+			.split("\n")
+			.filter((line) => line.startsWith("  ") && !line.startsWith("  then: "));
+		expect(printedCommands).toEqual(commands.map((command) => `  ${command}`));
+	});
+
 	it("a subcommand --version prints the version instead of running the command", async () => {
 		const { stdout, stderr, code } = await spawnBin(["mcp", "--version"]);
 		expect(code).toBe(0);

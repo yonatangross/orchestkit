@@ -61,11 +61,11 @@ describe("parseArgs", () => {
 		});
 	});
 
-	it("clamps --limit into a sane range instead of trusting it", () => {
+	it("accepts --limit from 1 to 100 without clamping", () => {
 		expect(parseArgs(["search", "x", "--limit", "3"]).limit).toBe(3);
-		expect(parseArgs(["search", "x", "--limit", "9999"]).limit).toBe(50);
-		expect(parseArgs(["search", "x", "--limit", "0"]).limit).toBe(1);
-		expect(parseArgs(["search", "x", "--limit", "-3"]).limit).toBe(1);
+		expect(parseArgs(["search", "x", "--limit", "1"]).limit).toBe(1);
+		expect(parseArgs(["search", "x", "--limit", "80"]).limit).toBe(80);
+		expect(parseArgs(["search", "x", "--limit", "100"]).limit).toBe(100);
 	});
 
 	it.each(["abc", "3abc", "", " 3 "])("rejects an invalid --limit value (%j)", (value) => {
@@ -76,6 +76,14 @@ describe("parseArgs", () => {
 });
 
 describe("invalid arguments", () => {
+	it.each(["-3", "0", "101", "9999"])("rejects an out-of-range --limit (%j) before creating a client", async (value) => {
+		const res = await run(["search", "hooks", "--limit", value], {
+			version: "1.2.3",
+			clientFactory: () => { throw new Error("Unexpected client creation"); },
+		});
+		expect(res).toEqual({ stdout: "", stderr: "--limit must be between 1 and 100.\n", exitCode: 2 });
+	});
+
 	it.each([
 		["search", "hooks", "--limt", "3"],
 		["mcp", "--josn"],
