@@ -115,6 +115,11 @@ class Env:
     # run refuses first.
     lanes: tuple[Path, ...] = ()
 
+    def __post_init__(self) -> None:
+        # Resolved, so paths built from home (find commands, -path patterns)
+        # compare equal to the realpath'd lanes.
+        self.home = Path(os.path.realpath(self.home))
+
     @property
     def ledger_path(self) -> Path:
         return self.ledger or self.home / ".local" / "state" / "ork" / "disk-cleanup-ledger.jsonl"
@@ -265,6 +270,10 @@ def private_lanes(home: Path) -> tuple[Path, ...]:
     caller refuses to size or delete anything.
     """
     out: list[Path] = []
+    # Resolve home once: every lane is realpath'd, so an unresolved home (a
+    # symlinked home, macOS /var) would make find -path patterns and slug dirs
+    # miss the very folders they name.
+    home = Path(os.path.realpath(home))
     projects = home / ".claude" / "projects"
     cache = home / ".claude" / "plugins" / "cache"
     for cfg in sorted(cache.glob("*/*/*/configs/private-lanes.json")):
@@ -283,9 +292,29 @@ def private_lanes(home: Path) -> tuple[Path, ...]:
                 p = home if entry == "~" else home / entry[2:]
             if not p.is_absolute():
                 p = home / p
-            out.append(Path(os.path.realpath(p)))
-            out.append(Path(os.path.realpath(projects / lane_slug(p))))
+            real = Path(os.path.realpath(p))
+            out.append(real)
+            # The session dir is named from the cwd the session started in, which
+            # may be the symlink or the real folder, and a session started in a
+            # subfolder or worktree writes to <slug>-<more>, a sibling of the
+            # lane's own slug dir. Protect all of them.
+            for slug in dict.fromkeys((lane_slug(p), lane_slug(real))):
+                out.append(Path(os.path.realpath(projects / slug)))
+                out.extend(slug_siblings(projects, slug))
     return tuple(dict.fromkeys(out))
+
+
+def slug_siblings(projects: Path, slug: str) -> list[Path]:
+    """Session dirs under projects named <slug>-<more>, i.e. started below the lane.
+
+    The dash boundary keeps an unrelated folder that merely shares the first
+    letters (lane-x next to lane) out of the set.
+    """
+    try:
+        names = [c.name for c in projects.iterdir()]
+    except OSError:
+        return []
+    return [Path(os.path.realpath(projects / n)) for n in names if n.startswith(slug + "-")]
 
 
 def in_lanes(path: Path, lanes: tuple[Path, ...]) -> bool:
@@ -296,12 +325,34 @@ def in_lanes(path: Path, lanes: tuple[Path, ...]) -> bool:
     return any(real == str(lane) or real.startswith(str(lane) + os.sep) for lane in lanes)
 
 
+def find_glob(path: str) -> str:
+    """Escape the characters find -path reads as a pattern, so a path matches itself."""
+    return re.sub(r"([\\*?\[])", r"\\\1", path)
+
+
+def holds_lane(path: Path, lanes: tuple[Path, ...]) -> bool:
+    """True when a lane sits at or below path (so removing path would remove it)."""
+    try:
+        real = os.path.realpath(path)
+    except OSError:
+        return True  # cannot resolve it, so cannot prove no lane is inside
+    return any(str(lane) == real or str(lane).startswith(real + os.sep) for lane in lanes)
+
+
 def lane_prune(lanes: tuple[Path, ...]) -> str:
-    """A find(1) -prune clause skipping every lane dir, or '' when there are none."""
-    if not lanes:
-        return ""
-    conds = " -o ".join(f"-path {shlex.quote(str(lane))}" for lane in lanes)
-    return f"\\( {conds} \\) -prune -o"
+    """find(1) clauses that leave every lane out, or '' when there are none.
+
+    Not -prune: on macOS -delete implies -d (depth-first) and -prune has no
+    effect with -d, so a prune clause let `find ... -delete` remove lane files.
+    -not -path works in any traversal order. Each lane needs two tests, the
+    folder itself and everything under it.
+    """
+    parts: list[str] = []
+    for lane in lanes:
+        pat = find_glob(str(lane))
+        parts.append(f"-not -path {shlex.quote(pat)}")
+        parts.append(f"-not -path {shlex.quote(pat + '/*')}")
+    return " ".join(parts)
 
 
 # --------------------------------------------------------------------- catalog
@@ -996,6 +1047,9 @@ def clear_dir(path: Path, cutoff: float | None, lanes: tuple[Path, ...] = ()) ->
             try:
                 if child.is_symlink() or not child.is_dir():
                     child.unlink()
+                elif holds_lane(child, lanes):
+                    # a lane lives somewhere below: empty around it, never rmtree it
+                    errors += [f"{child.name}/{e}" for e in clear_dir(child, None, lanes)]
                 else:
                     shutil.rmtree(child)
             except OSError as exc:
@@ -1311,6 +1365,7 @@ def main(
     if not home.is_dir():
         print(f"home is not a directory: {home}", file=sys.stderr)
         return 2
+    home = Path(os.path.realpath(home))
     # Before anything is sized, deleted or created (the report file included).
     try:
         lanes = private_lanes(home)

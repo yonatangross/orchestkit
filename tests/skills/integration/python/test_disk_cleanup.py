@@ -466,8 +466,88 @@ def test_transcript_ask_cmd_prunes_private_lanes(home):
     _lane, slug_dir, lanes = lane_env(home)
     write(home / ".claude" / "projects" / "p" / "s.jsonl", 70_000)
     item = by_id(dc.build_inventory(make_env(home, lanes=lanes)), "agent-transcripts")
-    assert "-prune -o" in item.ask_cmd
+    assert "-not -path" in item.ask_cmd
     assert str(slug_dir) in item.ask_cmd
+
+
+def run_ask_cmd(cmd: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["/bin/sh", "-c", cmd], capture_output=True, text=True, check=False)
+
+
+def old_session(path: Path) -> Path:
+    return write(path, 70_000, age_days=60)
+
+
+def test_transcript_ask_cmd_run_for_real_keeps_lane_files(home):
+    """The printed command is copied and run by a person: run it, do not grep it.
+
+    -prune is a no-op under -delete on macOS (-delete implies -d), so the
+    exclusion has to be -not -path.
+    """
+    _lane, slug_dir, lanes = lane_env(home)
+    kept = old_session(slug_dir / "s.jsonl")
+    kept_deep = old_session(slug_dir / "sub" / "deep.jsonl")
+    gone = old_session(home / ".claude" / "projects" / "other" / "s.jsonl")
+    item = by_id(dc.build_inventory(make_env(home, lanes=lanes)), "agent-transcripts")
+    done = run_ask_cmd(item.ask_cmd)
+    assert done.returncode == 0, done.stderr
+    assert kept.exists() and kept_deep.exists()
+    assert not gone.exists()
+
+
+def test_transcript_ask_cmd_run_for_real_with_a_symlinked_home(tmp_path):
+    real = tmp_path / "real-home"
+    real.mkdir()
+    link = tmp_path / "link-home"
+    link.symlink_to(real)
+    lane = real / ".floor" / "desks" / "personal-desk"
+    lane.mkdir(parents=True)
+    write_lane_list(real, "~/.floor/desks/personal-desk")
+    slug_dir = real / ".claude" / "projects" / dc.lane_slug(lane)
+    kept = old_session(slug_dir / "s.jsonl")
+    gone = old_session(real / ".claude" / "projects" / "other" / "s.jsonl")
+    lanes = dc.private_lanes(link)
+    item = by_id(dc.build_inventory(make_env(link, lanes=lanes)), "agent-transcripts")
+    done = run_ask_cmd(item.ask_cmd)
+    assert done.returncode == 0, done.stderr
+    assert kept.exists()
+    assert not gone.exists()
+
+
+def test_session_slug_of_a_lane_subfolder_is_in_the_lane(home):
+    """A session started in lane/repo writes to projects/<lane slug>-repo, a sibling."""
+    lane = home / ".floor" / "desks" / "personal-desk"
+    (lane / "repo").mkdir(parents=True)
+    write_lane_list(home, "~/.floor/desks/personal-desk")
+    projects = home / ".claude" / "projects"
+    sub_slug = projects / dc.lane_slug(lane / "repo")
+    wt_slug = projects / (dc.lane_slug(lane) + "--worktrees-feat")
+    stranger = projects / (dc.lane_slug(lane) + "x")
+    for d in (sub_slug, wt_slug, stranger):
+        write(d / "s.jsonl", 10)
+    lanes = dc.private_lanes(home)
+    assert dc.in_lanes(sub_slug / "s.jsonl", lanes)
+    assert dc.in_lanes(wt_slug, lanes)
+    # a different folder whose name merely starts with the same letters is not a lane
+    assert not dc.in_lanes(stranger, lanes)
+
+
+def test_lane_given_through_a_symlink_protects_the_real_folders_slug(home, tmp_path):
+    target = tmp_path / "elsewhere" / "desk"
+    target.mkdir(parents=True)
+    (home / "desk-link").symlink_to(target)
+    write_lane_list(home, "~/desk-link")
+    slug_dir = home / ".claude" / "projects" / dc.lane_slug(Path(os.path.realpath(target)))
+    write(slug_dir / "s.jsonl", 10)
+    assert dc.in_lanes(slug_dir / "s.jsonl", dc.private_lanes(home))
+
+
+def test_env_resolves_a_symlinked_home(tmp_path):
+    real = tmp_path / "real-home"
+    real.mkdir()
+    link = tmp_path / "link-home"
+    link.symlink_to(real)
+    assert make_env(link).home == Path(os.path.realpath(real))
 
 
 def test_discover_repos_skips_private_lanes(home):
@@ -490,6 +570,46 @@ def test_clear_dir_never_empties_a_lane_child(tmp_path):
     dc.clear_dir(tmp_path, None, lanes)
     assert (lane_child / "s.jsonl").exists()
     assert not (drop / "f").exists()
+
+
+def test_clear_dir_keeps_a_lane_nested_two_levels_under_a_cleared_child(tmp_path):
+    cache = tmp_path / "cache"
+    lane = cache / "child" / "deep" / "lane"
+    kept = write(lane / "s.jsonl", 10)
+    sibling = write(cache / "child" / "deep" / "other" / "f", 10)
+    plain = write(cache / "plain" / "f", 10)
+    lanes = (Path(os.path.realpath(lane)),)
+    errors = dc.clear_dir(cache, None, lanes)
+    assert errors == []
+    assert kept.exists()
+    assert not sibling.exists()
+    assert not plain.exists()
+
+
+def test_clear_dir_with_a_cutoff_keeps_a_nested_lane(tmp_path):
+    cache = tmp_path / "cache"
+    lane = cache / "child" / "deep" / "lane"
+    kept = write(lane / "s.jsonl", 10, age_days=90)
+    old = write(cache / "child" / "old.bin", 10, age_days=90)
+    lanes = (Path(os.path.realpath(lane)),)
+    dc.clear_dir(cache, time.time() - 30 * 86400, lanes)
+    assert kept.exists()
+    assert not old.exists()
+
+
+def test_apply_keeps_a_lane_nested_inside_a_cache_it_clears(home, capsys):
+    write_lane_list(home, "~/.npm/_cacache/nested/lane")
+    kept = write(home / ".npm" / "_cacache" / "nested" / "lane" / "s.jsonl", 200_000)
+    gone = write(home / ".npm" / "_cacache" / "nested" / "other" / "f.bin", 200_000)
+    rc = dc.main(
+        ["--home", str(home), "--root", str(home), "--apply", "--only", "npm-cache"],
+        runner=FakeRunner({"lsof": GOOD_LSOF}),
+        now=time.time() + LATER,
+    )
+    capsys.readouterr()
+    assert rc == 0
+    assert kept.exists()
+    assert not gone.exists()
 
 
 # ---------------------------------------------------------------- dry run and apply (caches)
