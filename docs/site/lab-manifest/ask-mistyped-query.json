@@ -1,0 +1,8 @@
+{
+  "slug": "ask-mistyped-query",
+  "source": "docs/fix--ask-mistyped-query/index.html",
+  "title": "Wrong query type, right status",
+  "description": "Recorded before and after NLWeb responses for the same mistyped query, plus a valid string control.",
+  "tags": ["api", "nlweb", "regression"],
+  "date": "2026-11-24"
+}

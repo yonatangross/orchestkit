@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/app/api/ask/route.ts"],
+  "page": "docs/fix--ask-mistyped-query/index.html",
+  "lab_slug": "ask-mistyped-query",
+  "purpose": "Compare the recorded NLWeb HTTP responses before and after validating query types."
+}

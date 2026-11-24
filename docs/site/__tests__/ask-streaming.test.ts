@@ -134,3 +134,46 @@ describe("/ask NLWeb canonical body { query: { text } }", () => {
 		);
 	});
 });
+
+describe("/ask JSON query validation", () => {
+	function postJson(body: Record<string, unknown>): Promise<Response> {
+		return POST(new Request("https://orchestkit.dev/ask", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify(body),
+		}));
+	}
+
+	it.each([
+		{ query: 7 },
+		{ query: { text: 7 } },
+		{ query: { text: ["hooks"] } },
+		{ query: { text: { value: "hooks" } } },
+		{ query: { text: null } },
+		{ query: {} },
+		{ q: false },
+		{ question: ["hooks"] },
+	])("rejects a mistyped query in %j with a JSON problem", async (body) => {
+		const res = await postJson(body);
+		expect(res.status).toBe(400);
+		expect(res.headers.get("Content-Type")).toContain("application/json");
+		expect(await res.json()).toMatchObject({
+			type: "about:blank",
+			title: "Invalid query",
+			status: 400,
+			instance: "/ask",
+		});
+	});
+
+	it.each([{ q: "hooks" }, { question: "hooks" }])("accepts a string alias in %j", async (body) => {
+		const res = await postJson(body);
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({ query: "hooks" });
+	});
+
+	it("preserves the 200 probe when the JSON body omits the query", async () => {
+		const res = await postJson({});
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({ query: "", results: [] });
+	});
+});
