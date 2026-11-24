@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>The /ask limit in OpenAPI</title>
+<meta name="description" content="Compare the published GET and POST /ask limit parameter before and after the OpenAPI change.">
+<style>
+  :root { color-scheme: dark; background: #101719; color: #edf4f2; font: 16px/1.55 system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  main { width: min(100% - 40px, 1024px); margin: 0 auto; padding: 48px 0; }
+  header { border-bottom: 1px solid #35474c; padding-bottom: 20px; margin-bottom: 24px; }
+  .eyebrow, small { color: #8ce0c0; font: 13px/1.4 ui-monospace, monospace; }
+  .eyebrow { letter-spacing: .12em; text-transform: uppercase; }
+  h1 { font-size: clamp(32px, 6vw, 54px); letter-spacing: -.04em; line-height: 1.1; margin: 12px 0; }
+  p { color: #b9c8c9; }
+  header p { max-width: 62ch; margin: 0; }
+  label { font-weight: 600; }
+  select { margin-inline-start: 10px; padding: 7px 12px; font: inherit; color: inherit; border: 1px solid #567171; border-radius: 6px; background: #182326; }
+  select:focus-visible { outline: 2px solid #8ce0c0; outline-offset: 3px; }
+  .label { margin: 14px 0; font-size: 14px; }
+  .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  article { background: #182326; border: 1px solid #35474c; border-radius: 10px; }
+  article > div { border-bottom: 1px solid #35474c; padding: 12px 16px; }
+  h2 { font-size: 18px; margin: 0 0 2px; }
+  pre { margin: 0; padding: 14px 16px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 ui-monospace, monospace; }
+  footer { margin-top: 20px; font-size: 14px; }
+  @media (max-width: 640px) { main { padding: 28px 0; } .panels { grid-template-columns: 1fr; } }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="The /ask limit in OpenAPI"><meta property="og:description" content="Compare the before and after OpenAPI parameters for GET and POST /ask."><meta property="og:url" content="https://orchestkit.dev/lab/ask-openapi-limit.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="The /ask limit in OpenAPI"><meta name="twitter:description" content="Compare the before and after OpenAPI parameters for GET and POST /ask."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">OrchestKit · API contract</div>
+    <h1>The <code>/ask</code> limit in OpenAPI</h1>
+    <p>Both methods already accept a result limit in the URL. The spec now tells clients where to send it, what values it accepts, and what happens if they omit it.</p>
+  </header>
+  <label for="method">HTTP method</label>
+  <select id="method"><option value="get">GET</option><option value="post">POST</option></select>
+  <p id="selection" class="label" role="status"></p>
+  <section class="panels" aria-label="Recorded OpenAPI parameter comparison">
+    <article><div><h2>Before</h2><small>main · not advertised</small></div><pre id="before"></pre></article>
+    <article><div><h2>After</h2><small>branch · advertised</small></div><pre id="after"></pre></article>
+  </section>
+  <footer><p>Recorded from local <code>/openapi.json</code> responses, filtered to parameters named <code>limit</code>. Request handling did not change.</p></footer>
+</main>
+<script>
+  const before = {"get":[],"post":[]};
+  const after = {"get":[{"name":"limit","in":"query","required":false,"description":"Maximum number of matching documentation results to return.","schema":{"type":"integer","minimum":1,"maximum":100,"default":10}}],"post":[{"name":"limit","in":"query","required":false,"description":"Maximum number of matching documentation results to return.","schema":{"type":"integer","minimum":1,"maximum":100,"default":10}}]};
+  const method = document.getElementById("method");
+  function render() {
+    const key = method.value;
+    document.getElementById("selection").textContent = key.toUpperCase() + " /ask · limit entries in the parameter list";
+    document.getElementById("before").textContent = JSON.stringify(before[key], null, 2);
+    document.getElementById("after").textContent = JSON.stringify(after[key], null, 2);
+  }
+  method.addEventListener("change", render);
+  render();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

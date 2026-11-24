@@ -73,6 +73,26 @@ describe("/api/openapi.yaml (YAML twin)", () => {
 	});
 });
 
+describe("published /ask limit", () => {
+	it.each([
+		["JSON", getOpenApiJson],
+		["YAML", getOpenApiYaml],
+	] as const)("advertises the optional query parameter for GET and POST in %s", async (_format, getSpec) => {
+		const spec: ReturnType<typeof buildOpenApiSpec> = await getSpec().json();
+		for (const method of ["get", "post"] as const) {
+			const parameters = spec.paths["/ask"][method].parameters;
+			expect.soft(parameters.filter((parameter) => parameter.name === "limit"), method).toEqual([
+				expect.objectContaining({
+					name: "limit",
+					in: "query",
+					required: false,
+					schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+				}),
+			]);
+		}
+	});
+});
+
 describe("orank probe paths are registered as served", () => {
 	it("/openapi.json and /api/openapi.yaml resolve to served paths", () => {
 		// /openapi.json is a top-level .json rewrite → must be in SERVED_EXACT so
