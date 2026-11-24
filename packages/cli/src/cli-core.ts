@@ -38,7 +38,7 @@ COMMANDS
   help               Show this message
 
 OPTIONS
-  --limit <n>        Max search results (default 5)
+  --limit <n>        Max search results (1 to 100; default 5)
   --json             Emit raw JSON instead of formatted text
   --base-url <url>   Override the API origin (env: ORCHESTKIT_BASE_URL)
   --version          Print the CLI version
@@ -99,7 +99,11 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 				if (!/^[+-]?\d+$/.test(value)) {
 					throw new UsageError("--limit requires an integer.");
 				}
-				limit = Math.min(Math.max(Number(value), 1), 50);
+				const requestedLimit = Number(value);
+				if (requestedLimit < 1 || requestedLimit > 100) {
+					throw new UsageError("--limit must be between 1 and 100.");
+				}
+				limit = requestedLimit;
 			} else {
 				baseUrl = value;
 			}

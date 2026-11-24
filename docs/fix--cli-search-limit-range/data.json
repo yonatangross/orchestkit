@@ -1,0 +1,4 @@
+{
+  "serves": ["packages/cli/src/cli-core.ts"],
+  "description": "Recorded runs of the built search CLI against the production docs API."
+}
