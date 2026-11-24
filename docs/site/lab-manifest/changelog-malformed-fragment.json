@@ -1,0 +1,8 @@
+{
+  "slug": "changelog-malformed-fragment",
+  "source": "docs/fix--changelog-malformed-fragment/index.html",
+  "title": "Changelog fragment recovery",
+  "description": "Try a broken fragment and a valid encoded release link against the live changelog.",
+  "tags": ["changelog", "routing"],
+  "date": "2026-11-24"
+}

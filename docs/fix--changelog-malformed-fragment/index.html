@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Changelog fragment recovery</title>
+<meta name="description" content="Try a broken fragment and a valid encoded release link against the live changelog.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f6f4;color:#182623;font:16px/1.6 system-ui,sans-serif}
+  main{max-width:800px;margin:auto;padding:52px 22px}
+  h1{margin:0;font-size:clamp(2rem,6vw,3rem);line-height:1.15;letter-spacing:-.03em}
+  h2{font-size:1.15rem;margin:0}
+  .eyebrow{font-weight:700;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+  .probes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:16px;margin:28px 0}
+  section{display:flex;flex-direction:column;align-items:start;background:#fff;border:1px solid #c7d3cd;border-radius:12px;padding:18px}
+  section p{flex:1}
+  .probe{display:inline-block;font-weight:650;color:#fff;background:#15372c;border-radius:8px;text-decoration:none;padding:9px 14px}
+  .probe:hover{text-decoration:underline}
+  a:focus-visible{outline:3px solid #126c95;outline-offset:3px}
+  code{font-family:ui-monospace,monospace}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">OrchestKit Lab / Browser regression</p>
+  <h1>Changelog fragment recovery</h1>
+  <p>A stray percent sign in a changelog link used to replace the entire release feed with an error. These links exercise the real changelog on this site.</p>
+  <div class="probes">
+    <section aria-labelledby="broken">
+      <h2 id="broken">Malformed fragment</h2>
+      <p>Before, <code>#%</code> showed an error page. Now the changelog treats it as a missing anchor and keeps the default feed.</p>
+      <a class="probe" href="/changelog#%">Open malformed link</a>
+    </section>
+    <section aria-labelledby="encoded">
+      <h2 id="encoded">Encoded release</h2>
+      <p>A valid escape in <code>#10%2E12.0</code> still resolves to release <code>10.12.0</code> and scrolls to it.</p>
+      <a class="probe" href="/changelog#10%2E12.0">Open encoded release</a>
+    </section>
+  </div>
+  <p>To test a hash change without reloading, replace the fragment in the address bar with <code>#%</code> after opening the encoded release.</p>
+</main>
+</body>
+</html>

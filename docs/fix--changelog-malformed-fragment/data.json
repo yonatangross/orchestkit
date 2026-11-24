@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/components/changelog-rail.tsx"],
+  "page": "docs/fix--changelog-malformed-fragment/index.html",
+  "lab_slug": "changelog-malformed-fragment",
+  "purpose": "Open live changelog fragment probes and compare expected behavior"
+}
