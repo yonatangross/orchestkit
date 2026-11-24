@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="Recorded responses to invalid envelopes on both hosted OrchestKit MCP servers.">
+  <title>Hosted MCP rejects invalid JSON-RPC envelopes</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f0f4f8;color:#162538;font:16px/1.55 system-ui,sans-serif}
+    main{max-width:970px;margin:auto;padding:clamp(20px,5vw,52px)}
+    h1{font-size:clamp(2rem,5.5vw,3.25rem);line-height:1.04;letter-spacing:-.045em;max-width:19ch;margin:12px 0}
+    h1 span{white-space:nowrap}
+    h2{margin:0 0 10px;font-size:1.1rem}
+    p{margin:0;color:#42556a}
+    header p{max-width:67ch}
+    .eyebrow{color:#355880;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:750}
+    section{margin-top:26px;padding:clamp(14px,3vw,24px);background:white;border:1px solid #cbd7e3;border-radius:14px}
+    table{width:100%;border-collapse:collapse;text-align:left;min-width:560px}
+    .scroll{overflow:auto}
+    td,th{padding:8px 10px;border-bottom:1px solid #dce5ee;vertical-align:top}
+    thead th{background:#ebf2f8;color:#314b65;font-size:.85rem}
+    tbody th{font-weight:600}
+    .fixed{color:#0a6049;background:#eaf7f1;font-weight:700}
+    code,pre{font:.88rem/1.5 ui-monospace,monospace}
+    details{margin-top:14px}
+    summary{width:fit-content;cursor:pointer;color:#204f7d;font-weight:650}
+    :focus-visible{outline:3px solid #1e65a6;outline-offset:3px}
+    pre{padding:12px;background:#eff4f9;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .note{font-size:.9rem;margin-top:13px}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">OrchestKit Lab / Hosted MCP</p>
+      <h1>Reject invalid <span>JSON-RPC</span> envelopes</h1>
+      <p>Real POST responses on <code>/api/mcp</code> and <code>/api/mcp/actions</code>. Both endpoints gave the same outcomes below. This page shows recorded results and sends no requests.</p>
+    </header>
+    <section aria-labelledby="response-heading">
+      <h2 id="response-heading">HTTP status and JSON-RPC response</h2>
+      <div class="scroll" tabindex="0" role="region" aria-label="Recorded responses table">
+        <table aria-labelledby="response-heading">
+          <thead><tr><th scope="col">Request body</th><th scope="col">Production</th><th scope="col">Local main</th><th scope="col">Fix branch</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>null</code></th><td>500, empty</td><td>500, empty</td><td class="fixed">400, −32600</td></tr>
+            <tr><th scope="row"><code>{}</code></th><td>202, empty</td><td>202, empty</td><td class="fixed">400, −32600</td></tr>
+            <tr><th scope="row"><code>[]</code></th><td>202, empty</td><td>202, empty</td><td class="fixed">400, −32600</td></tr>
+            <tr><th scope="row">Ping with <code>"jsonrpc":"1.0"</code></th><td>200, pong</td><td>200, pong</td><td class="fixed">400, −32600</td></tr>
+            <tr><th scope="row">Mixed batch with <code>{}</code></th><td>200, two pongs</td><td>200, two pongs</td><td class="fixed">200, pong / −32600 / pong</td></tr>
+            <tr><th scope="row">Malformed JSON (<code>{</code>)</th><td>400, −32700</td><td>400, −32700</td><td>400, −32700</td></tr>
+            <tr><th scope="row">Ping</th><td>200, pong</td><td>200, pong</td><td>200, pong</td></tr>
+            <tr><th scope="row">Valid batch</th><td>200, two pongs</td><td>200, two pongs</td><td>200, two pongs</td></tr>
+            <tr><th scope="row">Initialized notification, alone or batched</th><td>202, empty</td><td>202, empty</td><td>202, empty</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <details>
+        <summary>Show the invalid request response body</summary>
+        <pre>{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Invalid Request"}}</pre>
+      </details>
+      <p class="note">The mixed batch retains both valid request IDs and adds one error with <code>id: null</code>. No response is sent for the initialized notification in the batch.</p>
+    </section>
+    <section aria-labelledby="negotiation-heading">
+      <h2 id="negotiation-heading">Protocol negotiation stayed the same</h2>
+      <p>Both servers still echo their three supported versions: <code>2025-06-18</code>, <code>2025-03-26</code>, and <code>2024-11-05</code>. Asking for <code>2025-11-25</code> or omitting the version still returns <code>2025-06-18</code>.</p>
+    </section>
+  </main>
+</body>
+</html>

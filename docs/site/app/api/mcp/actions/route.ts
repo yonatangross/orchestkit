@@ -15,6 +15,7 @@
 
 import { SITE } from "@/lib/constants";
 import { SKILLS } from "@/lib/generated/skills-data";
+import { handleMcpPost, rpcError, type RpcRequest } from "@/lib/mcp-json-rpc";
 import { negotiateProtocolVersion } from "@/lib/mcp-protocol";
 
 export const dynamic = "force-dynamic";
@@ -413,19 +414,8 @@ function text(value: string): ToolResult {
 	return { content: [{ type: "text", text: value }] };
 }
 
-type RpcRequest = {
-	jsonrpc: "2.0";
-	id?: string | number | null;
-	method: string;
-	params?: Record<string, unknown>;
-};
-
 function rpcResult(id: RpcRequest["id"], result: unknown) {
 	return { jsonrpc: "2.0" as const, id, result };
-}
-
-function rpcError(id: RpcRequest["id"], code: number, message: string) {
-	return { jsonrpc: "2.0" as const, id, error: { code, message } };
 }
 
 const WRITE_METHODS = new Set([
@@ -444,10 +434,11 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 		);
 	}
 
+	const params = Array.isArray(req.params) ? undefined : req.params;
 	switch (req.method) {
 		case "initialize":
 			return rpcResult(req.id, {
-				protocolVersion: negotiateProtocolVersion(req.params?.protocolVersion),
+				protocolVersion: negotiateProtocolVersion(params?.protocolVersion),
 				capabilities: {
 					tools: { listChanged: false },
 				},
@@ -470,8 +461,8 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 				})),
 			});
 		case "tools/call": {
-			const name = req.params?.name as string;
-			const args = (req.params?.arguments as Record<string, unknown>) ?? {};
+			const name = params?.name as string;
+			const args = (params?.arguments as Record<string, unknown>) ?? {};
 			const tool = TOOLS.find((t) => t.name === name);
 			if (!tool) return rpcError(req.id, -32602, `Unknown tool: ${name}`);
 			return rpcResult(req.id, tool.run(args));
@@ -484,26 +475,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 }
 
 export async function POST(request: Request) {
-	let payload: unknown;
-	try {
-		payload = await request.json();
-	} catch {
-		return Response.json(rpcError(null, -32700, "Parse error"), { status: 400 });
-	}
-
-	const batch = Array.isArray(payload);
-	const requests = (batch ? payload : [payload]) as RpcRequest[];
-	const responses = await Promise.all(
-		requests.map(async (r) => ({ request: r, response: await dispatch(r) })),
-	);
-	const nonNull = responses
-		.map((p) => p.response)
-		.filter((r): r is object => r !== null);
-
-	// Notifications only → 202 Accepted
-	if (nonNull.length === 0) return new Response(null, { status: 202 });
-
-	return Response.json(batch ? nonNull : nonNull[0]);
+	return handleMcpPost(request, dispatch);
 }
 
 // This stateless server initiates no server→client messages, so no SSE on GET.

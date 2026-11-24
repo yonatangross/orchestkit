@@ -1,0 +1,4 @@
+{
+  "serves": ["docs/site/app/api/mcp/route.ts", "docs/site/app/api/mcp/actions/route.ts", "docs/site/lib/mcp-json-rpc.ts"],
+  "description": "Recorded HTTP responses for invalid JSON-RPC envelopes and working controls on both hosted MCP endpoints."
+}
