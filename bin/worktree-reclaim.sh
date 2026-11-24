@@ -50,7 +50,24 @@ if ! git rev-parse --show-toplevel > /dev/null; then
 fi
 # The main worktree, not whichever worktree we happen to be standing in. This
 # is the SYMLINK SOURCE: the one checkout that holds the real installed trees.
-MAIN=$(git worktree list --porcelain | sed -n '/^worktree /{s/^worktree //p;q;}')
+WORKTREES=()
+in_stanza=0
+while IFS= read -r -d '' record; do
+    if [[ -z "$record" ]]; then
+        in_stanza=0
+        continue
+    fi
+    if [[ "$in_stanza" -eq 0 && "$record" == worktree\ * ]]; then
+        WORKTREES+=("${record#worktree }")
+        in_stanza=1
+    fi
+done < <(git worktree list --porcelain -z)
+
+if [[ ${#WORKTREES[@]} -eq 0 ]]; then
+    echo "Error: git worktree list returned no worktrees" >&2
+    exit 1
+fi
+MAIN="${WORKTREES[0]}"
 
 # Resolve the canonical-list script next to THIS file, not under $MAIN. The two
 # ship together, but the main worktree is routinely parked on a branch that
@@ -74,7 +91,7 @@ while IFS= read -r dir; do
     if [[ -n "$dir" ]]; then
         DIRS+=("$dir")
     fi
-done <<< "$DIR_LIST"
+done <<< "$DIR_LIST"  # pipebuf: bounded-small (the canonical symlink list, 117 B today, one short path per line)
 
 if [[ -z "$DIR_LIST" ]]; then
     echo "Error: $CONFIG_SCRIPT --list returned nothing; refusing to no-op." >&2
@@ -90,13 +107,22 @@ total_freed=0
 linked=0
 skipped=0
 
-while IFS= read -r wt; do
+for wt in "${WORKTREES[@]}"; do
     [[ "$wt" == "$MAIN" ]] && continue
     name=$(basename "$wt")
 
     # In-flight install guard.
-    recent=$(find "$wt" -maxdepth 4 -name node_modules -type d \
-        -not -path "*/node_modules/*" -mmin "-$STALE_MINUTES" | head -1)
+    # The find status is checked on its own, never swallowed by a process
+    # substitution: a subtree find cannot read may hide the very install this
+    # guard looks for, so "could not look" must stop the run, not read as
+    # "nothing recent". -print -quit keeps a path with a newline in one piece
+    # (only the trailing newline is trimmed, and a node_modules path never ends
+    # in one).
+    if ! recent=$(find "$wt" -maxdepth 4 -name node_modules -type d \
+        -not -path "*/node_modules/*" -mmin "-$STALE_MINUTES" -print -quit); then
+        echo "Error: cannot read all of $wt; refusing to reclaim (nothing changed for it)" >&2
+        exit 1
+    fi
     if [[ -n "$recent" ]]; then
         printf '%-26s SKIP  node_modules touched < %s min ago (%s)\n' \
             "$name" "$STALE_MINUTES" "$(basename "$(dirname "$recent")")"
@@ -109,11 +135,11 @@ while IFS= read -r wt; do
         dst="$wt/$d"
 
         [[ -e "$src" ]] || continue               # nothing to point at
-        [[ -d "$(dirname "$dst")" ]] || continue   # workspace root absent on this branch
+        [[ -d "${dst%/*}" ]] || continue          # workspace root absent on this branch
         [[ -L "$dst" ]] && continue                # already linked
 
         if [[ -d "$dst" ]]; then
-            bytes=$(du -sk "$dst" | cut -f1)
+            bytes=$(du -sk "$dst" | awk 'NR==1 {print $1}')
             total_freed=$((total_freed + bytes))
             printf '%-26s LINK  %-32s reclaims %6s MB\n' "$name" "$d" "$((bytes / 1024))"
             if [[ "$MODE" == "apply" ]]; then
@@ -129,7 +155,7 @@ while IFS= read -r wt; do
             linked=$((linked + 1))
         fi
     done
-done < <(git worktree list --porcelain | sed -n 's/^worktree //p')
+done
 
 echo
 echo "links:    $linked"

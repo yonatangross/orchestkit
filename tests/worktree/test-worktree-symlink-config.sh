@@ -256,7 +256,94 @@ else
 fi
 rm -rf "$FIXTURE"
 
-echo "=== Results ==="
+echo ""
+echo "=== 8. reclaim preserves paths containing newlines ==="
+NL_FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/ork-reclaim-nl.XXXXXX")
+NL_FIXTURE=$(cd "$NL_FIXTURE" && pwd -P)
+NL_MAIN="$NL_FIXTURE/main"$'\n'"repo"
+NL_WT="$NL_FIXTURE/my"$'\n'"wt"
+git init -q "$NL_MAIN"
+git -C "$NL_MAIN" -c user.name=Test -c user.email=test@example.invalid \
+    -c commit.gpgsign=false commit -qm initial --allow-empty
+git -C "$NL_MAIN" worktree add -q -b reclaim-nl "$NL_WT"
+mkdir -p "$NL_MAIN/node_modules" "$NL_FIXTURE/main/node_modules" \
+    "$NL_WT/node_modules" "$NL_FIXTURE/my/node_modules"
+touch "$NL_FIXTURE/my/node_modules/decoy"
+touch -t 200001010000 "$NL_WT/node_modules" "$NL_FIXTURE/my/node_modules"
+if NL_DRY_OUTPUT=$(cd "$NL_MAIN" && bash "$RECLAIM" --dry-run 2>&1) \
+    && [[ "$NL_DRY_OUTPUT" == *"main repository: $NL_MAIN"* ]] \
+    && [[ "$NL_DRY_OUTPUT" == *"my"$'\n'"wt"* ]] \
+    && [[ "$NL_DRY_OUTPUT" == *"LINK  node_modules"* ]]; then
+    pass "dry-run reports the real main and worktree paths with newlines"
+else
+    fail "dry-run fails to parse paths containing newlines"
+fi
+if [[ -f "$NL_FIXTURE/my/node_modules/decoy" && ! -L "$NL_WT/node_modules" ]]; then
+    pass "dry-run leaves newline worktree and decoy unchanged"
+else
+    fail "dry-run modified newline worktree or decoy"
+fi
+if (cd "$NL_MAIN" && bash "$RECLAIM" --apply > /dev/null 2>&1); then
+    pass "apply exits 0 for paths containing newlines"
+else
+    fail "apply failed for paths containing newlines"
+fi
+if [[ -f "$NL_FIXTURE/my/node_modules/decoy" && ! -L "$NL_FIXTURE/my/node_modules" ]]; then
+    pass "apply preserves the unrelated decoy next to newline path"
+else
+    fail "apply deleted or linked the unrelated decoy next to newline path"
+fi
+if [[ -L "$NL_WT/node_modules" && "$(readlink "$NL_WT/node_modules")" == "$NL_MAIN/node_modules" ]]; then
+    pass "apply reclaims the newline worktree directory"
+else
+    fail "apply did not reclaim the newline worktree directory"
+fi
+rm -rf "$NL_FIXTURE"
+
+echo ""
+echo "=== 9. reclaim aborts when a worktree subtree cannot be read ==="
+# A directory the walk cannot read hides whether an install is in flight below
+# it. The script must stop (non-zero, no LINK) rather than treat "could not
+# look" as "nothing recent" and go on to delete node_modules.
+if [[ "$(id -u)" -eq 0 ]]; then
+    info "running as root - chmod 000 does not block reads, section 9 skipped"
+else
+    UR_FIXTURE=$(mktemp -d "${TMPDIR:-/tmp}/ork-reclaim-unreadable.XXXXXX")
+    UR_FIXTURE=$(cd "$UR_FIXTURE" && pwd -P)
+    UR_MAIN="$UR_FIXTURE/main"
+    UR_WT="$UR_FIXTURE/wt"
+    git init -q "$UR_MAIN"
+    git -C "$UR_MAIN" -c user.name=Test -c user.email=test@example.invalid \
+        -c commit.gpgsign=false commit -qm initial --allow-empty
+    git -C "$UR_MAIN" worktree add -q -b reclaim-unreadable "$UR_WT"
+    mkdir -p "$UR_MAIN/node_modules" "$UR_WT/node_modules" "$UR_WT/pkg/locked"
+    touch -t 200001010000 "$UR_WT/node_modules"
+    chmod 000 "$UR_WT/pkg/locked"
+    UR_OUT=""
+    UR_RC=0
+    UR_OUT=$(cd "$UR_MAIN" && bash "$RECLAIM" --dry-run 2>&1) || UR_RC=$?
+    if [[ "$UR_RC" -ne 0 ]]; then
+        pass "dry-run aborts non-zero on an unreadable subtree"
+    else
+        fail "dry-run exited 0 with an unreadable subtree"
+    fi
+    if [[ "$UR_OUT" != *"LINK"* && "$UR_OUT" != *"ADD "* ]]; then
+        pass "dry-run reports no LINK for a worktree it could not fully read"
+    else
+        fail "dry-run reported LINK for a worktree with an unreadable subtree"
+    fi
+    UR_RC=0
+    (cd "$UR_MAIN" && bash "$RECLAIM" --apply > /dev/null 2>&1) || UR_RC=$?
+    if [[ "$UR_RC" -ne 0 && -d "$UR_WT/node_modules" && ! -L "$UR_WT/node_modules" ]]; then
+        pass "apply aborts and leaves node_modules in place"
+    else
+        fail "apply went ahead with an unreadable subtree"
+    fi
+    chmod 755 "$UR_WT/pkg/locked"
+    rm -rf "$UR_FIXTURE"
+fi
+
+echo "=== Results ===" 
 echo -e "${GREEN}Passed: $PASS${NC}"
 if [ "$FAIL" -gt 0 ]; then
     echo -e "${RED}Failed: $FAIL${NC}"
