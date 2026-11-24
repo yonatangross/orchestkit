@@ -38,10 +38,12 @@ function matchMarkdownParams(params: string[]) {
 			continue;
 		}
 		if (key !== "charset") return null;
-		const charset = value.startsWith('"') && value.endsWith('"')
-			? value.slice(1, -1).replace(/\\(.)/g, "$1")
-			: value;
-		if (charset.toLowerCase() !== "utf-8") return null;
+		const charset = (
+			value.startsWith('"') && value.endsWith('"')
+				? value.slice(1, -1).replace(/\\(.)/g, "$1")
+				: value
+		).toLowerCase();
+		if (charset !== "utf-8" && charset !== "csutf8") return null;
 		specificity = 1;
 	}
 	return { specificity, rejected };

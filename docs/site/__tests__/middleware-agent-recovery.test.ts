@@ -202,6 +202,7 @@ describe("docs Markdown negotiation", () => {
 		["text/html", null],
 		["*/*", null],
 		["text/markdown", target],
+		["text/markdown;charset=csUTF8", target],
 		["Text/Markdown;Q=0.001", target],
 		['text/html;note="a;q=0, b", text/markdown;q=0.5', target],
 		["text/markdown;q=0, text/markdown;charset=UTF-8;q=0.5", target],
@@ -212,6 +213,7 @@ describe("docs Markdown negotiation", () => {
 
 	it.each([
 		[path, "text/html, text/markdown;q=0", null],
+		[path, "text/html, text/markdown;charset=csUTF8;q=0", null],
 		[path, "text/html, text/markdown;q=0;charset=iso-8859-1", target],
 		[path, "text/html", target],
 		[`${path}.md`, "text/markdown;q=0", target],
