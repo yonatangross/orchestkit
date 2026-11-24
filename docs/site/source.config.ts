@@ -2,9 +2,61 @@
 // Created: 2026-02-06
 
 import { defineDocs, defineConfig } from "fumadocs-mdx/config";
-import { rehypeCode, remarkGfm, remarkNpm } from "fumadocs-core/mdx-plugins";
+import {
+  rehypeCode,
+  remarkGfm,
+  remarkNpm,
+  remarkStructureDefaultOptions,
+} from "fumadocs-core/mdx-plugins";
 import lastModified from "fumadocs-mdx/plugins/last-modified";
 import { pageSchema } from "fumadocs-core/source/schema";
+import type { JSXSpreadChild, Node } from "estree-jsx";
+import type { Nodes, Root } from "mdast";
+
+function staticJsxText(node: Node | JSXSpreadChild | undefined): string {
+  switch (node?.type) {
+    case "ExpressionStatement":
+    case "JSXExpressionContainer":
+      return staticJsxText(node.expression);
+    case "JSXElement":
+    case "JSXFragment":
+      return node.children.map(staticJsxText).join("");
+    case "JSXText":
+      return node.value;
+    case "Literal":
+      return typeof node.value === "string" ? node.value : "";
+    default:
+      return "";
+  }
+}
+
+function remarkCardSearchText() {
+  return (tree: Root) => {
+    function visit(node: Nodes) {
+      if (
+        (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") &&
+        node.name === "Card" &&
+        node.children.length === 0
+      ) {
+        const getLabel = (name: string) => {
+          const prop = node.attributes.find(
+            (attr) => attr.type === "mdxJsxAttribute" && attr.name === name,
+          );
+          const value = prop?.type === "mdxJsxAttribute" ? prop.value : undefined;
+          const text = typeof value === "string"
+            ? value
+            : staticJsxText(value?.data?.estree?.body[0]);
+          return text.replace(/\s+/g, " ").trim();
+        };
+        const content = [getLabel("title"), getLabel("description")].filter(Boolean).join(": ");
+        if (content) (node.data ??= {}).structuredData = { contents: [{ heading: undefined, content }] };
+      }
+      if ("children" in node) node.children.forEach(visit);
+    }
+
+    visit(tree);
+  };
+}
 
 // `seoTitle` is an optional search result title. It sets the HTML <title>,
 // og:title and twitter:title of a docs page. The `title` key stays short
@@ -27,6 +79,9 @@ export default defineConfig({
     // Options merge over rehypeCodeDefaultOptions, so themes and transformers
     // are unchanged.
     rehypePlugins: [[rehypeCode, { addLanguageClass: true }]],
-    remarkPlugins: [remarkGfm, remarkNpm],
+    remarkPlugins: [remarkGfm, remarkNpm, remarkCardSearchText],
+    remarkStructureOptions: {
+      filterElement: (node) => node.name !== "Card" && remarkStructureDefaultOptions.filterElement(node),
+    },
   },
 });
