@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>OrchestKit CLI install commands</title>
+<meta name="description" content="Compare install output from the public npm CLI and the packed 0.2.0 release candidate.">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f1f4f6;color:#162637;font:16px/1.55 system-ui,sans-serif}
+  main{max-width:1120px;margin:auto;padding:clamp(24px,6vw,72px) 24px}
+  .label{color:#145a56;font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+  h1{margin:.3em 0;font-size:clamp(2rem,5vw,3.8rem);line-height:1.05;letter-spacing:-.04em}
+  header p{max-width:65ch}
+  .choices{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 16px}
+  button{font:inherit;padding:8px 15px;color:#123b39;background:white;border:1px solid #6f918e;border-radius:8px;cursor:pointer}
+  button[aria-pressed="true"]{background:#145a56;color:white}
+  button:focus-visible{outline:3px solid #2169a8;outline-offset:3px}
+  code,pre{font-family:ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+  #command{display:block;background:#e2e9ed;padding:12px 16px;border-radius:8px;font-size:.9rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px;margin:16px 0}
+  .grid section{min-width:0;background:white;border:1px solid #cedade;border-radius:12px;padding:16px}
+  h2{margin:0;font-size:1rem}
+  pre{margin:12px 0 0;background:#152638;color:#eff6fa;padding:14px;border-radius:6px;font-size:.85rem}
+  .note{font-size:.9rem;color:#455967}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="OrchestKit CLI install commands"><meta property="og:description" content="Compare recorded install instructions from npm 0.1.0 and the packed 0.2.0 release candidate for Claude Code and Codex."><meta property="og:url" content="https://orchestkit.dev/lab/cli-release-0-2-0.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="OrchestKit CLI install commands"><meta name="twitter:description" content="Compare recorded install instructions from npm 0.1.0 and the packed 0.2.0 release candidate for Claude Code and Codex."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="label">Release check · npm CLI</div>
+    <h1>Install commands for the host you choose</h1>
+    <p>Compare the published CLI with the 0.2.0 release candidate. The published CLI always gives the same Claude instructions, even when you ask for Codex.</p>
+  </header>
+  <div class="choices" role="group" aria-label="Install command">
+    <button type="button" data-host="claude" aria-pressed="false">Claude Code</button>
+    <button type="button" data-host="codex" aria-pressed="true">Codex</button>
+    <button type="button" data-host="auto" aria-pressed="false">Auto-detect</button>
+  </div>
+  <div aria-live="polite">
+    <code id="command">$ orchestkit install codex</code>
+    <div class="grid">
+      <section aria-labelledby="before-heading">
+        <h2 id="before-heading">Before · Published npm 0.1.0</h2>
+        <pre>OrchestKit is a Claude Code plugin. Install it from inside Claude Code:
+
+  <s>claude install</s> orchestkit/ork
+
+Requires Claude Code. Docs: https://orchestkit.yonyon.ai/docs/getting-started/installation</pre>
+      </section>
+      <section aria-labelledby="after-heading">
+        <h2 id="after-heading">After · Local npm tarball 0.2.0</h2>
+        <pre id="after">Codex: Paste in a terminal, then restart Codex.
+  codex plugin marketplace add yonatangross/orchestkit --ref main --sparse .agents/plugins --sparse plugins/ork-codex
+  codex plugin add ork-codex@orchestkit-codex
+  then: $ork-implement
+
+Docs: https://orchestkit.dev/docs/getting-started/installation</pre>
+      </section>
+    </div>
+  </div>
+  <p class="note">Output recorded from two npm installs outside the workspace. No coding agent was detected on the test machine. The printed plugin commands were not executed.</p>
+</main>
+<template id="claude">Claude Code: Paste in a terminal.
+  claude plugin marketplace add yonatangross/orchestkit &amp;&amp; claude plugin install ork@orchestkit
+  then: /ork:setup
+
+Docs: https://orchestkit.dev/docs/getting-started/installation</template>
+<template id="auto">No coding agent found on PATH. OrchestKit installs into any of these:
+
+  claude    Claude Code
+  cursor    Cursor
+  codex     Codex
+  devin     Devin
+  opencode  OpenCode
+  muse      Muse Code
+  pi        Pi
+  agy       Antigravity
+
+Run: orchestkit install &lt;host&gt;    (or --all to print every command)</template>
+<script>
+  const choices = document.querySelectorAll('button[data-host]');
+  const command = document.querySelector('#command');
+  const after = document.querySelector('#after');
+  const outputs = {
+    codex: after.textContent,
+    claude: document.querySelector('#claude').content.textContent,
+    auto: document.querySelector('#auto').content.textContent,
+  };
+  for (const choice of choices) {
+    choice.addEventListener('click', () => {
+      const host = choice.dataset.host;
+      for (const button of choices) button.setAttribute('aria-pressed', String(button === choice));
+      command.textContent = host === 'auto' ? '$ orchestkit install' : '$ orchestkit install ' + host;
+      after.textContent = outputs[host];
+    });
+  }
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
