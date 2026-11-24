@@ -1,3 +1,4 @@
+import { micromark } from "micromark";
 import { CHANGELOG_ENTRIES, type ChangelogEntry } from "@/lib/generated/changelog-data";
 import { SITE as SITE_CONSTANTS } from "@/lib/constants";
 
@@ -9,6 +10,7 @@ export const revalidate = 3600;
 
 const SITE = SITE_CONSTANTS.domain;
 const FEED_LIMIT = 30;
+const DESCRIPTION_ITEM_LIMIT = 20;
 
 function escapeXml(s: string): string {
   return s
@@ -20,13 +22,19 @@ function escapeXml(s: string): string {
 }
 
 function entryDescription(entry: ChangelogEntry): string {
-  const lines: string[] = [];
+  const sections: string[] = [];
+  let remaining = DESCRIPTION_ITEM_LIMIT;
   for (const section of entry.sections) {
-    for (const item of section.items) {
-      lines.push(`[${section.type}] ${item}`);
-    }
+    if (remaining === 0) break;
+    const items = section.items.slice(0, remaining);
+    if (items.length === 0) continue;
+    sections.push(
+      `<h3>${escapeXml(section.heading)}</h3>`,
+      `<ul>${items.map((item) => `<li>${micromark(item)}</li>`).join("")}</ul>`,
+    );
+    remaining -= items.length;
   }
-  return lines.slice(0, 20).join("\n");
+  return sections.join("\n");
 }
 
 export function GET(): Response {
