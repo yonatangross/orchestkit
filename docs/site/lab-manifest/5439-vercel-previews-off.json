@@ -1,0 +1,13 @@
+{
+  "slug": "5439-vercel-previews-off",
+  "source": "docs/chore--vercel-previews-off/index.html",
+  "title": "Vercel previews off: only main deploys",
+  "description": "docs/site/vercel.json gains a catch-all false rule in git.deploymentEnabled so pushes to every branch but main stop building Vercel previews. Pick a branch to compare before and after, including the slash-named dependabot case a single star would miss.",
+  "tags": [
+    "vercel",
+    "deploy",
+    "docs-site",
+    "5439"
+  ],
+  "date": "2026-11-24"
+}

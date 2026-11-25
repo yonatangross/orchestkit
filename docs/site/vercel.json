@@ -4,7 +4,8 @@
     "deploymentEnabled": {
       "main": true,
       "release-please--**": false,
-      "dependabot/**": false
+      "dependabot/**": false,
+      "**": false
     }
   },
   "github": {
