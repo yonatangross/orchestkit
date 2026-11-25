@@ -6,13 +6,14 @@
 // package-lock.json and resolved again, and fumadocs-ui floated from the
 // locked 16.15.17 to 16.17.x (TS2724, no useSearchList). The fallback must
 // keep every other locked version.
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import {
 	chmodSync,
 	cpSync,
 	existsSync,
 	mkdtempSync,
 	readFileSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -20,7 +21,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SITE = join(__dirname, "..");
-const SCRIPT = join(SITE, "scripts", "vercel-install.sh");
+// install-deps.sh works on the folder above itself (`cd "$(dirname ...)/.."`).
+// Run from docs/site/scripts it would back up and rewrite the live package.json,
+// so the suite runs copies placed in its own temp folder.
+const SCRIPTS = ["vercel-install.sh", "install-deps.sh"];
 
 // A fake npm: `ci` fails with a 401 the first time and passes after; every
 // call is logged one per line so the test can read the sequence.
@@ -44,11 +48,12 @@ function runOn401(vercelEnv = "preview"): {
 	const bin = join(dir, "bin");
 	cpSync(join(SITE, "package.json"), join(dir, "package.json"));
 	writeFileSync(join(dir, "package-lock.json"), '{"lockfileVersion":3}\n');
-	execFileSync("mkdir", ["-p", bin]);
+	execFileSync("mkdir", ["-p", bin, join(dir, "scripts")]);
+	for (const name of SCRIPTS) cpSync(join(SITE, "scripts", name), join(dir, "scripts", name));
 	writeFileSync(join(bin, "npm"), FAKE_NPM);
 	chmodSync(join(bin, "npm"), 0o755);
 	const log = join(dir, "npm.log");
-	const run = spawnSync("bash", [SCRIPT], {
+	const run = spawnSync("bash", [join(dir, "scripts", "vercel-install.sh")], {
 		cwd: dir,
 		env: {
 			...process.env,
@@ -80,6 +85,8 @@ describe("vercel-install.sh on a 401 outside production", () => {
 	it("keeps package-lock.json, so locked versions do not float", () => {
 		const { dir } = runOn401();
 		expect(existsSync(join(dir, "package-lock.json"))).toBe(true);
+		// The script ran on this folder, so the lock it kept is the one it was given.
+		expect(readFileSync(join(dir, "package-lock.json"), "utf8")).toBe('{"lockfileVersion":3}\n');
 	});
 
 	it("swaps the stub, updates the lock in place, then runs npm ci", () => {
@@ -91,6 +98,122 @@ describe("vercel-install.sh on a 401 outside production", () => {
 		expect(calls).toContainEqual(expect.stringMatching(/--package-lock-only/));
 		expect(calls[calls.length - 1]).toMatch(/^ci /);
 	});
+});
+
+// The release PR #5414 failed Docs Site Build with every test green: a vitest
+// worker started while this suite's script rewrote the live docs/site
+// package.json (ERR_INVALID_PACKAGE_CONFIG). install-deps.sh works on the
+// folder above itself, so the suite must run a copy of it, never the live one.
+describe("vercel-install.sh leaves the live docs/site manifest alone", () => {
+	const LIVE = ["package.json", "package-lock.json"].map((name) => join(SITE, name));
+	const snapshot = (file: string) => ({
+		file,
+		bytes: readFileSync(file, "utf8"),
+		mtimeMs: statSync(file).mtimeMs,
+	});
+
+	// The mechanism, not a sample of the race: the window is microseconds wide,
+	// so a rewrite shows as a new mtime, every time.
+	it("does not rewrite the live package.json or package-lock.json", () => {
+		const before = LIVE.map(snapshot);
+		for (let i = 0; i < 3; i++) runOn401();
+		expect(LIVE.map(snapshot)).toEqual(before);
+	});
+
+	// A process that parses the live manifest in a loop, as a worker does when it
+	// starts. It reports how many reads it made, so a clean result is shown next
+	// to the proof that it was looking. The 30 s exit is a backstop only, so a
+	// reader can never outlive a dead test run.
+	const READER = `
+		const { readFileSync } = require("node:fs");
+		let reads = 0, bad = 0, stop = false;
+		process.stdin.on("data", () => { stop = true; });
+		process.stdin.on("end", () => { stop = true; });
+		setTimeout(() => process.exit(2), 30000);
+		process.stdout.write("ready\\n");
+		(function loop() {
+			const until = Date.now() + 20;
+			while (Date.now() < until) {
+				reads++;
+				try { JSON.parse(readFileSync(process.argv[1], "utf8")); } catch { bad++; }
+			}
+			if (stop) { process.stdout.write(JSON.stringify({ reads, bad })); process.exit(0); }
+			setImmediate(loop);
+		})();
+	`;
+
+	// Runs `work` while a reader watches the live manifest.
+	async function withReader(
+		work: () => void,
+		script: string = READER,
+		spawned?: (pid: number) => void,
+	): Promise<{ reads: number; bad: number }> {
+		const child = spawn(process.execPath, ["-e", script, LIVE[0]], { stdio: ["pipe", "pipe", "inherit"] });
+		// A reader that is already gone has no stdin left to write to or close.
+		child.stdin.on("error", () => {});
+		if (child.pid !== undefined) spawned?.(child.pid);
+		let out = "";
+		const done = new Promise<void>((resolve) => {
+			child.once("close", () => resolve());
+			child.once("error", () => resolve());
+		});
+		const ready = new Promise<void>((resolve, reject) => {
+			child.stdout.on("data", (chunk: Buffer) => {
+				out += chunk.toString();
+				if (out.includes("ready\n")) resolve();
+			});
+			child.once("error", reject);
+			child.once("close", (code) => reject(new Error(`the reader exited (code ${code}) before it was ready`)));
+		});
+		let finished = false;
+		try {
+			await ready;
+			work();
+			finished = true;
+		} finally {
+			// Closing stdin stops the reader (it treats EOF as stop). A failed run
+			// also kills it. A cleanup error must not replace the original failure.
+			try {
+				child.stdin.end();
+				if (!finished) child.kill();
+			} catch {
+				// the reader is already gone
+			}
+			await done;
+		}
+		return JSON.parse(out.replace("ready\n", "")) as { reads: number; bad: number };
+	}
+
+	it("never lets a concurrent reader see an unreadable package.json", async () => {
+		const { reads, bad } = await withReader(() => {
+			for (let i = 0; i < 10; i++) runOn401();
+		});
+		expect(reads).toBeGreaterThan(1000);
+		expect(bad).toBe(0);
+	}, 30_000);
+
+	// The reader burns a core and reopens the manifest in a loop, so a failing
+	// run must not leave it behind.
+	it("leaves no reader running when the work throws", async () => {
+		let pid = 0;
+		await expect(
+			withReader(
+				() => {
+					throw new Error("work failed");
+				},
+				READER,
+				(p) => {
+					pid = p;
+				},
+			),
+		).rejects.toThrow("work failed");
+		expect(pid).toBeGreaterThan(0);
+		expect(() => process.kill(pid, 0)).toThrow();
+	});
+
+	it("rejects when the reader exits before it is ready", async () => {
+		await expect(withReader(() => {}, "process.exit(3)")).rejects.toThrow(/before it was ready/);
+	}, 6_000);
 });
 
 describe("fumadocs pins", () => {
