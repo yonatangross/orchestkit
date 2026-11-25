@@ -223,7 +223,7 @@ describe("resource metadata the host builds the frame from", () => {
 	}
 
 	it.each([
-		["ui://orchestkit/search-results", true, false],
+		["ui://orchestkit/search-results", false, false],
 		["ui://orchestkit/skill-card", false, true],
 		["ui://orchestkit/install-picker", false, true],
 	])("%s declares no outside origins, its border and its clipboard need", async (uri, border, clipboard) => {

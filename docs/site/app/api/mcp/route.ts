@@ -47,12 +47,12 @@ type ToolResult = {
 
 // MCP Apps (ext-apps): a ui:// HTML resource the host renders inline in the
 // conversation. The search tool references it via `_meta.ui.resourceUri` and
-// returns `structuredContent` the template draws. Markup + its CSP live in
-// lib/mcp-ui.ts (extracted so the policy can be unit-tested).
+// returns `structuredContent` the template draws. The shared view element is in
+// lib/mcp-app; each view's CSP lives in lib/mcp-ui.ts or lib/mcp-ui-cards.ts.
 // `_meta.ui` is what an MCP Apps host builds the frame from (spec 2026-01-26):
 // it takes the CSP from these lists, not from the document's meta tag. No view
 // loads or requests anything from an outside origin, so both lists are empty.
-// The two cards draw their own border and have a copy button.
+// Every view draws its own border; the two cards have a copy button.
 const NO_ORIGINS = { connectDomains: [], resourceDomains: [] };
 const CARD_UI = { csp: NO_ORIGINS, prefersBorder: false, permissions: { clipboardWrite: {} } };
 
@@ -63,7 +63,7 @@ const UI_RESOURCES = [
 		description: "Renders documentation search hits as a clickable list.",
 		mimeType: "text/html;profile=mcp-app",
 		text: SEARCH_RESULTS_HTML,
-		ui: { csp: NO_ORIGINS, prefersBorder: true },
+		ui: { csp: NO_ORIGINS, prefersBorder: false },
 	},
 	{
 		uri: UI_SKILL_CARD,
