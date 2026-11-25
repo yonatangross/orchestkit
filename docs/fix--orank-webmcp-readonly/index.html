@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebMCP tools that say they only read</title>
+<meta name="description" content="The four docs tools now declare readOnlyHint. Pick a tool to see what it fetches.">
+<style>
+body{margin:0;background:#0f1115;color:#e8e6e3;font:16px/1.6 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 20px}
+button{font:inherit;padding:8px 14px;margin:4px 4px 4px 0;border-radius:8px;border:1px solid #3a4050;background:#1a1e27;color:inherit;cursor:pointer}
+button[aria-pressed="true"]{background:#2d5bd0;border-color:#2d5bd0}
+pre{padding:12px;border-radius:8px;background:#1a1e27;white-space:pre-wrap;word-break:break-all}
+</style>
+</head>
+<body>
+<main>
+<h1>WebMCP tools that say they only read</h1>
+<p>An agent has to treat a tool with no hint as a possible write, and ask before calling it.</p>
+<div id="tools"></div>
+<pre id="detail"></pre>
+<h2>What did not change</h2>
+<p>Names, descriptions, input schemas and behaviour are the same. The type now requires the hint, so a
+new tool has to state whether it only reads. Whether the scan score moves is known after a rescan.</p>
+</main>
+<script>
+var tools=[["search_docs","/api/search"],["get_page","/api/md/<path>"],["list_skills","/.well-known/agent-skills/index.json"],["get_skill","/docs/reference/skills/<name> as Markdown"]];
+var box=document.getElementById("tools"),detail=document.getElementById("detail");
+function pick(i){
+  detail.textContent=tools[i][0]+"\nfetches: "+tools[i][1]+"\nannotations: { readOnlyHint: true }";
+  Array.prototype.forEach.call(box.children,function(b,j){b.setAttribute("aria-pressed",String(i===j))});
+}
+tools.forEach(function(t,i){var b=document.createElement("button");b.textContent=t[0];b.onclick=function(){pick(i)};box.appendChild(b)});
+pick(0);
+</script>
+</body>
+</html>
