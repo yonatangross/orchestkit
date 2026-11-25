@@ -10,15 +10,51 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-// Top-level blocks only: the header starts a line, so nested rules are skipped.
+// Top-level blocks only: a header starts a line and sits inside no other block.
 const LIGHT_BLOCKS = [/^@theme \{/gm, /^@theme static \{/gm, /^:root \{/gm];
 const DARK_BLOCKS = [/^\.dark \{/gm];
 const KEEP = /^--(color-fd-|yy-|radius-|shadow-|duration-|ease-|gradient-trace)/;
+
+/** How many blocks are open at `end`. */
+function depthAt(css, end) {
+	let depth = 0;
+	for (let i = 0; i < end; i++) {
+		if (css[i] === "{") depth++;
+		else if (css[i] === "}") depth--;
+	}
+	return depth;
+}
+
+/**
+ * A block's own declarations. A nested rule (a media or supports condition, a
+ * selector) applies only some of the time, so it is dropped with its prelude.
+ */
+function ownDeclarations(body) {
+	let own = "";
+	let pending = "";
+	let depth = 0;
+	for (const char of body) {
+		if (char === "{") {
+			if (depth++ === 0) pending = "";
+		} else if (char === "}") {
+			depth--;
+		} else if (depth === 0) {
+			pending += char;
+			if (char === ";") {
+				own += pending;
+				pending = "";
+			}
+		}
+	}
+	// The last declaration of a block may leave its semicolon out.
+	return `${own}${pending};`;
+}
 
 /** The body of every top-level block that `header` matches, braces balanced. */
 function bodies(css, header) {
 	const found = [];
 	for (const match of css.matchAll(header)) {
+		if (depthAt(css, match.index) !== 0) continue;
 		const open = css.indexOf("{", match.index);
 		let depth = 0;
 		for (let i = open; i < css.length; i++) {
@@ -40,7 +76,7 @@ function tokensIn(css, headers) {
 			throw new Error(`global.css has no block matching ${header.source}`);
 		}
 		for (const body of blocks) {
-			for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+			for (const [, name, value] of ownDeclarations(body).matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
 				if (KEEP.test(name)) tokens[name] = value.trim().replace(/\s+/g, " ");
 			}
 		}
