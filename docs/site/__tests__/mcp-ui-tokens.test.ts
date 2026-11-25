@@ -75,6 +75,46 @@ describe("token generator", () => {
 		expect(() => parseTokens(".nothing { --color-fd-primary: red; }")).toThrow(/block/);
 	});
 
+	// The smallest stylesheet that has every block the generator reads.
+	const sheet = (root: string, after = "") =>
+		[
+			"@theme {\n  --color-fd-primary: blue;\n}",
+			"@theme static {\n  --color-fd-info: teal;\n}",
+			`:root {\n${root}\n}`,
+			".dark {\n  --color-fd-primary: navy;\n}",
+			after,
+		].join("\n");
+
+	it("never reads a declaration nested in a condition as an unconditional token", () => {
+		const { light: l, dark: d } = parseTokens(
+			sheet(
+				[
+					"  --radius-card: 14px;",
+					"  @media print { --radius-card: 0; --shadow-card: none; }",
+					"  @supports (--radius-base: 1px) { --radius-base: 2px; }",
+					"  --radius-control: 8px",
+				].join("\n"),
+			),
+		);
+		expect(l["--radius-card"]).toBe("14px");
+		expect(l["--shadow-card"]).toBeUndefined();
+		expect(l["--radius-base"]).toBeUndefined();
+		// A last declaration without a semicolon is still a declaration.
+		expect(l["--radius-control"]).toBe("8px");
+		expect(d["--color-fd-primary"]).toBe("navy");
+	});
+
+	it("skips a block that sits inside another rule, however it is indented", () => {
+		const { light: l, dark: d } = parseTokens(
+			sheet(
+				"  --radius-card: 14px;",
+				"@media print {\n:root {\n  --radius-card: 0;\n}\n.dark {\n  --color-fd-primary: black;\n}\n}",
+			),
+		);
+		expect(l["--radius-card"]).toBe("14px");
+		expect(d["--color-fd-primary"]).toBe("navy");
+	});
+
 	it("the build checks the committed module against global.css", () => {
 		const pkg = JSON.parse(read("package.json")) as { scripts: Record<string, string> };
 		expect(pkg.scripts.prebuild).toContain("generate-mcp-ui-tokens.mjs --check");
