@@ -5,9 +5,11 @@
 // (scripts/generate-docs-data.js) and host commands come from HOST_INSTALLS, the
 // one list the home page, the Installation page and the setup wizard also read.
 
-import { SITE } from "@/lib/constants";
+import type { HostId } from "@/components/host-marks";
+import { COUNTS, SITE } from "@/lib/constants";
 import { SKILLS } from "@/lib/generated/skills-data";
-import { HOST_INSTALL_BY_ID } from "@/lib/host-installs";
+import { HOST_INSTALL_BY_ID, type HostInstallSpec } from "@/lib/host-installs";
+import { HOOKS_LIMIT, HOST_SUPPORT } from "@/lib/host-support";
 import { osaDistance } from "@/lib/search-suggest";
 
 export const CARD_HOSTS = ["claude", "cursor", "codex"] as const;
@@ -177,6 +179,63 @@ const CARD_THEN: Record<CardHostId, string> = {
 	codex: "Then run in a Codex chat",
 };
 
+/** A single word with no shell prompt is a marketplace slug, not a command. */
+function copyLabelFor(spec: HostInstallSpec): string {
+	if (!spec.prompt && spec.commands.length === 1 && !spec.commands[0].includes(" ")) {
+		return "Copy repo name";
+	}
+	return spec.commands.length > 1 ? "Copy both commands" : "Copy command";
+}
+
+export type HostSupportData = {
+	selected: HostId;
+	hosts: Array<{
+		id: HostId;
+		name: string;
+		gets: string;
+		hooks: boolean;
+		where: string;
+		commands: string[];
+		prompt: boolean;
+		copyLabel: string;
+		docsUrl: string;
+	}>;
+	counts: { skills: number; agents: number; hooks: number };
+	hooksLimit: string;
+};
+
+/** Every host the site supports, in the site's order, in the site's words. */
+export function buildHostSupport(rawHost?: unknown): HostSupportData {
+	const asked = typeof rawHost === "string" ? rawHost.trim().toLowerCase() : "";
+	const hosts = HOST_SUPPORT.map((support) => {
+		const spec = HOST_INSTALL_BY_ID[support.id];
+		return {
+			id: support.id,
+			name: support.name,
+			gets: support.gets,
+			hooks: support.hooks,
+			where: spec.where,
+			commands: [...spec.commands],
+			prompt: spec.prompt,
+			copyLabel: copyLabelFor(spec),
+			docsUrl: `${SITE.domain}${spec.href}`,
+		};
+	});
+	return {
+		selected: hosts.find((h) => h.id === asked)?.id ?? "claude",
+		hosts,
+		counts: { skills: COUNTS.skills, agents: COUNTS.agents, hooks: COUNTS.hooks },
+		hooksLimit: HOOKS_LIMIT,
+	};
+}
+
+export function hostSupportText(data: HostSupportData): string {
+	return [
+		...HOST_SUPPORT.map((h) => `${h.name}: ${h.gets}. Install: ${h.install}`),
+		data.hooksLimit,
+	].join("\n");
+}
+
 export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 	const hosts = CARD_HOSTS.map((id): InstallHostCard => {
 		const spec = HOST_INSTALL_BY_ID[id];
@@ -190,13 +249,7 @@ export function buildInstallPicker(rawHost?: unknown): InstallPickerData {
 			// second. A single slug or slash command copies as shown.
 			copy: spec.copy ?? (spec.prompt ? spec.commands.join(" && ") : spec.commands.join("\n")),
 			prompt: spec.prompt,
-			// A single word with no shell prompt is a marketplace slug, not a command.
-			copyLabel:
-				!spec.prompt && spec.commands.length === 1 && !spec.commands[0].includes(" ")
-					? "Copy repo name"
-					: spec.commands.length > 1
-						? "Copy both commands"
-						: "Copy command",
+			copyLabel: copyLabelFor(spec),
 			then: spec.then
 				? {
 						label: CARD_THEN[id],

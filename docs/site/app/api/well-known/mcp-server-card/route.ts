@@ -71,6 +71,13 @@ export function GET() {
 					"Show an install picker for Claude Code, Cursor and Codex with the exact command for the picked host. Renders inline in hosts that support MCP Apps.",
 				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
 			},
+			{
+				name: "orchestkit_host_support",
+				transports: ["streamable-http"],
+				description:
+					"Show what OrchestKit gives on each agent host, whether hooks run there, and the install command. Renders inline in hosts that support MCP Apps.",
+				annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+			},
 		],
 	};
 

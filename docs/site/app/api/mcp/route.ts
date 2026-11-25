@@ -6,16 +6,21 @@ import { searchDocs } from "@/lib/doc-search";
 import { handleMcpPost, rpcError, type RpcRequest } from "@/lib/mcp-json-rpc";
 import { negotiateProtocolVersion } from "@/lib/mcp-protocol";
 import { mcpTelemetryEvents } from "@/lib/mcp-telemetry";
+import { HOST_INSTALLS } from "@/lib/host-installs";
 import {
+	buildHostSupport,
 	buildInstallPicker,
 	buildSkillCard,
+	hostSupportText,
 	installPickerText,
 	skillCardText,
 } from "@/lib/mcp-cards";
 import { SEARCH_RESULTS_HTML, UI_SEARCH_RESULTS } from "@/lib/mcp-ui";
 import {
+	HOST_SUPPORT_HTML,
 	INSTALL_PICKER_HTML,
 	SKILL_CARD_HTML,
+	UI_HOST_SUPPORT,
 	UI_INSTALL_PICKER,
 	UI_SKILL_CARD,
 } from "@/lib/mcp-ui-cards";
@@ -81,6 +86,15 @@ const UI_RESOURCES = [
 			"Renders a host picker (Claude Code, Cursor, Codex) that shows the exact install command for the picked host, with a copy button.",
 		mimeType: "text/html;profile=mcp-app",
 		text: INSTALL_PICKER_HTML,
+		ui: CARD_UI,
+	},
+	{
+		uri: UI_HOST_SUPPORT,
+		name: "OrchestKit on your host",
+		description:
+			"Renders what each supported agent host gets, whether hooks run there, and its install command with a copy button.",
+		mimeType: "text/html;profile=mcp-app",
+		text: HOST_SUPPORT_HTML,
 		ui: CARD_UI,
 	},
 ];
@@ -276,6 +290,63 @@ const TOOLS = [
 			};
 		},
 	},
+	{
+		name: "orchestkit_host_support",
+		description: `Show what OrchestKit gives on each agent host (${HOST_INSTALLS.map((h) => h.name).join(", ")}): what loads, whether hooks run, and the install command. Use when a person asks whether OrchestKit works in their tool. Input: an optional host id to preselect.`,
+		inputSchema: {
+			type: "object",
+			properties: {
+				host: {
+					type: "string",
+					enum: HOST_INSTALLS.map((h) => h.id),
+					description: "Host to preselect. Defaults to claude.",
+				},
+			},
+		},
+		outputSchema: {
+			type: "object",
+			properties: {
+				selected: { type: "string" },
+				hosts: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							id: { type: "string" },
+							name: { type: "string" },
+							gets: { type: "string" },
+							hooks: { type: "boolean" },
+							where: { type: "string" },
+							commands: { type: "array", items: { type: "string" } },
+							prompt: { type: "boolean" },
+							copyLabel: { type: "string" },
+							docsUrl: { type: "string" },
+						},
+						required: ["id", "name", "gets", "hooks", "commands"],
+					},
+				},
+				counts: {
+					type: "object",
+					properties: {
+						skills: { type: "number" },
+						agents: { type: "number" },
+						hooks: { type: "number" },
+					},
+				},
+				hooksLimit: { type: "string" },
+			},
+			required: ["selected", "hosts", "hooksLimit"],
+		},
+		uiResource: UI_HOST_SUPPORT,
+		run: (args: Record<string, unknown>): ToolResult => {
+			const support = buildHostSupport(args.host);
+			return {
+				content: [{ type: "text", text: hostSupportText(support) }],
+				structuredContent: support,
+				_meta: { ui: { resourceUri: UI_HOST_SUPPORT } },
+			};
+		},
+	},
 ] as const;
 
 function errText(value: string): ToolResult {
@@ -299,7 +370,7 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 				},
 				serverInfo: { name: `${SITE.name} Docs MCP`, version: SITE.version },
 				instructions:
-					"Read-only access to the OrchestKit documentation. Call orchestkit_docs_search with a question to get ranked page URLs, then orchestkit_docs_get with one page path to read that page as Markdown. Call orchestkit_skill_get with a skill name for a skill card, or orchestkit_install for an install picker (Claude Code, Cursor, Codex). No tool changes anything.",
+					"Read-only access to the OrchestKit documentation. Call orchestkit_docs_search with a question to get ranked page URLs, then orchestkit_docs_get with one page path to read that page as Markdown. Call orchestkit_skill_get with a skill name for a skill card, or orchestkit_install for an install picker (Claude Code, Cursor, Codex). Call orchestkit_host_support for what each agent host gets and its install command. No tool changes anything.",
 			});
 		case "ping":
 			return rpcResult(req.id, {});
