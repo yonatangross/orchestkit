@@ -1,0 +1,12 @@
+{
+  "slug": "5451-release-notes-swf-coverage",
+  "source": "docs/fix--release-notes-coverage-up5/playground.html",
+  "title": "Release notes: Software Factory changes",
+  "description": "Switch the release config before and after to see the eight Software Factory changes that never reached the release notes or the site.",
+  "tags": [
+    "release",
+    "changelog",
+    "release-please"
+  ],
+  "date": "2026-11-25"
+}

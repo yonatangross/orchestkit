@@ -60,3 +60,12 @@ for (const file of ['docs/adr/caching-strategy.md', 'docs/audits/release-please-
 test('mixing excluded prose with shipped site code keeps the commit', async () => {
   assert.match(await notes({ ...regression, files: ['docs/adr/caching-strategy.md', 'docs/site/app/page.tsx'] }), /\[#4057\]/);
 });
+
+test('a Software Factory squash subject appears in the release notes', async () => {
+  const commit = {
+    sha: 'e790623cca90f6f49fccc67146186d7bbae581be',
+    message: 'SWF(bug): accept search result URLs in hosted docs MCP read (#5429)',
+    files: ['docs/site/app/api/mcp/route.ts'],
+  };
+  assert.match(await notes(commit), /### Bug Fixes[\s\S]*accept search result URLs.*\[#5429\]/);
+});
