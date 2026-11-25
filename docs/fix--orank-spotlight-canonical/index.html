@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One canonical for each hook spotlight</title>
+<meta name="description" content="Five spotlight pages answer at two URLs. Pick a page and see which URL is now canonical.">
+<style>
+body{margin:0;background:#0f1115;color:#e8e6e3;font:16px/1.6 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 20px}
+select{font:inherit;padding:8px;border-radius:8px;background:#1a1e27;color:inherit;border:1px solid #3a4050;max-width:100%}
+.url{padding:12px;margin:10px 0;border-radius:8px;background:#1a1e27;word-break:break-all}
+.win{outline:2px solid #2d5bd0}
+</style>
+</head>
+<body>
+<main>
+<h1>One canonical for each hook spotlight</h1>
+<p>The docs generator copies the hook spotlights into the hook reference. Both copies used to name
+themselves as canonical.</p>
+<p><label for="page">Spotlight </label><select id="page"></select></p>
+<div class="url win" id="source"></div>
+<div class="url" id="copy"></div>
+<h2>What did not change</h2>
+<p>Both URLs still answer and keep the same title and text. The canonical link tells a crawler which
+one to keep, and the sitemap lists that one only.</p>
+</main>
+<script>
+var names=["memory-validator","stop-pipeline","pattern-consistency-enforcer","unified-advisory-dispatcher","unified-dispatchers"];
+var select=document.getElementById("page");
+names.forEach(function(n){var o=document.createElement("option");o.textContent=n;select.appendChild(o)});
+function draw(){
+  var n=select.value;
+  document.getElementById("source").textContent="/docs/hooks/spotlights/"+n+" : canonical, in the sitemap";
+  document.getElementById("copy").textContent="/docs/reference/hooks/spotlights/"+n+" : canonical now points to the page above";
+}
+select.onchange=draw;draw();
+</script>
+</body>
+</html>
