@@ -3,8 +3,19 @@ import { join } from "node:path";
 import { source } from "@/lib/source";
 import { SITE } from "@/lib/constants";
 import { docsHtmlCanonical } from "@/lib/docs-canonical";
-import { STATIC_PAGES } from "@/lib/static-pages";
+import { REDIRECT_PAGES, STATIC_PAGES } from "@/lib/static-pages";
+import { siteRedirects } from "@/lib/site-redirects.mjs";
 import { gitLastModified, newestUnder } from "@/lib/git-last-modified";
+
+// A sitemap names the URLs that answer. These answer a redirect instead: the
+// config rules without a host condition (a retired skill still has a generated
+// reference page) and the pages that only call redirect().
+const REDIRECTED = new Set<string>([
+  ...siteRedirects()
+    .filter((rule) => !("has" in rule))
+    .map((rule) => `${SITE.domain}${rule.source}`),
+  ...REDIRECT_PAGES.map((path) => `${SITE.domain}${path}`),
+]);
 
 // HTML developer pages, listed so a crawler walking the sitemap finds the MCP
 // and SDK docs by URL. Each maps to the route folder whose last commit dates
@@ -53,7 +64,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const seen = new Set<string>();
   return entries.filter(({ url }) => {
-    if (seen.has(url)) return false;
+    if (seen.has(url) || REDIRECTED.has(url)) return false;
     seen.add(url);
     return true;
   });
