@@ -4,9 +4,10 @@
 	"private": true,
 	"scripts": {
 		"setup": "bash scripts/install-deps.sh",
-		"predev": "node ../../scripts/generate-docs-data.js && node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",
+		"predev": "node ../../scripts/generate-docs-data.js && node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs && node scripts/generate-mcp-ui-tokens.mjs",
 		"dev": "next dev",
-		"prebuild": "node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs",
+		"gen:mcp-ui-tokens": "node scripts/generate-mcp-ui-tokens.mjs",
+		"prebuild": "node scripts/lab-manifest.mjs --repo ../.. && node scripts/gen-related-graph.mjs && node scripts/gen-search-suggest-index.mjs && node scripts/generate-mcp-ui-tokens.mjs --check",
 		"build": "node scripts/git-unshallow.mjs && next build --webpack",
 		"start": "next start",
 		"postinstall": "fumadocs-mdx",
