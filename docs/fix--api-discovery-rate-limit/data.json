@@ -1,0 +1,6 @@
+{
+  "serves": ["docs/site/middleware.ts", "docs/site/lib/rate-limit.ts"],
+  "page": "docs/fix--api-discovery-rate-limit/index.html",
+  "lab_slug": "api-discovery-rate-limit",
+  "purpose": "Compare recorded rate-limit headers on both API discovery URL spellings and nearby controls."
+}

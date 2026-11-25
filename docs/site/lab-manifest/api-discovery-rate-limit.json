@@ -1,0 +1,8 @@
+{
+  "slug": "api-discovery-rate-limit",
+  "source": "docs/fix--api-discovery-rate-limit/index.html",
+  "title": "Rate limits on API discovery",
+  "description": "Compare recorded response headers for /api, /api/, and nearby controls before and after the fix.",
+  "tags": ["api", "http", "regression"],
+  "date": "2026-11-24"
+}

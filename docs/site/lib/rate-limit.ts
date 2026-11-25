@@ -94,6 +94,7 @@ const UNMETERED_PREFIXES: readonly string[] = [
  * `/api/search` are the same endpoint, and `/ask` rewrites to `/api/ask`.
  */
 export function canonicalRoute(pathname: string): string {
+	if (pathname === "/api/" || pathname === "/api/v1" || pathname === "/api/v1/") return "/api";
 	if (pathname === "/ask") return "/api/ask";
 	if (pathname === "/mcp") return "/api/mcp";
 	if (pathname.startsWith("/api/v1/")) return `/api/${pathname.slice("/api/v1/".length)}`;

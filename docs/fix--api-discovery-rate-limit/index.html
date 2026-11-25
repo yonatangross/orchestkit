@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Rate limits on API discovery | OrchestKit Lab</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f7f4; color: #172b24; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 960px; margin: auto; padding: 42px 20px; }
+  h1 { margin: 4px 0 10px; font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; letter-spacing: -.045em; }
+  p { margin: 8px 0; color: #3e554b; }
+  .label { font-weight: 700; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; }
+  .modes { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 14px; }
+  button { padding: 8px 16px; border: 1px solid #6e857a; border-radius: 8px; background: #fff; color: inherit; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { background: #204b3a; border-color: #204b3a; color: #fff; }
+  button:focus-visible { outline: 3px solid #35628d; outline-offset: 2px; }
+  .panel { padding: 16px; background: #fff; border: 1px solid #c6d4ca; border-radius: 12px; }
+  #summary { min-height: 3.1em; margin: 0 0 10px; font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid #d8e2da; }
+  thead { background: #eaf1eb; }
+  code, td { font-variant-numeric: tabular-nums; }
+  p.note { margin-top: 12px; font-size: .875rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="label">OrchestKit Lab / Recorded HTTP probes</p>
+    <h1>Rate limits on API discovery</h1>
+    <p>Compare real GET responses. The discovery URL now reports the same rate-limit window with or without the trailing slash.</p>
+  </header>
+  <div class="modes" role="group" aria-label="Recorded environment">
+    <button type="button" data-run="production" aria-pressed="false">Production baseline</button>
+    <button type="button" data-run="main" aria-pressed="true">Local main (before)</button>
+    <button type="button" data-run="branch" aria-pressed="false">Local branch (after)</button>
+  </div>
+  <section class="panel" aria-label="Recorded rate-limit headers">
+    <p id="summary" aria-live="polite">Bare /api skipped metering. /api/ had a full window.</p>
+    <div class="table-wrap">
+      <table aria-label="GET response status and rate-limit fields">
+        <thead><tr><th scope="col">Request</th><th scope="col">HTTP</th><th scope="col">Policy</th><th scope="col">Limit</th><th scope="col">Remaining</th><th scope="col">Reset (s)</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>/api</code></th><td>200</td><td>Absent</td><td>Absent</td><td>Absent</td><td>Absent</td></tr>
+          <tr><th scope="row"><code>/api/</code></th><td>200</td><td>120;w=60</td><td>120</td><td>119</td><td>60</td></tr>
+          <tr><th scope="row"><code>/api/health</code></th><td>200</td><td>120;w=60</td><td>120</td><td>119</td><td>60</td></tr>
+          <tr><th scope="row"><code>/api-policy.md</code></th><td>200</td><td>120;w=60</td><td>120</td><td>119</td><td>60</td></tr>
+          <tr><th scope="row"><code>/docs/foundations/overview</code></th><td>200</td><td>Absent</td><td>Absent</td><td>Absent</td><td>Absent</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Requests did not follow redirects. The docs page used <code>Accept: text/html</code>; the other requests used <code>Accept: application/json</code>. The table replays recorded responses and makes no live probes.</p>
+  </section>
+</main>
+<script>
+  const runs = {
+    production: ["Production also omitted the headers on bare /api. /api/ advertised the policy.", "Absent", "Absent", "Absent", "Absent", "119"],
+    main: ["Bare /api skipped metering. /api/ had a full window.", "Absent", "Absent", "Absent", "Absent", "119"],
+    branch: ["The same client switched from /api to /api/. Remaining dropped from 119 to 118 in one window.", "120;w=60", "120", "119", "60", "118"],
+  };
+  const buttons = document.querySelectorAll("[data-run]");
+  const [bare, slash] = document.querySelectorAll("tbody tr");
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      const [summary, ...values] = runs[button.dataset.run];
+      document.getElementById("summary").textContent = summary;
+      for (const [index, value] of values.slice(0, 4).entries()) {
+        bare.cells[index + 2].textContent = value;
+      }
+      slash.cells[4].textContent = values[4];
+      for (const mode of buttons) mode.setAttribute("aria-pressed", String(mode === button));
+    });
+  }
+</script>
+</body>
+</html>
