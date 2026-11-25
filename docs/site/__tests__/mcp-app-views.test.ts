@@ -1,12 +1,12 @@
-// The shared MCP App view element, drawn on the site's generated tokens
-// (approved design: before and after on the real tokens). First view on it:
-// search results.
+// The three MCP App views are one custom element each, drawn on the site's
+// generated tokens (approved design: before and after on the real tokens).
 
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { MCP_UI_DARK_TOKENS, MCP_UI_LIGHT_TOKENS } from "@/lib/generated/mcp-ui-tokens";
 import { SEARCH_RESULTS_HTML } from "@/lib/mcp-ui";
+import { INSTALL_PICKER_HTML, SKILL_CARD_HTML } from "@/lib/mcp-ui-cards";
 import { renderSourcesModule } from "../scripts/generate-mcp-ui-tokens.mjs";
 import { bootView, CLAUDE_PROXY, initResult, toolResult } from "./helpers/mcp-view";
 
@@ -15,6 +15,8 @@ const read = (rel: string) => readFileSync(resolve(SITE_DIR, rel), "utf8");
 
 const VIEWS = [
 	["ork-search-results", SEARCH_RESULTS_HTML],
+	["ork-skill-card", SKILL_CARD_HTML],
+	["ork-install-picker", INSTALL_PICKER_HTML],
 ] as const;
 
 const hit = (n: number, extra: Record<string, unknown> = {}) => ({
@@ -25,9 +27,22 @@ const hit = (n: number, extra: Record<string, unknown> = {}) => ({
 	...extra,
 });
 
+const SKILL = {
+	found: true,
+	name: "brainstorm",
+	summary: "Design ideation with parallel agents.",
+	useWhen: "Use when brainstorming.",
+	plugin: "ork",
+	version: "4.10.0",
+	invoke: "/ork:brainstorm",
+	installCommand: "first command && second command",
+	docsUrl: "https://orchestkit.dev/docs/reference/skills/brainstorm",
+};
+
 describe("no color is typed into a view", () => {
 	const files = [
 		"lib/mcp-ui.ts",
+		"lib/mcp-ui-cards.ts",
 		"lib/mcp-app/document.ts",
 		"lib/mcp-app/base.js",
 		"lib/mcp-app/views.css",
@@ -162,5 +177,64 @@ describe("search results", () => {
 		});
 		expect(app.textContent).toContain("Page 1");
 		expect(element.getAttribute("data-theme")).toBe("dark");
+	});
+});
+
+describe("skill card", () => {
+	it("shows the name, plugin, version, run line and install card", () => {
+		const { app, deliver } = bootView(SKILL_CARD_HTML);
+		deliver(toolResult(SKILL));
+		expect(app.querySelector("h1")?.textContent).toBe("brainstorm");
+		expect(app.querySelector(".tag")?.textContent).toBe("ork plugin");
+		expect(app.querySelector(".stat")?.textContent).toContain("v4.10.0");
+		expect(app.querySelector(".stat")?.textContent).toContain("run /ork:brainstorm");
+		expect(app.querySelectorAll("pre .ln")).toHaveLength(2);
+		const copy = app.querySelector("button[data-copy]");
+		expect(copy?.textContent).toBe("Copy");
+		expect(copy?.getAttribute("aria-label")).toBe("Copy both commands");
+		expect(copy?.getAttribute("data-copy")).toBe("first command && second command");
+	});
+
+	it("keeps the copy status outside the button", async () => {
+		const writeText = vi.fn(async () => {});
+		Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+		const { app, deliver } = bootView(SKILL_CARD_HTML);
+		deliver(toolResult(SKILL));
+		const copy = app.querySelector<HTMLButtonElement>("button[data-copy]");
+		copy?.click();
+		await new Promise((r) => setTimeout(r, 0));
+		expect(writeText).toHaveBeenCalledWith("first command && second command");
+		expect(app.querySelector('[role="status"]')?.textContent).toContain("Copied to the clipboard.");
+		expect(copy?.querySelector('[role="status"]')).toBeNull();
+		expect(copy?.disabled).toBe(false);
+	});
+});
+
+describe("install picker", () => {
+	const hosts = {
+		selected: "a",
+		hosts: ["a", "b"].map((id) => ({
+			id,
+			name: `Host ${id}`,
+			what: `What ${id}`,
+			where: `Where ${id}`,
+			commands: [`install ${id}`],
+			prompt: true,
+			then: { label: `Then run in Host ${id}`, commands: ["/setup"], prompt: false },
+		})),
+	};
+
+	it("keeps the same radios on the page when the host changes, so focus stays", () => {
+		const { app, deliver } = bootView(INSTALL_PICKER_HTML);
+		deliver(toolResult(hosts));
+		const second = app.querySelector<HTMLInputElement>('input[value="b"]');
+		expect(second).not.toBeNull();
+		if (!second) return;
+		second.checked = true;
+		second.dispatchEvent(new Event("change", { bubbles: true }));
+		expect(app.querySelector('input[value="b"]')).toBe(second);
+		expect(app.textContent).toContain("install b");
+		expect(app.textContent).toContain("Then run in Host b");
+		expect(app.textContent).not.toContain("install a");
 	});
 });

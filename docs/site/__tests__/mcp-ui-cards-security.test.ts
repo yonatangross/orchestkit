@@ -13,6 +13,13 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { INSTALL_PICKER_HTML, SKILL_CARD_HTML } from "@/lib/mcp-ui-cards";
+import {
+	bootView,
+	CLAUDE_PROXY,
+	initResult as handshake,
+	OPENAI_PROXY,
+	toolResult,
+} from "./helpers/mcp-view";
 
 vi.mock("@/lib/doc-markdown", () => ({ getDocMarkdown: async () => null }));
 vi.mock("@/lib/analytics-server", () => ({ reportServerEvents: () => {} }));
@@ -34,54 +41,13 @@ const HOSTS = {
 	selected: "claude",
 };
 
-const CLAUDE_PROXY = "https://a904794854a047f6.claudemcpcontent.com";
-const OPENAI_PROXY = "https://www-orchestkit-dev.oaiusercontent.com";
+const initResult = handshake();
 
-type Sent = { message: { method?: string; id?: number }; target: string };
+const boot = (html: string = INSTALL_PICKER_HTML) => {
+	const view = bootView(html);
+	return { ...view, root: view.app };
+};
 
-// The view's own script runs against a stand-in window whose parent records what
-// it is sent. happy-dom rewrites source and origin on dispatched MessageEvents,
-// so the listener is captured and called with the exact fields a browser sets.
-function boot(html: string = INSTALL_PICKER_HTML) {
-	const script = /<script>\(function\(\)\{([\s\S]*)\}\)\(\);<\/script>/.exec(html)?.[1];
-	expect(script, "card HTML must embed its runtime").toBeTruthy();
-	document.body.innerHTML = '<main class="card" id="root"></main>';
-	const sent: Sent[] = [];
-	const parent = {
-		postMessage(message: Sent["message"], target: string) {
-			sent.push({ message, target });
-		},
-	};
-	const listeners: ((e: unknown) => void)[] = [];
-	const frame = {
-		parent,
-		addEventListener(type: string, fn: (e: unknown) => void) {
-			if (type === "message") listeners.push(fn);
-		},
-	};
-	const run = new Function("window", "document", "navigator", `"use strict";${script}`) as (
-		w: unknown,
-		d: unknown,
-		n: unknown,
-	) => void;
-	run(frame, document, navigator);
-	const root = document.getElementById("root") as HTMLElement;
-	return {
-		root,
-		sent,
-		parent,
-		deliver(data: unknown, origin: string, source: unknown = parent) {
-			for (const fn of listeners) fn({ data, origin, source });
-		},
-	};
-}
-
-const toolResult = (structuredContent: unknown) => ({
-	jsonrpc: "2.0",
-	method: "ui/notifications/tool-result",
-	params: { structuredContent },
-});
-const initResult = { jsonrpc: "2.0", id: 1, result: { protocolVersion: "2026-01-26" } };
 const renderData = (payload: unknown) => ({
 	type: "ui-lifecycle-iframe-render-data",
 	payload: { toolOutput: payload },
