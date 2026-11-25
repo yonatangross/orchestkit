@@ -17,6 +17,8 @@ export interface WebMcpTool {
 	name: string;
 	description: string;
 	inputSchema: Record<string, unknown>;
+	/** Required, so a new tool has to say whether it only reads. */
+	annotations: { readOnlyHint: boolean };
 	execute: (args: Record<string, unknown>) => Promise<WebMcpToolResult>;
 }
 
@@ -100,6 +102,7 @@ export const WEBMCP_TOOLS: WebMcpTool[] = [
 	{
 		name: "search_docs",
 		description: SEARCH_DOCS_DESCRIPTION,
+		annotations: { readOnlyHint: true },
 		inputSchema: {
 			type: "object",
 			properties: {
@@ -127,6 +130,7 @@ export const WEBMCP_TOOLS: WebMcpTool[] = [
 	{
 		name: "get_page",
 		description: GET_PAGE_DESCRIPTION,
+		annotations: { readOnlyHint: true },
 		inputSchema: {
 			type: "object",
 			properties: {
@@ -147,6 +151,7 @@ export const WEBMCP_TOOLS: WebMcpTool[] = [
 	},
 	{
 		name: "list_skills",
+		annotations: { readOnlyHint: true },
 		description:
 			"List all OrchestKit skills (name + description) from the agent-skills discovery index.",
 		inputSchema: { type: "object", properties: {} },
@@ -166,6 +171,7 @@ export const WEBMCP_TOOLS: WebMcpTool[] = [
 	},
 	{
 		name: "get_skill",
+		annotations: { readOnlyHint: true },
 		description:
 			"Fetch a single OrchestKit skill's documentation as Markdown by skill name.",
 		inputSchema: {

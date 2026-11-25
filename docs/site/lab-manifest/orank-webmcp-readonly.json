@@ -1,0 +1,8 @@
+{
+  "slug": "orank-webmcp-readonly",
+  "source": "docs/fix--orank-webmcp-readonly/index.html",
+  "title": "WebMCP tools that say they only read",
+  "description": "The four docs tools now declare readOnlyHint. Pick a tool to see what it fetches.",
+  "tags": ["docs-site", "webmcp", "agent-readiness"],
+  "date": "2026-11-25"
+}

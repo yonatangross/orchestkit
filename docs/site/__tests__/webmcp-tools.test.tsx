@@ -441,7 +441,7 @@ describe("inline layout script (served HTML registration)", () => {
 		);
 	});
 
-	it("serializes the same names, descriptions and schemas as WEBMCP_TOOLS", () => {
+	it("serializes the same names, descriptions, schemas and annotations as WEBMCP_TOOLS", () => {
 		const registerTool = vi.fn();
 		stubModelContext("document", { registerTool });
 		runInline();
@@ -449,9 +449,23 @@ describe("inline layout script (served HTML registration)", () => {
 			name: t.name,
 			description: t.description,
 			inputSchema: t.inputSchema,
+			annotations: t.annotations,
 		});
 		const got = registerTool.mock.calls.map(([t]) => strip(t as WebMcpTool));
 		expect(got).toEqual(WEBMCP_TOOLS.map(strip));
+	});
+
+	it("declares every tool read only, in the page script too", () => {
+		// All four only fetch public pages. Without the hint an agent has to treat
+		// each as a possible write and ask first (orank webmcp, 2026-11-25).
+		const registerTool = vi.fn();
+		stubModelContext("document", { registerTool });
+		runInline();
+		const inline = registerTool.mock.calls.map(([t]) => t as WebMcpTool);
+		expect(inline).toHaveLength(4);
+		for (const tool of [...WEBMCP_TOOLS, ...inline]) {
+			expect(tool.annotations, tool.name).toEqual({ readOnlyHint: true });
+		}
 	});
 
 	it("refuses to build when a tool has no inline executor", () => {
