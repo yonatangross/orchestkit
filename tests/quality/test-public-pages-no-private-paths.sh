@@ -46,43 +46,94 @@ grep_to() {
   fi
 }
 
-# Every published page, manifest fragment and playground source.
-shopt -s nullglob
-files=(
-  docs/site/public/lab/*.html
-  docs/site/lab-manifest/*.json
-  docs/*/*.html
-  docs/*/data.json
-)
-shopt -u nullglob
+# Every published page, manifest fragment and playground source, listed from
+# inside a checkout root.
+public_files() {
+  shopt -s nullglob
+  printf '%s\n' \
+    docs/site/public/lab/*.html \
+    docs/site/lab-manifest/*.json \
+    docs/*/*.html \
+    docs/*/data.json
+}
 
-if [[ ${#files[@]} -eq 0 ]]; then
-  echo "FAIL: no public pages found to scan (run from a full checkout)"
+# Scans the public files of the checkout at $1. Exit status: 0 clean, 1 a
+# private path was found, 2 a grep error, 3 nothing to scan.
+scan() {
+  local root="$1" tag="$2"
+  (
+    cd "$root"
+    files=()
+    while IFS= read -r f; do files+=("$f"); done < <(public_files)
+
+    if [[ ${#files[@]} -eq 0 ]]; then
+      echo "FAIL: no public pages found to scan (run from a full checkout)"
+      exit 3
+    fi
+
+    fail=0
+
+    # 1. private directory paths and the real operator home
+    grep_to "$WORK/$tag.hits" -n -o -i -E \
+      ".{0,40}(${FLOOR_DIR}/|desks/|/desks\b|/Users/${OPERATOR}|/home/${OPERATOR}).{0,40}" "${files[@]}"
+    if [[ -s "$WORK/$tag.hits" ]]; then
+      echo "FAIL: real home or desk path in a public page:"
+      head -40 "$WORK/$tag.hits"
+      fail=1
+    fi
+
+    # 2. any /Users/<name> or /home/<name> that is not a placeholder
+    grep_to "$WORK/$tag.homes" -n -o -E "(/Users|/home)/[A-Za-z0-9_.-]+" "${files[@]}"
+    grep_to "$WORK/$tag.others" -v -E "(/Users|/home)/(${PLACEHOLDERS}|\.\.\.)\$" "$WORK/$tag.homes"
+    if [[ -s "$WORK/$tag.others" ]]; then
+      echo "FAIL: home path with a non-placeholder name in a public page:"
+      head -40 "$WORK/$tag.others"
+      fail=1
+    fi
+
+    if [[ $fail -ne 0 ]]; then
+      echo "scanned ${#files[@]} public files: private paths found"
+      exit 1
+    fi
+    echo "PASS: scanned ${#files[@]} public files, no real home or desk paths"
+  )
+}
+
+# A throwaway git checkout holding a neutral page and a neutral nested source.
+new_fixture() {
+  local dir="$WORK/$1"
+  mkdir -p "$dir/docs/site/public/lab" "$dir/docs/playgrounds/dev"
+  git init -q "$dir"
+  printf '<p>/Users/you/app</p>\n' >"$dir/docs/site/public/lab/page.html"
+  printf '<p>/Users/you/app</p>\n' >"$dir/docs/playgrounds/dev/control.html"
+  printf '%s' "$dir"
+}
+
+# Self-check, so the scan cannot go blind at a depth: a neutral nested source
+# passes, and a private path in a source at any depth below docs/ is caught.
+dir="$(new_fixture control)"
+git -C "$dir" add -A
+if ! scan "$dir" control >"$WORK/control.out" 2>&1; then
+  echo "FAIL: self-check: a neutral nested source was refused"
+  cat "$WORK/control.out"
   exit 1
 fi
 
-fail=0
+expect_caught() {
+  local rel="$1" content="$2" dir
+  dir="$(new_fixture "caught-${rel//\//_}")"
+  mkdir -p "$(dirname "$dir/$rel")"
+  printf '%s\n' "$content" >"$dir/$rel"
+  git -C "$dir" add -A
+  if scan "$dir" "caught-${rel//\//_}" >"$WORK/caught.out" 2>&1; then
+    echo "FAIL: self-check: a private path in $rel was not caught"
+    exit 1
+  fi
+}
+expect_caught docs/playgrounds/dev/fault.html "<p>/home/${OPERATOR}/notes</p>"
+expect_caught docs/playgrounds/dev/deeper/more/fault.html "<p>/home/${OPERATOR}/notes</p>"
+expect_caught docs/a/b/c/data.json '{"p": "/Users/alice/notes"}'
 
-# 1. private directory paths and the real operator home
-grep_to "$WORK/hits" -n -o -i -E \
-  ".{0,40}(${FLOOR_DIR}/|desks/|/desks\b|/Users/${OPERATOR}|/home/${OPERATOR}).{0,40}" "${files[@]}"
-if [[ -s "$WORK/hits" ]]; then
-  echo "FAIL: real home or desk path in a public page:"
-  head -40 "$WORK/hits"
-  fail=1
-fi
-
-# 2. any /Users/<name> or /home/<name> that is not a placeholder
-grep_to "$WORK/homes" -n -o -E "(/Users|/home)/[A-Za-z0-9_.-]+" "${files[@]}"
-grep_to "$WORK/others" -v -E "(/Users|/home)/(${PLACEHOLDERS}|\.\.\.)\$" "$WORK/homes"
-if [[ -s "$WORK/others" ]]; then
-  echo "FAIL: home path with a non-placeholder name in a public page:"
-  head -40 "$WORK/others"
-  fail=1
-fi
-
-if [[ $fail -ne 0 ]]; then
-  echo "scanned ${#files[@]} public files: private paths found"
-  exit 1
-fi
-echo "PASS: scanned ${#files[@]} public files, no real home or desk paths"
+rc=0
+scan "$REPO_ROOT" repo || rc=$?
+exit "$rc"
