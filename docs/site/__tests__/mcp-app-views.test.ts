@@ -264,7 +264,7 @@ describe("search results", () => {
 
 describe("skill card", () => {
 	it("shows the name, plugin, version, run line and install card", () => {
-		const { app, deliver } = bootView(SKILL_CARD_HTML);
+		const { app, deliver } = bootConnected(SKILL_CARD_HTML);
 		deliver(toolResult(SKILL));
 		expect(app.querySelector("h1")?.textContent).toBe("brainstorm");
 		expect(app.querySelector(".tag")?.textContent).toBe("ork plugin");
@@ -280,7 +280,7 @@ describe("skill card", () => {
 	it("keeps the copy status outside the button", async () => {
 		const writeText = vi.fn(async () => {});
 		Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-		const { app, deliver } = bootView(SKILL_CARD_HTML);
+		const { app, deliver } = bootConnected(SKILL_CARD_HTML);
 		deliver(toolResult(SKILL));
 		const copy = app.querySelector<HTMLButtonElement>("button[data-copy]");
 		copy?.click();
@@ -307,7 +307,7 @@ describe("install picker", () => {
 	};
 
 	it("keeps the same radios on the page when the host changes, so focus stays", () => {
-		const { app, deliver } = bootView(INSTALL_PICKER_HTML);
+		const { app, deliver } = bootConnected(INSTALL_PICKER_HTML);
 		deliver(toolResult(hosts));
 		const second = app.querySelector<HTMLInputElement>('input[value="b"]');
 		expect(second).not.toBeNull();
