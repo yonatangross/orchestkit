@@ -11,6 +11,8 @@ pnpm --dir "$proof_dir" add --save-exact release-please@17.6.0 --ignore-scripts
 RELEASE_PLEASE_ROOT="$proof_dir" node --test --test-concurrency=1 tests/release-please/exclude-paths.test.cjs
 ```
 
+The same suite checks that the writer renders uppercase Software Factory subjects using the lowercase `swf` mapping.
+
 This is an explicit, standalone test; the ordinary local suites do not install
 release tooling or run it. Rerun it when changing exclusions or the pinned action.
 The fixture records the actual #4057 squash commit, which touched only `docs/`
@@ -28,4 +30,4 @@ file names would silently fail to exclude prose. See upstream
 Mutation proof: temporarily restore `["docs"]` in the root config and run the
 same command. The real #4057, isolated site file and mixed-file cases fail.
 Set exclusions to `[]` and all three prose cases fail. Restore the config and
-rerun the command; all seven tests must pass.
+rerun the command; all cases must pass.

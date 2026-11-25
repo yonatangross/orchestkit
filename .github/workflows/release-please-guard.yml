@@ -39,6 +39,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Check unreleased mainline types on the release PR
+        if: github.base_ref == 'main' && startsWith(github.head_ref, 'release-please')
+        env:
+          RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node --test tests/release-please/mainline-types.test.cjs
+
       - name: Allow bot PRs and labeled overrides to proceed
         id: bot-check
         env:
