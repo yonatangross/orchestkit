@@ -120,26 +120,35 @@ describe("vercel-install.sh leaves the live docs/site manifest alone", () => {
 		expect(LIVE.map(snapshot)).toEqual(before);
 	});
 
-	// The symptom: a process that parses the live manifest in a loop, as a
-	// worker does when it starts. It reports how many reads it made, so a clean
-	// result is shown next to the proof that it was looking.
-	it("never lets a concurrent reader see an unreadable package.json", async () => {
-		const reader = `
-			const { readFileSync } = require("node:fs");
-			let reads = 0, bad = 0, stop = false;
-			process.stdin.on("data", () => { stop = true; });
-			process.stdout.write("ready\\n");
-			(function loop() {
-				const until = Date.now() + 20;
-				while (Date.now() < until) {
-					reads++;
-					try { JSON.parse(readFileSync(process.argv[1], "utf8")); } catch { bad++; }
-				}
-				if (stop) { process.stdout.write(JSON.stringify({ reads, bad })); process.exit(0); }
-				setImmediate(loop);
-			})();
-		`;
-		const child = spawn(process.execPath, ["-e", reader, LIVE[0]], { stdio: ["pipe", "pipe", "inherit"] });
+	// A process that parses the live manifest in a loop, as a worker does when it
+	// starts. It reports how many reads it made, so a clean result is shown next
+	// to the proof that it was looking. The 30 s exit is a backstop only, so a
+	// reader can never outlive a dead test run.
+	const READER = `
+		const { readFileSync } = require("node:fs");
+		let reads = 0, bad = 0, stop = false;
+		process.stdin.on("data", () => { stop = true; });
+		setTimeout(() => process.exit(2), 30000);
+		process.stdout.write("ready\\n");
+		(function loop() {
+			const until = Date.now() + 20;
+			while (Date.now() < until) {
+				reads++;
+				try { JSON.parse(readFileSync(process.argv[1], "utf8")); } catch { bad++; }
+			}
+			if (stop) { process.stdout.write(JSON.stringify({ reads, bad })); process.exit(0); }
+			setImmediate(loop);
+		})();
+	`;
+
+	// Runs `work` while a reader watches the live manifest.
+	async function withReader(
+		work: () => void,
+		script: string = READER,
+		spawned?: (pid: number) => void,
+	): Promise<{ reads: number; bad: number }> {
+		const child = spawn(process.execPath, ["-e", script, LIVE[0]], { stdio: ["pipe", "pipe", "inherit"] });
+		if (child.pid !== undefined) spawned?.(child.pid);
 		let out = "";
 		const ready = new Promise<void>((resolve) => {
 			child.stdout.on("data", (chunk: Buffer) => {
@@ -149,13 +158,42 @@ describe("vercel-install.sh leaves the live docs/site manifest alone", () => {
 		});
 		const done = new Promise<void>((resolve) => child.on("close", () => resolve()));
 		await ready;
-		for (let i = 0; i < 10; i++) runOn401();
+		work();
 		child.stdin.write("stop");
 		await done;
-		const { reads, bad } = JSON.parse(out.replace("ready\n", "")) as { reads: number; bad: number };
+		return JSON.parse(out.replace("ready\n", "")) as { reads: number; bad: number };
+	}
+
+	it("never lets a concurrent reader see an unreadable package.json", async () => {
+		const { reads, bad } = await withReader(() => {
+			for (let i = 0; i < 10; i++) runOn401();
+		});
 		expect(reads).toBeGreaterThan(1000);
 		expect(bad).toBe(0);
 	}, 30_000);
+
+	// The reader burns a core and reopens the manifest in a loop, so a failing
+	// run must not leave it behind.
+	it("leaves no reader running when the work throws", async () => {
+		let pid = 0;
+		await expect(
+			withReader(
+				() => {
+					throw new Error("work failed");
+				},
+				READER,
+				(p) => {
+					pid = p;
+				},
+			),
+		).rejects.toThrow("work failed");
+		expect(pid).toBeGreaterThan(0);
+		expect(() => process.kill(pid, 0)).toThrow();
+	});
+
+	it("rejects when the reader exits before it is ready", async () => {
+		await expect(withReader(() => {}, "process.exit(3)")).rejects.toThrow(/before it was ready/);
+	}, 6_000);
 });
 
 describe("fumadocs pins", () => {
