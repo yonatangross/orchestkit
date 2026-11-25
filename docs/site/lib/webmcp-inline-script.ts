@@ -80,10 +80,11 @@ export function buildWebMcpInlineScript(tools: WebMcpTool[] = WEBMCP_TOOLS): str
 	if (missing.length) {
 		throw new Error(`webmcp inline script: no inline executor for ${missing.join(", ")}`);
 	}
-	const meta = tools.map(({ name, description, inputSchema }) => ({
+	const meta = tools.map(({ name, description, inputSchema, annotations }) => ({
 		name,
 		description,
 		inputSchema,
+		annotations,
 	}));
 	const executors = tools
 		.map((t) => `    ${JSON.stringify(t.name)}: ${INLINE_EXECUTORS[t.name]}`)
@@ -140,7 +141,7 @@ ${executors}
   meta.forEach(function (m) {
     if (declared[m.name] || registry[m.name]) return;
     registry[m.name] = "inline";
-    var tool = { name: m.name, description: m.description, inputSchema: m.inputSchema, execute: run[m.name] };
+    var tool = { name: m.name, description: m.description, inputSchema: m.inputSchema, annotations: m.annotations, execute: run[m.name] };
     // A failed registration gives the name back once the call has settled, so
     // the chunk path (which runs later, after hydration) can still register it.
     function fail(err) {
