@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-app-ui-tokens",
+  "source": "docs/feat--mcp-app-ui-tokens/index.html",
+  "title": "Dark buttons that pass contrast, and one source for MCP view colors",
+  "description": "A white label on the dark indigo read 3.61:1. Compare the old and new fill and accent text side by side, and see how the site's tokens reach the MCP App views through one generated module.",
+  "tags": ["mcp", "docs-site", "accessibility"],
+  "date": "2026-11-25"
+}
