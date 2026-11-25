@@ -217,7 +217,9 @@
       },
       message: function (value) {
         if (g.openai && typeof g.openai.sendFollowUpMessage === "function") { g.openai.sendFollowUpMessage({ prompt: value }); return true; }
-        return connected && request("ui/message", { role: "user", content: [{ type: "text", text: value }] });
+        // Only to a host that said it takes text messages. Capabilities are
+        // empty until the handshake succeeded.
+        return record(capabilities.message) && record(capabilities.message.text) && request("ui/message", { role: "user", content: [{ type: "text", text: value }] });
       },
       resized: reportSize
     };
