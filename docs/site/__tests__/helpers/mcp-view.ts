@@ -63,8 +63,22 @@ export const toolResult = (structuredContent: unknown) => ({
 	params: { structuredContent },
 });
 
+/** A complete initialize result (MCP Apps 2026-01-26): every field is required. */
 export const initResult = (extra: Record<string, unknown> = {}) => ({
 	jsonrpc: "2.0",
 	id: 1,
-	result: { protocolVersion: "2026-01-26", ...extra },
+	result: {
+		protocolVersion: "2026-01-26",
+		hostInfo: { name: "test-host", version: "1.0.0" },
+		hostCapabilities: {},
+		hostContext: {},
+		...extra,
+	},
 });
+
+/** A booted view whose host has answered ui/initialize. */
+export function bootConnected(html: string) {
+	const view = bootView(html);
+	view.deliver(initResult());
+	return view;
+}

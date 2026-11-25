@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MCP_UI_DARK_TOKENS, MCP_UI_LIGHT_TOKENS } from "@/lib/generated/mcp-ui-tokens";
 import { SEARCH_RESULTS_HTML } from "@/lib/mcp-ui";
 import { renderSourcesModule } from "../scripts/generate-mcp-ui-tokens.mjs";
-import { bootView, CLAUDE_PROXY, initResult, toolResult } from "./helpers/mcp-view";
+import { bootConnected, bootView, CLAUDE_PROXY, initResult, type Sent, toolResult } from "./helpers/mcp-view";
 
 const SITE_DIR = resolve(__dirname, "..");
 const read = (rel: string) => readFileSync(resolve(SITE_DIR, rel), "utf8");
@@ -85,9 +85,78 @@ describe.each(VIEWS)("%s", (tag, html) => {
 	});
 });
 
+describe("the handshake gates the MCP surface", () => {
+	const results = toolResult({ results: [hit(1)] });
+	const light = { jsonrpc: "2.0", method: "ui/notifications/host-context-changed", params: { theme: "light" } };
+	const initialized = (sent: Sent[]) => sent.filter((s) => s.message.method === "ui/notifications/initialized");
+
+	it("sends initialized once, however often the result arrives", () => {
+		const { deliver, sent } = bootView(SEARCH_RESULTS_HTML);
+		deliver(initResult());
+		deliver(initResult());
+		expect(initialized(sent)).toHaveLength(1);
+	});
+
+	it("draws and themes nothing before the handshake, and does both after it", () => {
+		const { app, element, deliver, sent } = bootView(SEARCH_RESULTS_HTML);
+		deliver(results);
+		deliver(light);
+		expect(app.textContent).toContain("Waiting for results");
+		expect(element.hasAttribute("data-theme")).toBe(false);
+		expect(sent.map((s) => s.message.method)).toEqual(["ui/initialize"]);
+		deliver(initResult());
+		deliver(results);
+		deliver(light);
+		expect(app.textContent).toContain("Page 1");
+		expect(element.getAttribute("data-theme")).toBe("light");
+	});
+
+	it.each([
+		["no protocol version", { protocolVersion: undefined }],
+		["a version the view does not speak", { protocolVersion: "2025-06-18" }],
+		["no host identity", { hostInfo: undefined }],
+		["a nameless host", { hostInfo: { version: "1.0.0" } }],
+		["a host with no version", { hostInfo: { name: "test-host" } }],
+		["no capabilities", { hostCapabilities: undefined }],
+		["capabilities that are a list", { hostCapabilities: [] }],
+		["no context", { hostContext: undefined }],
+		["a context that is text", { hostContext: "dark" }],
+	])("refuses a result with %s", (_name, broken) => {
+		const { app, deliver, sent } = bootView(SEARCH_RESULTS_HTML);
+		deliver(initResult(broken));
+		deliver(results);
+		expect(initialized(sent)).toHaveLength(0);
+		expect(app.textContent).toContain("Waiting for results");
+		// A request id is answered once: a second answer changes nothing.
+		deliver(initResult());
+		deliver(results);
+		expect(initialized(sent)).toHaveLength(0);
+		expect(app.textContent).toContain("Waiting for results");
+	});
+
+	it("takes legacy render data without a handshake", () => {
+		const { app, deliver } = bootView(SEARCH_RESULTS_HTML);
+		deliver({ type: "ui-lifecycle-iframe-render-data", payload: { toolOutput: { results: [hit(1)] } } });
+		expect(app.textContent).toContain("Page 1");
+	});
+
+	it("sends ui/message as a list of content blocks, and only once connected", () => {
+		const { element, deliver, sent } = bootView(SEARCH_RESULTS_HTML);
+		const { host } = element as HTMLElement & { host: { message(text: string): boolean } };
+		// An answered ping makes the host's origin known without a handshake.
+		deliver({ jsonrpc: "2.0", id: 41, method: "ping" });
+		expect(host.message("too early")).toBe(false);
+		deliver(initResult());
+		expect(host.message("Show page 1")).toBe(true);
+		expect(sent.filter((s) => s.message.method === "ui/message").map((s) => s.message.params)).toEqual([
+			{ role: "user", content: [{ type: "text", text: "Show page 1" }] },
+		]);
+	});
+});
+
 describe("search results", () => {
 	it("lists the first five of the hits as a list of links, with their paths", () => {
-		const { app, deliver } = bootView(SEARCH_RESULTS_HTML);
+		const { app, deliver } = bootConnected(SEARCH_RESULTS_HTML);
 		deliver(toolResult({ results: [1, 2, 3, 4, 5, 6, 7].map((n) => hit(n)) }));
 		const list = app.querySelector('ul[role="list"]');
 		expect(list?.querySelectorAll("li")).toHaveLength(5);
@@ -98,7 +167,7 @@ describe("search results", () => {
 	});
 
 	it("writes titles and snippets as text", () => {
-		const { app, deliver } = bootView(SEARCH_RESULTS_HTML);
+		const { app, deliver } = bootConnected(SEARCH_RESULTS_HTML);
 		deliver(
 			toolResult({
 				results: [hit(1, { title: '<img src=x onerror="p()">', content: "<b>bold</b>" })],
@@ -117,20 +186,20 @@ describe("search results", () => {
 		"https://user@orchestkit.dev/docs/x",
 		"//evil.example/x",
 	])("does not link %s", (url) => {
-		const { app, deliver } = bootView(SEARCH_RESULTS_HTML);
+		const { app, deliver } = bootConnected(SEARCH_RESULTS_HTML);
 		deliver(toolResult({ results: [hit(1, { url })] }));
 		expect(app.textContent).toContain("Page 1");
 		expect(app.querySelector("a")).toBeNull();
 	});
 
 	it("says what to try when nothing matched", () => {
-		const { app, deliver } = bootView(SEARCH_RESULTS_HTML);
+		const { app, deliver } = bootConnected(SEARCH_RESULTS_HTML);
 		deliver(toolResult({ results: [] }));
 		expect(app.textContent).toContain("No matching documentation. Try a shorter query.");
 	});
 
 	it("ignores results from any window other than the parent", () => {
-		const { app, deliver } = bootView(SEARCH_RESULTS_HTML);
+		const { app, deliver } = bootConnected(SEARCH_RESULTS_HTML);
 		deliver(toolResult({ results: [hit(1)] }), CLAUDE_PROXY, {});
 		expect(app.textContent).toContain("Waiting for results");
 	});
