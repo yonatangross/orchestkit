@@ -21,7 +21,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SITE = join(__dirname, "..");
-const SCRIPT = join(SITE, "scripts", "vercel-install.sh");
+// install-deps.sh works on the folder above itself (`cd "$(dirname ...)/.."`).
+// Run from docs/site/scripts it would back up and rewrite the live package.json,
+// so the suite runs copies placed in its own temp folder.
+const SCRIPTS = ["vercel-install.sh", "install-deps.sh"];
 
 // A fake npm: `ci` fails with a 401 the first time and passes after; every
 // call is logged one per line so the test can read the sequence.
@@ -45,11 +48,12 @@ function runOn401(vercelEnv = "preview"): {
 	const bin = join(dir, "bin");
 	cpSync(join(SITE, "package.json"), join(dir, "package.json"));
 	writeFileSync(join(dir, "package-lock.json"), '{"lockfileVersion":3}\n');
-	execFileSync("mkdir", ["-p", bin]);
+	execFileSync("mkdir", ["-p", bin, join(dir, "scripts")]);
+	for (const name of SCRIPTS) cpSync(join(SITE, "scripts", name), join(dir, "scripts", name));
 	writeFileSync(join(bin, "npm"), FAKE_NPM);
 	chmodSync(join(bin, "npm"), 0o755);
 	const log = join(dir, "npm.log");
-	const run = spawnSync("bash", [SCRIPT], {
+	const run = spawnSync("bash", [join(dir, "scripts", "vercel-install.sh")], {
 		cwd: dir,
 		env: {
 			...process.env,
@@ -81,6 +85,8 @@ describe("vercel-install.sh on a 401 outside production", () => {
 	it("keeps package-lock.json, so locked versions do not float", () => {
 		const { dir } = runOn401();
 		expect(existsSync(join(dir, "package-lock.json"))).toBe(true);
+		// The script ran on this folder, so the lock it kept is the one it was given.
+		expect(readFileSync(join(dir, "package-lock.json"), "utf8")).toBe('{"lockfileVersion":3}\n');
 	});
 
 	it("swaps the stub, updates the lock in place, then runs npm ci", () => {
