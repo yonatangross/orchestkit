@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release notes coverage: Software Factory changes</title>
+<style>
+  :root { color-scheme: light dark; --ok: #1a7f37; --bad: #b42318; --line: #8884; }
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; }
+  .bar { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+  button { font: inherit; padding: .4rem .8rem; border: 1px solid var(--line); border-radius: .4rem; background: none; color: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { background: #2563eb; color: #fff; border-color: #2563eb; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--line); }
+  .shown { color: var(--ok); font-weight: 600; }
+  .missing { color: var(--bad); font-weight: 600; }
+  #score { font-size: 1.1rem; margin: .5rem 0 1rem; }
+  code { background: #8882; padding: 0 .25rem; border-radius: .25rem; }
+</style>
+</head>
+<body>
+<h1>Eight Software Factory changes missing from the release notes</h1>
+<p>The release writer only lists commit types named in <code>.release-please-config.json</code>. <code>SWF</code> was not named, so these eight merged changes never reached the notes or the site. Switch the config to see which entries appear.</p>
+<div class="bar" role="group" aria-label="Config">
+  <button id="before" aria-pressed="true">Config before</button>
+  <button id="after" aria-pressed="false">Config after (swf maps to Bug Fixes)</button>
+</div>
+<div id="score" aria-live="polite"></div>
+<table>
+  <thead><tr><th>PR</th><th>Subject</th><th>Release notes</th><th>Site changelog</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<p>Measured with release-please 17.6.0 (its own parser and writer) and the real site generator <code>scripts/generate-changelog-data.js</code>: 0 of 8 before, 8 of 8 after.</p>
+<script>
+  const prs = [
+    [5412, 'release the fixed OrchestKit CLI as 0.2.0'],
+    [5415, 'show readable Card text in docs search excerpts'],
+    [5416, 'return 400 for wrongly typed NLWeb /ask queries'],
+    [5422, 'honor Markdown rejection in docs Accept headers'],
+    [5424, 'keep the changelog up on malformed links'],
+    [5427, 'keep stale-chain throttle across hook processes'],
+    [5429, 'accept search result URLs in hosted docs MCP read'],
+    [5438, 'add rate-limit headers to bare API discovery'],
+  ];
+  const rows = document.getElementById('rows');
+  const score = document.getElementById('score');
+  function show(after) {
+    rows.replaceChildren(...prs.map(([n, subject]) => {
+      const tr = document.createElement('tr');
+      const cells = [`#${n}`, `SWF: ${subject}`];
+      for (const text of cells) { const td = document.createElement('td'); td.textContent = text; tr.append(td); }
+      for (let i = 0; i < 2; i++) {
+        const td = document.createElement('td');
+        td.textContent = after ? 'listed under Bug Fixes' : 'missing';
+        td.className = after ? 'shown' : 'missing';
+        tr.append(td);
+      }
+      return tr;
+    }));
+    score.textContent = (after ? 8 : 0) + ' of 8 entries reach the release notes and the site';
+    document.getElementById('before').setAttribute('aria-pressed', String(!after));
+    document.getElementById('after').setAttribute('aria-pressed', String(after));
+  }
+  document.getElementById('before').onclick = () => show(false);
+  document.getElementById('after').onclick = () => show(true);
+  show(false);
+</script>
+</body>
+</html>
