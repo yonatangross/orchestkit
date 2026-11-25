@@ -49,6 +49,13 @@ type ToolResult = {
 // conversation. The search tool references it via `_meta.ui.resourceUri` and
 // returns `structuredContent` the template draws. Markup + its CSP live in
 // lib/mcp-ui.ts (extracted so the policy can be unit-tested).
+// `_meta.ui` is what an MCP Apps host builds the frame from (spec 2026-01-26):
+// it takes the CSP from these lists, not from the document's meta tag. No view
+// loads or requests anything from an outside origin, so both lists are empty.
+// The two cards draw their own border and have a copy button.
+const NO_ORIGINS = { connectDomains: [], resourceDomains: [] };
+const CARD_UI = { csp: NO_ORIGINS, prefersBorder: false, permissions: { clipboardWrite: {} } };
+
 const UI_RESOURCES = [
 	{
 		uri: UI_SEARCH_RESULTS,
@@ -56,6 +63,7 @@ const UI_RESOURCES = [
 		description: "Renders documentation search hits as a clickable list.",
 		mimeType: "text/html;profile=mcp-app",
 		text: SEARCH_RESULTS_HTML,
+		ui: { csp: NO_ORIGINS, prefersBorder: true },
 	},
 	{
 		uri: UI_SKILL_CARD,
@@ -64,6 +72,7 @@ const UI_RESOURCES = [
 			"Renders one skill as a card: what it does, which plugin ships it, and the install line with a copy button.",
 		mimeType: "text/html;profile=mcp-app",
 		text: SKILL_CARD_HTML,
+		ui: CARD_UI,
 	},
 	{
 		uri: UI_INSTALL_PICKER,
@@ -72,6 +81,7 @@ const UI_RESOURCES = [
 			"Renders a host picker (Claude Code, Cursor, Codex) that shows the exact install command for the picked host, with a copy button.",
 		mimeType: "text/html;profile=mcp-app",
 		text: INSTALL_PICKER_HTML,
+		ui: CARD_UI,
 	},
 ];
 
@@ -340,7 +350,12 @@ async function dispatch(req: RpcRequest): Promise<object | null> {
 			if (!resource) return rpcError(req.id, -32602, `Unknown resource: ${uri}`);
 			return rpcResult(req.id, {
 				contents: [
-					{ uri: resource.uri, mimeType: resource.mimeType, text: resource.text },
+					{
+						uri: resource.uri,
+						mimeType: resource.mimeType,
+						text: resource.text,
+						_meta: { ui: resource.ui },
+					},
 				],
 			});
 		}

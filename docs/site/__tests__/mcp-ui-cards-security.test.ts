@@ -1,10 +1,21 @@
-// Security regression for Vercel finding 01M7QBX6YNMP8Y8KWS2XWX0YZJ (#5337):
-// the install-picker frame must only accept render data from the window that
-// embedded it (e.source === window.parent) at an origin the frame-ancestors
-// CSP permits, and the clipboard must carry exactly the commands on display.
+// postMessage rules for the MCP App card views.
+//
+// Who may hand a view its data: only the frame that embedded it
+// (e.source === window.parent). A web host speaks through a sandbox proxy on
+// its own origin (MCP Apps spec 2026-01-26, "Sandbox proxy": the host and the
+// sandbox MUST have different origins), so a fixed list such as chatgpt.com and
+// claude.ai rejects the real sender. The first accepted host message pins its
+// origin; later messages must come from it and everything the view sends goes
+// to it. Only the ui/initialize handshake may use "*".
+//
+// Kept from Vercel finding 01M7QBX6YNMP8Y8KWS2XWX0YZJ (#5337): the clipboard
+// carries exactly the commands on display.
 
-import { describe, expect, it } from "vitest";
-import { INSTALL_PICKER_HTML } from "@/lib/mcp-ui-cards";
+import { describe, expect, it, vi } from "vitest";
+import { INSTALL_PICKER_HTML, SKILL_CARD_HTML } from "@/lib/mcp-ui-cards";
+
+vi.mock("@/lib/doc-markdown", () => ({ getDocMarkdown: async () => null }));
+vi.mock("@/lib/analytics-server", () => ({ reportServerEvents: () => {} }));
 
 const HOSTS = {
 	hosts: [
@@ -23,74 +34,150 @@ const HOSTS = {
 	selected: "claude",
 };
 
-// happy-dom rewrites source/origin on dispatched MessageEvents, so the
-// listener is captured and invoked with the exact fields a browser would
-// set: that is what the gate reads.
-function boot() {
-	const script = /<script>\(function\(\)\{([\s\S]*)\}\)\(\);<\/script>/.exec(
-		INSTALL_PICKER_HTML,
-	)?.[1];
+const CLAUDE_PROXY = "https://a904794854a047f6.claudemcpcontent.com";
+const OPENAI_PROXY = "https://www-orchestkit-dev.oaiusercontent.com";
+
+type Sent = { message: { method?: string; id?: number }; target: string };
+
+// The view's own script runs against a stand-in window whose parent records what
+// it is sent. happy-dom rewrites source and origin on dispatched MessageEvents,
+// so the listener is captured and called with the exact fields a browser sets.
+function boot(html: string = INSTALL_PICKER_HTML) {
+	const script = /<script>\(function\(\)\{([\s\S]*)\}\)\(\);<\/script>/.exec(html)?.[1];
 	expect(script, "card HTML must embed its runtime").toBeTruthy();
 	document.body.innerHTML = '<main class="card" id="root"></main>';
+	const sent: Sent[] = [];
+	const parent = {
+		postMessage(message: Sent["message"], target: string) {
+			sent.push({ message, target });
+		},
+	};
 	const listeners: ((e: unknown) => void)[] = [];
-	const addEventListener = window.addEventListener.bind(window);
-	window.addEventListener = ((type: string, fn: unknown, opts?: unknown) => {
-		if (type === "message") listeners.push(fn as (e: unknown) => void);
-		else addEventListener(type, fn as EventListener, opts as never);
-	}) as typeof window.addEventListener;
-	const probe = script.replace(
-		'var hostOrigin="*";',
-		'var hostOrigin="*";window.__gate=function(o,s){return s===window.parent&&TRUSTED_PARENT.test(o);};',
-	);
-	const run = new Function(
-		"window",
-		"document",
-		"navigator",
-		`"use strict";${probe}`,
-	) as (w: unknown, d: unknown, n: unknown) => void;
-	run(window, document, navigator);
-	window.addEventListener = addEventListener;
+	const frame = {
+		parent,
+		addEventListener(type: string, fn: (e: unknown) => void) {
+			if (type === "message") listeners.push(fn);
+		},
+	};
+	const run = new Function("window", "document", "navigator", `"use strict";${script}`) as (
+		w: unknown,
+		d: unknown,
+		n: unknown,
+	) => void;
+	run(frame, document, navigator);
 	const root = document.getElementById("root") as HTMLElement;
 	return {
 		root,
-		deliver(data: unknown, origin: string, source: unknown = window.parent) {
+		sent,
+		parent,
+		deliver(data: unknown, origin: string, source: unknown = parent) {
 			for (const fn of listeners) fn({ data, origin, source });
 		},
 	};
 }
 
+const toolResult = (structuredContent: unknown) => ({
+	jsonrpc: "2.0",
+	method: "ui/notifications/tool-result",
+	params: { structuredContent },
+});
+const initResult = { jsonrpc: "2.0", id: 1, result: { protocolVersion: "2026-01-26" } };
 const renderData = (payload: unknown) => ({
 	type: "ui-lifecycle-iframe-render-data",
 	payload: { toolOutput: payload },
 });
 
-describe("install picker postMessage hardening", () => {
-	it("ignores render data from an origin no host can embed under", () => {
-		const { root, deliver } = boot();
-		const gate = (window as unknown as { __gate: (o: string, s: unknown) => boolean }).__gate;
-		expect(gate("https://evil.example", window.parent)).toBe(false);
-		expect(gate("https://chatgpt.com", window.parent)).toBe(true);
-		expect(gate("https://chatgpt.com", {})).toBe(false);
-		deliver(renderData(HOSTS), "https://evil.example");
-		expect(root.textContent).toContain("Waiting for install data");
-	});
+describe("who may hand the view its data", () => {
+	it.each([CLAUDE_PROXY, OPENAI_PROXY, "https://chatgpt.com", "https://claude.ai"])(
+		"renders a tool result from the parent frame at %s",
+		(origin) => {
+			const { root, deliver } = boot();
+			deliver(toolResult(HOSTS), origin);
+			expect(root.textContent).toContain("Install OrchestKit");
+		},
+	);
 
-	it("ignores render data sent by any window other than the parent", () => {
+	it("renders the older render-data message from the parent frame", () => {
 		const { root, deliver } = boot();
-		deliver(renderData(HOSTS), "https://chatgpt.com", {});
-		expect(root.textContent).toContain("Waiting for install data");
-	});
-
-	it("renders data only from the trusted parent origin", () => {
-		const { root, deliver } = boot();
-		deliver(renderData(HOSTS), "https://chatgpt.com");
-		expect(root.textContent).toContain("Install OrchestKit");
+		deliver(renderData(HOSTS), CLAUDE_PROXY);
 		expect(root.textContent).toContain("Claude Code");
 	});
 
+	it("ignores any window other than the parent, even at a host origin", () => {
+		const { root, deliver, sent } = boot();
+		deliver(toolResult(HOSTS), CLAUDE_PROXY, {});
+		deliver(renderData(HOSTS), "https://chatgpt.com", null);
+		deliver(initResult, "https://claude.ai", {});
+		expect(root.textContent).toContain("Waiting for install data");
+		expect(sent.map((s) => s.message.method)).toEqual(["ui/initialize"]);
+	});
+
+	it.each([
+		"https://evil.example",
+		"https://a904794854a047f6.claudemcpcontent.com.attacker.example",
+		"http://a904794854a047f6.claudemcpcontent.com",
+		"https://a904794854a047f6.claudemcpcontent.com:8443",
+		"null",
+	])("after the host is pinned, ignores a message from %s", (other) => {
+		const { root, deliver } = boot();
+		deliver(initResult, CLAUDE_PROXY);
+		deliver(toolResult(HOSTS), other);
+		expect(root.textContent).toContain("Waiting for install data");
+		deliver(toolResult(HOSTS), CLAUDE_PROXY);
+		expect(root.textContent).toContain("Install OrchestKit");
+	});
+
+	it("an unrecognised message does not pin an origin", () => {
+		const { root, deliver } = boot();
+		deliver({ jsonrpc: "2.0", method: "something/else" }, "https://evil.example");
+		deliver("a string", "https://evil.example");
+		deliver(toolResult(HOSTS), CLAUDE_PROXY);
+		expect(root.textContent).toContain("Install OrchestKit");
+	});
+
+	it("ignores a method message that is not JSON-RPC 2.0", () => {
+		const { root, deliver } = boot();
+		deliver({ method: "ui/notifications/tool-result", params: { structuredContent: HOSTS } }, CLAUDE_PROXY);
+		expect(root.textContent).toContain("Waiting for install data");
+	});
+});
+
+describe("where the view sends", () => {
+	it("uses * for the handshake only, then the pinned origin", () => {
+		const { deliver, sent } = boot();
+		expect(sent).toHaveLength(1);
+		expect(sent[0]).toMatchObject({ message: { method: "ui/initialize" }, target: "*" });
+		deliver(initResult, CLAUDE_PROXY);
+		deliver(toolResult(HOSTS), CLAUDE_PROXY);
+		const later = sent.slice(1);
+		expect(later.map((s) => s.message.method)).toContain("ui/notifications/initialized");
+		expect(later.map((s) => s.message.method)).toContain("ui/notifications/size-changed");
+		expect(new Set(later.map((s) => s.target))).toEqual(new Set([CLAUDE_PROXY]));
+	});
+
+	it("sends nothing to an unknown host when a button is pressed before the handshake answers", () => {
+		const { root, deliver, sent } = boot(SKILL_CARD_HTML);
+		// A suggestion button exists only after data; deliver it as the first,
+		// pinning message, then check the follow-up goes to that origin.
+		deliver(toolResult({ found: false, query: "x", suggestions: ["brainstorm"] }), OPENAI_PROXY);
+		(root.querySelector(".near button") as HTMLButtonElement).click();
+		const message = sent.find((s) => s.message.method === "ui/message");
+		expect(message?.target).toBe(OPENAI_PROXY);
+		expect(sent.filter((s) => s.target === "*").map((s) => s.message.method)).toEqual(["ui/initialize"]);
+	});
+
+	it("answers an opaque-origin parent, which can only be addressed with *", () => {
+		const { deliver, sent } = boot();
+		deliver(initResult, "null");
+		expect(sent.at(-1)?.target).toBe("*");
+		expect(sent.map((s) => s.message.method)).toContain("ui/notifications/initialized");
+	});
+});
+
+describe("what the view does with the data", () => {
 	it("copies the displayed commands, never a divergent wire-sent copy field", () => {
 		const { root, deliver } = boot();
-		deliver(renderData(HOSTS), "https://chatgpt.com");
+		deliver(toolResult(HOSTS), CLAUDE_PROXY);
 		const btn = root.querySelector<HTMLButtonElement>("button[data-copy]");
 		expect(btn).toBeTruthy();
 		expect(btn?.dataset.copy).toBe("npm i -g a && ork install");
@@ -100,22 +187,15 @@ describe("install picker postMessage hardening", () => {
 	it("drops host entries whose fields do not match the schema", () => {
 		const { root, deliver } = boot();
 		deliver(
-			renderData({
+			toolResult({
 				hosts: [
 					{ id: 42, name: "bad" },
 					{ id: "empty", name: "Empty", what: "", where: "", commands: [] },
-					{
-						id: "ok",
-						name: "OK",
-						what: "w",
-						where: "w",
-						commands: ["real command"],
-						copyLabel: 7,
-					},
+					{ id: "ok", name: "OK", what: "w", where: "w", commands: ["real command"], copyLabel: 7 },
 				],
 				selected: "ok",
 			}),
-			"https://claude.ai",
+			CLAUDE_PROXY,
 		);
 		expect(root.textContent).toContain("Install OrchestKit");
 		expect(root.textContent).toContain("real command");
@@ -124,7 +204,32 @@ describe("install picker postMessage hardening", () => {
 
 	it("keeps waiting when every host entry is malformed", () => {
 		const { root, deliver } = boot();
-		deliver(renderData({ hosts: [{ id: 1 }] }), "https://chatgpt.com");
+		deliver(toolResult({ hosts: [{ id: 1 }] }), CLAUDE_PROXY);
 		expect(root.textContent).toContain("Waiting for install data");
+	});
+});
+
+describe("resource metadata the host builds the frame from", () => {
+	async function read(uri: string) {
+		const { POST } = await import("@/app/api/mcp/route");
+		const res = await POST(
+			new Request("https://orchestkit.dev/api/mcp", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "resources/read", params: { uri } }),
+			}),
+		);
+		return (await res.json()).result.contents[0];
+	}
+
+	it.each([
+		["ui://orchestkit/search-results", true, false],
+		["ui://orchestkit/skill-card", false, true],
+		["ui://orchestkit/install-picker", false, true],
+	])("%s declares no outside origins, its border and its clipboard need", async (uri, border, clipboard) => {
+		const content = await read(uri);
+		expect(content._meta.ui.csp).toEqual({ connectDomains: [], resourceDomains: [] });
+		expect(content._meta.ui.prefersBorder).toBe(border);
+		expect(content._meta.ui.permissions).toEqual(clipboard ? { clipboardWrite: {} } : undefined);
 	});
 });

@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-app-host-messages",
+  "source": "docs/fix--mcp-app-host-messages/index.html",
+  "title": "MCP App: the views listen to their parent frame",
+  "description": "The skill card and install picker now take data from the frame that embedded them, so a host behind a sandbox proxy is heard. Send a tool result from the parent and from another window and watch which one renders.",
+  "tags": ["mcp", "docs-site", "security"],
+  "date": "2026-11-25"
+}
