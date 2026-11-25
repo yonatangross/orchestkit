@@ -6,13 +6,14 @@
 // package-lock.json and resolved again, and fumadocs-ui floated from the
 // locked 16.15.17 to 16.17.x (TS2724, no useSearchList). The fallback must
 // keep every other locked version.
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import {
 	chmodSync,
 	cpSync,
 	existsSync,
 	mkdtempSync,
 	readFileSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -91,6 +92,64 @@ describe("vercel-install.sh on a 401 outside production", () => {
 		expect(calls).toContainEqual(expect.stringMatching(/--package-lock-only/));
 		expect(calls[calls.length - 1]).toMatch(/^ci /);
 	});
+});
+
+// The release PR #5414 failed Docs Site Build with every test green: a vitest
+// worker started while this suite's script rewrote the live docs/site
+// package.json (ERR_INVALID_PACKAGE_CONFIG). install-deps.sh works on the
+// folder above itself, so the suite must run a copy of it, never the live one.
+describe("vercel-install.sh leaves the live docs/site manifest alone", () => {
+	const LIVE = ["package.json", "package-lock.json"].map((name) => join(SITE, name));
+	const snapshot = (file: string) => ({
+		file,
+		bytes: readFileSync(file, "utf8"),
+		mtimeMs: statSync(file).mtimeMs,
+	});
+
+	// The mechanism, not a sample of the race: the window is microseconds wide,
+	// so a rewrite shows as a new mtime, every time.
+	it("does not rewrite the live package.json or package-lock.json", () => {
+		const before = LIVE.map(snapshot);
+		for (let i = 0; i < 3; i++) runOn401();
+		expect(LIVE.map(snapshot)).toEqual(before);
+	});
+
+	// The symptom: a process that parses the live manifest in a loop, as a
+	// worker does when it starts. It reports how many reads it made, so a clean
+	// result is shown next to the proof that it was looking.
+	it("never lets a concurrent reader see an unreadable package.json", async () => {
+		const reader = `
+			const { readFileSync } = require("node:fs");
+			let reads = 0, bad = 0, stop = false;
+			process.stdin.on("data", () => { stop = true; });
+			process.stdout.write("ready\\n");
+			(function loop() {
+				const until = Date.now() + 20;
+				while (Date.now() < until) {
+					reads++;
+					try { JSON.parse(readFileSync(process.argv[1], "utf8")); } catch { bad++; }
+				}
+				if (stop) { process.stdout.write(JSON.stringify({ reads, bad })); process.exit(0); }
+				setImmediate(loop);
+			})();
+		`;
+		const child = spawn(process.execPath, ["-e", reader, LIVE[0]], { stdio: ["pipe", "pipe", "inherit"] });
+		let out = "";
+		const ready = new Promise<void>((resolve) => {
+			child.stdout.on("data", (chunk: Buffer) => {
+				out += chunk.toString();
+				if (out.includes("ready\n")) resolve();
+			});
+		});
+		const done = new Promise<void>((resolve) => child.on("close", () => resolve()));
+		await ready;
+		for (let i = 0; i < 10; i++) runOn401();
+		child.stdin.write("stop");
+		await done;
+		const { reads, bad } = JSON.parse(out.replace("ready\n", "")) as { reads: number; bad: number };
+		expect(reads).toBeGreaterThan(1000);
+		expect(bad).toBe(0);
+	}, 30_000);
 });
 
 describe("fumadocs pins", () => {
