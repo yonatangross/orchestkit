@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A sitemap that names only final URLs</title>
+<meta name="description" content="Three sitemap entries answered 307. Compare the list before and after the filter.">
+<style>
+body{margin:0;background:#0f1115;color:#e8e6e3;font:16px/1.6 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 20px}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid #3a4050;background:#1a1e27;color:inherit;cursor:pointer}
+button[aria-pressed="true"]{background:#2d5bd0;border-color:#2d5bd0}
+li{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;padding:10px 12px;margin:6px 0;border-radius:8px;background:#1a1e27;list-style:none}
+ul{padding:0}
+.out{opacity:.4;text-decoration:line-through}
+code{word-break:break-all}
+</style>
+</head>
+<body>
+<main>
+<h1>A sitemap that names only final URLs</h1>
+<p>Read live on 2026-11-25: three entries in <code>sitemap.xml</code> answered 307.</p>
+<p><button id="before" aria-pressed="true">Before</button> <button id="after" aria-pressed="false">After</button></p>
+<ul id="list"></ul>
+<h2>What did not change</h2>
+<p>The redirects still work. The filter only removes their sources from the sitemap: config redirect
+rules without a host condition, and the two pages that only call <code>redirect()</code>.</p>
+</main>
+<script>
+var rows=[["/mcp-server","/docs/mcp"],["/sdk","/docs/sdk"],["/docs/reference/skills/ci-sentinel","/docs/reference/skills/ci-debug"]];
+var list=document.getElementById("list");
+function draw(after){
+  list.textContent="";
+  rows.forEach(function(r){
+    var li=document.createElement("li"),a=document.createElement("code"),b=document.createElement("span");
+    a.textContent=r[0];b.textContent=after?"removed, "+r[1]+" stays listed":"listed, answers 307 to "+r[1];
+    if(after)a.className="out";
+    li.appendChild(a);li.appendChild(b);list.appendChild(li);
+  });
+  document.getElementById("before").setAttribute("aria-pressed",String(!after));
+  document.getElementById("after").setAttribute("aria-pressed",String(after));
+}
+document.getElementById("before").onclick=function(){draw(false)};
+document.getElementById("after").onclick=function(){draw(true)};
+draw(false);
+</script>
+</body>
+</html>

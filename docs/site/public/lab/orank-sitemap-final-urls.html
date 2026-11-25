@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A sitemap that names only final URLs</title>
+<meta name="description" content="Three sitemap entries answered 307. Compare the list before and after the filter.">
+<style>
+body{margin:0;background:#0f1115;color:#e8e6e3;font:16px/1.6 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:32px 20px}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid #3a4050;background:#1a1e27;color:inherit;cursor:pointer}
+button[aria-pressed="true"]{background:#2d5bd0;border-color:#2d5bd0}
+li{display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;padding:10px 12px;margin:6px 0;border-radius:8px;background:#1a1e27;list-style:none}
+ul{padding:0}
+.out{opacity:.4;text-decoration:line-through}
+code{word-break:break-all}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="A sitemap that names only final URLs"><meta property="og:description" content="Three sitemap entries answered 307. Compare the list before and after the filter."><meta property="og:url" content="https://orchestkit.dev/lab/orank-sitemap-final-urls.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="A sitemap that names only final URLs"><meta name="twitter:description" content="Three sitemap entries answered 307. Compare the list before and after the filter."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<h1>A sitemap that names only final URLs</h1>
+<p>Read live on 2026-11-25: three entries in <code>sitemap.xml</code> answered 307.</p>
+<p><button id="before" aria-pressed="true">Before</button> <button id="after" aria-pressed="false">After</button></p>
+<ul id="list"></ul>
+<h2>What did not change</h2>
+<p>The redirects still work. The filter only removes their sources from the sitemap: config redirect
+rules without a host condition, and the two pages that only call <code>redirect()</code>.</p>
+</main>
+<script>
+var rows=[["/mcp-server","/docs/mcp"],["/sdk","/docs/sdk"],["/docs/reference/skills/ci-sentinel","/docs/reference/skills/ci-debug"]];
+var list=document.getElementById("list");
+function draw(after){
+  list.textContent="";
+  rows.forEach(function(r){
+    var li=document.createElement("li"),a=document.createElement("code"),b=document.createElement("span");
+    a.textContent=r[0];b.textContent=after?"removed, "+r[1]+" stays listed":"listed, answers 307 to "+r[1];
+    if(after)a.className="out";
+    li.appendChild(a);li.appendChild(b);list.appendChild(li);
+  });
+  document.getElementById("before").setAttribute("aria-pressed",String(!after));
+  document.getElementById("after").setAttribute("aria-pressed",String(after));
+}
+document.getElementById("before").onclick=function(){draw(false)};
+document.getElementById("after").onclick=function(){draw(true)};
+draw(false);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
