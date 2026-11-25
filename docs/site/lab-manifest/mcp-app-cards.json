@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-app-cards",
+  "source": "docs/feat--mcp-app-cards/index.html",
+  "title": "MCP App skill card and install picker on the site tokens",
+  "description": "All three docs MCP views on one custom element. Switch the theme and the width, pick a host, copy the commands, and open the card a mistyped skill name returns.",
+  "tags": ["mcp", "docs-site", "design", "install"],
+  "date": "2026-11-25"
+}
