@@ -146,11 +146,24 @@ describe("the handshake gates the MCP surface", () => {
 		// An answered ping makes the host's origin known without a handshake.
 		deliver({ jsonrpc: "2.0", id: 41, method: "ping" });
 		expect(host.message("too early")).toBe(false);
-		deliver(initResult());
+		deliver(initResult({ hostCapabilities: { message: { text: {} } } }));
 		expect(host.message("Show page 1")).toBe(true);
 		expect(sent.filter((s) => s.message.method === "ui/message").map((s) => s.message.params)).toEqual([
 			{ role: "user", content: [{ type: "text", text: "Show page 1" }] },
 		]);
+	});
+
+	// false is what makes a view show its manual steps instead of "Asked".
+	it.each([
+		["no message capability", {}],
+		["messages with no content kind", { message: {} }],
+		["image messages only", { message: { image: {} } }],
+	])("sends no ui/message to a host with %s", (_name, hostCapabilities) => {
+		const { element, deliver, sent } = bootView(SEARCH_RESULTS_HTML);
+		const { host } = element as HTMLElement & { host: { message(text: string): boolean } };
+		deliver(initResult({ hostCapabilities }));
+		expect(host.message("Show page 1")).toBe(false);
+		expect(sent.some((s) => s.message.method === "ui/message")).toBe(false);
 	});
 });
 
