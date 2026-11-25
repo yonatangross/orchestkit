@@ -101,36 +101,51 @@ const CARD_RUNTIME = `
     });
     return pre;
   }
-  // The only window allowed to hand the view its data is the frame that embedded
-  // it: e.source must be window.parent, and e.origin must be a host the CSP
-  // frame-ancestors list (or a local development page) could embed us under.
-  // Vercel Security Review finding 01M7QBX6YNMP8Y8KWS2XWX0YZJ: without this a
-  // hostile page could postMessage a render payload whose copy field differed
-  // from the commands on display and plant anything on the clipboard.
-  var TRUSTED_PARENT=/^https:\\/\\/([a-z0-9-]+\\.)?(chatgpt\\.com|claude\\.ai|orchestkit\\.dev|orchestkit\\.yonyon\\.ai)$|^https?:\\/\\/(localhost|127\\.0\\.0\\.1|[a-z0-9-]+\\.localhost)(:[0-9]+)?$/;
-  // The origin the host messages arrived from; outbound replies aim there once
-  // it is known (the initial ui/initialize still uses "*", the standard handshake).
-  var hostOrigin="*";
-  function trusted(e){return e.source===window.parent&&TRUSTED_PARENT.test(e.origin);}
+  // Who may hand the view its data: only the frame that embedded it
+  // (e.source === window.parent). A web host speaks through a sandbox proxy on
+  // its own origin (MCP Apps spec, "Sandbox proxy"), so no fixed origin list can
+  // name the sender. The first recognised host message pins its origin: later
+  // messages must come from it, and everything the view sends goes to it.
+  var hostOrigin=null;
+  function fromHost(e){
+    return window.parent!==window&&e.source===window.parent&&(hostOrigin===null||e.origin===hostOrigin);
+  }
+  // Only the ui/initialize handshake goes out before the host's origin is known.
+  // An opaque origin arrives as "null", which can only be addressed with "*".
+  function send(message){
+    if(!window.parent||window.parent===window)return false;
+    var to=hostOrigin;
+    if(to===null){if(message.method!=="ui/initialize")return false;to="*";}
+    else if(to==="null")to="*";
+    window.parent.postMessage(message,to);return true;
+  }
   // Ask the host to send a follow-up message (OpenAI Apps SDK, or MCP Apps ui/message).
   // The frame itself makes no request; the host decides what to do with the message.
   function askHost(text){
     if(window.openai&&typeof window.openai.sendFollowUpMessage==="function"){window.openai.sendFollowUpMessage({prompt:text});return true;}
-    if(window.parent&&window.parent!==window){tell(window.parent,{jsonrpc:"2.0",id:2,method:"ui/message",params:{role:"user",content:{type:"text",text:text}}});return true;}
-    return false;
+    return send({jsonrpc:"2.0",id:2,method:"ui/message",params:{role:"user",content:{type:"text",text:text}}});
   }
-  function tell(parent,message){parent.postMessage(message,hostOrigin);}
-  function reportSize(){try{tell(window.parent,{jsonrpc:"2.0",method:"ui/notifications/size-changed",params:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}});}catch(e){void e;}}
+  function reportSize(){send({jsonrpc:"2.0",method:"ui/notifications/size-changed",params:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}});}
+  // What a host message means to the view, or null for anything else.
+  function hostEvent(d){
+    if(!d||typeof d!=="object")return null;
+    if(d.type==="ui-lifecycle-iframe-render-data")return {data:d.payload&&d.payload.toolOutput};
+    if(d.jsonrpc!=="2.0")return null;
+    if(d.method==="ui/notifications/tool-result")return {data:d.params&&d.params.structuredContent};
+    if(d.id===1&&d.result)return {ready:true};
+    return null;
+  }
   function start(render){
     render(window.openai&&window.openai.toolOutput);
     window.addEventListener("message",function(e){
-      if(!trusted(e))return;
-      var d=e.data;if(!d||typeof d!=="object")return;
-      if(d.type==="ui-lifecycle-iframe-render-data"){hostOrigin=e.origin;render(d.payload&&d.payload.toolOutput);reportSize();}
-      else if(d.method==="ui/notifications/tool-result"){hostOrigin=e.origin;render(d.params&&d.params.structuredContent);reportSize();}
-      else if(d.id===1&&d.result){hostOrigin=e.origin;tell(window.parent,{jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}});reportSize();}
+      if(!fromHost(e))return;
+      var event=hostEvent(e.data);if(!event)return;
+      hostOrigin=e.origin;
+      if(event.ready)send({jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}});
+      else render(event.data);
+      reportSize();
     });
-    if(window.parent&&window.parent!==window){tell(window.parent,{jsonrpc:"2.0",id:1,method:"ui/initialize",params:{appInfo:{name:document.title,version:"1.0.0"},appCapabilities:{},protocolVersion:"2026-01-26"}});}
+    send({jsonrpc:"2.0",id:1,method:"ui/initialize",params:{appInfo:{name:document.title,version:"1.0.0"},appCapabilities:{},protocolVersion:"2026-01-26"}});
   }
 `;
 
