@@ -35,3 +35,11 @@ export const INSTALL_PICKER_HTML = appDocument({
 	title: "OrchestKit install picker",
 	csp: CARD_CSP,
 });
+
+export const UI_HOST_SUPPORT = "ui://orchestkit/host-support";
+
+export const HOST_SUPPORT_HTML = appDocument({
+	tag: "ork-host-support",
+	title: "OrchestKit on your host",
+	csp: CARD_CSP,
+});

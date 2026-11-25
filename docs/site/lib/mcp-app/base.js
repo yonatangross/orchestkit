@@ -11,7 +11,8 @@
   var ICONS = {
     terminal: [["path", { d: "M12 19h8" }], ["path", { d: "m4 17 6-6-6-6" }]],
     copy: [["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2" }], ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" }]],
-    check: [["path", { d: "M20 6 9 17l-5-5" }]]
+    check: [["path", { d: "M20 6 9 17l-5-5" }]],
+    minus: [["path", { d: "M5 12h14" }]]
   };
 
   function append(node, child) {
@@ -220,7 +221,7 @@
   }
 
   g.OrkMcp = {
-    h: h, text: text, siteUrl: siteUrl, status: status, View: View, mount: mount,
+    h: h, icon: icon, text: text, siteUrl: siteUrl, status: status, View: View, mount: mount,
     styles: function (css) { sheet = css; },
     define: function (tag, view) { if (!customElements.get(tag)) customElements.define(tag, view); }
   };
