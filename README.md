@@ -684,6 +684,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.19.0](https://github.com/yonatangross/orchestkit/compare/v10.18.1...v10.19.0)** · 2026-11-25
+
+- **site:** shared MCP view element, search results on it (#5448)
+- **site:** skill card and install picker on the shared view element (#5449)
+- **bug:** accept search result URLs in hosted docs MCP read (#5429)
+- **bug:** add rate-limit headers to bare API discovery (#5438)
+- **bug:** honor Markdown rejection in docs Accept headers (#5422)
+- …and 33 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.18.1](https://github.com/yonatangross/orchestkit/compare/v10.18.0...v10.18.1)** · 2026-11-24
 
 - **mcp:** clarify Docs MCP tools by transport (#5404)
@@ -737,15 +746,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **hooks:** record a fixed error_class on PostToolUseFailure telemetry (#5248)
 - **review-pr:** proven-by-a-run tier in review-fanout (#5274)
 - …and 27 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.13.0](https://github.com/yonatangross/orchestkit/compare/v10.12.0...v10.13.0)** · 2026-11-15
-
-- **ci:** scheduled whole-tree npm audit with a cannot-audit item (#5230)
-- **plugins:** move 26 reference skills to the opt-in ork-extras plugin (#5220)
-- **ci:** make the nightly health report prove its Claude call (#5221)
-- **ci:** the npm audit gate judges the change, not the tree (#5233)
-- **disk-cleanup:** ask before images, keep new snapshots, pin apply (#5213)
-- …and 11 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->

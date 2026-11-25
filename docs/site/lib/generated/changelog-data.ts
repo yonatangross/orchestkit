@@ -18,6 +18,75 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.19.0",
+    "date": "2026-11-25",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.18.1...v10.19.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** shared MCP view element, search results on it ([#5448](https://github.com/yonatangross/orchestkit/issues/5448)) ([3bcbe2e](https://github.com/yonatangross/orchestkit/commit/3bcbe2e2a27c2e30de88cca867d3e282b5ea20bc))",
+          "**site:** skill card and install picker on the shared view element ([#5449](https://github.com/yonatangross/orchestkit/issues/5449)) ([94bf976](https://github.com/yonatangross/orchestkit/commit/94bf9767080725752c33895ade481c9db3b70a9d))"
+        ]
+      },
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**bug:** accept search result URLs in hosted docs MCP read ([#5429](https://github.com/yonatangross/orchestkit/issues/5429)) ([e790623](https://github.com/yonatangross/orchestkit/commit/e790623cca90f6f49fccc67146186d7bbae581be))",
+          "**bug:** add rate-limit headers to bare API discovery ([#5438](https://github.com/yonatangross/orchestkit/issues/5438)) ([e7832d8](https://github.com/yonatangross/orchestkit/commit/e7832d802100780923c6d806561dccb53565a8bb))",
+          "**bug:** honor Markdown rejection in docs Accept headers ([#5422](https://github.com/yonatangross/orchestkit/issues/5422)) ([71e0dd1](https://github.com/yonatangross/orchestkit/commit/71e0dd12a296ba437de83f2287eac834cdac4a34))",
+          "**bug:** keep stale-chain throttle across hook processes ([#5427](https://github.com/yonatangross/orchestkit/issues/5427)) ([ee2ffb2](https://github.com/yonatangross/orchestkit/commit/ee2ffb2a4485dc9c8d0b586e56372fc26672aecb))",
+          "**bug:** keep the changelog up on malformed links ([#5424](https://github.com/yonatangross/orchestkit/issues/5424)) ([eda74ba](https://github.com/yonatangross/orchestkit/commit/eda74baeff4eb76c4e8705656f79b8aa0ad2c474))",
+          "**bug:** release the fixed OrchestKit CLI as 0.2.0 ([#5412](https://github.com/yonatangross/orchestkit/issues/5412)) ([2ca3624](https://github.com/yonatangross/orchestkit/commit/2ca36249ee2a575ee13069bb42cfe58a6b6ee8e1))",
+          "**bug:** return 400 for wrongly typed NLWeb /ask queries ([#5416](https://github.com/yonatangross/orchestkit/issues/5416)) ([7d337cd](https://github.com/yonatangross/orchestkit/commit/7d337cd7a3964e4aaeb7007f12f777c364d77f0c))",
+          "**cli:** reject extra doctor arguments ([#5419](https://github.com/yonatangross/orchestkit/issues/5419)) ([368a04f](https://github.com/yonatangross/orchestkit/commit/368a04fc27a5e06885015ae2c0a5c4689d4e6615))",
+          "**cli:** return distinct pages in formatted search ([#5425](https://github.com/yonatangross/orchestkit/issues/5425)) ([a4484eb](https://github.com/yonatangross/orchestkit/commit/a4484eb59b8323985b9e4223f8e6e1ba9bf8ef40))",
+          "**cli:** validate --limit 1..100 instead of clamping ([b60c81d](https://github.com/yonatangross/orchestkit/commit/b60c81db0ec290815022bcd7798fd8d1bbd07262))",
+          "**disk-cleanup:** prune private lanes from sizing and deletion ([#5390](https://github.com/yonatangross/orchestkit/issues/5390)) ([b974acf](https://github.com/yonatangross/orchestkit/commit/b974acf41bc8081784260676727289eb3dd9bd9e))",
+          "**docs:** copy the Claude command from the wizard shortcut ([#5428](https://github.com/yonatangross/orchestkit/issues/5428)) ([dac0570](https://github.com/yonatangross/orchestkit/commit/dac0570944412156c022764f0af3a1ee7d7060d1))",
+          "**docs:** correct the OpenAPI server URL ([#5411](https://github.com/yonatangross/orchestkit/issues/5411)) ([09f8cb6](https://github.com/yonatangross/orchestkit/commit/09f8cb6aa64eca11f84fba9c7f05e9a6fdb18f3e))",
+          "**docs:** echo retry keys on async Markdown batches ([#5437](https://github.com/yonatangross/orchestkit/issues/5437)) ([cb43212](https://github.com/yonatangross/orchestkit/commit/cb432127ee8cd4fbd7c1b8ba8a16b7cf6bb6cf93))",
+          "**docs:** honor Accept weights and case for /ask event streams ([#5432](https://github.com/yonatangross/orchestkit/issues/5432)) ([deda55d](https://github.com/yonatangross/orchestkit/commit/deda55d6ad84af2f777bc891d4f519f6140d4fa2))",
+          "**docs:** neutral example paths in public lab pages ([#5430](https://github.com/yonatangross/orchestkit/issues/5430)) ([1038c32](https://github.com/yonatangross/orchestkit/commit/1038c32cdf6d3574a92344fb05dce5b546e3a4b7))",
+          "**docs:** parse exact Prefer header tokens ([#5426](https://github.com/yonatangross/orchestkit/issues/5426)) ([dd1a86f](https://github.com/yonatangross/orchestkit/commit/dd1a86f64908eadfc2fd69603f045f95964d904a))",
+          "**docs:** restore focus after closing demo dialog ([#5434](https://github.com/yonatangross/orchestkit/issues/5434)) ([cd485bd](https://github.com/yonatangross/orchestkit/commit/cd485bd846a04659ab3ec36a92f1ae64383bc3d2))",
+          "**docs:** show the platform search shortcut on the homepage ([#5418](https://github.com/yonatangross/orchestkit/issues/5418)) ([510c49d](https://github.com/yonatangross/orchestkit/commit/510c49db2f3bb4ce6312c98307343ab463a6a611))",
+          "**hooks:** retire default-timeout-setter, stop auto-mode rewrites ([#5436](https://github.com/yonatangross/orchestkit/issues/5436)) ([14eb222](https://github.com/yonatangross/orchestkit/commit/14eb2220f07d876a3b40d8a70673945781e3d198))",
+          "**mcp:** shorten the registry description to 100 characters and gate it ([#5417](https://github.com/yonatangross/orchestkit/issues/5417)) ([0666b6e](https://github.com/yonatangross/orchestkit/commit/0666b6e99a9cf1fa18df986c2b9eff88bce67b94))",
+          "**polish:** show readable Card text in docs search excerpts ([#5415](https://github.com/yonatangross/orchestkit/issues/5415)) ([81fdc8c](https://github.com/yonatangross/orchestkit/commit/81fdc8cc6eb0c6f3725c236745d2545f56e9dd4b))",
+          "reject non-array test cases in rule validation ([#5420](https://github.com/yonatangross/orchestkit/issues/5420)) ([7a4353e](https://github.com/yonatangross/orchestkit/commit/7a4353e15d113d9e619ca9e68e838b2c99583160))",
+          "**release:** include Software Factory changes in release notes ([#5451](https://github.com/yonatangross/orchestkit/issues/5451)) ([ee1ff56](https://github.com/yonatangross/orchestkit/commit/ee1ff5650d12f87ce3087a377e99c25217fdf9cf))",
+          "**site:** AA button contrast and a token module for MCP views ([#5441](https://github.com/yonatangross/orchestkit/issues/5441)) ([0dc7b1d](https://github.com/yonatangross/orchestkit/commit/0dc7b1d851f01adb546cd06718b5f4c65eecf44d))",
+          "**site:** accept MCP App messages from the parent frame ([#5440](https://github.com/yonatangross/orchestkit/issues/5440)) ([9ebf96c](https://github.com/yonatangross/orchestkit/commit/9ebf96c875b320c48d3138f5fc6560075effffc5))",
+          "**site:** declare the four WebMCP tools read only ([#5447](https://github.com/yonatangross/orchestkit/issues/5447)) ([11845ec](https://github.com/yonatangross/orchestkit/commit/11845ec9a5da7bed48ccc09460e74b55c1effa95))",
+          "**site:** list only final URLs in the sitemap ([#5445](https://github.com/yonatangross/orchestkit/issues/5445)) ([7b590b0](https://github.com/yonatangross/orchestkit/commit/7b590b038a174dc41ad2152c486b5024b146e2a6))",
+          "**site:** make the source spotlight page canonical ([#5446](https://github.com/yonatangross/orchestkit/issues/5446)) ([7f5d3ca](https://github.com/yonatangross/orchestkit/commit/7f5d3ca736901e7df4e8370c763dd5dd476f38db))",
+          "**site:** negotiate the MCP protocol version on both hosted servers ([#5431](https://github.com/yonatangross/orchestkit/issues/5431)) ([f40340a](https://github.com/yonatangross/orchestkit/commit/f40340aa3902527a37d6a0a93df883cb7705c6b3))",
+          "**site:** reject invalid hosted MCP JSON-RPC envelopes ([#5435](https://github.com/yonatangross/orchestkit/issues/5435)) ([f7d5889](https://github.com/yonatangross/orchestkit/commit/f7d58896199f84b40ebc2aacd452ffa254bd6613))",
+          "**site:** reject malformed JSON bodies on /ask ([#5433](https://github.com/yonatangross/orchestkit/issues/5433)) ([b81090d](https://github.com/yonatangross/orchestkit/commit/b81090d9a92b132a362de5df9d6011e9e76c770d))",
+          "**worktree-reclaim:** parse NUL-delimited worktree porcelain output ([#5382](https://github.com/yonatangross/orchestkit/issues/5382)) ([05077d0](https://github.com/yonatangross/orchestkit/commit/05077d036c082b2d6ad675e9e0d30b6d53f9bf3b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Miscellaneous",
+        "items": [
+          "**cc:** bump support floor to 2.1.328 ([#5403](https://github.com/yonatangross/orchestkit/issues/5403)) ([c289f9a](https://github.com/yonatangross/orchestkit/commit/c289f9aa0d8e61d4d4e19fc089ffc58fba85158b))",
+          "**site:** only main deploys on Vercel, previews off ([#5439](https://github.com/yonatangross/orchestkit/issues/5439)) ([a18093b](https://github.com/yonatangross/orchestkit/commit/a18093bd23c54c4d58f17f67857e3076ba2e48d9))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "Documentation",
+        "items": [
+          "**api:** declare ask result limit in OpenAPI ([#5423](https://github.com/yonatangross/orchestkit/issues/5423)) ([d3c0d49](https://github.com/yonatangross/orchestkit/commit/d3c0d4912e76c098fdc7cfc1b741e4401e9bb5d8))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.18.1",
     "date": "2026-11-24",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.18.0...v10.18.1",

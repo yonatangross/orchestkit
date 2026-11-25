@@ -7,18 +7,18 @@
       "exports": 73
     },
     "pretool": {
-      "size": 175146,
-      "sizeKB": "171.04",
+      "size": 174418,
+      "sizeKB": "170.33",
       "exports": 89
     },
     "posttool": {
-      "size": 158963,
-      "sizeKB": "155.24",
+      "size": 159919,
+      "sizeKB": "156.17",
       "exports": 71
     },
     "prompt": {
-      "size": 96725,
-      "sizeKB": "94.46",
+      "size": 96970,
+      "sizeKB": "94.70",
       "exports": 160
     },
     "lifecycle": {
@@ -57,8 +57,8 @@
       "exports": 73
     }
   },
-  "totalSize": 910696,
-  "totalSizeKB": "889.35",
+  "totalSize": 911169,
+  "totalSizeKB": "889.81",
   "inputs": 120,
-  "avgBundleSizeKB": "80.85"
+  "avgBundleSizeKB": "80.89"
 }
