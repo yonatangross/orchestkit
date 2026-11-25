@@ -49,12 +49,12 @@ grep_to() {
 # Every published page, manifest fragment and playground source, listed from
 # inside a checkout root.
 public_files() {
-  shopt -s nullglob
-  printf '%s\n' \
-    docs/site/public/lab/*.html \
-    docs/site/lab-manifest/*.json \
-    docs/*/*.html \
-    docs/*/data.json
+  # Tracked files only, at any depth below docs/ (in a pathspec, * crosses
+  # slashes). A hand-written glob stops at the depth it was written for.
+  git -c core.quotePath=false ls-files -- \
+    'docs/*.html' \
+    'docs/*/data.json' \
+    'docs/site/lab-manifest/*.json'
 }
 
 # Scans the public files of the checkout at $1. Exit status: 0 clean, 1 a
@@ -111,22 +111,36 @@ new_fixture() {
 
 # Self-check, so the scan cannot go blind at a depth: a neutral nested source
 # passes, and a private path in a source at any depth below docs/ is caught.
+#
+# Each outcome is asserted exactly. The control passes only if the scan ran
+# clean (status 0) and counted both of its files, the nested one included; a
+# fault passes only on status 1, a found private path, so a grep error (2) or an
+# empty list (3) cannot pass for a catch.
 dir="$(new_fixture control)"
 git -C "$dir" add -A
-if ! scan "$dir" control >"$WORK/control.out" 2>&1; then
-  echo "FAIL: self-check: a neutral nested source was refused"
+control_rc=0
+scan "$dir" control >"$WORK/control.out" 2>&1 || control_rc=$?
+if [[ $control_rc -ne 0 ]]; then
+  echo "FAIL: self-check: a neutral nested source gave status $control_rc, want 0"
+  cat "$WORK/control.out"
+  exit 1
+fi
+if ! grep -q "scanned 2 public files" "$WORK/control.out"; then
+  echo "FAIL: self-check: the control did not scan both of its files, the nested one included:"
   cat "$WORK/control.out"
   exit 1
 fi
 
 expect_caught() {
-  local rel="$1" content="$2" dir
+  local rel="$1" content="$2" dir rc=0
   dir="$(new_fixture "caught-${rel//\//_}")"
   mkdir -p "$(dirname "$dir/$rel")"
   printf '%s\n' "$content" >"$dir/$rel"
   git -C "$dir" add -A
-  if scan "$dir" "caught-${rel//\//_}" >"$WORK/caught.out" 2>&1; then
-    echo "FAIL: self-check: a private path in $rel was not caught"
+  scan "$dir" "caught-${rel//\//_}" >"$WORK/caught.out" 2>&1 || rc=$?
+  if [[ $rc -ne 1 ]]; then
+    echo "FAIL: self-check: a private path in $rel gave status $rc, want 1 (found):"
+    cat "$WORK/caught.out"
     exit 1
   fi
 }
