@@ -128,6 +128,7 @@ describe("vercel-install.sh leaves the live docs/site manifest alone", () => {
 		const { readFileSync } = require("node:fs");
 		let reads = 0, bad = 0, stop = false;
 		process.stdin.on("data", () => { stop = true; });
+		process.stdin.on("end", () => { stop = true; });
 		setTimeout(() => process.exit(2), 30000);
 		process.stdout.write("ready\\n");
 		(function loop() {
@@ -148,19 +149,38 @@ describe("vercel-install.sh leaves the live docs/site manifest alone", () => {
 		spawned?: (pid: number) => void,
 	): Promise<{ reads: number; bad: number }> {
 		const child = spawn(process.execPath, ["-e", script, LIVE[0]], { stdio: ["pipe", "pipe", "inherit"] });
+		// A reader that is already gone has no stdin left to write to or close.
+		child.stdin.on("error", () => {});
 		if (child.pid !== undefined) spawned?.(child.pid);
 		let out = "";
-		const ready = new Promise<void>((resolve) => {
+		const done = new Promise<void>((resolve) => {
+			child.once("close", () => resolve());
+			child.once("error", () => resolve());
+		});
+		const ready = new Promise<void>((resolve, reject) => {
 			child.stdout.on("data", (chunk: Buffer) => {
 				out += chunk.toString();
 				if (out.includes("ready\n")) resolve();
 			});
+			child.once("error", reject);
+			child.once("close", (code) => reject(new Error(`the reader exited (code ${code}) before it was ready`)));
 		});
-		const done = new Promise<void>((resolve) => child.on("close", () => resolve()));
-		await ready;
-		work();
-		child.stdin.write("stop");
-		await done;
+		let finished = false;
+		try {
+			await ready;
+			work();
+			finished = true;
+		} finally {
+			// Closing stdin stops the reader (it treats EOF as stop). A failed run
+			// also kills it. A cleanup error must not replace the original failure.
+			try {
+				child.stdin.end();
+				if (!finished) child.kill();
+			} catch {
+				// the reader is already gone
+			}
+			await done;
+		}
 		return JSON.parse(out.replace("ready\n", "")) as { reads: number; bad: number };
 	}
 
