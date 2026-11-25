@@ -31,7 +31,7 @@ FLOOR_DIR='\.'"floor"
 OPERATOR="yonatan"
 PLACEHOLDERS='me|you|op|someone|dev|u|user|ubuntu|example|name|username|runner|home|foo|x'
 
-WORK="$(mktemp -d)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/public-pages-paths.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
 # grep exits 1 for "no match", which is the good case here; any other non-zero
