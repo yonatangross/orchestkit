@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>What the public page scan bans and what it allows</title>
+  <meta name="description" content="Which paths a published Lab page or playground source may quote, and which the new scan refuses.">
+  <style>
+    body { margin: 0; background: #f6f8fa; color: #172b35; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 56rem; margin: auto; padding: clamp(1rem, 5vw, 4rem) 1rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.15; margin: .35rem 0 1rem; }
+    .eyebrow { color: #346557; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .evidence, details { background: #fff; border: 1px solid #cedadd; border-radius: .75rem; margin-top: 1.25rem; }
+    .evidence { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    caption, th, td, details { padding: .65rem 1rem; }
+    th, td { border-top: 1px solid #dbe4e6; }
+    thead { background: #edf2f4; }
+    td.ban { background: #fff4e5; }
+    td.ok { background: #eff7f2; }
+    summary { cursor: pointer; font-weight: 700; }
+  </style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="What the public page scan bans and what it allows"><meta property="og:description" content="Which paths a published Lab page or playground source may quote, and which the new scan refuses."><meta property="og:url" content="https://orchestkit.dev/lab/lab-pages-private-paths.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="What the public page scan bans and what it allows"><meta name="twitter:description" content="Which paths a published Lab page or playground source may quote, and which the new scan refuses."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <span class="eyebrow">Lab hygiene / Public page scan</span>
+  <h1>What the public page scan bans and what it allows</h1>
+  <p>Pages under <code>docs/site/public/lab</code> are public, and so are the playground sources they come from. A new test scans every one of them, plus every lab manifest fragment, and refuses a real home or desk path. Two pages that were already public are fixed here.</p>
+  <div class="evidence">
+    <table>
+      <caption>Path examples and the scan verdict</caption>
+      <thead><tr><th>Quoted path</th><th>Verdict</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code>/Users/you/lanes/mods-1</code></td><td class="ok">Allowed</td><td>Neutral example folder under a placeholder home.</td></tr>
+        <tr><td><code>~/shots/orchestkit-v10-ga/</code></td><td class="ok">Allowed</td><td>Home relative, no private directory name.</td></tr>
+        <tr><td><code>/home/user/repo</code></td><td class="ok">Allowed</td><td>Placeholder home name.</td></tr>
+        <tr><td>a path inside the private floor directory</td><td class="ban">Refused</td><td>Shows the layout of a private machine.</td></tr>
+        <tr><td>any folder named <code>desks</code></td><td class="ban">Refused</td><td>Same private layout, one level down.</td></tr>
+        <tr><td>a real operator home</td><td class="ban">Refused</td><td>The name of a real account.</td></tr>
+        <tr><td>a home with any name that is not a placeholder</td><td class="ban">Refused</td><td>Unknown names are treated as real until listed.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <details open>
+    <summary>What changed</summary>
+    <p>The card-only-mode page and its Lab copy quoted a desk folder as the listed folder. They now use <code>/Users/you/lanes</code>. The v10-ga data file named a desk screenshots folder. It now names <code>~/shots/orchestkit-v10-ga/</code>. The scan covers every published page, so the next one is caught on its own PR.</p>
+  </details>
+</main>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

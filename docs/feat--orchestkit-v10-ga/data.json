@@ -26,7 +26,7 @@
     "roles missing from the Cookbook menu"
   ],
   "screenshots": {
-    "folder": "~/.floor/desks/grok/shots/orchestkit-v10-ga/",
+    "folder": "~/shots/orchestkit-v10-ga/",
     "count": 13,
     "source": "local build of feat/orchestkit-v10-ga"
   },

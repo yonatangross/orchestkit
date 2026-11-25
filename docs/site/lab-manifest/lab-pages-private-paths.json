@@ -1,0 +1,8 @@
+{
+  "slug": "lab-pages-private-paths",
+  "source": "docs/fix--lab-pages-private-paths/index.html",
+  "title": "What the public page scan bans and what it allows",
+  "description": "Which paths a published Lab page or playground source may quote, and which the new scan refuses.",
+  "tags": ["lab", "privacy", "tests"],
+  "date": "2026-11-24"
+}
