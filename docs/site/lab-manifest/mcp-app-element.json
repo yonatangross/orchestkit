@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-app-element",
+  "source": "docs/feat--mcp-app-element/index.html",
+  "title": "MCP App search results on the site tokens",
+  "description": "The docs search view is rebuilt as a custom element on the site's own colors. Switch the theme and the width, and see the same view the chat host renders, with real search data.",
+  "tags": ["mcp", "docs-site", "design"],
+  "date": "2026-11-25"
+}
