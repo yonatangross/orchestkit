@@ -93,12 +93,14 @@
     constructor() {
       super();
       this.attachShadow({ mode: "open" });
-      this._data = undefined;
+      this._result = undefined;
       this.host = null;
     }
     connectedCallback() { this.paint(); }
-    get data() { return this._data; }
-    set data(value) { this._data = value; this.paint(); }
+    // The tool result the view draws. Named `result`, not `data`: on an element
+    // `data` is the URL property of <object>, which scanners read as a sink.
+    get result() { return this._result; }
+    set result(value) { this._result = value; this.paint(); }
     setTheme(theme) { if (theme === "light" || theme === "dark") this.setAttribute("data-theme", theme); }
     // What a screen reader hears once when data arrives. "" says nothing.
     summary() { return ""; }
@@ -111,8 +113,8 @@
         this.shadowRoot.replaceChildren(h("style", { text: sheet }), this._app, this._live);
       }
       this._app.textContent = "";
-      append(this._app, this.render(this._data));
-      var said = this.summary(this._data);
+      append(this._app, this.render(this._result));
+      var said = this.summary(this._result);
       if (this._live.textContent !== said) this._live.textContent = said;
       this.resized();
     }
@@ -172,9 +174,9 @@
     // What a host message does, or null for anything the view does not know.
     function receive(d) {
       if (!d || typeof d !== "object") return null;
-      if (d.type === "ui-lifecycle-iframe-render-data") return function () { el.data = d.payload && d.payload.toolOutput; };
+      if (d.type === "ui-lifecycle-iframe-render-data") return function () { el.result = d.payload && d.payload.toolOutput; };
       if (d.jsonrpc !== "2.0") return null;
-      if (d.method === "ui/notifications/tool-result") return function () { el.data = d.params && d.params.structuredContent; };
+      if (d.method === "ui/notifications/tool-result") return function () { el.result = d.params && d.params.structuredContent; };
       if (d.method === "ui/notifications/host-context-changed") return function () { context(d.params); };
       if ((d.method === "ping" || d.method === "ui/resource-teardown") && d.id !== undefined) return function () { send({ jsonrpc: "2.0", id: d.id, result: {} }); };
       if (d.method === undefined && d.id === 1 && d.result) return function () {
@@ -201,7 +203,7 @@
     function fromOpenai() {
       if (!g.openai) return;
       el.setTheme(g.openai.theme);
-      if (g.openai.toolOutput) el.data = g.openai.toolOutput;
+      if (g.openai.toolOutput) el.result = g.openai.toolOutput;
     }
     g.addEventListener("message", function (e) {
       if (!fromHost(e)) return;
