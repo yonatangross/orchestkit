@@ -32,7 +32,7 @@ jobs:
   guard:
     name: Release-Please File Guard
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -43,7 +43,11 @@ jobs:
         if: github.base_ref == 'main' && startsWith(github.head_ref, 'release-please')
         env:
           RELEASE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: node --test tests/release-please/mainline-types.test.cjs
+        run: |
+          proof_dir="$RUNNER_TEMP/release-please"
+          mkdir -p "$proof_dir"
+          npm install --prefix "$proof_dir" --save-exact --ignore-scripts release-please@17.6.0
+          RELEASE_PLEASE_ROOT="$proof_dir" node --test --test-concurrency=1 tests/release-please/mainline-types.test.cjs
 
       - name: Allow bot PRs and labeled overrides to proceed
         id: bot-check

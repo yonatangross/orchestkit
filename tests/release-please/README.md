@@ -11,7 +11,13 @@ pnpm --dir "$proof_dir" add --save-exact release-please@17.6.0 --ignore-scripts
 RELEASE_PLEASE_ROOT="$proof_dir" node --test --test-concurrency=1 tests/release-please/exclude-paths.test.cjs
 ```
 
-The same suite checks that the writer renders uppercase Software Factory subjects using the lowercase `swf` mapping.
+The same suite checks that the writer renders uppercase Software Factory subjects, mapped to the Bug Fixes section.
+
+`mainline-types.test.cjs` runs the same package (set `RELEASE_PLEASE_ROOT` the same way) over every first-parent
+subject since the last release. It judges each subject with release-please's own parser and writer, so it
+shares the generator's type grammar and adds none of its own. A type missing from `changelog-sections`,
+hyphenated, scoped or breaking, fails it. It also runs the site's `generate-changelog-data.js` on every visible section name.
+The release PR guard runs it after installing release-please 17.6.0.
 
 This is an explicit, standalone test; the ordinary local suites do not install
 release tooling or run it. Rerun it when changing exclusions or the pinned action.

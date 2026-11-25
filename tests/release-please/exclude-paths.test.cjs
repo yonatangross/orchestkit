@@ -67,5 +67,5 @@ test('a Software Factory squash subject appears in the release notes', async () 
     message: 'SWF(bug): accept search result URLs in hosted docs MCP read (#5429)',
     files: ['docs/site/app/api/mcp/route.ts'],
   };
-  assert.match(await notes(commit), /### Fixes and Polish[\s\S]*accept search result URLs.*\[#5429\]/);
+  assert.match(await notes(commit), /### Bug Fixes[\s\S]*accept search result URLs.*\[#5429\]/);
 });
