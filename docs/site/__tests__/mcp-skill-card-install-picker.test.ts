@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { SITE } from "@/lib/constants";
 import { SKILLS } from "@/lib/generated/skills-data";
+import { viewRoot } from "./helpers/mcp-view";
 
 vi.mock("@/lib/doc-markdown", () => ({ getDocMarkdown: async () => null }));
 vi.mock("@/lib/analytics-server", () => ({ reportServerEvents: () => {} }));
@@ -238,6 +239,9 @@ describe("each host's install command equals the manifest text", () => {
 	});
 });
 
+// The painted part of the view element: its shadow root, without the styles.
+const view = () => viewRoot().app;
+
 // The frame runs the card's own script, so render each view for real data in the
 // test DOM: build the body from the served HTML, set the host's toolOutput, run it.
 // The served HTML is parsed with the DOM's own parser (a parsed document never
@@ -261,7 +265,7 @@ describe("skill card renders", () => {
 	it("a real skill: name, description, plugin, install line and a native copy button", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorm" } });
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
-		const text = document.body.textContent ?? "";
+		const text = view().textContent ?? "";
 		const real = SKILLS["brainstorm"];
 		expect(text).toContain("brainstorm");
 		// The card shows the leading sentence and the "Use when" sentence, both cut
@@ -273,13 +277,12 @@ describe("skill card renders", () => {
 		expect(real.description).toContain(call.structuredContent.useWhen);
 		expect(text).toContain(call.structuredContent.useWhen);
 		expect(text).not.toContain("Not for building");
-		expect(text).toContain("Ships in the ork plugin");
-		// Install first, then run: the install block comes before the run block.
+		expect(text).toContain("ork plugin");
 		const installLines = SITE.installCommand.split(" && ");
 		for (const line of installLines) expect(text).toContain(line);
-		expect(text.indexOf("Install in Claude Code")).toBeLessThan(text.indexOf("Then run /ork:brainstorm in Claude Code."));
-		expect(text).toContain("/ork:brainstorm");
-		const btn = document.querySelector("button[data-copy]") as HTMLButtonElement | null;
+		expect(text).toContain("run /ork:brainstorm");
+		expect(text).toContain("Claude Code");
+		const btn = view().querySelector("button[data-copy]") as HTMLButtonElement | null;
 		expect(btn, "copy button").not.toBeNull();
 		expect(btn!.tagName).toBe("BUTTON");
 		expect(btn!.getAttribute("type")).toBe("button");
@@ -289,18 +292,18 @@ describe("skill card renders", () => {
 	it("an unknown name: 'no such skill' with the nearest names, never an empty frame", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorn" } });
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
-		const text = document.body.textContent ?? "";
+		const text = view().textContent ?? "";
 		// A headline with the answer, the typed name quoted, and a path forward.
-		expect(document.querySelector("h1")?.textContent).toBe("Did you mean brainstorm?");
+		expect(view().querySelector("h1")?.textContent).toBe("Did you mean brainstorm?");
 		expect(text).toContain("OrchestKit has no skill named brainstorn.");
-		expect(document.querySelector("button[data-copy]")).toBeNull();
+		expect(view().querySelector("button[data-copy]")).toBeNull();
 		// The suggestion is a real button, and the typed name is set apart in code style.
-		expect(document.querySelector(".code")?.textContent).toBe("brainstorn");
-		const show = document.querySelector(".near button") as HTMLButtonElement;
+		expect(view().querySelector(".code")?.textContent).toBe("brainstorn");
+		const show = view().querySelector(".near button") as HTMLButtonElement;
 		expect(show.tagName).toBe("BUTTON");
 		expect(show.textContent).toBe("Show brainstorm");
 		// A way out when the suggestion is wrong: the full skill list.
-		const all = [...document.querySelectorAll("a")].find((a) => a.textContent?.startsWith("Browse all skills"));
+		const all = [...view().querySelectorAll("a")].find((a) => a.textContent?.startsWith("Browse all skills"));
 		expect(all?.getAttribute("href")).toBe(`${SITE.domain}/docs/reference/skills`);
 	});
 
@@ -309,17 +312,17 @@ describe("skill card renders", () => {
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
 		const sent = vi.fn();
 		(window as unknown as { openai: unknown }).openai = { sendFollowUpMessage: sent };
-		(document.querySelector(".near button") as HTMLButtonElement).click();
+		(view().querySelector(".near button") as HTMLButtonElement).click();
 		expect(sent).toHaveBeenCalledWith({ prompt: "Show me the OrchestKit skill card for brainstorm" });
-		expect(document.body.textContent).toContain("Asked.");
+		expect(view().textContent).toContain("Asked.");
 	});
 
 	it("an unknown name with nothing close says so and points at the docs search", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "zzzzzzzz" } });
 		expect(call.structuredContent).toMatchObject({ found: false, suggestions: [] });
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
-		expect(document.querySelector("h1")?.textContent).toBe("No such skill");
-		expect(document.body.textContent).toContain("orchestkit_docs_search");
+		expect(view().querySelector("h1")?.textContent).toBe("No such skill");
+		expect(view().textContent).toContain("orchestkit_docs_search");
 	});
 
 	it("long, short and missing content still render: a 200-character name, an empty description", async () => {
@@ -336,18 +339,18 @@ describe("skill card renders", () => {
 			installCommand: SITE.installCommand,
 			docsUrl: `${SITE.domain}/docs/reference/skills/${longName}`,
 		});
-		expect(document.querySelector("h1")?.textContent).toBe(longName);
-		expect(document.querySelector("button[data-copy]")).not.toBeNull();
-		expect(document.body.textContent).not.toContain("Then run");
+		expect(view().querySelector("h1")?.textContent).toBe(longName);
+		expect(view().querySelector("button[data-copy]")).not.toBeNull();
+		expect(view().textContent).not.toContain("run /");
 	});
 
-	it("the picker names the host first, then where to paste, then the command; all hosts say 'Then run in'", async () => {
+	it("the picker says where to paste before the command; all hosts say 'Then run in'", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: { host: "codex" } });
 		mount(await viewHtml(PICKER_URI), call.structuredContent);
-		const text = document.body.textContent ?? "";
+		const text = view().textContent ?? "";
 		const codex = (call.structuredContent.hosts as Array<{ id: string; what: string; where: string }>).find((h) => h.id === "codex")!;
-		expect(text.indexOf(codex.what)).toBeLessThan(text.indexOf(codex.where));
-		expect(text.indexOf(codex.what)).toBeLessThan(text.indexOf("Copy both commands"));
+		expect(text).toContain(codex.what);
+		expect(text.indexOf(codex.where)).toBeLessThan(text.indexOf("codex plugin add"));
 		for (const h of call.structuredContent.hosts as Array<{ then: { label: string } | null }>) {
 			expect(h.then?.label).toMatch(/^Then run in /);
 		}
@@ -357,10 +360,10 @@ describe("skill card renders", () => {
 	it("the skill card offers the install picker for other hosts, as a button that asks the host", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_skill_get", arguments: { name: "brainstorm" } });
 		mount(await viewHtml(SKILL_URI), call.structuredContent);
-		expect(document.querySelector("button[data-copy]")?.textContent).toBe("Copy both commands");
+		expect(view().querySelector("button[data-copy]")?.getAttribute("aria-label")).toBe("Copy both commands");
 		const sent = vi.fn();
 		(window as unknown as { openai: unknown }).openai = { sendFollowUpMessage: sent };
-		(document.querySelector("button.text") as HTMLButtonElement).click();
+		(view().querySelector("button.other") as HTMLButtonElement).click();
 		expect(sent).toHaveBeenCalledWith({ prompt: "Show me how to install OrchestKit in Cursor or Codex" });
 	});
 
@@ -377,17 +380,18 @@ describe("skill card renders", () => {
 		mount(await viewHtml(PICKER_URI), call.structuredContent);
 		const writeText = vi.fn(async () => {});
 		Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-		(document.querySelector("button[data-copy]") as HTMLButtonElement).click();
+		(view().querySelector("button[data-copy]") as HTMLButtonElement).click();
 		await new Promise((r) => setTimeout(r, 0));
 		expect(writeText).toHaveBeenCalledWith(SITE.installCommand);
-		const status = document.querySelector('[role="status"]');
-		expect(status?.textContent).toBe("✓ Copied to the clipboard.");
+		const status = view().querySelector('[role="status"]');
+		expect(status?.querySelector("svg")).not.toBeNull();
+		expect(status?.textContent?.trim()).toBe("Copied to the clipboard.");
 	});
 
 	it("a command wraps between words, never inside one: every word is a no-wrap unit", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: { host: "codex" } });
 		mount(await viewHtml(PICKER_URI), call.structuredContent);
-		const words = [...document.querySelectorAll("pre .t")].map((n) => n.textContent);
+		const words = [...view().querySelectorAll("pre .t")].map((n) => n.textContent);
 		expect(words).toContain("ork-codex@orchestkit-codex");
 		expect(words).toContain("--sparse");
 		expect(words.some((w) => w?.includes(" "))).toBe(false);
@@ -403,13 +407,13 @@ describe("skill card renders", () => {
 			installCommand: SITE.installCommand,
 			docsUrl: `${SITE.domain}/docs/reference/skills/x`,
 		});
-		expect(document.querySelector("img")).toBeNull();
+		expect(view().querySelector("img")).toBeNull();
 		expect((window as unknown as { __pwned?: number }).__pwned).toBeUndefined();
 	});
 
 	it("before any data arrives the frame says what it is waiting for, not blank", async () => {
 		mount(await viewHtml(SKILL_URI), undefined);
-		expect((document.body.textContent ?? "").trim().length).toBeGreaterThan(0);
+		expect((view().textContent ?? "").trim().length).toBeGreaterThan(0);
 	});
 });
 
@@ -417,13 +421,13 @@ describe("install picker renders", () => {
 	it("three native radios, Claude Code checked, its command and a copy button shown", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: {} });
 		mount(await viewHtml(PICKER_URI), call.structuredContent);
-		const radios = [...document.querySelectorAll('input[type="radio"][name="host"]')] as HTMLInputElement[];
+		const radios = [...view().querySelectorAll('input[type="radio"][name="host"]')] as HTMLInputElement[];
 		expect(radios.map((r) => r.value)).toEqual(["claude", "cursor", "codex"]);
 		expect(radios.filter((r) => r.checked).map((r) => r.value)).toEqual(["claude"]);
-		expect(document.querySelector("fieldset legend")).not.toBeNull();
-		for (const r of radios) expect(document.querySelector(`label[for="${r.id}"]`), r.value).not.toBeNull();
-		expect(document.body.textContent).toContain("claude plugin install ork@orchestkit");
-		const btn = document.querySelector("button[data-copy]") as HTMLButtonElement;
+		expect(view().querySelector("fieldset legend")).not.toBeNull();
+		for (const r of radios) expect(view().querySelector(`label[for="${r.id}"]`), r.value).not.toBeNull();
+		expect(view().textContent).toContain("claude plugin install ork@orchestkit");
+		const btn = view().querySelector("button[data-copy]") as HTMLButtonElement;
 		expect(btn.getAttribute("data-copy")).toBe(SITE.installCommand);
 	});
 
@@ -432,14 +436,14 @@ describe("install picker renders", () => {
 		mount(await viewHtml(PICKER_URI), call.structuredContent);
 		const fetchSpy = vi.fn();
 		(globalThis as unknown as { fetch: unknown }).fetch = fetchSpy;
-		const codex = document.querySelector('input[value="codex"]') as HTMLInputElement;
+		const codex = view().querySelector('input[value="codex"]') as HTMLInputElement;
 		codex.checked = true;
 		codex.dispatchEvent(new Event("change", { bubbles: true }));
-		const text = document.body.textContent ?? "";
+		const text = view().textContent ?? "";
 		expect(text).toContain("codex plugin add ork-codex@orchestkit-codex");
 		expect(text).not.toContain("claude plugin install ork@orchestkit");
 		const hosts = call.structuredContent.hosts as Array<{ id: string; copy: string }>;
-		const btn = document.querySelector("button[data-copy]") as HTMLButtonElement;
+		const btn = view().querySelector("button[data-copy]") as HTMLButtonElement;
 		expect(btn.getAttribute("data-copy")).toBe(hosts.find((h) => h.id === "codex")!.copy);
 		expect(fetchSpy).not.toHaveBeenCalled();
 	});
@@ -452,13 +456,13 @@ describe("install picker renders", () => {
 		expect(hosts.find((h) => h.id === "claude")!.copyLabel).toBe("Copy both commands");
 		expect(hosts.find((h) => h.id === "codex")!.copyLabel).toBe("Copy both commands");
 		mount(await viewHtml(PICKER_URI), { ...call.structuredContent, selected: "cursor" });
-		expect(document.querySelector("button[data-copy]")?.textContent).toBe("Copy repo name");
+		expect(view().querySelector("button[data-copy]")?.getAttribute("aria-label")).toBe("Copy repo name");
 	});
 
 	it("preselects the host the tool was asked for", async () => {
 		const call = await rpc("tools/call", { name: "orchestkit_install", arguments: { host: "cursor" } });
 		mount(await viewHtml(PICKER_URI), call.structuredContent);
-		expect((document.querySelector('input[value="cursor"]') as HTMLInputElement).checked).toBe(true);
-		expect(document.body.textContent).toContain("yonatangross/orchestkit");
+		expect((view().querySelector('input[value="cursor"]') as HTMLInputElement).checked).toBe(true);
+		expect(view().textContent).toContain("yonatangross/orchestkit");
 	});
 });

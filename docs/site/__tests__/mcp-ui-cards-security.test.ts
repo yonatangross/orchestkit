@@ -13,6 +13,14 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { INSTALL_PICKER_HTML, SKILL_CARD_HTML } from "@/lib/mcp-ui-cards";
+import {
+	bootConnected,
+	bootView,
+	CLAUDE_PROXY,
+	initResult as handshake,
+	OPENAI_PROXY,
+	toolResult,
+} from "./helpers/mcp-view";
 
 vi.mock("@/lib/doc-markdown", () => ({ getDocMarkdown: async () => null }));
 vi.mock("@/lib/analytics-server", () => ({ reportServerEvents: () => {} }));
@@ -34,54 +42,20 @@ const HOSTS = {
 	selected: "claude",
 };
 
-const CLAUDE_PROXY = "https://a904794854a047f6.claudemcpcontent.com";
-const OPENAI_PROXY = "https://www-orchestkit-dev.oaiusercontent.com";
+const initResult = handshake();
 
-type Sent = { message: { method?: string; id?: number }; target: string };
+const boot = (html: string = INSTALL_PICKER_HTML) => {
+	const view = bootView(html);
+	return { ...view, root: view.app };
+};
 
-// The view's own script runs against a stand-in window whose parent records what
-// it is sent. happy-dom rewrites source and origin on dispatched MessageEvents,
-// so the listener is captured and called with the exact fields a browser sets.
-function boot(html: string = INSTALL_PICKER_HTML) {
-	const script = /<script>\(function\(\)\{([\s\S]*)\}\)\(\);<\/script>/.exec(html)?.[1];
-	expect(script, "card HTML must embed its runtime").toBeTruthy();
-	document.body.innerHTML = '<main class="card" id="root"></main>';
-	const sent: Sent[] = [];
-	const parent = {
-		postMessage(message: Sent["message"], target: string) {
-			sent.push({ message, target });
-		},
-	};
-	const listeners: ((e: unknown) => void)[] = [];
-	const frame = {
-		parent,
-		addEventListener(type: string, fn: (e: unknown) => void) {
-			if (type === "message") listeners.push(fn);
-		},
-	};
-	const run = new Function("window", "document", "navigator", `"use strict";${script}`) as (
-		w: unknown,
-		d: unknown,
-		n: unknown,
-	) => void;
-	run(frame, document, navigator);
-	const root = document.getElementById("root") as HTMLElement;
-	return {
-		root,
-		sent,
-		parent,
-		deliver(data: unknown, origin: string, source: unknown = parent) {
-			for (const fn of listeners) fn({ data, origin, source });
-		},
-	};
-}
+// A view whose host (at CLAUDE_PROXY) has answered ui/initialize: MCP tool
+// results are drawn only after that.
+const bootIn = (html: string = INSTALL_PICKER_HTML) => {
+	const view = bootConnected(html);
+	return { ...view, root: view.app };
+};
 
-const toolResult = (structuredContent: unknown) => ({
-	jsonrpc: "2.0",
-	method: "ui/notifications/tool-result",
-	params: { structuredContent },
-});
-const initResult = { jsonrpc: "2.0", id: 1, result: { protocolVersion: "2026-01-26" } };
 const renderData = (payload: unknown) => ({
 	type: "ui-lifecycle-iframe-render-data",
 	payload: { toolOutput: payload },
@@ -92,6 +66,7 @@ describe("who may hand the view its data", () => {
 		"renders a tool result from the parent frame at %s",
 		(origin) => {
 			const { root, deliver } = boot();
+			deliver(initResult, origin);
 			deliver(toolResult(HOSTS), origin);
 			expect(root.textContent).toContain("Install OrchestKit");
 		},
@@ -131,14 +106,18 @@ describe("who may hand the view its data", () => {
 		const { root, deliver } = boot();
 		deliver({ jsonrpc: "2.0", method: "something/else" }, "https://evil.example");
 		deliver("a string", "https://evil.example");
+		deliver(initResult, CLAUDE_PROXY);
 		deliver(toolResult(HOSTS), CLAUDE_PROXY);
 		expect(root.textContent).toContain("Install OrchestKit");
 	});
 
 	it("ignores a method message that is not JSON-RPC 2.0", () => {
-		const { root, deliver } = boot();
+		const { root, deliver } = bootIn();
 		deliver({ method: "ui/notifications/tool-result", params: { structuredContent: HOSTS } }, CLAUDE_PROXY);
 		expect(root.textContent).toContain("Waiting for install data");
+		// Control: the same message with "jsonrpc": "2.0" is drawn.
+		deliver(toolResult(HOSTS), CLAUDE_PROXY);
+		expect(root.textContent).toContain("Install OrchestKit");
 	});
 });
 
@@ -155,15 +134,29 @@ describe("where the view sends", () => {
 		expect(new Set(later.map((s) => s.target))).toEqual(new Set([CLAUDE_PROXY]));
 	});
 
-	it("sends nothing to an unknown host when a button is pressed before the handshake answers", () => {
+	it("sends a follow-up only to the pinned host origin, and nothing else to *", () => {
 		const { root, deliver, sent } = boot(SKILL_CARD_HTML);
-		// A suggestion button exists only after data; deliver it as the first,
-		// pinning message, then check the follow-up goes to that origin.
+		// The host's answer pins its origin and says it takes text messages. A
+		// suggestion button exists only after data.
+		deliver(handshake({ hostCapabilities: { message: { text: {} } } }), OPENAI_PROXY);
 		deliver(toolResult({ found: false, query: "x", suggestions: ["brainstorm"] }), OPENAI_PROXY);
 		(root.querySelector(".near button") as HTMLButtonElement).click();
 		const message = sent.find((s) => s.message.method === "ui/message");
 		expect(message?.target).toBe(OPENAI_PROXY);
+		expect(message?.message.params).toEqual({
+			role: "user",
+			content: [{ type: "text", text: "Show me the OrchestKit skill card for brainstorm" }],
+		});
 		expect(sent.filter((s) => s.target === "*").map((s) => s.message.method)).toEqual(["ui/initialize"]);
+	});
+
+	it("sends no follow-up to a host that takes no messages, and says what to do by hand", () => {
+		const { root, deliver, sent } = boot(SKILL_CARD_HTML);
+		deliver(initResult, CLAUDE_PROXY);
+		deliver(toolResult({ found: false, query: "x", suggestions: ["brainstorm"] }), CLAUDE_PROXY);
+		(root.querySelector(".near button") as HTMLButtonElement).click();
+		expect(sent.some((s) => s.message.method === "ui/message")).toBe(false);
+		expect(root.textContent).toContain("Ask for “brainstorm” by name.");
 	});
 
 	it("answers an opaque-origin parent, which can only be addressed with *", () => {
@@ -176,7 +169,7 @@ describe("where the view sends", () => {
 
 describe("what the view does with the data", () => {
 	it("copies the displayed commands, never a divergent wire-sent copy field", () => {
-		const { root, deliver } = boot();
+		const { root, deliver } = bootIn();
 		deliver(toolResult(HOSTS), CLAUDE_PROXY);
 		const btn = root.querySelector<HTMLButtonElement>("button[data-copy]");
 		expect(btn).toBeTruthy();
@@ -185,7 +178,7 @@ describe("what the view does with the data", () => {
 	});
 
 	it("drops host entries whose fields do not match the schema", () => {
-		const { root, deliver } = boot();
+		const { root, deliver } = bootIn();
 		deliver(
 			toolResult({
 				hosts: [
@@ -203,7 +196,7 @@ describe("what the view does with the data", () => {
 	});
 
 	it("keeps waiting when every host entry is malformed", () => {
-		const { root, deliver } = boot();
+		const { root, deliver } = bootIn();
 		deliver(toolResult({ hosts: [{ id: 1 }] }), CLAUDE_PROXY);
 		expect(root.textContent).toContain("Waiting for install data");
 	});
