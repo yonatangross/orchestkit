@@ -144,10 +144,24 @@
     }
   }
 
+  // The MCP Apps version this view speaks.
+  var PROTOCOL = "2026-01-26";
+
+  function record(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
+
+  // An initialize result the view connects on: every field the spec requires,
+  // in the version the view speaks.
+  function accepted(r) {
+    return record(r) && r.protocolVersion === PROTOCOL &&
+      record(r.hostInfo) && typeof r.hostInfo.name === "string" && typeof r.hostInfo.version === "string" &&
+      record(r.hostCapabilities) && record(r.hostContext);
+  }
+
   // The MCP App surface: JSON-RPC over postMessage with the frame that embedded
   // the view, plus the ChatGPT window.openai object where there is one.
   function mount(tag) {
     var el = document.createElement(tag), hostOrigin = null, seq = 1, capabilities = {};
+    var answered = false, connected = false;
     function embedded() { return !!g.parent && g.parent !== g; }
     // Only the embedding frame may speak to the view. A web host speaks through a
     // sandbox proxy on its own origin (MCP Apps spec, "Sandbox proxy"), so no
@@ -176,14 +190,21 @@
       if (!d || typeof d !== "object") return null;
       if (d.type === "ui-lifecycle-iframe-render-data") return function () { el.result = d.payload && d.payload.toolOutput; };
       if (d.jsonrpc !== "2.0") return null;
-      if (d.method === "ui/notifications/tool-result") return function () { el.result = d.params && d.params.structuredContent; };
-      if (d.method === "ui/notifications/host-context-changed") return function () { context(d.params); };
+      // MCP notifications count only once the handshake succeeded.
+      if (d.method === "ui/notifications/tool-result") return connected ? function () { el.result = d.params && d.params.structuredContent; } : null;
+      if (d.method === "ui/notifications/host-context-changed") return connected ? function () { context(d.params); } : null;
       if ((d.method === "ping" || d.method === "ui/resource-teardown") && d.id !== undefined) return function () { send({ jsonrpc: "2.0", id: d.id, result: {} }); };
-      if (d.method === undefined && d.id === 1 && d.result) return function () {
-        capabilities = d.result.hostCapabilities || {};
-        context(d.result.hostContext);
-        send({ jsonrpc: "2.0", method: "ui/notifications/initialized", params: {} });
-      };
+      // The one answer to ui/initialize. A refused one connects nothing.
+      if (d.method === undefined && d.id === 1 && !answered) {
+        answered = true;
+        if (!accepted(d.result)) return null;
+        return function () {
+          connected = true;
+          capabilities = d.result.hostCapabilities;
+          context(d.result.hostContext);
+          send({ jsonrpc: "2.0", method: "ui/notifications/initialized", params: {} });
+        };
+      }
       return null;
     }
     // The element's own box: a document is never shorter than its frame, so
@@ -196,7 +217,7 @@
       },
       message: function (value) {
         if (g.openai && typeof g.openai.sendFollowUpMessage === "function") { g.openai.sendFollowUpMessage({ prompt: value }); return true; }
-        return request("ui/message", { role: "user", content: { type: "text", text: value } });
+        return connected && request("ui/message", { role: "user", content: [{ type: "text", text: value }] });
       },
       resized: reportSize
     };
@@ -217,7 +238,7 @@
     document.body.appendChild(el);
     fromOpenai();
     if (g.ResizeObserver) new g.ResizeObserver(reportSize).observe(el);
-    send({ jsonrpc: "2.0", id: 1, method: "ui/initialize", params: { appInfo: { name: tag, version: "1.0.0" }, appCapabilities: {}, protocolVersion: "2026-01-26" } });
+    send({ jsonrpc: "2.0", id: 1, method: "ui/initialize", params: { appInfo: { name: tag, version: "1.0.0" }, appCapabilities: {}, protocolVersion: PROTOCOL } });
     return el;
   }
 
