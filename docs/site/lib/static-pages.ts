@@ -29,3 +29,8 @@ export const STATIC_PAGES = [
   "/terms",
   "/yonyon",
 ] as const;
+
+// Pages in the list above that only call redirect(). They stay listed there (the
+// served allowlist and the drift test follow the filesystem) and are left out of
+// the sitemap, which names final URLs only.
+export const REDIRECT_PAGES = ["/mcp-server", "/sdk"] as const;
