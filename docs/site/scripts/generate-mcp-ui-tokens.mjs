@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// Writes lib/generated/mcp-ui-tokens.ts from app/global.css, so the MCP App
-// views read the same colors, radii, shadows and durations as the site. A view
-// ships as one string with no stylesheet to link, so the tokens travel inside it.
+// Writes the two modules an MCP App view is built from:
+//   lib/generated/mcp-ui-tokens.ts    from app/global.css, so the views read the
+//                                     same colors, radii and shadows as the site
+//   lib/generated/mcp-app-sources.ts  from lib/mcp-app (element, components, CSS)
+// A view ships as one string with nothing to link, so both travel inside it.
 //
-//   node scripts/generate-mcp-ui-tokens.mjs           write the module
-//   node scripts/generate-mcp-ui-tokens.mjs --check   fail if it is stale
+//   node scripts/generate-mcp-ui-tokens.mjs           write the modules
+//   node scripts/generate-mcp-ui-tokens.mjs --check   fail if one is stale
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -103,26 +105,64 @@ export function renderTokensModule(source) {
 	].join("\n");
 }
 
+/** The files of lib/mcp-app as strings: a view is served as one document. */
+export function renderSourcesModule(site) {
+	const read = (rel) => {
+		const source = readFileSync(resolve(site, "lib/mcp-app", rel), "utf8");
+		if (/<\/script/i.test(source)) throw new Error(`lib/mcp-app/${rel} would close its script element`);
+		return source;
+	};
+	const tags = readdirSync(resolve(site, "lib/mcp-app/components"))
+		.filter((file) => file.endsWith(".js"))
+		.map((file) => file.slice(0, -3))
+		.sort();
+	const css = read("views.css").replace(/\/\*[\s\S]*?\*\//g, "").trim();
+	return [
+		"// GENERATED from lib/mcp-app by scripts/generate-mcp-ui-tokens.mjs.",
+		"// Do not edit. Run `npm run gen:mcp-ui-tokens` after a view source changes.",
+		"",
+		`export type McpViewTag = ${tags.map((tag) => JSON.stringify(tag)).join(" | ")};`,
+		"",
+		"export const MCP_APP_SOURCES: Readonly<{",
+		"\tbase: string;",
+		"\tcss: string;",
+		"\tcomponents: Readonly<Record<McpViewTag, string>>;",
+		"}> = {",
+		`\tbase: ${JSON.stringify(read("base.js"))},`,
+		`\tcss: ${JSON.stringify(css)},`,
+		"\tcomponents: {",
+		...tags.map((tag) => `\t\t${JSON.stringify(tag)}: ${JSON.stringify(read(`components/${tag}.js`))},`),
+		"\t},",
+		"};",
+		"",
+	].join("\n");
+}
+
 function main(args) {
 	const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-	const out = resolve(site, "lib/generated/mcp-ui-tokens.ts");
-	const next = renderTokensModule(readFileSync(resolve(site, "app/global.css"), "utf8"));
-	if (!args.includes("--check")) {
-		writeFileSync(out, next);
-		console.log(`[mcp-ui-tokens] wrote ${out}`);
-		return 0;
+	const modules = {
+		"lib/generated/mcp-ui-tokens.ts": renderTokensModule(readFileSync(resolve(site, "app/global.css"), "utf8")),
+		"lib/generated/mcp-app-sources.ts": renderSourcesModule(site),
+	};
+	let stale = 0;
+	for (const [rel, next] of Object.entries(modules)) {
+		const out = resolve(site, rel);
+		if (!args.includes("--check")) {
+			writeFileSync(out, next);
+			console.log(`[mcp-ui] wrote ${rel}`);
+			continue;
+		}
+		let current = "";
+		try {
+			current = readFileSync(out, "utf8");
+		} catch {
+			// A missing module is stale like any other.
+		}
+		if (current === next) continue;
+		console.error(`[mcp-ui] ${rel} is stale. Run \`npm run gen:mcp-ui-tokens\` and commit it.`);
+		stale = 1;
 	}
-	let current = "";
-	try {
-		current = readFileSync(out, "utf8");
-	} catch {
-		// A missing module is stale like any other.
-	}
-	if (current === next) return 0;
-	console.error(
-		"[mcp-ui-tokens] lib/generated/mcp-ui-tokens.ts is stale. Run `npm run gen:mcp-ui-tokens` and commit it.",
-	);
-	return 1;
+	return stale;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
