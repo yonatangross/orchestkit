@@ -2,8 +2,11 @@
 // fact comes from HOST_SUPPORT and HOST_INSTALLS, the lists the home page and
 // llms.txt read, so no host text is typed twice.
 
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { COUNTS, SITE } from "@/lib/constants";
+import { HOST_SUPPORT_HTML } from "@/lib/mcp-ui-cards";
 import { HOOKS_LIMIT, HOST_SUPPORT } from "@/lib/host-support";
 import { HOST_INSTALLS } from "@/lib/host-installs";
 import { bootConnected, bootView, CLAUDE_PROXY, toolResult } from "./helpers/mcp-view";
@@ -154,4 +157,58 @@ describe("host support view", () => {
 	it("waits in words before data arrives", async () => {
 		expect(bootView((await view()).text).app.textContent).toContain("Waiting for host data from the host");
 	});
+});
+
+// The Lab page plays the host for the view, so it must run what ships. Two ways
+// it went wrong at fc21372a (Codex and Opus HOLD): the page embedded an older
+// view that connects on any reply, and its host answer left out hostInfo, which
+// the shipped view requires. Both made a broken demo look fine.
+describe("host support lab page", () => {
+	const REPO = resolve(__dirname, "../../..");
+	const manifest = JSON.parse(
+		readFileSync(resolve(__dirname, "../lab-manifest/mcp-app-host-support.json"), "utf8"),
+	) as { source: string };
+	// The registered source, and the copy the Lab serves (the source plus the Lab
+	// chrome). Both are checked: the served copy is the page people open.
+	const PAGES: Record<string, string> = {
+		source: manifest.source,
+		"served copy": "docs/site/public/lab/mcp-app-host-support.html",
+	};
+	const page = (which: string) => readFileSync(resolve(REPO, PAGES[which]), "utf8");
+	type Embedded = { label: string; html: string; data: unknown };
+	const embedded = (html: string): Embedded[] => {
+		const found = /const VIEWS=(\[.*\]);\n/.exec(html);
+		if (!found) throw new Error("the page embeds no VIEWS list");
+		return JSON.parse(found[1]) as Embedded[];
+	};
+
+	it("is registered under the directory the PR Playground job derives from the branch", () => {
+		const head = process.env.GITHUB_HEAD_REF;
+		if (!head) return; // only a pull request run names its branch
+		const dir = `docs/${head.replace(/\//g, "--")}`;
+		expect(existsSync(resolve(REPO, dir))).toBe(true);
+		expect(manifest.source.startsWith(`${dir}/`)).toBe(true);
+	});
+
+	it.each(Object.keys(PAGES))("the %s embeds the shipped view and the tool's own result", async (which) => {
+		const [shipped] = embedded(page(which));
+		expect(shipped.label).toBe(URI);
+		expect(shipped.html).toBe(HOST_SUPPORT_HTML);
+		expect(shipped.data).toEqual((await call()).structuredContent);
+	});
+
+	it.each(Object.keys(PAGES))(
+		"the %s answers ui/initialize the way the shipped view needs, so the demo reaches the host picker",
+		(which) => {
+			const html = page(which);
+			const line = /if\(d\.method==="ui\/initialize"\)send\((\{.*\})\);\n/.exec(html);
+			if (!line) throw new Error("the page answers no ui/initialize");
+			const answer = new Function("d", "theme", `return ${line[1]}`)({ id: 1 }, "dark");
+			const booted = bootView(HOST_SUPPORT_HTML);
+			booted.deliver(answer);
+			booted.deliver(toolResult(embedded(html)[0].data));
+			expect(booted.app.querySelectorAll('input[type="radio"]')).toHaveLength(HOST_SUPPORT.length);
+			expect(booted.app.textContent).not.toContain("Waiting for");
+		},
+	);
 });
