@@ -43,7 +43,7 @@ function LabCard({ entry }: { entry: LabEntry }) {
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-md px-3 py-1.5"
-          style={{ background: "var(--color-fd-primary)", color: "var(--color-fd-primary-foreground)" }}
+          style={{ background: "var(--color-fd-primary-solid)", color: "var(--color-fd-primary-foreground)" }}
         >
           Open playground ↗
         </a>

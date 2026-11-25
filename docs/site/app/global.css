@@ -123,9 +123,16 @@
   --color-fd-diff-remove-symbol: rgb(230, 10, 100);
   --color-fd-diff-add: rgba(14, 180, 100, 0.1);
   --color-fd-diff-add-symbol: rgb(10, 200, 100);
+  /* Two steps of primary for text contrast (WCAG 1.4.3). `solid` is the fill
+     under a label, `text` is primary used as text. Light needs neither, so
+     both equal primary here; .dark below moves them apart. */
+  --color-fd-primary-solid: oklch(0.488 0.217 264);    /* white label 6.70:1 */
+  --color-fd-primary-text: oklch(0.488 0.217 264);
 }
 
 .dark {
+  --color-fd-primary-solid: oklch(0.5 0.19 264);       /* label 6.00:1; plain primary is 3.61:1 */
+  --color-fd-primary-text: oklch(0.76 0.13 264);       /* at least 7.4:1 on surfaces and tints */
   --color-fd-info: oklch(0.76 0.06 220);               /* --yy-george-cool */
   --color-fd-warning: oklch(0.78 0.13 85);             /* --yy-george-warm */
   --color-fd-idea: oklch(0.78 0.13 85);
@@ -1259,12 +1266,19 @@ article blockquote {
 
 /* Contrast (axe color-contrast, serious), measured 2026-09-25:
    - Dark: primary text on the primary tints (What's new, NEW, Latest,
-     changelog version chips) read 3.7 to 4.49:1. Lighten primary TEXT only;
-     buttons that use primary as a background keep it.
+     changelog version chips) read 3.7 to 4.49:1. Primary TEXT takes the
+     lighter step.
+   - Dark: a label on a primary fill reads 3.61:1. Fills take the darker step.
+     The rule moves the variable on the filled element only, so the utility
+     still paints it and hover utilities keep working.
    - Shiki GitHub themes: light `export` red #D73A49 was 4.37:1 and dark
      comment grey #6A737D was 3.97:1 on the code background. */
 .dark .text-fd-primary {
-  color: oklch(0.76 0.13 264);
+  color: var(--color-fd-primary-text);
+}
+.dark .bg-fd-primary,
+.dark .focus\:bg-fd-primary:focus {
+  --color-fd-primary: var(--color-fd-primary-solid);
 }
 .shiki span[style*="--shiki-light:#D73A49"] {
   --shiki-light: #b31d28 !important;
