@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Subagent telemetry: the spawner recorded, no guessed depth (orchestkit#5171)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style></head><body><main>
+<h1>Subagent telemetry: the spawner recorded, no guessed depth</h1>
+<p>Measured on Claude Code 2.1.332: <code>SubagentStart</code> names no parent, so every start row in <code>subagent-spawns.jsonl</code> lacked <code>parent_agent_id</code> and <code>spawn_depth</code>. The <code>PreToolUse</code> call for the Agent tool does carry the spawner's <code>agent_id</code>. The fix records it on the pretool row. Start rows still carry no lineage: nothing at <code>SubagentStart</code> links a start to its spawn, and pairing them by order guessed wrong after a declined spawn, so no guess is written. Claude Code's own <code>subagents/agent-&lt;id&gt;.meta.json</code> holds the true lineage but appears only after the start (a SubagentStop follow-up). A repeated start for one <code>agent_id</code> writes no second row.</p>
+<div class="card">
+<fieldset>chain depth
+<label><input type="radio" name="d" value="1"> 1</label>
+<label><input type="radio" name="d" value="2"> 2</label>
+<label><input type="radio" name="d" value="3" checked> 3</label>
+</fieldset>
+<fieldset>a background parent wakes
+<label><input type="radio" name="w" value="0" checked> no</label>
+<label><input type="radio" name="w" value="1"> yes</label>
+</fieldset>
+<fieldset>version
+<label><input type="radio" name="v" value="old"> before</label>
+<label><input type="radio" name="v" value="new" checked> after</label>
+</fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+const TYPES=['general-purpose','general-purpose','Explore'];
+function run(){
+  const d=+pick('d'), wake=pick('w')==='1', v=pick('v');
+  const ids=['a1','a2','a3'].slice(0,d), lines=[];
+  for(let i=0;i<d;i++){
+    const parent=i===0?null:ids[i-1];
+    lines.push('pretool '+TYPES[i]+(v==='new'&&parent?' parent_agent_id='+parent:''));
+    lines.push('start   '+TYPES[i]+' agent_id='+ids[i]+'   (no lineage: no clean key at this event)');
+  }
+  if(wake) lines.push(v==='new'?'(a1 wakes: no second start row)':'start   general-purpose agent_id=a1   (duplicate row)');
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+</body></html>

@@ -9,7 +9,17 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, readFileSync, mkdirSync, renameSync, statSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  mkdirSync,
+  renameSync,
+  statSync,
+  openSync,
+  closeSync,
+  rmSync,
+  readdirSync,
+} from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -233,39 +243,103 @@ const SPAWN_LOG_ROTATE_BYTES = 500 * 1024;
  * (bounded — rotated at 500KB) and add 1. Parent missing from the log (rotated
  * away, or written pre-upgrade without lineage) → conservative depth 2.
  */
-function computeSpawnDepth(trackingLog: string, parentAgentId: string | undefined): number {
-  if (!parentAgentId) return 1;
+interface SpawnLogRow {
+  source?: string;
+  session_id?: string;
+  subagent_type?: string;
+  agent_name?: string;
+  agent_id?: string;
+  parent_agent_id?: string;
+  spawn_depth?: number;
+}
+
+/** Parsed spawn-log rows, oldest first; malformed lines dropped. Best-effort. */
+function readSpawnLog(trackingLog: string): SpawnLogRow[] {
   try {
-    if (existsSync(trackingLog)) {
-      const lines = readFileSync(trackingLog, 'utf8').trimEnd().split('\n');
-      // Walk backwards — the most recent entry for the parent wins.
-      for (let i = lines.length - 1; i >= 0; i--) {
-        try {
-          const entry = JSON.parse(lines[i]) as { agent_id?: string; spawn_depth?: number };
-          if (entry.agent_id && entry.agent_id === parentAgentId) {
-            return (typeof entry.spawn_depth === 'number' ? entry.spawn_depth : 1) + 1;
-          }
-        } catch {
-          // Skip malformed line.
-        }
+    if (!existsSync(trackingLog)) return [];
+    const rows: SpawnLogRow[] = [];
+    for (const line of readFileSync(trackingLog, 'utf8').trimEnd().split('\n')) {
+      try {
+        const row = JSON.parse(line) as unknown;
+        if (row && typeof row === 'object') rows.push(row as SpawnLogRow);
+      } catch {
+        // Skip malformed line.
+      }
+    }
+    return rows;
+  } catch {
+    // Best-effort, never block a dispatch on telemetry.
+    return [];
+  }
+}
+
+function computeSpawnDepth(rows: SpawnLogRow[], parentAgentId: string | undefined): number {
+  if (!parentAgentId) return 1;
+  // Walk backwards: the most recent entry for the parent wins.
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const entry = rows[i];
+    if (entry.agent_id && entry.agent_id === parentAgentId) {
+      return (typeof entry.spawn_depth === 'number' ? entry.spawn_depth : 1) + 1;
+    }
+  }
+  return 2;
+}
+
+/** Directory of per-agent start claims, next to the spawn log. */
+function claimsDir(trackingLog: string): string {
+  return join(dirname(trackingLog), 'spawn-claims');
+}
+
+/** A claim older than this belongs to a start long finished; rotation prunes it. */
+const CLAIM_MAX_AGE_MS = 24 * 3600 * 1000;
+
+function pruneOldClaims(trackingLog: string): void {
+  const dir = claimsDir(trackingLog);
+  const cutoff = Date.now() - CLAIM_MAX_AGE_MS;
+  try {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      try {
+        if (statSync(path).mtimeMs < cutoff) rmSync(path, { force: true });
+      } catch {
+        // Gone already, or unreadable: leave it.
       }
     }
   } catch {
-    // Best-effort — never block a dispatch on telemetry.
+    // No claims directory yet.
   }
-  return 2;
+}
+
+/**
+ * Claim the one start row an agent_id may have (#5171, #5464 review).
+ *
+ * A background parent that wakes fires SubagentStart again for the same
+ * agent_id, and two such hooks can overlap. The claim is a file created with
+ * 'wx', which fails when the file exists: an atomic unique key on the child id,
+ * with no lock to wait on, time out or take over. Returns false only when the
+ * claim already exists; any other error fails open (the row is written).
+ */
+function claimAgentStart(trackingLog: string, sessionId: string, agentId: string): boolean {
+  const safe = (s: string) => s.replace(/[^A-Za-z0-9_-]/g, '_');
+  try {
+    mkdirSync(claimsDir(trackingLog), { recursive: true });
+    closeSync(openSync(join(claimsDir(trackingLog), `${safe(sessionId)}.agent.${safe(agentId)}`), 'wx'));
+    return true;
+  } catch (err) {
+    return !(err && typeof err === 'object' && (err as { code?: string }).code === 'EEXIST');
+  }
 }
 
 /**
  * Returns the computed spawn depth when lineage is resolvable, else null.
  *
- * HONESTY NOTE (#2371 finding 3, live-verified 2026-06-11): CC ≤ 2.1.173
- * sends NO `parent_agent_id` at SubagentStart, so nested spawns are
- * indistinguishable from top-level ones here. We therefore OMIT
- * `spawn_depth` rather than fabricate `1` for every entry (which made
- * nested spawns under-count and kept the depth ≥ 4 warning permanently
- * dormant). The lineage path below lights up automatically if CC ships
- * parent context (upstream: anthropics/claude-code#16424).
+ * HONESTY NOTE (#2371 finding 3, re-measured on CC 2.1.332 for #5171): CC
+ * still sends NO `parent_agent_id` at SubagentStart, and nothing in that
+ * payload links a start to its PreToolUse row. `spawn_depth` is therefore
+ * OMITTED rather than guessed. The lineage path lights up automatically if CC
+ * ships parent context (anthropics/claude-code#16424). CC's own
+ * subagents/agent-<id>.meta.json carries parentAgentId and spawnDepth, but it
+ * is written after SubagentStart (present at SubagentStop).
  */
 function logSpawn(
   subagentType: string,
@@ -296,14 +370,50 @@ function logSpawn(
     if (existsSync(trackingLog) && statSync(trackingLog).size > SPAWN_LOG_ROTATE_BYTES) {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
       renameSync(trackingLog, `${trackingLog}.old.${ts}`);
+      // Never clear all claims here: a claimed start may still be buffered,
+      // and a second start for that agent would claim again (Codex HOLD at
+      // 8a0f9ae9). Only claims older than a day go, far past any pending write.
+      pruneOldClaims(trackingLog);
     }
   } catch {
     // Ignore — rotation is opportunistic.
   }
 
-  const spawnDepth = parentAgentId ? computeSpawnDepth(trackingLog, parentAgentId) : null;
+  // One start row per agent_id (#5171): a waking background parent fires
+  // SubagentStart again. The atomic claim covers overlapping hooks; the log
+  // check covers rows written before claims existed.
+  if (agentId) {
+    if (!claimAgentStart(trackingLog, sessionId, agentId)) return null;
+    if (readSpawnLog(trackingLog).some((r) => r.source === 'start' && r.session_id === sessionId && r.agent_id === agentId)) {
+      return null;
+    }
+  }
 
-  const entry = {
+  // Lineage only from a payload parent, never paired from the PreToolUse row:
+  // measured on CC 2.1.332, nothing in the SubagentStart payload links a start
+  // to its spawn (no tool_use_id) and CC's own subagents/agent-<id>.meta.json
+  // is written after SubagentStart. FIFO pairing guessed wrong after a
+  // declined spawn (#5464 review), so without a clean key the row carries no
+  // lineage, as on main.
+  const spawnDepth = parentAgentId ? computeSpawnDepth(readSpawnLog(trackingLog), parentAgentId) : null;
+  const entry = buildStartEntry(subagentType, description, sessionId, agentId, parentAgentId, spawnDepth);
+  try {
+    bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
+  } catch {
+    // Best-effort telemetry, never block a dispatch.
+  }
+  return spawnDepth;
+}
+
+function buildStartEntry(
+  subagentType: string,
+  description: string,
+  sessionId: string,
+  agentId: string | undefined,
+  parent: string | undefined,
+  spawnDepth: number | null,
+): Record<string, unknown> {
+  return {
     timestamp: new Date().toISOString(),
     source: 'start' as const,
     // M170/#3129: for NAMED spawns CC's SubagentStart agent_type carries the
@@ -314,17 +424,9 @@ function logSpawn(
     description: description,
     session_id: sessionId,
     ...(agentId ? { agent_id: agentId } : {}),
-    ...(parentAgentId ? { parent_agent_id: parentAgentId } : {}),
+    ...(parent ? { parent_agent_id: parent } : {}),
     ...(spawnDepth !== null ? { spawn_depth: spawnDepth } : {}),
   };
-
-  try {
-    bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
-  } catch {
-    // Ignore
-  }
-
-  return spawnDepth;
 }
 
 // -----------------------------------------------------------------------------
@@ -343,10 +445,9 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   ctx.log('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
 
-  // Log spawn to tracking file. Nesting lineage is currently DORMANT: CC
-  // ≤ 2.1.173 sends no parent_agent_id at SubagentStart, so spawn_depth is
-  // omitted and the depth warning below never fires today. The lineage path
-  // lights up automatically if CC ships parent context (anthropics/claude-code#16424).
+  // Log spawn to tracking file. CC sends no parent_agent_id at SubagentStart
+  // (re-measured on 2.1.332), so logSpawn pairs this start with its pretool
+  // row for parent and depth (#5171); the depth warning below reads that.
   const spawnDepth = logSpawn(subagentType, description, sessionId, input.agent_id, input.parent_agent_id);
   if (spawnDepth !== null && spawnDepth >= 4) {
     ctx.log('subagent-validator', `WARNING: spawn depth ${spawnDepth} approaching CC's 5-level nesting limit`);

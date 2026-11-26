@@ -204,4 +204,19 @@ describe('spawnIntentLogger', () => {
       expect(loggedEntry().subagent_type).toBe('Explore');
     });
   });
+
+  // orchestkit#5171, measured on CC 2.1.332: SubagentStart carries no parent
+  // id, but PreToolUse for the Agent tool carries the common agent_id of the
+  // agent making the call, and none when the main thread spawns.
+  describe('spawner lineage (#5171)', () => {
+    test('records the calling agent_id as parent_agent_id', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'Explore', description: 'x' }, { agent_id: 'af956b896139ff31d' }));
+      expect(loggedEntry().parent_agent_id).toBe('af956b896139ff31d');
+    });
+
+    test('a main-thread spawn has no parent_agent_id', () => {
+      spawnIntentLogger(makeInput({ subagent_type: 'general-purpose', description: 'x' }));
+      expect(loggedEntry()).not.toHaveProperty('parent_agent_id');
+    });
+  });
 });

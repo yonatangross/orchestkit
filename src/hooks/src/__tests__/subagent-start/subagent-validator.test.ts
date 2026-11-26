@@ -51,6 +51,11 @@ vi.mock('node:fs', () => ({
   statSync: vi.fn().mockReturnValue({ size: 100 }),
   renameSync: vi.fn(),
   readSync: vi.fn().mockReturnValue(0),
+  // The spawn-log lock (#5464 review): always granted in this mocked file;
+  // contention is covered on a real filesystem in subagent-lineage-concurrency.
+  openSync: vi.fn().mockReturnValue(3),
+  closeSync: vi.fn(),
+  unlinkSync: vi.fn(),
 }));
 
 vi.mock('node:child_process', () => ({
@@ -987,6 +992,79 @@ describe('subagentValidator', () => {
 
       expect(() => subagentValidator(input)).not.toThrow();
       expect(getSpawnEntry().spawn_depth).toBe(2);
+    });
+
+    // orchestkit#5171, measured on CC 2.1.332: the SubagentStart payload has
+    // no parent id (only session_id, transcript_path, prompt_id, agent_id,
+    // agent_type). The pretool row spawn-intent-logger wrote for the same
+    // spawn carries parent_agent_id, so depth comes from pairing the two.
+    const S = 'test-session-validator-001';
+    const pretool = (type: string, parent?: string, name?: string): string =>
+      JSON.stringify({
+        timestamp: '2026-11-26T10:00:00.000Z',
+        source: 'pretool',
+        subagent_type: type,
+        ...(name ? { agent_name: name } : {}),
+        session_id: S,
+        ...(parent ? { parent_agent_id: parent } : {}),
+      });
+    const start = (type: string, agentId: string, depth?: number, parent?: string): string =>
+      JSON.stringify({
+        timestamp: '2026-11-26T10:00:00.200Z',
+        source: 'start',
+        subagent_type: type,
+        session_id: S,
+        agent_id: agentId,
+        ...(parent ? { parent_agent_id: parent } : {}),
+        ...(depth !== undefined ? { spawn_depth: depth } : {}),
+      });
+    const startCalls = (): unknown[][] =>
+      (appendFileSync as ReturnType<typeof vi.fn>).mock.calls.filter(
+        (c: unknown[]) => typeof c[0] === 'string' && normalizePath(c[0] as string).includes('subagent-spawns.jsonl'),
+      );
+
+    // #5464 review (Opus HOLD at b76bd94a): FIFO pairing with pretool rows was
+    // withdrawn. Nothing in the SubagentStart payload links a start to its
+    // spawn, and a declined spawn's pretool row shifted every later lineage of
+    // that type. Without a clean key a start row carries no lineage, as on main.
+    test('a declined spawn never shifts lineage: Opus three-row case (#5464)', () => {
+      mockSpawnLog([
+        pretool('Explore', 'sub-A'), // declined, never starts
+        pretool('Explore'), // starts as child-1
+        pretool('Explore', 'child-1'), // starts as grand-1
+      ]);
+      subagentValidator(createToolInput({ agent_id: 'child-1', tool_input: { subagent_type: 'Explore' } }));
+      const entry = getSpawnEntry();
+      expect(entry.agent_id).toBe('child-1');
+      expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry).not.toHaveProperty('spawn_depth');
+    });
+
+    test('a start never takes lineage from a pretool row, nested or named (#5464)', () => {
+      mockSpawnLog([
+        pretool('general-purpose'),
+        start('general-purpose', 'p1'),
+        pretool('Explore', 'p1'),
+        pretool('general-purpose', 'boss', 'reviewer-x'),
+      ]);
+      subagentValidator(createToolInput({ agent_id: 'c2', tool_input: { subagent_type: 'Explore' } }));
+      const entry = getSpawnEntry();
+      expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry).not.toHaveProperty('spawn_depth');
+    });
+
+    test('a pretool row from another session never pairs (#5171)', () => {
+      mockSpawnLog([JSON.stringify({ source: 'pretool', subagent_type: 'Explore', session_id: 'other', parent_agent_id: 'x' })]);
+      subagentValidator(createToolInput({ agent_id: 'c1', tool_input: { subagent_type: 'Explore' } }));
+      const entry = getSpawnEntry();
+      expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry).not.toHaveProperty('spawn_depth');
+    });
+
+    test('a second start for an agent_id that already has one writes no row (#5171)', () => {
+      mockSpawnLog([pretool('general-purpose'), start('general-purpose', 'bg-1', 1)]);
+      subagentValidator(createToolInput({ agent_id: 'bg-1', tool_input: { subagent_type: 'general-purpose' } }));
+      expect(startCalls()).toHaveLength(0);
     });
   });
 

@@ -13,7 +13,8 @@
  *
  * Entries are tagged `source: "pretool"` to distinguish them from the
  * SubagentStart entries written by subagent-validator (`source: "start"`,
- * which carry `agent_id` — CC provides no field to correlate the two).
+ * which carry `agent_id`). CC sends no field that links the two, so the
+ * validator pairs them by session and type, first in first out (#5171).
  *
  * Non-blocking, append-only, no reads — safe for the PreToolUse hot path.
  *
@@ -90,6 +91,11 @@ export function spawnIntentLogger(input: HookInput, ctx: HookContext = NOOP_CTX)
     description: deriveSpawnDescription(input),
     session_id: input.session_id,
     ...(input.tool_use_id ? { tool_use_id: input.tool_use_id } : {}),
+    // #5171, measured on CC 2.1.332: the common agent_id on this PreToolUse is
+    // the agent making the Agent call (absent from the main thread), and it is
+    // the only place the spawner is ever named. subagent-validator pairs this
+    // row with the next SubagentStart of the same session and type.
+    ...(input.agent_id ? { parent_agent_id: input.agent_id } : {}),
     // 'skip' (other plugins, placeholders) carries no signal, so it is omitted
     // rather than recorded as a fourth state nobody can act on.
     ...(verdict && verdict.kind !== 'skip' ? { spawn_verdict: verdict.kind } : {}),

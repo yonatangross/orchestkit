@@ -1,0 +1,12 @@
+{
+  "slug": "subagent-spawn-depth-pairing",
+  "source": "docs/fix--subagent-depth-5171/spawn-depth-pairing.html",
+  "title": "Subagent telemetry: the spawner recorded, no guessed depth",
+  "description": "Pick a chain depth and whether a background parent wakes, and see the spawn log rows before and after the #5171 fix: the spawner recorded on the pretool row, no guessed lineage on start rows, no duplicate start rows.",
+  "tags": [
+    "hooks",
+    "telemetry",
+    "subagents"
+  ],
+  "date": "2026-11-26"
+}

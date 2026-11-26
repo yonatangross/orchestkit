@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Subagent telemetry: the spawner recorded, no guessed depth (orchestkit#5171)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#f4f5f7;color:#14161a;font:15px/1.55 -apple-system,Segoe UI,Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border:1px solid #e2e5ea;border-radius:12px;padding:16px 18px;margin:12px 0}
+.term{background:#161b26;color:#e8ecf1;border-radius:10px;padding:12px 14px;font:12.5px/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+code{font:12.5px ui-monospace,Menlo,monospace;background:#f0f2f5;padding:1px 5px;border-radius:4px}
+fieldset{border:0;padding:0;margin:8px 0}
+label{margin-right:14px}
+</style><!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Subagent telemetry: the spawner recorded, no guessed depth"><meta property="og:description" content="Pick a chain depth and whether a background parent wakes, and see the spawn log rows before and after the #5171 fix: the spawner recorded on the pretool row, no guessed lineage on start rows, no duplicate start rows."><meta property="og:url" content="https://orchestkit.dev/lab/subagent-spawn-depth-pairing.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Subagent telemetry: the spawner recorded, no guessed depth"><meta name="twitter:description" content="Pick a chain depth and whether a background parent wakes, and see the spawn log rows before and after the #5171 fix: the spawner recorded on the pretool row, no guessed lineage on start rows, no duplicate start rows."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head><body><main>
+<h1>Subagent telemetry: the spawner recorded, no guessed depth</h1>
+<p>Measured on Claude Code 2.1.332: <code>SubagentStart</code> names no parent, so every start row in <code>subagent-spawns.jsonl</code> lacked <code>parent_agent_id</code> and <code>spawn_depth</code>. The <code>PreToolUse</code> call for the Agent tool does carry the spawner's <code>agent_id</code>. The fix records it on the pretool row. Start rows still carry no lineage: nothing at <code>SubagentStart</code> links a start to its spawn, and pairing them by order guessed wrong after a declined spawn, so no guess is written. Claude Code's own <code>subagents/agent-&lt;id&gt;.meta.json</code> holds the true lineage but appears only after the start (a SubagentStop follow-up). A repeated start for one <code>agent_id</code> writes no second row.</p>
+<div class="card">
+<fieldset>chain depth
+<label><input type="radio" name="d" value="1"> 1</label>
+<label><input type="radio" name="d" value="2"> 2</label>
+<label><input type="radio" name="d" value="3" checked> 3</label>
+</fieldset>
+<fieldset>a background parent wakes
+<label><input type="radio" name="w" value="0" checked> no</label>
+<label><input type="radio" name="w" value="1"> yes</label>
+</fieldset>
+<fieldset>version
+<label><input type="radio" name="v" value="old"> before</label>
+<label><input type="radio" name="v" value="new" checked> after</label>
+</fieldset>
+<div class="term" id="out"></div>
+</div>
+</main>
+<script>
+const pick=n=>document.querySelector('input[name='+n+']:checked').value;
+const TYPES=['general-purpose','general-purpose','Explore'];
+function run(){
+  const d=+pick('d'), wake=pick('w')==='1', v=pick('v');
+  const ids=['a1','a2','a3'].slice(0,d), lines=[];
+  for(let i=0;i<d;i++){
+    const parent=i===0?null:ids[i-1];
+    lines.push('pretool '+TYPES[i]+(v==='new'&&parent?' parent_agent_id='+parent:''));
+    lines.push('start   '+TYPES[i]+' agent_id='+ids[i]+'   (no lineage: no clean key at this event)');
+  }
+  if(wake) lines.push(v==='new'?'(a1 wakes: no second start row)':'start   general-purpose agent_id=a1   (duplicate row)');
+  document.getElementById('out').textContent=lines.join('\n');
+}
+document.querySelectorAll('input').forEach(i=>i.onchange=run); run();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body></html>
