@@ -188,7 +188,8 @@ describe('Async Hooks Registry', () => {
       //             pretool/skill/skill-tracker async again, plus the new
       //             pretool/task/route-observer (Agent, async 5s).
       // 110 -> 109: lifecycle/cc-version-check is sync now: an async hook's systemMessage reaches the model, not the person.
-      expect(asyncHooks.length, 'Should have exactly 109 async hooks').toBe(109);
+      // 109 to 108 (#4684): stop/goal-tracker is synchronous so its brake precedes the next tool call.
+      expect(asyncHooks.length, 'Should have exactly 108 async hooks').toBe(108);
     });
 
     it('should NOT have async: true for blocking hooks', () => {

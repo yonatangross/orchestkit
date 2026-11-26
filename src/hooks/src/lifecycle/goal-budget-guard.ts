@@ -4,8 +4,9 @@
 /**
  * Goal Budget Guard: SessionEnd Hook (M140 G5 #1791, #4684)
  *
- * Closes the session's open `/goal` run with the status of its last tally and
- * removes its brake. The budget is per run and trips live (stop/goal-tracker
+ * Closes the session's open `/goal` run with the status of its last tally. The
+ * brake stays: a resumed session restores its goal, and only a user prompt
+ * releases it. The budget is per run and trips live (stop/goal-tracker
  * writes the brake, pretool/tool-dispatcher enforces it), so nothing is summed
  * here any more.
  *
@@ -15,7 +16,7 @@
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { closeRun, findOpenRun, readHistory, removeBrake } from '../lib/goal-run.js';
+import { closeRun, findOpenRun, readHistory } from '../lib/goal-run.js';
 
 const HOOK_NAME = 'lifecycle/goal-budget-guard';
 
@@ -32,7 +33,6 @@ export function goalBudgetGuard(
     if (open) {
       ctx.log(HOOK_NAME, `closed /goal at session end: status=${closeRun(projectDir, open)}`);
     }
-    removeBrake(projectDir, sessionId);
   } catch (err) {
     ctx.log(
       HOOK_NAME,

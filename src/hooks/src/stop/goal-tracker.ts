@@ -9,7 +9,8 @@
  * reaches ORK_GOAL_MAX_TURNS or ORK_GOAL_MAX_TOKENS it writes the brake file,
  * once per run, so a user who deletes the file stays released.
  *
- * Async and silent: it must not block or answer a Stop.
+ * Synchronous, so the brake is on disk before the next PreToolUse. Silent: it
+ * never blocks or answers a Stop.
  */
 
 import type { HookInput, HookResult, HookContext } from '../types.js';
@@ -19,6 +20,7 @@ import {
   appendHistory,
   findOpenRun,
   readHistory,
+  tripBrake,
   writeBrake,
   type GoalCapReason,
   type OpenRun,
@@ -69,9 +71,27 @@ export function goalTrackerStop(
   const projectDir = ctx.projectDir;
 
   try {
-    const raw = readHistory(projectDir);
+    let raw: string | null;
+    try {
+      raw = readHistory(projectDir);
+    } catch (err) {
+      // The goal behind this Stop cannot be identified: hold, do not guess.
+      writeBrake(projectDir, {
+        tripped_at: new Date().toISOString(),
+        session_id: sessionId,
+        prompt_id: input.prompt_id,
+        reason: 'history_unreadable',
+        turns: 0,
+        tokens: 0,
+        cap: 0,
+      });
+      throw err;
+    }
     const run = raw === null ? null : findOpenRun(raw, sessionId);
-    if (!run || run.start.prompt_id !== input.prompt_id) return outputSilentSuccess();
+    if (!run) return outputSilentSuccess();
+    // Skip only a Stop that provably belongs to another prompt.
+    const runPrompt = run.start.prompt_id;
+    if (runPrompt && input.prompt_id && runPrompt !== input.prompt_id) return outputSilentSuccess();
 
     const turns = (run.tally?.turn_count ?? 0) + 1;
     const tokens = computeRunTokens(
@@ -85,8 +105,8 @@ export function goalTrackerStop(
       turns >= maxTurns ? 'turns_cap' : tokens >= maxTokens ? 'tokens_cap' : null;
     const alreadyTripped = run.tally?.tripped;
 
-    if (reason && !alreadyTripped && input.prompt_id) {
-      writeBrake(projectDir, {
+    if (reason && !alreadyTripped) {
+      const held = tripBrake(projectDir, run, {
         tripped_at: new Date().toISOString(),
         session_id: sessionId,
         prompt_id: input.prompt_id,
@@ -95,13 +115,14 @@ export function goalTrackerStop(
         tokens,
         cap: reason === 'turns_cap' ? maxTurns : maxTokens,
       });
+      if (!held) return outputSilentSuccess();
       ctx.log(HOOK_NAME, `BRAKE tripped: reason=${reason} turns=${turns} tokens=${tokens}`, 'warn');
     }
 
     appendHistory(projectDir, {
       kind: 'tally',
       session_id: sessionId,
-      prompt_id: input.prompt_id,
+      prompt_id: runPrompt,
       turn_count: turns,
       ended_token_estimate: tokens,
       tripped: alreadyTripped ?? reason ?? undefined,

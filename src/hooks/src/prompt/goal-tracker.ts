@@ -37,8 +37,7 @@ export function extractGoalCondition(prompt: string): string | null {
   for (const line of lines) {
     const trimmed = line.trimStart();
     if (trimmed.startsWith('/goal ')) {
-      const condition = trimmed.slice('/goal '.length).trim();
-      return condition.length > 0 ? condition : null;
+      return trimmed.slice('/goal '.length).trim();
     }
     if (trimmed === '/goal') {
       return '';
@@ -47,8 +46,8 @@ export function extractGoalCondition(prompt: string): string | null {
   return null;
 }
 
-/** `/goal` alone shows status; these words remove the goal (code.claude.com/docs/en/goal). */
-const NOT_A_CONDITION = new Set(['', 'clear', 'stop', 'off', 'reset', 'none', 'cancel']);
+/** These words remove the goal (code.claude.com/docs/en/goal). */
+const NOT_A_CONDITION = new Set(['clear', 'stop', 'off', 'reset', 'none', 'cancel']);
 
 /** Estimate token usage from prompt length (~3.5 chars/token). */
 function estimateTokens(text: string): number {
@@ -74,15 +73,19 @@ export function goalTracker(
       }
       return outputSilentSuccess();
     }
-    // A user prompt releases this session's brake, open run or not, so a
-    // leftover from an interrupted write cannot outlive it.
-    if (!open || condition !== null || open.start.prompt_id !== input.prompt_id) {
-      removeBrake(projectDir, sessionId);
+    // `/goal` alone only shows status: it keeps the run, its tally and its brake.
+    if (condition === '') return outputSilentSuccess();
+
+    // Releasing needs a prompt that names its session and itself. A new /goal or a
+    // clear word replaces the run either way.
+    const identified = Boolean(input.session_id && input.prompt_id);
+    const replaces = condition !== null || (identified && open?.start.prompt_id !== input.prompt_id);
+    if (open && replaces) {
+      ctx.log(HOOK_NAME, `closed /goal: status=${closeRun(projectDir, open)}`);
     }
-    if (open && (condition !== null || open.start.prompt_id !== input.prompt_id)) {
-      const status = closeRun(projectDir, open);
-      ctx.log(HOOK_NAME, `closed /goal: status=${status}`);
-    }
+    // End row first, brake second (see tripBrake). With no open run this also
+    // clears a leftover from an interrupted write.
+    if (identified && (replaces || !open)) removeBrake(projectDir, sessionId);
 
     if (condition === null || NOT_A_CONDITION.has(condition.toLowerCase())) return outputSilentSuccess();
 

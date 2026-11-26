@@ -14,11 +14,13 @@
  *   rekey  {kind: 'rekey', session_id, prompt_id}   a task notification moved the run
  *   end    {session_id, prompt_id, ended_at, turn_count, status}
  *
- * Writers: prompt/goal-tracker (start, end), stop/goal-tracker (tally, brake),
+ * Writers: prompt/goal-tracker (start, end), stop/goal-tracker (tally, brake; synchronous),
  * lifecycle/goal-budget-guard (end). Reader of the brake: pretool/tool-dispatcher.
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  appendFileSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync,
+} from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputDeny } from './output.js';
@@ -26,6 +28,7 @@ import { outputDeny } from './output.js';
 const STATE_REL = join('.claude', 'state');
 
 export type GoalCapReason = 'turns_cap' | 'tokens_cap';
+export type GoalBrakeReason = GoalCapReason | 'history_unreadable';
 export type GoalStatus = 'braked' | 'ended' | 'aborted';
 
 export interface GoalStart {
@@ -54,7 +57,7 @@ export interface GoalBrake {
   tripped_at: string;
   session_id: string;
   prompt_id?: string;
-  reason: GoalCapReason;
+  reason: GoalBrakeReason;
   turns: number;
   tokens: number;
   cap: number;
@@ -75,9 +78,19 @@ export function brakePath(projectDir: string, sessionId: string): string {
   return join(projectDir, STATE_REL, brakeName(sessionId));
 }
 
+/** True for the one error that means "not there". Every other error is unreadable. */
+function isMissing(err: unknown): boolean {
+  return (err as NodeJS.ErrnoException)?.code === 'ENOENT';
+}
+
+/** The history, or null when there is none. Throws when it exists and cannot be read. */
 export function readHistory(projectDir: string): string | null {
-  const path = historyPath(projectDir);
-  return existsSync(path) ? readFileSync(path, 'utf8') : null;
+  try {
+    return readFileSync(historyPath(projectDir), 'utf8');
+  } catch (err) {
+    if (isMissing(err)) return null;
+    throw err;
+  }
 }
 
 export function appendHistory(projectDir: string, row: object): void {
@@ -139,10 +152,28 @@ export function writeBrake(projectDir: string, brake: GoalBrake): void {
   renameSync(draft, path);
 }
 
+/** The brake as parsed, or null when there is no file. Throws when it cannot be read or parsed. */
 function readBrake(projectDir: string, sessionId: string): GoalBrake | null {
-  const path = brakePath(projectDir, sessionId);
-  if (!existsSync(path)) return null;
-  return JSON.parse(readFileSync(path, 'utf8')) as GoalBrake;
+  try {
+    return JSON.parse(readFileSync(brakePath(projectDir, sessionId), 'utf8')) as GoalBrake;
+  } catch (err) {
+    if (isMissing(err)) return null;
+    throw err;
+  }
+}
+
+/**
+ * Write the brake of an open run, then take it back if the run closed in the
+ * meantime. A close appends its end row before it removes the brake, so a Stop
+ * that lands after a user prompt cannot leave a brake on the next run.
+ */
+export function tripBrake(projectDir: string, run: OpenRun, brake: GoalBrake): boolean {
+  writeBrake(projectDir, brake);
+  const raw = readHistory(projectDir);
+  const now = raw === null ? null : findOpenRun(raw, brake.session_id);
+  if (now && now.start.started_at === run.start.started_at) return true;
+  removeBrake(projectDir, brake.session_id);
+  return false;
 }
 
 /**
@@ -161,12 +192,37 @@ export function removeBrake(projectDir: string, sessionId: string): void {
   rmSync(brakePath(projectDir, sessionId), { force: true });
 }
 
+/** Is there a brake at this path? Only "not found" is a no. */
+function present(path: string): boolean {
+  try {
+    lstatSync(path);
+    return true;
+  } catch (err) {
+    return !isMissing(err);
+  }
+}
+
+/** For a call with no session_id: is any session's brake on disk? */
+function anyBrake(projectDir: string): boolean {
+  try {
+    return readdirSync(join(projectDir, STATE_REL)).some(name => /^goal-budget-tripped\..*\.json$/.test(name));
+  } catch (err) {
+    return !isMissing(err);
+  }
+}
+
+function deny(why: string): HookResult {
+  return outputDeny(`[ork goal-budget] Tool calls are paused: ${why}`);
+}
+
 /**
- * The PreToolUse verdict for a tripped run, or null to let the call through.
- * One stat when no brake exists. A brake file for this session that cannot be
- * read or lacks its ids denies: it is evidence of a trip that nothing can
- * check. A payload without session_id or prompt_id has no file to match and
- * passes.
+ * The PreToolUse verdict while a brake is on disk, or null to let the call
+ * through. One stat when there is none.
+ *
+ * The session's brake holds every call of the session. Nothing in the payload
+ * can release it: not a missing or different prompt_id, not a subagent's id. A
+ * call with no session_id is held while any brake exists. Only a user prompt
+ * (prompt/goal-tracker) or deleting the file releases.
  *
  * Deny plus `continue: false` (outputDeny). A deny alone did not end a /goal
  * run: measured on CC 2.1.332, it looped until the 9 Stop-block cap. The
@@ -176,27 +232,31 @@ export function removeBrake(projectDir: string, sessionId: string): void {
  * with identical wording).
  */
 export function goalBrakeVerdict(input: HookInput, projectDir: string): HookResult | null {
-  const { session_id: sessionId, prompt_id: promptId } = input;
-  if (!sessionId || !promptId) return null;
+  const sessionId = input.session_id;
+  if (!sessionId) {
+    return anyBrake(projectDir)
+      ? deny('a goal brake is on disk and this call names no session. Delete .claude/state/goal-budget-tripped.*.json to go on.')
+      : null;
+  }
+  if (!present(brakePath(projectDir, sessionId))) return null;
+
   const file = `.claude/state/${brakeName(sessionId)}`;
-  let brake: GoalBrake | null;
+  let brake: GoalBrake | null = null;
   try {
-    if (!existsSync(brakePath(projectDir, sessionId))) return null;
     brake = readBrake(projectDir, sessionId);
   } catch {
     brake = null;
   }
-  if (!brake || typeof brake.session_id !== 'string' || typeof brake.prompt_id !== 'string') {
-    return outputDeny(
-      `[ork goal-budget] Tool calls are paused: ${file} cannot be read. Delete it, or send a new message, to go on.`,
-    );
+  if (brake?.reason === 'history_unreadable') {
+    return deny(`.claude/state/goal-history.jsonl cannot be read. Fix that file, then delete ${file}.`);
   }
-  if (brake.session_id !== sessionId || brake.prompt_id !== promptId) return null;
-
+  if (!brake || (brake.reason !== 'turns_cap' && brake.reason !== 'tokens_cap')) {
+    return deny(`${file} cannot be read. Delete it, or send a new message, to go on.`);
+  }
   const unit = brake.reason === 'tokens_cap' ? 'token' : 'turn';
   const used = brake.reason === 'tokens_cap' ? brake.tokens : brake.turns;
-  return outputDeny(
-    `[ork goal-budget] Tool calls are paused: this goal run used ${used} ${unit}${used === 1 ? '' : 's'} ` +
-      `(cap ${brake.cap}). Run /goal clear, or delete ${file} to go on.`,
+  return deny(
+    `this goal run used ${used} ${unit}${used === 1 ? '' : 's'} (cap ${brake.cap}). ` +
+      `Run /goal clear, or delete ${file} to go on.`,
   );
 }

@@ -20,7 +20,7 @@ import { goalBudgetGuard } from '../../lifecycle/goal-budget-guard.js';
 import { goalTracker } from '../../prompt/goal-tracker.js';
 import { goalTrackerStop } from '../../stop/goal-tracker.js';
 import { toolDispatcher } from '../../pretool/tool-dispatcher.js';
-import { brakePath, findOpenRun } from '../../lib/goal-run.js';
+import { brakePath, findOpenRun, tripBrake } from '../../lib/goal-run.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -214,13 +214,11 @@ describe('PreToolUse denies the tripped run', () => {
   });
 
   it('leaves an untripped call without continue:false', async () => {
-    expect((await toolCall({ prompt_id: 'prompt-2' })).continue).toBe(true);
+    expect((await toolCall({ session_id: 'sess-other' })).continue).toBe(true);
   });
 
   it.each([
     ['another session', { session_id: 'sess-other' }],
-    ['a new prompt', { prompt_id: 'prompt-2' }],
-    ['a call with no prompt_id', { prompt_id: undefined }],
   ])('lets through %s', async (_label, over) => {
     expect((await toolCall(over)).hookSpecificOutput?.permissionDecision).toBeUndefined();
   });
@@ -288,10 +286,27 @@ describe('edges', () => {
     },
   );
 
-  it('a bare /goal opens no run', () => {
-    submit(`/goal ${CONDITION}`);
+  it('a bare /goal opens no run when none is open', () => {
     submit('/goal', 'prompt-2');
-    expect(openRun()).toBeNull();
+    expect(existsSync(join(tmp, '.claude', 'state', 'goal-history.jsonl'))).toBe(false);
+  });
+
+  it('a bare /goal is a status query: an active run keeps its tally', () => {
+    submit(`/goal ${CONDITION}`);
+    stop(1);
+    expect(submit('/goal', 'prompt-2')).toEqual(SILENT);
+    expect(openRun()?.start.prompt_id).toBe(RUN);
+    expect(openRun()?.tally?.turn_count).toBe(1);
+  });
+
+  it('a bare /goal keeps a tripped brake; /goal clear releases it', async () => {
+    process.env.ORK_GOAL_MAX_TURNS = '1';
+    submit(`/goal ${CONDITION}`);
+    stop(1);
+    submit('  /goal  ', 'prompt-2');
+    expect((await toolCall({ prompt_id: 'prompt-2' })).hookSpecificOutput?.permissionDecision).toBe('deny');
+    submit('/goal clear', 'prompt-3');
+    expect((await toolCall({ prompt_id: 'prompt-3' })).hookSpecificOutput?.permissionDecision).toBeUndefined();
   });
 
   it('a condition that only starts with an alias word is a real goal', () => {
@@ -377,13 +392,116 @@ describe('writes survive a kill between them', () => {
     chmodSync(historyFile(), 0o600);
     expect((await toolCall({ prompt_id: 'prompt-notice' })).hookSpecificOutput?.permissionDecision).toBe('deny');
   });
+});
 
-  it('writes no brake for a run without a prompt_id', () => {
+describe('missing or unreadable identity holds the brake', () => {
+  const decision = async (over: Partial<HookInput> = {}) =>
+    (await toolCall(over)).hookSpecificOutput?.permissionDecision;
+  const historyFile = () => join(tmp, '.claude', 'state', 'goal-history.jsonl');
+  const base = { tool_name: '', session_id: SID, tool_input: {} };
+
+  function trip() {
     process.env.ORK_GOAL_MAX_TURNS = '1';
-    const base = { tool_name: '', session_id: SID, tool_input: {} };
-    goalTracker({ ...base, prompt: `/goal ${CONDITION}` }, ctx());
+    submit(`/goal ${CONDITION}`);
+    stop(1);
+  }
+
+  it.each([
+    ['no prompt_id', { prompt_id: undefined }],
+    ['an empty prompt_id', { prompt_id: '' }],
+    ['another prompt_id', { prompt_id: 'prompt-other' }],
+    ['a subagent payload', { prompt_id: 'prompt-sub', agent_id: 'a1' }],
+    ['no session_id', { session_id: undefined }],
+    ['neither id', { session_id: undefined, prompt_id: undefined }],
+  ])('denies a call with %s', async (_label, over) => {
+    trip();
+    expect(await decision(over as Partial<HookInput>)).toBe('deny');
+  });
+
+  it('denies when the file names another session', async () => {
+    trip();
+    writeFileSync(brakePath(tmp, SID), JSON.stringify({ session_id: 'x', prompt_id: 'y' }));
+    expect(await decision()).toBe('deny');
+  });
+
+  it('passes a call without session_id when no brake exists anywhere', async () => {
+    submit(`/goal ${CONDITION}`);
+    expect(await decision({ session_id: undefined })).toBeUndefined();
+  });
+
+  it('denies when the state directory cannot be searched', async () => {
+    trip();
+    const state = join(tmp, '.claude', 'state');
+    chmodSync(state, 0o000);
+    try {
+      expect(await decision()).toBe('deny');
+    } finally {
+      chmodSync(state, 0o700);
+    }
+  });
+
+  it('a Stop without prompt_id still counts toward the open run', async () => {
+    process.env.ORK_GOAL_MAX_TURNS = '1';
+    submit(`/goal ${CONDITION}`);
     goalTrackerStop({ ...base, last_assistant_message: 'x' }, ctx());
+    expect(await decision()).toBe('deny');
+  });
+
+  it('a run recorded without prompt_id still trips', async () => {
+    process.env.ORK_GOAL_MAX_TURNS = '1';
+    goalTracker({ ...base, prompt: `/goal ${CONDITION}` }, ctx());
+    stop(1);
+    expect(await decision()).toBe('deny');
+  });
+
+  it('an unreadable goal history trips the brake at Stop', async () => {
+    mkdirSync(historyFile(), { recursive: true });
+    stop(1);
+    const result = await toolCall();
+    expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
+    expect(result.hookSpecificOutput?.permissionDecisionReason).toContain('goal-history.jsonl');
+  });
+
+  it.each([
+    ['no prompt_id', { prompt_id: undefined }],
+    ['no session_id', { session_id: undefined }],
+  ])('a prompt with %s does not release it', async (_label, over) => {
+    trip();
+    goalTracker({ ...base, prompt_id: 'prompt-2', prompt: 'go on', ...over } as HookInput, ctx());
+    expect(await decision()).toBe('deny');
+  });
+
+  it('SessionEnd keeps the brake, so a resumed session stays held', async () => {
+    trip();
+    goalBudgetGuard(base, ctx());
+    expect(await decision()).toBe('deny');
+  });
+
+  it('a Stop that finishes after the run closed leaves no brake behind', () => {
+    submit(`/goal ${CONDITION}`);
+    const run = openRun();
+    submit('something else', 'prompt-2');
+    if (!run) throw new Error('no run');
+    tripBrake(tmp, run, {
+      tripped_at: 't', session_id: SID, prompt_id: RUN, reason: 'turns_cap', turns: 1, tokens: 1, cap: 1,
+    });
     expect(existsSync(brakePath(tmp, SID))).toBe(false);
+  });
+});
+
+/**
+ * An async Stop hook has no ordering with the next PreToolUse, so the brake
+ * could be read before it is written.
+ */
+describe('the tally is registered synchronous', () => {
+  const root = join(__dirname, '..', '..', '..', '..', '..');
+  it.each(['src/hooks/hooks.json', 'plugins/ork/hooks/hooks.json'])('%s runs stop/goal-tracker without async', rel => {
+    const config = JSON.parse(readFileSync(join(root, rel), 'utf8')) as {
+      hooks: { Stop: Array<{ hooks: Array<{ async?: boolean; args?: string[] }> }> };
+    };
+    const entries = config.hooks.Stop.flatMap(group => group.hooks).filter(h => h.args?.includes('stop/goal-tracker'));
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.async).toBeUndefined();
   });
 });
 
