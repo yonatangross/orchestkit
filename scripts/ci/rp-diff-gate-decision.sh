@@ -6,6 +6,9 @@
 # Event data comes from the environment:
 #   PR_NUMBER   pull_request number (empty on non-PR events)
 #   HEAD_REF    github.head_ref
+#   HEAD_SHA    github.event.pull_request.head.sha, the sha that triggered
+#               this run: every count and commit tail is measured against
+#               it, so a branch that moved since the trigger fails closed
 #   PR_AUTHOR   github.event.pull_request.user.login
 #   RP_PR_JSON_FILE (tests only) file holding the pulls/N response; when
 #                 unset it is fetched live via gh. The decision needs
@@ -24,8 +27,9 @@
 # Fail closed on anything incomplete (Codex #5479): the file and commit
 # counts must equal what pulls/N reports (the list endpoints paginate and
 # cap), a rename must clear its previous_filename through the allowlist,
-# the last listed commit must equal head.sha, and any read or parse
-# failure keeps the suites running.
+# the last listed commit must equal the triggering head sha, a commit
+# whose author is not linked to a GitHub account counts as not-bot, and
+# any read or parse failure keeps the suites running.
 #
 # Prints skip=true|false plus the reason, one key=value per line.
 
@@ -60,19 +64,23 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
 
   expected_files=""
   expected_commits=""
-  expected_head=""
+  pr_head=""
   if [[ -n "$PR_JSON" ]]; then
     if ! expected_files="$(jq -r '.changed_files // empty' < "$PR_JSON")"; then expected_files=""; fi
     if ! expected_commits="$(jq -r '.commits // empty' < "$PR_JSON")"; then expected_commits=""; fi
-    if ! expected_head="$(jq -r '.head.sha // empty' < "$PR_JSON")"; then expected_head=""; fi
+    if ! pr_head="$(jq -r '.head.sha // empty' < "$PR_JSON")"; then pr_head=""; fi
   fi
+  trigger_head="${HEAD_SHA:-}"
 
   meta_ok=true
   if ! [[ "$expected_files" =~ ^[0-9]+$ ]]; then meta_ok=false; fi
   if ! [[ "$expected_commits" =~ ^[0-9]+$ ]]; then meta_ok=false; fi
-  if [[ -z "$expected_head" ]]; then meta_ok=false; fi
+  if [[ -z "$trigger_head" ]]; then meta_ok=false; fi
+  if [[ -z "$pr_head" ]]; then meta_ok=false; fi
   if [[ "$meta_ok" == false ]]; then
     echo "pull request did not report its changed_files, commits and head counts; not skipping"
+  elif [[ "$pr_head" != "$trigger_head" ]]; then
+    echo "pull head moved since the trigger sha; not skipping"
   else
 
     # Every changed path, destinations and rename sources alike.
@@ -122,7 +130,7 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
   # The allowlist covers executable and dependency surfaces (hook dist
   # bundles, package-lock.json, pyproject.toml), so path-only is not enough:
   # every commit on the PR must come from the release bot, the list must be
-  # complete, and its tail must equal the head the pull object reported (a
+  # complete, and its tail must equal the sha that triggered this run (a
   # branch that moved mid-read never earns the skip).
   if [[ "$skip" == true ]]; then
     COMMITS_JSON="${RP_COMMITS_JSON_FILE:-}"
@@ -152,14 +160,20 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
     elif [[ "$got_commits" != "$expected_commits" ]]; then
       echo "commit list incomplete ($got_commits objects, PR reports $expected_commits); not skipping"
       skip=false
-    elif [[ "$got_head" != "$expected_head" ]]; then
-      echo "commits list ends at a different head than the pull reports; not skipping"
+    elif [[ "$got_head" != "$trigger_head" ]]; then
+      echo "commits list ends at a different head than the trigger sha; not skipping"
       skip=false
     else
+      # A commit whose author is not linked to a GitHub account reports
+      # author=null, which maps to an empty line here; an empty line is a
+      # not-bot author, never a missing row (Codex #5479, item 2).
       AUTHORS="$(mktemp "${TMPDIR:-/tmp}/rp-gate-authors.XXXXXX")"
-      jq -sr 'add[] | .author.login // empty' < "$COMMITS_JSON" > "$AUTHORS"
+      jq -sr 'add[] | .author.login // ""' < "$COMMITS_JSON" > "$AUTHORS"
       while IFS= read -r author; do
-        if [[ "$author" != "$RELEASE_BOT" ]]; then
+        if [[ -z "$author" ]]; then
+          echo "commit without a linked GitHub author; not skipping"
+          skip=false
+        elif [[ "$author" != "$RELEASE_BOT" ]]; then
           echo "non-release-bot commit author: $author"
           skip=false
         fi

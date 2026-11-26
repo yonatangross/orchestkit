@@ -38,6 +38,7 @@ jobs:
         id: gate
         env:
           HEAD_REF: ${{ github.head_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

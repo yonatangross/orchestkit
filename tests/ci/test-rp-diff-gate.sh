@@ -49,10 +49,12 @@ mk_pr() {
 decide() {
   # $1: files array path, $2: HEAD_REF, $3: PR_AUTHOR, $4: PR_NUMBER,
   # $5: optional RP_ALLOWLIST_FILE, $6: optional RP_COMMITS_JSON_FILE,
-  # $7: optional RP_PR_JSON_FILE (defaults to the real #5463 object)
+  # $7: optional RP_PR_JSON_FILE (defaults to the real #5463 object),
+  # $8: optional HEAD_SHA (defaults to the real #5463 head)
   RP_FILES_JSON_FILE="$1" \
     HEAD_REF="$2" PR_AUTHOR="$3" PR_NUMBER="$4" RP_ALLOWLIST_FILE="${5:-}" \
     RP_COMMITS_JSON_FILE="${6:-$COMMITS_5463}" RP_PR_JSON_FILE="${7:-$PR_5463}" \
+    HEAD_SHA="${8-$HEAD_5463}" \
     bash "$DECISION" > "$OUT" 2>&1
 }
 
@@ -170,12 +172,34 @@ else
   log_fail "a clean rename did not skip: $(cat "$OUT")"
 fi
 
-section "13. A branch that moved mid-read does not skip"
+section "13. The decision binds to the triggering head sha"
 decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "$(mk_pr 39 3 "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef")"
-if grep -qx 'skip=false' "$OUT" && grep -qF 'different head' "$OUT"; then
+if grep -qx 'skip=false' "$OUT" && grep -qF 'pull head moved since the trigger sha' "$OUT"; then
+  log_pass "a pull head newer than the trigger does not skip"
+else
+  log_fail "a moved pull head skipped: $(cat "$OUT")"
+fi
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "$(mk_pr 39 3 "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef")" "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'different head than the trigger sha' "$OUT"; then
   log_pass "a commits list ending at a stale head does not skip"
 else
-  log_fail "a moved head skipped: $(cat "$OUT")"
+  log_fail "a stale commits tail skipped: $(cat "$OUT")"
+fi
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "$PR_5463" ""
+if grep -qx 'skip=false' "$OUT"; then
+  log_pass "a missing trigger head sha does not skip"
+else
+  log_fail "empty HEAD_SHA skipped: $(cat "$OUT")"
+fi
+
+section "14. A commit with no linked GitHub author counts as not-bot"
+UNLINKED="$WORK_DIR/commits-unlinked.json"
+jq '.[2].author = null' "$COMMITS_5463" > "$UNLINKED"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "$UNLINKED"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'commit without a linked GitHub author' "$OUT"; then
+  log_pass "an unlinked-author commit does not skip"
+else
+  log_fail "an unlinked author was dropped from the check: $(cat "$OUT")"
 fi
 
 echo
