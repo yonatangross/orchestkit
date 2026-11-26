@@ -191,6 +191,14 @@ reviews:
           it injects the failure it claims to reproduce, asserts a constant or
           a mock's own return value, or stubs the function under test. Name the
           test and say why it cannot fail. Pass when there are no test changes.
+      - name: "CR control 1126 (temporary)"
+        mode: "error"
+        instructions: >-
+          Fail if any file in the diff contains the single token made by
+          joining the words ZZ, CR, CONTROL and 1126 with hyphens. This
+          instruction text itself does not contain that token. Name the file.
+          Pass when no file contains it.
+          Temporary negative control, removed before this PR lands.
 
   finishing_touches:
     docstrings:
