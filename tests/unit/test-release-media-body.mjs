@@ -63,6 +63,12 @@ const NOT_AN_EMBED = {
   'a bang split from a link by a comment': `!<!-- x -->[preview](${GIF})`,
   'a link split from its url by a comment': `![preview]<!-- x -->(${GIF})`,
   'a link split from its url by a code span': `![preview]\`x\`(${GIF})`,
+  'an image in a quoted tilde fence': `> ~~~\n> ![preview](${GIF})\n> ~~~`,
+  'an image in a quoted backtick fence': `> \`\`\`md\n> ![preview](${GIF})\n> \`\`\``,
+  'an image in a nested quoted fence': `> > ~~~\n> > ![preview](${GIF})\n> > ~~~`,
+  'an image in a quoted fence with no space': `>~~~\n>![preview](${GIF})\n>~~~`,
+  'an image in an unclosed quoted fence': `  > ~~~\n  > ![preview](${GIF})`,
+  'an image in a second quoted fence': `> ~~~\n> a\n\ntext\n\n> ~~~\n> ![preview](${GIF})`,
 };
 
 for (const [label, text] of Object.entries(NOT_AN_EMBED)) {
@@ -80,6 +86,8 @@ for (const [label, text] of Object.entries({
   'with a title': `![preview](${GIF} "release")`,
   'inside a link': `[![preview](${GIF})](https://example.com)`,
   'after text on the line': `Watch: ![preview](${GIF})`,
+  'in a quote': `> ![preview](${GIF})`,
+  'after a quoted fence ends': `> ~~~\n> code\n> ~~~\n\n![preview](${GIF})`,
 })) {
   test(`leaves a hand embed alone ${label}`, () => {
     const body = `${text}\n\n${NOTES}`;

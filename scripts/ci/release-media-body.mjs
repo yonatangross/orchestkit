@@ -33,6 +33,8 @@ const CUT = '�';
 function renderedText(body) {
   return body
     .replace(/^ {0,3}(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?)?(?:^ {0,3}\1[`~]*[ \t\r]*$|(?![\s\S]))/gm, CUT)
+    // A fence inside a quote: cut it and the rest of that quote. Never past it.
+    .replace(/^(?: {0,3}>[ \t]?)+ {0,3}(?:`{3,}|~{3,})[^\n]*(?:\n {0,3}>[^\n]*)*/gm, CUT)
     .replace(/^(?: {4}|\t).*$/gm, CUT)
     .replace(/<!--[\s\S]*?(?:-->|(?![\s\S]))/g, CUT)
     .replace(/(`+)[\s\S]*?\1/g, CUT);
