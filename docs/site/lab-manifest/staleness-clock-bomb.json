@@ -1,0 +1,14 @@
+{
+  "slug": "staleness-clock-bomb",
+  "source": "docs/fix--staleness-clock-bomb/index.html",
+  "title": "staleness_cron clock override: parent vs fix, side by side",
+  "description": "Type any ORK_MEMORY_NOW_OVERRIDE value and compare the two code paths: the parent crashed age math on naive input and stamped offset input with the wall clock; the fix normalizes both to UTC, and the tests now prove it by failing on the parent.",
+  "tags": [
+    "skills",
+    "memory",
+    "tests",
+    "clock",
+    "5476"
+  ],
+  "date": "2026-11-26"
+}

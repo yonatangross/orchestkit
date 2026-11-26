@@ -18,7 +18,7 @@
 // existed.
 
 /** CC version this contract was derived from. */
-export const CC_VERSION = '2.1.278';
+export const CC_VERSION = '2.1.332';
 
 /**
  * Events on which CC reads hookSpecificOutput at all.
@@ -26,7 +26,8 @@ export const CC_VERSION = '2.1.278';
  * envelope ("missing required field hookEventName") and drops the decision.
  *
  * Closed set = hookEventName:R("X") literals in the shipped binary's output
- * schema union (22 on CC 2.1.278), plus HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS.
+ * schema union (23 on CC 2.1.332: the 22 on 2.1.278 plus PreSkillShellCommand),
+ * plus HOOK_EVENT_NAME_REVIEWED_EXCEPTIONS.
  * The derive script's check mode arbitrates this Set bidirectionally (#4291).
  */
 export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
@@ -44,6 +45,9 @@ export const EVENTS_WITH_HOOK_EVENT_NAME = new Set([
   'PostToolUse',
   'PostToolUseFailure',
   'PreModelSwitch',
+  // CC 2.1.332 added this variant (fires before a skill's injected shell
+  // command runs; decision-only, no additionalContext variant).
+  'PreSkillShellCommand',
   'PreToolUse',
   'SessionStart',
   'Setup',

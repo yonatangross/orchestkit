@@ -10,7 +10,7 @@
   },
   "github": {
     "silent": true,
-    "autoJobCancelation": true
+    "autoJobCancelation": false
   },
   "ignoreCommand": "bash scripts/vercel-ignore.sh",
   "installCommand": "bash scripts/vercel-install.sh",

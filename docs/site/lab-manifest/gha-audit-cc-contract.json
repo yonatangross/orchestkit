@@ -1,0 +1,11 @@
+{
+  "slug": "gha-audit-cc-contract",
+  "source": "docs/fix--gha-audit-cc-contract/audit-and-contract.html",
+  "title": "Two scheduled-job root causes: blind sweeps and a contract drift",
+  "description": "Try the skill-claims reference extractor before and after the URL-anchor fix, and see the PreSkillShellCommand contract drift that made cc-contract-probe fail 5 of 7 days.",
+  "tags": [
+    "ci",
+    "github-actions"
+  ],
+  "date": "2026-11-27"
+}
