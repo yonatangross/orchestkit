@@ -122,6 +122,36 @@ describe('overlapping SubagentStart hooks (#5464 review)', () => {
     expect(startRows().filter((r) => r.agent_id === 'child-1')).toHaveLength(1);
   });
 
+  // Codex HOLD round 3 at 8a0f9ae9: rotation cleared every claim while a
+  // claimed start was still buffered, so a second start for the same agent
+  // claimed again and both rows landed in the new active log.
+  test('a log rotation between two starts of one agent never writes a second row', () => {
+    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n`);
+
+    subagentValidator(start('child-1')); // claimed, row still pending
+    appendFileSync(log, `${'x'.repeat(600 * 1024)}\n`); // other telemetry crosses 500 KiB
+    subagentValidator(start('child-1')); // rotates the log, then starts again
+
+    expect(startRows().filter((r) => r.agent_id === 'child-1')).toHaveLength(1);
+  });
+
+  test('rotation prunes only claims older than a day', () => {
+    const claims = join(project, '.claude', 'logs', 'spawn-claims');
+    mkdirSync(claims, { recursive: true });
+    const old = join(claims, `${SESSION}.agent.ancient`);
+    const fresh = join(claims, `${SESSION}.agent.recent`);
+    writeFileSync(old, '');
+    writeFileSync(fresh, '');
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 3600 * 1000);
+    utimesSync(old, twoDaysAgo, twoDaysAgo);
+    writeFileSync(log, `${'x'.repeat(600 * 1024)}\n`);
+
+    subagentValidator(start('child-9')); // triggers rotation
+
+    expect(existsSync(old)).toBe(false);
+    expect(existsSync(fresh)).toBe(true);
+  });
+
   test('an old claim from a crashed start is never taken over: the agent stays at one row', () => {
     const claims = join(project, '.claude', 'logs', 'spawn-claims');
     mkdirSync(claims, { recursive: true });
