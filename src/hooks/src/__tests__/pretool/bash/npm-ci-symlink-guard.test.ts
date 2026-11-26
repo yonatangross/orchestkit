@@ -1800,6 +1800,8 @@ describe('the final-round shell-text runners (time, trap, mapfile, dirs options)
     'coproc p { cd /decoy; }; npm ci --prefix rel',
     'fc -s; npm ci --prefix rel',
     'fc -e ed; npm ci --prefix rel',
+    'fc 5; npm ci --prefix rel',
+    'fc; npm ci --prefix rel',
     'bind -x \'"\\C-t":cd /decoy\'; npm ci --prefix rel',
     "complete -C 'cd /decoy' npm; npm ci --prefix rel",
     'complete -F _comp npm; npm ci --prefix rel',
@@ -1817,6 +1819,11 @@ describe('the final-round shell-text runners (time, trap, mapfile, dirs options)
     "complete -W 'ci install' npm; npm ci --prefix rel",
     'trap -p; npm ci --prefix rel',
     'trap -l; npm ci --prefix rel',
+    'fc -l; npm ci --prefix rel',
+    'fc -ln; npm ci --prefix rel',
+    'fc -lr; npm ci --prefix rel',
+    'fc -l 2 5; npm ci --prefix rel',
+    'fc -ln -3; npm ci --prefix rel',
   ])('the shell-text-free form of %s stays silent', (command) => {
     const deps = { realpath: (p: string) => p, isDirectory: () => true } as const;
     expect(decision(command, { ...nothingLinked, ...deps }), command).toBeUndefined();

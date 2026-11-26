@@ -1503,9 +1503,13 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       const ops = words.slice(cdIdx + 1);
       const optionCluster = (letters: string) => new RegExp(`^-[^- ]*[${letters}]`);
       const runsText =
-        runner === 'coproc' ||
-        runner === 'fc' ? true
-          : runner === 'trap' ? !(ops.length === 0 || /^-[pl]/.test(ops[0]))
+        runner === 'coproc' ? true
+          : runner === 'fc'
+            // `fc -l` lists history read-only (`-n` and `-r` are its
+            // modifiers, a range may follow); every other fc form edits and
+            // re-executes an entry, which can be a cd (Codex, final delta).
+            ? !(ops.length > 0 && /^-[lnr]*l[lnr]*$/.test(ops[0]) && ops.slice(1).every((a) => /^-?\d+$/.test(a)))
+            : runner === 'trap' ? !(ops.length === 0 || /^-[pl]/.test(ops[0]))
             : runner === 'mapfile' || runner === 'readarray' ? ops.some((a) => optionCluster('C').test(a))
               : runner === 'bind' ? ops.some((a) => optionCluster('x').test(a))
                 : ops.some((a) => optionCluster('CF').test(a));
