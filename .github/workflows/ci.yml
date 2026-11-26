@@ -22,6 +22,11 @@ env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
 jobs:
+  # Release-please PRs change only release-owned outputs; heavy suites below
+  # consult this gate and skip themselves on that diff.
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
+
   # ============================================================================
   # STAGE 0: Build + Artifacts (< 1m)
   # Single build, shared via artifacts to avoid rebuilding
@@ -471,9 +476,10 @@ jobs:
     name: PR Playground
     permissions:
       contents: read
+    needs: rp-gate
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.rp-gate.outputs.skip != 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -631,7 +637,8 @@ jobs:
     name: Unit Tests (node ${{ matrix.node-version }})
     permissions:
       contents: read
-    needs: build-plugins
+    needs: [build-plugins, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -677,7 +684,8 @@ jobs:
     name: TypeScript Tests (node ${{ matrix.node-version }}, shard ${{ matrix.shard }})
     permissions:
       contents: read
-    needs: build-plugins
+    needs: [build-plugins, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -776,7 +784,8 @@ jobs:
     name: Integration Tests
     permissions:
       contents: read
-    needs: [unit-tests, security-tests]
+    needs: [unit-tests, security-tests, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -815,7 +824,8 @@ jobs:
     name: Performance Tests
     permissions:
       contents: read
-    needs: [build-plugins]
+    needs: [build-plugins, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -1067,7 +1077,8 @@ jobs:
     name: Static Analysis Pipeline
     permissions:
       contents: read
-    needs: [build-plugins]
+    needs: [build-plugins, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1105,7 +1116,8 @@ jobs:
     name: System Tests
     permissions:
       contents: read
-    needs: [build-plugins]
+    needs: [build-plugins, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -1144,7 +1156,8 @@ jobs:
     name: Hook Coverage
     permissions:
       contents: read
-    needs: [unit-tests, security-tests]
+    needs: [unit-tests, security-tests, rp-gate]
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

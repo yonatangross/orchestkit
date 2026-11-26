@@ -15,8 +15,12 @@ on:
 permissions: {}
 
 jobs:
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
   analyze:
     name: CodeQL Analysis
+    needs: rp-gate
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

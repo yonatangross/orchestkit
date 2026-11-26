@@ -25,8 +25,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
   validate:
     name: Validate eval cases (offline)
+    needs: rp-gate
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3

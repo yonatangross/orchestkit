@@ -32,7 +32,10 @@ derived_at: "2026-08-08"
 # ("hookSpecificOutput is missing required field \"hookEventName\"") and drops
 # the decision silently.
 events_with_hook_specific_output:
-  # Closed set from CC 2.1.278 hookEventName:R("...") output-schema union (#4291).
+  # Closed set from CC 2.1.278 hookEventName:R("...") output-schema union
+  # (#4291), plus PreSkillShellCommand which CC 2.1.332 added to the union
+  # (23 variants; changelog: fires before a skill's injected shell command
+  # runs, can block it; decision-only, no additionalContext variant).
   - CwdChanged
   - Elicitation
   - ElicitationResult
@@ -46,6 +49,7 @@ events_with_hook_specific_output:
   - PostToolUse
   - PostToolUseFailure
   - PreModelSwitch
+  - PreSkillShellCommand
   - PreToolUse
   - SessionStart
   - Setup

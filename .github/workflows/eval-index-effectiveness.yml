@@ -45,11 +45,15 @@ env:
   EVAL_TIMEOUT: 300  # 5 minutes per test
 
 jobs:
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
   # ============================================================================
   # Build indexes (both with and without)
   # ============================================================================
   prepare:
     name: Prepare Evaluation Environment
+    needs: rp-gate
+    if: needs.rp-gate.outputs.skip != 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest

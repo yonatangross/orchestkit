@@ -1,0 +1,49 @@
+name: Release-please Diff Gate
+
+# Reusable gate for heavy PR suites. A release-please PR touches only
+# release-owned outputs (manifests, plugin.json files, generated docs data,
+# rebuilt hook bundles, changelogs and version pins), so running the heavy
+# suites on it is pure cost: 61 checks fired on PR 5463 for a
+# version/changelog-only diff. Consumers add `needs: rp-gate` and
+# `if: needs.rp-gate.outputs.skip != 'true'`. Skipped jobs still satisfy
+# required checks, the same way path-filtered jobs do.
+on:
+  workflow_call:
+    outputs:
+      skip:
+        description: 'true when the event is a release-please pull_request whose files are all release-owned outputs'
+        value: ${{ jobs.check.outputs.skip }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - name: Detect a release-please-only diff
+        id: gate
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          skip=false
+          if [[ -n "$PR_NUMBER" && "$HEAD_REF" == release-please--* && "$PR_AUTHOR" == "release-please[bot]" ]]; then
+            skip=true
+            gh api "repos/$REPO/pulls/$PR_NUMBER/files?per_page=100" --paginate --jq '.[].filename' |
+              while IFS= read -r f; do
+                case "$f" in
+                  CHANGELOG.md|CLAUDE.md|README.md|version.txt|server.json|pyproject.toml|package.json|package-lock.json|plugin.json|.release-please-manifest.json|.claude-plugin/marketplace.json|.devin-plugin/plugin.json) ;;
+                  manifests/*|plugins/*|src/hooks/dist/*|docs/site/lib/generated/*|src/codex/*/.codex-plugin/plugin.json) ;;
+                  *) echo "non-release-owned file: $f"; exit 42 ;;
+                esac
+              done || skip=false
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+          echo "release-please-only diff: $skip"

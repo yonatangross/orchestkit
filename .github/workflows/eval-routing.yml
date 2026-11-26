@@ -29,8 +29,12 @@ on:
 permissions: {}
 
 jobs:
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
   route-check:
     name: Routing Accuracy Ratchet
+    needs: rp-gate
+    if: needs.rp-gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
