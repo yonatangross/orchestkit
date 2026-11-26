@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>staleness_cron clock override: what the parent did with your input, what the fix does</title>
+<meta name="description" content="Type any value for ORK_MEMORY_NOW_OVERRIDE and see the parent script's result next to the fixed one: naive input crashed age math, an offset produced the wrong UTC date and filename; the fix normalizes both to UTC.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; --warn:#8a5a00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(1.8rem,4.5vw,2.6rem); line-height:1.15; max-width:820px; margin:14px 0 20px; }
+  h2 { font-size:1.3rem; margin:0 0 14px; }
+  p { max-width:820px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  code, pre { font-family:ui-monospace,monospace; }
+  pre { background:#fff; border:1px solid var(--line); border-radius:6px; padding:12px 14px; overflow-x:auto; margin:10px 0; font-size:.9rem; }
+  .row { display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; margin:12px 0; }
+  input[type="text"] { font:inherit; font-family:ui-monospace,monospace; padding:8px 10px; width:min(340px,100%); border:1px solid var(--line); border-radius:6px; }
+  button { font:inherit; padding:8px 14px; border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:6px; cursor:pointer; }
+  button.preset { background:#fff; color:var(--ink); border-color:var(--line); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-top:14px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .card h3 { margin:0 0 6px; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .card h3 .tag-old { color:var(--bad); }
+  .card h3 .tag-new { color:var(--good); }
+  .verdict { font-size:1.15rem; font-weight:700; margin:6px 0; }
+  .crash { color:var(--bad); } .ok { color:var(--good); } .warn { color:var(--warn); }
+  .kv { font-family:ui-monospace,monospace; font-size:.85rem; }
+  .kv div { margin:3px 0; }
+  .kv .k { color:var(--muted); display:inline-block; min-width:150px; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="staleness_cron clock override: parent vs fix, side by side"><meta property="og:description" content="Type any ORK_MEMORY_NOW_OVERRIDE value and compare the two code paths: the parent crashed age math on naive input and stamped offset input with the wall clock; the fix normalizes both to UTC, and the tests now prove it by failing on the parent."><meta property="og:url" content="https://orchestkit.dev/lab/staleness-clock-bomb.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="staleness_cron clock override: parent vs fix, side by side"><meta name="twitter:description" content="Type any ORK_MEMORY_NOW_OVERRIDE value and compare the two code paths: the parent crashed age math on naive input and stamped offset input with the wall clock; the fix normalizes both to UTC, and the tests now prove it by failing on the parent."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">skills / memory / staleness_cron</div>
+    <h1>Same clock override, two scripts.</h1>
+    <p>The nightly KG staleness sweep gained <code>ORK_MEMORY_NOW_OVERRIDE</code> so tests could pin the clock. The first version passed the parsed datetime straight through: a naive value crashed the moment a dated entity hit <code>now - latest</code>, and a <code>+03:00</code> offset stamped the report with the wall clock instead of the UTC instant. The fix normalizes at the boundary: naive attaches UTC, aware converts via <code>astimezone(UTC)</code>. Pick an input and compare.</p>
+  </header>
+
+  <section>
+    <h2>ORK_MEMORY_NOW_OVERRIDE</h2>
+    <p class="muted">Simulation of the two real code paths (parent 66806feb vs this branch), not a live run. The dated-entity case uses one observation at 2026-04-20T00:00:00Z so the naive crash actually fires.</p>
+    <div class="row">
+      <input id="val" type="text" value="2026-05-21T02:30:00+03:00" aria-label="override value">
+      <button id="go">Compare</button>
+    </div>
+    <div class="row">
+      <button class="preset" data-v="2026-05-20T00:00:00Z">Z form</button>
+      <button class="preset" data-v="2026-05-20T00:00:00">naive</button>
+      <button class="preset" data-v="2026-05-21T02:30:00+03:00">offset (prior UTC day)</button>
+      <button class="preset" data-v="2026-05-21T02:30:00+0300">compact offset +HHMM</button>
+      <button class="preset" data-v="">empty (unset)</button>
+      <button class="preset" data-v="2026-05-20">date only</button>
+      <button class="preset" data-v="not-a-date">malformed</button>
+      <button class="preset" data-v="2026-02-30T00:00:00Z">impossible date</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="tag-old">parent</span> 66806feb</h3>
+        <div id="old"></div>
+      </div>
+      <div class="card">
+        <h3><span class="tag-new">fixed</span> this branch</h3>
+        <div id="new"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Self-check vs real runs</h2>
+    <p class="muted">Each row is one recorded run of this branch's <code>staleness_cron.py</code> (empty-KG shim, 2026-11-26). The "sim says" column is the same simulator as above run on that input; a row is PASS only when the simulated exit and report filename match the real run.</p>
+    <table id="truth">
+      <thead><tr><th>input</th><th>real run</th><th>sim says</th><th>verdict</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p id="truth-summary" class="muted"></p>
+  </section>
+
+  <footer>
+    Fixed by _now_from_env normalizing at the env boundary; tests pin the clock via the same env var inside a subprocess. The override exists for tests and replays only.
+  </footer>
+</main>
+<script>
+const input = document.getElementById('val');
+const oldCard = document.getElementById('old');
+const newCard = document.getElementById('new');
+
+function daysInMonth(y, m) {
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  return [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+}
+
+function parse(raw) {
+  // Mirrors the script exactly: os.environ truthy check (empty -> unset,
+  // real clock), raw.replace("Z","+00:00") on EVERY Z, then
+  // datetime.fromisoformat's grammar: any single char separator, hour-only
+  // or HH:MM[:SS[.,frac]] time (compact HHMMSS accepted, fraction only on
+  // seconds), offset Z / +HH / +HHMM / +HH:MM / +HHMMSS / +HH:MM:SS
+  // capped below 24h, hour 24 rolls to the next day.
+  if (raw === '') return { kind: 'unset' };
+  const s = raw.replace(/Z/g, '+00:00');
+  const m = s.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:.(\d{2})(?::(\d{2})(?::(\d{2})([.,]\d+)?)?|(?:(\d{2})(\d{2})([.,]\d+)|(\d{2})(\d{2})|(\d{2})))?(?:([+-])(\d{2})(?::(\d{2})(?::(\d{2}))?|(\d{2})(\d{2})?)?)?)?$/
+  );
+  if (!m) return { kind: 'invalid' };
+  const [, Y, M, D, h, mc, sc, frac, ccMm1, ccSs1, ccFr1, ccMm2, ccSs2, ccMm3,
+             sign, oh, om, os, omc, osc] = m;
+  const y = +Y, mo = +M, d = +D;
+  const hh = h === undefined ? 0 : +h;
+  const mi = +(mc || ccMm1 || ccMm2 || ccMm3 || 0);
+  const ss = +(sc || ccSs1 || ccSs2 || 0);
+  const frStr = frac || ccFr1;
+  const fr = frStr ? parseFloat(frStr.replace(',', '.')) : 0;
+  if (mo < 1 || mo > 12 || d < 1 || d > daysInMonth(y, mo)) return { kind: 'invalid' };
+  if (hh > 24 || mi > 59 || ss > 59) return { kind: 'invalid' };
+  if (hh === 24 && (mi !== 0 || ss !== 0 || fr !== 0)) return { kind: 'invalid' };
+  const wallMs = Date.UTC(y, mo - 1, d, hh, mi, ss) + Math.round(fr * 1000);
+  if (sign === undefined) return { kind: 'naive', wallMs };
+  const omins = +(om || omc || 0), osecs = +(os || osc || 0);
+  if (+oh > 23 || omins > 59 || osecs > 59) return { kind: 'invalid' };
+  const offMs = (sign === '+' ? 1 : -1) * (+oh * 3600 + omins * 60 + osecs) * 1000;
+  return { kind: 'aware', wallMs, utcMs: wallMs - offMs, offMs };
+}
+
+function fmtWall(ms) {
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;
+}
+
+// Structured outcomes, shared by the compare cards and the self-check table.
+// Parent (66806feb): strftime("%Y-%m-%dT%H:%M:%SZ") on the datetime as parsed;
+// naive crashes in is_stale() on the dated entity, aware prints its own
+// offset wall clock with a Z. Fixed: naive attaches UTC, aware astimezone(UTC).
+function sim(p, isFixed) {
+  if (p.kind === 'unset') return { exit: 0, realClock: true };
+  if (p.kind === 'invalid') return { exit: 1, err: 'ORK_MEMORY_NOW_OVERRIDE is not ISO 8601' };
+  if (!isFixed && p.kind === 'naive') {
+    return { exit: 1, crash: "can't subtract offset-naive and offset-aware datetimes" };
+  }
+  const ms = p.kind === 'naive' ? p.wallMs
+           : isFixed ? p.utcMs
+           : p.wallMs; // parent keeps the offset wall clock
+  const stamp = fmtWall(ms);
+  return { exit: 0, stamp, file: `memory-staleness-${stamp.slice(0, 10)}.md`,
+           wrongInstant: !isFixed && p.kind === 'aware' && p.offMs !== 0,
+           trueUtc: p.kind === 'aware' ? fmtWall(p.utcMs) : null };
+}
+
+function render(o, isFixed) {
+  if (o.realClock) return `<div class="verdict ok">exit 0</div><div class="kv"><div><span class="k">override</span> unset / empty: ignored</div><div><span class="k">clock</span> real wall clock (datetime.now(UTC))</div></div>`;
+  if (o.err) return `<div class="verdict warn">exit 1</div><div class="kv"><div><span class="k">stderr</span> staleness_cron: ${o.err}</div></div>`;
+  if (o.crash) return `<div class="verdict crash">exit 1 - TypeError</div>
+    <div class="kv"><div><span class="k">crash at</span> is_stale(): now - latest</div>
+    <div><span class="k">reason</span> ${o.crash}</div><div><span class="k">report</span> none written</div></div>`;
+  const cls = o.wrongInstant ? 'warn' : 'ok';
+  const lbl = o.wrongInstant ? 'exit 0 - wrong instant' : 'exit 0';
+  let kv = `<div class="kv"><div><span class="k">generated_at</span> ${o.stamp}Z</div>
+    <div><span class="k">filename</span> ${o.file}</div>`;
+  if (o.wrongInstant) kv += `<div><span class="k">true UTC</span> ${o.trueUtc}Z</div>`;
+  if (!o.wrongInstant && o.stamp && !isFixed && o.trueUtc) kv += `<div><span class="k">note</span> zero offset: parent's stamp is already UTC</div>`;
+  return `<div class="verdict ${cls}">${lbl}</div>${kv}</div>`;
+}
+
+function compare() {
+  const p = parse(input.value);
+  oldCard.innerHTML = render(sim(p, false), false);
+  newCard.innerHTML = render(sim(p, true), true);
+}
+
+document.getElementById('go').addEventListener('click', compare);
+input.addEventListener('keydown', (e) => { if (e.key === 'Enter') compare(); });
+document.querySelectorAll('.preset').forEach((b) => b.addEventListener('click', () => { input.value = b.dataset.v; compare(); }));
+compare();
+
+// Recorded runs of THIS branch's staleness_cron.py (empty-KG shim, collected
+// 2026-11-26). file = the report name the run wrote; 'real clock' means the
+// env var was ignored and the wall clock stamped the report.
+const REAL_RUNS = [
+  { in: '',                          exit: 0, file: 'real clock' },
+  { in: ' ',                         exit: 1 },
+  { in: '2026-05-20',                exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-20T00:00:00Z',      exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-20T00:00:00z',      exit: 1 },
+  { in: '2026-05-21T02:30:00+03:00', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+0300',  exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+03',    exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30+03:00',    exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+03:00:15', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+033015', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-02-30T00:00:00Z',      exit: 1 },
+  { in: 'garbage',                   exit: 1 },
+  { in: '2026-05-20 12:00:00',       exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00-05:30', exit: 0, file: 'memory-staleness-2026-05-21.md' },
+  { in: '2026-05-20T00:00:00.123456Z', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+];
+
+const tbody = document.querySelector('#truth tbody');
+let pass = 0;
+for (const r of REAL_RUNS) {
+  const o = sim(parse(r.in), true);
+  const simDesc = o.realClock ? 'exit 0, real clock'
+    : o.err || o.crash ? 'exit 1'
+    : `exit 0, ${o.file}`;
+  const realDesc = r.exit === 1 ? 'exit 1'
+    : r.file === 'real clock' ? 'exit 0, real clock'
+    : `exit 0, ${r.file}`;
+  const ok = o.exit === r.exit &&
+    (r.exit === 1 || (r.file === 'real clock' ? !!o.realClock : o.file === r.file));
+  if (ok) pass++;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><code>${r.in === '' ? '(empty)' : r.in === ' ' ? '(one space)' : r.in}</code></td>
+    <td>${realDesc}</td><td>${simDesc}</td>
+    <td class="${ok ? 'ok' : 'crash'}">${ok ? 'PASS' : 'MISMATCH'}</td>`;
+  tbody.appendChild(tr);
+}
+document.getElementById('truth-summary').textContent =
+  `${pass}/${REAL_RUNS.length} rows match real script runs.`;
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
