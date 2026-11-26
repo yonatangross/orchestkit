@@ -1,0 +1,12 @@
+{
+  "slug": "5421-glyph-page-sidebar",
+  "source": "docs/fix--5421-glyph-page-sidebar-up7/index.html",
+  "title": "Glyph page sidebar: thin rail vs chip row",
+  "description": "The glyph explainer template's section index at 12 sections (a sticky rail, at most 170 px wide, never taller than the screen) and at 13 (one wrapping chip row), with the rail's measured size shown live.",
+  "tags": [
+    "glyph",
+    "layout",
+    "sidebar"
+  ],
+  "date": "2026-11-26"
+}
