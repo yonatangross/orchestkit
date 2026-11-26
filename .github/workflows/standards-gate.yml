@@ -14,8 +14,9 @@
 #            break the reader, which lists files with git ls-files).
 # No secrets are used, the token is contents: read, and the runner is hosted
 # and ephemeral (a pull_request_target job must never run on the shared
-# self-hosted pool). The first step refuses forks explicitly, so a fork can
-# never read as a skipped (green) check.
+# self-hosted pool). A fork pull request is judged the same way: its head is
+# data like any other, so the verdict can never read as a skipped check and
+# a fork contributor needs nothing extra (#5204).
 #
 # What the verdict fails on: a head violation not in the BASE baseline, head
 # allowlists looser than base (configs/standards.json), a head baseline that
@@ -58,17 +59,6 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Refuse fork pull requests (fail, never skip)
-        env:
-          HEAD_REPO_ID: ${{ github.event.pull_request.head.repo.id }}
-          BASE_REPO_ID: ${{ github.event.pull_request.base.repo.id }}
-        run: |
-          set -euo pipefail
-          if [ "${HEAD_REPO_ID}" != "${BASE_REPO_ID}" ]; then
-            echo "::error title=standards gate::a fork pull request cannot be judged here; run scripts/standards-gate-verdict.sh locally and paste the report"
-            exit 1
-          fi
-
       - name: Trusted gate code (base branch tip, same commit as this YAML)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

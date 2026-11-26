@@ -332,6 +332,11 @@ assert "no step runs with head as its working directory" absent 'working-directo
 assert "nothing under head/ is executed" \
   absent '(bash|sh|python3?|uv run python|source|\.) +"?(\$GITHUB_WORKSPACE/)?head/' "$WORKFLOW"
 assert "no unsafe checkout opt-in and no secrets" absent 'allow-unsafe-pr-checkout|secrets\.' "$WORKFLOW"
+# A fork head is the same data-only input as a branch head: nothing executes
+# it, so refusing forks only locks out contributors (#5204). No step may
+# compare the head repo to the base repo.
+assert "fork pull requests are judged like branches (no fork refusal)" \
+  absent 'pull_request\.head\.repo|Refuse fork' "$WORKFLOW"
 assert "the verdict runs the trusted driver" \
   grep -qE 'bash trusted/scripts/standards-gate-verdict\.sh' "$WORKFLOW"
 assert "trusted checkout pinned to github.sha (default branch)" \

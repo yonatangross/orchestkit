@@ -137,6 +137,17 @@ What this looks like on your PR:
 There is nothing to fix on your end. Ping the PR if it has been sitting for a
 while and nobody has approved the run yet.
 
+Once approved, the required **standards gate** check judges a fork PR exactly
+like a branch PR: it reads your branch as data (nothing on it is executed)
+against the rules and baseline on `main`. If it fails, reproduce the verdict
+locally before pushing again. Check out `main` and your branch side by side,
+then run:
+
+```bash
+bash scripts/standards-gate-verdict.sh \
+  --trusted <path-to-main> --base <path-to-main> --head <path-to-your-branch>
+```
+
 ### Branch Naming Convention
 
 - `feature/` - New features or enhancements
