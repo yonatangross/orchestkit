@@ -9,8 +9,10 @@ set -euo pipefail
 
 PY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/python" && pwd)"
 
-# Same install-if-missing pattern as the PyYAML steps in ci.yml.
-if ! command -v pytest >/dev/null; then
+# Same install-if-missing pattern as the PyYAML steps in ci.yml. Probe the
+# interpreter we actually invoke (python3 -m pytest), not the pytest binary;
+# the two can come from different installs.
+if ! python3 -m pytest --version >/dev/null 2>&1; then
   python3 -m pip install --user --break-system-packages 'pytest>=8.0.0' --quiet
 fi
 
