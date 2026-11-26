@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.20.0",
+    "date": "2026-11-26",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.19.0...v10.20.0",
+    "sections": [
+      {
+        "type": "added",
+        "heading": "Features",
+        "items": [
+          "**site:** host support MCP app on the docs MCP ([#5452](https://github.com/yonatangross/orchestkit/issues/5452)) ([f9c219b](https://github.com/yonatangross/orchestkit/commit/f9c219b0b12ae2ca9c74865dce704ed74f86dcbb))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.19.0",
     "date": "2026-11-25",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.18.1...v10.19.0",

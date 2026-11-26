@@ -684,6 +684,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.20.0](https://github.com/yonatangross/orchestkit/compare/v10.19.0...v10.20.0)** · 2026-11-26
+
+- **site:** host support MCP app on the docs MCP (#5452)
+
 **[v10.19.0](https://github.com/yonatangross/orchestkit/compare/v10.18.1...v10.19.0)** · 2026-11-25
 
 - **site:** shared MCP view element, search results on it (#5448)
@@ -737,15 +741,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **browser-tools:** Windows no-pipe note, doctor version check (#5290)
 - **design-to-code:** quote the PR title in ship mode, body from a file (#5286)
 - …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.14.0](https://github.com/yonatangross/orchestkit/compare/v10.13.0...v10.14.0)** · 2026-11-17
-
-- **cli:** orchestkit install finds the coding agents on this machine (#5267)
-- **codex:** add ork-commit and ork-create-pr to the Codex pack (#5261)
-- **fix-issue:** safety-fact proof ladder and review-pr proof criterion (#5273)
-- **hooks:** record a fixed error_class on PostToolUseFailure telemetry (#5248)
-- **review-pr:** proven-by-a-run tier in review-fanout (#5274)
-- …and 27 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
