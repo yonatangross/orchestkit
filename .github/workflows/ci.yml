@@ -22,6 +22,17 @@ env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
 jobs:
+  # Release-please PRs change only release-owned outputs; heavy suites below
+  # consult this gate and skip themselves on that diff. The gate FAILS CLOSED
+  # at the wiring level: only a succeeded gate that printed skip=true skips a
+  # suite; a failed, cancelled or skipped gate runs them all, and CI Summary
+  # counts a non-success gate as a failure (#5470 round-2 redesign).
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
   # ============================================================================
   # STAGE 0: Build + Artifacts (< 1m)
   # Single build, shared via artifacts to avoid rebuilding
@@ -471,9 +482,10 @@ jobs:
     name: PR Playground
     permissions:
       contents: read
+    needs: rp-gate
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    if: github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'pull_request' && !cancelled() && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -631,7 +643,8 @@ jobs:
     name: Unit Tests (node ${{ matrix.node-version }})
     permissions:
       contents: read
-    needs: build-plugins
+    needs: [build-plugins, rp-gate]
+    if: ${{ !cancelled() && needs.build-plugins.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -677,7 +690,8 @@ jobs:
     name: TypeScript Tests (node ${{ matrix.node-version }}, shard ${{ matrix.shard }})
     permissions:
       contents: read
-    needs: build-plugins
+    needs: [build-plugins, rp-gate]
+    if: ${{ !cancelled() && needs.build-plugins.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -776,7 +790,8 @@ jobs:
     name: Integration Tests
     permissions:
       contents: read
-    needs: [unit-tests, security-tests]
+    needs: [unit-tests, security-tests, rp-gate]
+    if: ${{ !cancelled() && needs.unit-tests.result == 'success' && needs.security-tests.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -815,7 +830,8 @@ jobs:
     name: Performance Tests
     permissions:
       contents: read
-    needs: [build-plugins]
+    needs: [build-plugins, rp-gate]
+    if: ${{ !cancelled() && needs.build-plugins.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -1067,7 +1083,8 @@ jobs:
     name: Static Analysis Pipeline
     permissions:
       contents: read
-    needs: [build-plugins]
+    needs: [build-plugins, rp-gate]
+    if: ${{ !cancelled() && needs.build-plugins.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1105,7 +1122,8 @@ jobs:
     name: System Tests
     permissions:
       contents: read
-    needs: [build-plugins]
+    needs: [build-plugins, rp-gate]
+    if: ${{ !cancelled() && needs.build-plugins.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -1144,7 +1162,8 @@ jobs:
     name: Hook Coverage
     permissions:
       contents: read
-    needs: [unit-tests, security-tests]
+    needs: [unit-tests, security-tests, rp-gate]
+    if: ${{ !cancelled() && needs.unit-tests.result == 'success' && needs.security-tests.result == 'success' && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -1204,7 +1223,7 @@ jobs:
     name: CI Summary
     permissions:
       contents: read
-    needs: [build-plugins, lint, security-audit, secret-scanning, playground-check, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
+    needs: [rp-gate, build-plugins, lint, security-audit, secret-scanning, playground-check, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, manifest-schema-tests, eval-static, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -1212,6 +1231,7 @@ jobs:
       - name: Check all jobs
         run: |
           echo "=== CI Summary ==="
+          echo "Release-please gate: ${{ needs.rp-gate.result }}  (any non-success result turns this summary red: a gate that could not decide must never read as green)"
           echo "Build: ${{ needs.build-plugins.result }}"
           echo "Lint: ${{ needs.lint.result }}"
           echo "Security Audit: ${{ needs.security-audit.result }}"
@@ -1248,6 +1268,14 @@ jobs:
 
           # Fail only on explicit failures (skipped jobs are OK - they use path filters)
           FAILED=0
+          # The release-please gate is the one job a "skipped" result cannot
+          # excuse: a gate that failed, cancelled or skipped means the heavy
+          # suites ran (or should have) and this summary must not read green
+          # off an undecided gate (#5470).
+          if [[ "${{ needs.rp-gate.result }}" != "success" ]]; then
+            echo "::error::rp-gate result is ${{ needs.rp-gate.result }}, not success: the release-please diff gate could not decide"
+            FAILED=1
+          fi
           for result in \
             "${{ needs.build-plugins.result }}" \
             "${{ needs.lint.result }}" \

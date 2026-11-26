@@ -26,8 +26,15 @@ permissions:
   pull-requests: read
 
 jobs:
+  rp-gate:
+    uses: ./.github/workflows/rp-diff-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
   lint:
     name: Visual-Style PR Lint
+    needs: rp-gate
+    if: ${{ !cancelled() && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
