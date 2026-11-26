@@ -1412,6 +1412,13 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     let cdIdx = 0;
     while (cdIdx < words.length && /^\w+=/.test(words[cdIdx])) cdIdx++;
     while (cdIdx < words.length && (words[cdIdx] === 'builtin' || words[cdIdx] === 'command')) cdIdx++;
+    // `time` is a prefix keyword too: `time -p eval cd /decoy` still runs the
+    // eval in this shell, so the word after its options is the real command.
+    if (cdIdx < words.length && words[cdIdx] === 'time') {
+      cdIdx++;
+      while (cdIdx < words.length && words[cdIdx] === '-p') cdIdx++;
+      while (cdIdx < words.length && (words[cdIdx] === 'builtin' || words[cdIdx] === 'command')) cdIdx++;
+    }
     if (cdIdx < words.length && words[cdIdx].includes(IFS_SENT)) {
       // An IFS-glued command word may read as a builtin or as several words:
       // the builtin reading is applied and the rest fail closed (#36 reviews).
@@ -1448,8 +1455,12 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       // Anything beyond a plain `-c` clear is a stack form the reader does
       // not model, so the clean install that follows asks on its own.
       const stackOps = words.slice(cdIdx + 1);
-      if (stackOps.length > 0 && !stackOps.every((a) => /^-[a-zA-Z]*c[a-zA-Z]*$/.test(a))) unsupported = true;
-      if (stackOps.some((a) => /^-[a-zA-Z]*c[a-zA-Z]*$/.test(a))) dirstack.length = 0;
+      // Bash accepts only -clpv and +N/-N for dirs and fails on any other
+      // letter without touching the stack, so a rejected call must not read
+      // as a clear (Codex round-5).
+      const validOp = (a: string) => /^-[clpv]+$/.test(a) || /^[+-]\d+$/.test(a);
+      if (!stackOps.every(validOp)) unsupported = true;
+      else if (stackOps.some((a) => /^-[clpv]*c[clpv]*$/.test(a))) dirstack.length = 0;
       seen.push(dir);
       restore();
       continue;
@@ -1481,6 +1492,31 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       restore();
       continue;
     }
+    const runner = cdIdx < words.length ? words[cdIdx] : '';
+    if (runner === 'trap' || runner === 'mapfile' || runner === 'readarray' || runner === 'coproc' || runner === 'fc' || runner === 'bind' || runner === 'complete') {
+      // Each of these builtins can run shell text later in this shell: a trap
+      // handler string, mapfile/readarray's -C callback, any coproc command,
+      // an fc re-execution or editor command, a bind -x key command, and a
+      // complete -C command or -F function. None is modelled, so a form that
+      // may run text is unsupported; the listing-only forms stay silent
+      // (Opus-25, final-round family sweep).
+      const ops = words.slice(cdIdx + 1);
+      const optionCluster = (letters: string) => new RegExp(`^-[^- ]*[${letters}]`);
+      const runsText =
+        runner === 'coproc' ||
+        runner === 'fc' ? true
+          : runner === 'trap' ? !(ops.length === 0 || /^-[pl]/.test(ops[0]))
+            : runner === 'mapfile' || runner === 'readarray' ? ops.some((a) => optionCluster('C').test(a))
+              : runner === 'bind' ? ops.some((a) => optionCluster('x').test(a))
+                : ops.some((a) => optionCluster('CF').test(a));
+      if (runsText) {
+        dirShaky = true;
+        unsupported = true;
+      }
+      seen.push(dir);
+      restore();
+      continue;
+    }
     const cdWord = cdIdx < words.length && (words[cdIdx] === 'cd' || words[cdIdx] === 'pushd');
     // Options sit before the operands and `--` ends them: a later `-L` is positional
     // (`cd -- -L /d` is two operands bash refuses), and the last of -L/-P wins
@@ -1506,6 +1542,10 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       }
       if (optHasE && !optPhysical) optInvalid = true;
     }
+    // `pushd` takes no option run: its only dash operands are `-n`, `+N` and
+    // `-N`. Any other dash word (including cd's own letters like `-L`) is an
+    // option bash rejects before anything moves (round-5 fuzz oracle).
+    if (words[cdIdx] === 'pushd' && afterCd.some((a) => /^-/.test(a) && a !== '-n' && !/^-\d+$/.test(a))) optInvalid = true;
     if (optEnd < afterCd.length && afterCd[optEnd] === '--') optEnd++;
     const cdOperands = afterCd.slice(optEnd);
     // `set -o physical` makes a bare cd resolve like `cd -P` (#37 reviews).

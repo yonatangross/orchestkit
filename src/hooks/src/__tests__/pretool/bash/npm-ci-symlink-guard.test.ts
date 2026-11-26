@@ -1679,8 +1679,34 @@ describe('the allowlist contract: seeded fuzz, mutant probe, quiet controls', ()
   const NPMS = ['npm ci', 'npm ci --prefix rel', 'npm --prefix rel ci', 'npm ci --prefix a{b,c}', "npm ci --prefix a{b','c}", 'npm i && npm ci'];
 
   it(`fuzz: ${FUZZ_COUNT} generated commands (seed ${FUZZ_SEED}) never silently allow a linked landing`, () => {
+    // The expected classification comes from how each command was built, not
+    // from the production classifier, so a missed mark fails here instead of
+    // skipping its own assertion (Codex round-5).
+    const IFS_UNMOD = new Set(['$IFS', '${IFS}', '${IFS%%*}', '${IFS#??}', '${IFS:0:0}', '${IFS:9}', '${IFS//?/}', '${IFS//x/}']);
+    // `-e` is legal only with `-P` and `-@` lists xattrs, so -eP/-Pe/-@ are
+    // modeled; -e, -x and -n are letters cd does not take. pushd takes no
+    // option run at all and popd reads no operand the reader models.
+    const OPT_UNMOD = new Set(['-e', '-x', '-n']);
+    // A quote inside a brace is unmodeled even when the brace holds an
+    // evaluated ${IFS:-x} (the x lands inside the quoted separator); only a
+    // ${IFS:+ } split dissolves the brace into covered expansions. The span
+    // runs to the last } the way bash pairs the brace.
+    const quotedBrace = (w: string) => {
+      const open = w.indexOf('{');
+      const close = w.lastIndexOf('}');
+      return open >= 0 && close > open && /['"]/.test(w.slice(open, close)) && !w.includes('${IFS:+');
+    };
+    // The generated ifs lands inside the dir slice, so its meaning depends on
+    // the context it lands in: inside a single-quoted dir it is literal text,
+    // and an unbraced $IFS followed by a name character is a different
+    // variable ($IFScoy reads as IFS coy's name, unset, expanding to empty).
+    const ifsUnsupported = (dir: string, ifs: string) =>
+      dir.startsWith("'")
+        ? ifs.startsWith('${')
+        : !(ifs === '$IFS' && /^[A-Za-z0-9_]/.test(dir.slice(3))) && IFS_UNMOD.has(ifs);
     const r = mulberry32(FUZZ_SEED);
     const failures: string[] = [];
+    const classMisses: string[] = [];
     const fallbackMisses: string[] = [];
     for (let i = 0; i < FUZZ_COUNT; i++) {
       const builtin = pick(r, BUILTINS);
@@ -1694,12 +1720,19 @@ describe('the allowlist contract: seeded fuzz, mutant probe, quiet controls', ()
       if (v === undefined) failures.push(`${i}: ${command}`);
       // Link-free fixture: an unsupported command must ask on its own,
       // not ride on a denial from some other candidate (Codex round-4).
-      const unsupported = npmCiUnsupportedForm(command, '/wt', '/home/u', deps.realpath, deps.isDirectory);
-      if (unsupported && decision(command, { ...nothingLinked, ...deps }) !== 'ask') {
+      const dirWord = `${dir.slice(0, 3)}${ifs}${dir.slice(3)}`;
+      const expected =
+        builtin === 'popd' || builtin === 'pushd' ||
+        OPT_UNMOD.has(opt) || ifsUnsupported(dir, ifs) || quotedBrace(dirWord) || quotedBrace(npm);
+      if (npmCiUnsupportedForm(command, '/wt', '/home/u', deps.realpath, deps.isDirectory) !== expected) {
+        classMisses.push(`${i}: expected=${expected} ${command}`);
+      }
+      if (expected && decision(command, { ...nothingLinked, ...deps }) !== 'ask') {
         fallbackMisses.push(`${i}: ${command}`);
       }
     }
     expect(failures).toEqual([]);
+    expect(classMisses).toEqual([]);
     expect(fallbackMisses).toEqual([]);
   });
 
@@ -1741,5 +1774,80 @@ describe('the allowlist contract: seeded fuzz, mutant probe, quiet controls', ()
     for (const command of SAFE) {
       expect(decision(command, nothingLinked), command).toBeUndefined();
     }
+  });
+});
+
+describe('the final-round shell-text runners (time, trap, mapfile, dirs options)', () => {
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps, cwd = '/wt') =>
+    npmCiSymlinkGuard(bash(command, cwd), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+  const relLinked = linksAt('/decoy/rel/node_modules');
+  const stackLinked = linksAt('/wt/node_modules');
+  const nothingLinked = linksAt();
+
+  // Opus-25: builtins and prefixes that run shell text in the current shell.
+  // Each can cd before a later npm ci, so each is unsupported and asks even
+  // with no link at all; with the decoy linked the verdict must not be silent.
+  it.each([
+    'time eval cd /decoy; npm ci --prefix rel',
+    'time -p eval cd /decoy; npm ci --prefix rel',
+    'time -p -p eval cd /decoy; npm ci --prefix rel',
+    "trap 'cd /decoy' DEBUG; npm ci --prefix rel",
+    'trap "cd /decoy" ERR; npm ci --prefix rel',
+    'mapfile -C "cd /decoy" -c 1 < /etc/hosts; npm ci --prefix rel',
+    'readarray -C "cd /decoy" -c 1 < /etc/hosts; npm ci --prefix rel',
+    'mapfile -tC "cd /decoy" -c 1 < /etc/hosts; npm ci --prefix rel',
+    'coproc cd /decoy; npm ci --prefix rel',
+    'coproc p { cd /decoy; }; npm ci --prefix rel',
+    'fc -s; npm ci --prefix rel',
+    'fc -e ed; npm ci --prefix rel',
+    'bind -x \'"\\C-t":cd /decoy\'; npm ci --prefix rel',
+    "complete -C 'cd /decoy' npm; npm ci --prefix rel",
+    'complete -F _comp npm; npm ci --prefix rel',
+  ])('a shell-text runner in %s asks, linked or link-free', (command) => {
+    const deps = { realpath: (p: string) => p, isDirectory: () => true } as const;
+    expect(decision(command, { ...relLinked, ...deps }), command).toBe('ask');
+    expect(decision(command, { ...nothingLinked, ...deps }), command).toBe('ask');
+    expect(npmCiUnsupportedForm(command, '/wt', '/home/u', deps.realpath, deps.isDirectory), command).toBe(true);
+  });
+
+  it.each([
+    'mapfile -t arr < /etc/hosts; npm ci --prefix rel',
+    'readarray arr < /etc/hosts; npm ci --prefix rel',
+    'bind \'\\C-t":"\\C-m\'; npm ci --prefix rel',
+    "complete -W 'ci install' npm; npm ci --prefix rel",
+    'trap -p; npm ci --prefix rel',
+    'trap -l; npm ci --prefix rel',
+  ])('the shell-text-free form of %s stays silent', (command) => {
+    const deps = { realpath: (p: string) => p, isDirectory: () => true } as const;
+    expect(decision(command, { ...nothingLinked, ...deps }), command).toBeUndefined();
+  });
+
+  // Codex round-5: bash's dirs accepts only -clpv plus +N/-N operands, and
+  // fails without touching the stack on any other letter. `dirs -xc` is a
+  // rejected call the reader must not model as a clear.
+  it.each([
+    'pushd /a; dirs -xc; popd; npm ci',
+    'pushd /a; dirs -qc; popd; npm ci',
+    'pushd /a; dirs -cx; popd; npm ci',
+    'pushd /a; dirs -z; popd; npm ci',
+  ])('an invalid dirs option in %s keeps the stack and does not go silent', (command) => {
+    const deps = { realpath: (p: string) => p, isDirectory: () => true } as const;
+    expect(decision(command, { ...stackLinked, ...deps }), command).toBe('deny');
+    expect(decision(command, { ...nothingLinked, ...deps }), command).toBe('ask');
+  });
+
+  it('dirs option validation: invalid letters mark unsupported, valid forms stay modeled', () => {
+    const deps = { realpath: (p: string) => p, isDirectory: () => true } as const;
+    const unsupported = (command: string) => npmCiUnsupportedForm(command, '/wt', '/home/u', deps.realpath, deps.isDirectory);
+    expect(unsupported('dirs -xc; npm ci')).toBe(true);
+    expect(unsupported('dirs -zq; npm ci')).toBe(true);
+    expect(unsupported('dirs -c -q; npm ci')).toBe(true);
+    expect(unsupported('dirs bogus; npm ci')).toBe(true);
+    expect(unsupported('dirs -c; npm ci')).toBe(false);
+    expect(unsupported('dirs -lc; npm ci')).toBe(false);
+    expect(unsupported('dirs -lp; npm ci')).toBe(false);
+    expect(unsupported('dirs +1; npm ci')).toBe(false);
+    expect(unsupported('dirs -2; npm ci')).toBe(false);
+    expect(decision('dirs -lp; npm ci --prefix rel', { ...nothingLinked, ...deps })).toBeUndefined();
   });
 });
