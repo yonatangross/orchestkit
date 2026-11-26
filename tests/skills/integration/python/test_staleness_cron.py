@@ -316,17 +316,30 @@ def test_custom_threshold_changes_split(tmp_path: Path, shim_mixed_kg: Path) -> 
     assert payload["top_stale"][0]["name"] == "undated-entity"
 
 
-def test_now_override_naive_treated_as_utc(tmp_path: Path, shim_empty_kg: Path) -> None:
-    result = _run(tmp_path, pythonpath=shim_empty_kg, fake_now="2026-05-20T00:00:00")
+def test_now_override_naive_treated_as_utc(tmp_path: Path, shim_mixed_kg: Path) -> None:
+    """Naive input attaches UTC — a naive `now` must not crash `now - aware_ts`."""
+    result = _run(tmp_path, pythonpath=shim_mixed_kg, fake_now="2026-05-20T00:00:00")
     assert result.returncode == 0, f"stderr: {result.stderr}"
-    assert _load_handoff(tmp_path)["generated_at"].startswith("2026-05-20")
+    assert "Traceback" not in result.stderr
+    handoff = _load_handoff(tmp_path)
+    assert handoff["generated_at"] == "2026-05-20T00:00:00Z"
+    # Same split as the Z-suffixed FIXED_NOW run.
+    assert handoff["stale_count"] == 4
+    assert handoff["fresh_count"] == 1
 
 
 def test_now_override_offset_normalizes_to_utc(tmp_path: Path, shim_empty_kg: Path) -> None:
-    result = _run(tmp_path, pythonpath=shim_empty_kg, fake_now="2026-05-20T03:00:00+03:00")
+    """2026-05-21T02:30+03:00 is 2026-05-20T23:30:00Z — the PRIOR UTC day.
+
+    The report timestamp and both filenames must use the UTC instant, not
+    the +03:00 wall clock.
+    """
+    result = _run(tmp_path, pythonpath=shim_empty_kg, fake_now="2026-05-21T02:30:00+03:00")
     assert result.returncode == 0, f"stderr: {result.stderr}"
-    # 03:00+03:00 is 2026-05-20T00:00:00Z — same instant as the Z form.
-    assert _load_handoff(tmp_path)["generated_at"].startswith("2026-05-20")
+    assert _load_handoff(tmp_path)["generated_at"] == "2026-05-20T23:30:00Z"
+    assert (tmp_path / "memory-staleness-2026-05-20.json").is_file()
+    assert (tmp_path / "memory-staleness-2026-05-20.md").is_file()
+    assert not list(tmp_path.glob("memory-staleness-2026-05-21.*"))
 
 
 def test_now_override_malformed_exits_1(tmp_path: Path, shim_empty_kg: Path) -> None:
