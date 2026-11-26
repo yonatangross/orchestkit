@@ -94,6 +94,20 @@ else
   bad "fault: gh fails -> got stale=$stale unresolved=$unres exit $rc (want 0 / 1 / 2)"
 fi
 
+# URL-anchor arm: digits after a # inside a URL or glued token are anchors,
+# not issue refs. Live false positive this closes: version-compatibility.md:554
+# links CHANGELOG.md#21314 (the CC 2.1.314 anchor) on a line that also says
+# "will be refused", so FORWARD matches, the dead #21314 lookup makes the whole
+# sweep blind, and the workflow fails. After the fix the line carries no ref.
+printf '| `2.1.314` | a setting whose writes will be refused. [CHANGELOG 2.1.314](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#21314). | n/a |\nAlso https://example.com/x#99999 and CHANGELOG.md#77777 will be refused.\n' >> "$FX/src/skills/x/SKILL.md"
+rc=$(run_with bin-fail "$WORK/anchors.json")
+cands=$(jq '.candidates' "$WORK/anchors.json"); refs=$(jq -r '[.unresolved_refs[].ref] | join(",")' "$WORK/anchors.json")
+if [[ "$cands" == "1" && "$refs" == "1234" ]]; then
+  ok "URL anchors: #21314/#99999/#77777 inside URLs are not refs (candidates=1, only #1234 looked up)"
+else
+  bad "URL anchors leaked into refs: candidates=$cands refs=$refs (want 1 / 1234)"
+fi
+
 # fault2: zero files scanned -> exit 2
 rm -rf "$FX/src/skills"; mkdir -p "$FX/src/skills"
 rc=$(run_with bin-closed "$WORK/empty-tree.json")
