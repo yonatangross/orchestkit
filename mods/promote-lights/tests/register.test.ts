@@ -911,6 +911,76 @@ describe("register behavior (mutant-killing)", () => {
       session: expect.any(String),
     });
   });
+
+  // orchestkit#5462 review (Codex probe 1): a PR retargeted from qa to main at
+  // the same head must never keep showing qa's verdict.
+  const retargetEnv: Record<string, string> = { PROMOTE_HEAD: "development", PROMOTE_BASE: "qa,main" };
+  const devIntoQa = JSON.stringify([
+    { number: 2391, headRefName: "development", baseRefName: "qa", headRefOid: "abc123def4567", title: "dev to qa", labels: [] },
+  ]);
+  const viewOnMain = JSON.stringify({ headRefOid: "abc123def4567", state: "OPEN", mergeStateStatus: "CLEAN", baseRefName: "main" });
+
+  test("a tick that sees the base moved stops and never publishes the old base's verdict (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const $ = createFake$({ prList: devIntoQa, prView: viewOnMain, envGet: vi.fn(async (k: string) => retargetEnv[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    const sets = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[1] as Record<string, unknown>);
+    expect(sets.some((s) => s.passing === true)).toBe(false);
+    expect(sets.at(-1)).toEqual(expect.objectContaining({ error: "base moved from qa to main, stopped" }));
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]?.value as { cancel: ReturnType<typeof vi.fn> } | undefined;
+    expect(handle?.cancel).toHaveBeenCalled();
+  });
+
+  test("turn.complete that sees the base moved stops tracking (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    let view = JSON.stringify({ headRefOid: "abc123def4567", state: "OPEN", mergeStateStatus: "CLEAN", baseRefName: "qa" });
+    const fallback = makeDispatchingRun();
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") return { exitCode: 0, stdout: devIntoQa, stderr: "" };
+      if (argv[1] === "pr" && argv[2] === "view") return { exitCode: 0, stdout: view, stderr: "" };
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => retargetEnv[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 2391, passing: true }));
+
+    view = viewOnMain;
+    await handlers.get("turn.complete")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenLastCalledWith(KEY, expect.objectContaining({ error: "base moved from qa to main, stopped" }));
+    const paths = run.mock.calls.map((c) => c[0] as readonly string[]).filter((a) => a[1] === "api").map((a) => a[2]);
+    expect(paths.some((p) => p.includes("/branches/main/"))).toBe(false);
+  });
+
+  // Codex probe 2: a full page into the first base is an incomplete search, so a
+  // match in a later base (or no match) must be reported as degraded.
+  test("a capped page into the first base marks the search degraded before a later base wins (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const env: Record<string, string> = { PROMOTE_HEAD: "release/*", PROMOTE_BASE: "qa,main" };
+    const ordinary = Array.from({ length: 100 }, (_, i) => ({
+      number: 5000 + i, headRefName: `feature/${i}`, baseRefName: "qa", headRefOid: "abc123def4567", title: "work", labels: [],
+    }));
+    const release = { number: 4430, headRefName: "release/v2026.11.10", baseRefName: "main", headRefOid: "abc123def4567", title: "release", labels: [] };
+    const fallback = makeDispatchingRun();
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") {
+        const base = argv[argv.indexOf("--base") + 1];
+        const byLabel = argv.includes("--label");
+        const page = byLabel ? [] : base === "qa" ? ordinary : [release];
+        return { exitCode: 0, stdout: JSON.stringify(page), stderr: "" };
+      }
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => env[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 4430, degraded: true }));
+    expect($.ui.status).toHaveBeenCalledWith(expect.stringMatching(/qa.*100|100.*qa/));
+  });
 });
 
 describe("fake $ behavior", () => {
