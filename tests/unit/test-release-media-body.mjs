@@ -95,6 +95,16 @@ for (const [label, text] of Object.entries({
   });
 }
 
+// A backtracking pattern takes seconds at this depth and doubles per level.
+test('a deeply quoted line with no fence is read fast', () => {
+  const body = `${'> '.repeat(26)}x\n\n${NOTES}`;
+  const started = performance.now();
+  const out = embedMedia(body, TAG, ASSETS);
+  const ms = performance.now() - started;
+  assert.ok(out.endsWith(body));
+  assert.ok(ms < 1000, `took ${ms.toFixed(0)} ms`);
+});
+
 test('a marker quoted inside the notes is text, not our block', () => {
   for (const quoted of ['* fix: handle <!-- release-media:start --> markers', '<!-- release-media:start -->\nx\n<!-- release-media:end -->']) {
     const body = `${NOTES}\n${quoted}\n`;
