@@ -70,6 +70,7 @@ Secret-shaped text (key prefixes, PEM headers) reaches neither the screen nor th
 - `prompt.submit` answers `{ text, context? }` where `context` is a list of non-empty strings (the binary's `checkArgument` for that event). The context lands in the transcript as a `hook_additional_context` attachment.
 - An answer built after `next(e)` settled never reached the model: the classic `UserPromptSubmit` hooks run inside `next(e)` and the turn had started. The lens therefore puts the context on the event it passes to `next(e)`.
 - In the TUI, a newline inside one `$.ui.log` call draws as a replacement glyph, Claude Code prefixes the plugin name, and a second `$.ui.log` in the same hook call did not draw. Hence one line per prompt.
+- Re-measured on Claude Code 2.1.332 (2026-11-26, #5176), after the 2.1.318 delivery change: the context is still a `hook_additional_context` attachment (`hookEvent: "UserPromptSubmit"`, `hookName: "prompt.submit"`, `content` a list of strings), and the API request carries it inside the user's turn as text blocks after the prompt, not as a system message. Nothing in this mod reads either shape.
 - Index build: 379 files in 309 ms, 2,046 files in 936 ms. Query on 20 real prompts (same code under Node): p50 2.5 ms, p95 3.4 ms.
 - On 20 real prompts, 24 of 48 shown memories were useful (50 %), 13 of 20 prompts got at least one, and the 2 prompts it stayed quiet on were vague.
 
