@@ -1,0 +1,11 @@
+{
+  "slug": "rp-diff-gate-fail-closed",
+  "source": "docs/fix--rp-heavy-skip/rp-gate-fail-closed.html",
+  "title": "Release-please diff gate, fail closed: which PRs skip the heavy suites",
+  "description": "Simulate the redesigned rp-diff-gate decision: head branch, PR author, every commit author and the changed-files list must all agree, and a gate that cannot decide runs the suites and turns CI Summary red, using the same allowlist as scripts/ci/rp-diff-gate-allowlist.txt.",
+  "tags": [
+    "ci",
+    "github-actions"
+  ],
+  "date": "2026-11-26"
+}

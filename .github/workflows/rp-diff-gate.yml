@@ -1,0 +1,48 @@
+name: Release-please Diff Gate
+
+# Reusable gate for heavy PR suites. A release-please PR touches only
+# release-owned outputs (manifests, plugin.json files, generated docs data,
+# rebuilt hook bundles, changelogs and version pins), so running the heavy
+# suites on it is pure cost: 61 checks fired on PR 5463 for a
+# version/changelog-only diff. Consumers add `needs: rp-gate` and a
+# fail-closed condition that evaluates needs.rp-gate.result, so a failed
+# or cancelled gate runs the suites instead of exempting them:
+#   if: ${{ !cancelled() && !(needs.rp-gate.result == 'success' && needs.rp-gate.outputs.skip == 'true') }}
+# Skipped jobs still satisfy required checks, the same way path-filtered
+# jobs do, and CI Summary needs rp-gate and fails on any non-success
+# result so a gate that could not decide never reads as green.
+#
+# The decision lives in scripts/ci/rp-diff-gate-decision.sh so its event
+# data is covered by tests/ci/test-rp-diff-gate.sh. The repository release
+# bot is orchestkit-release-bot[bot]; callers must pass permissions
+# (pull-requests: read, contents: read) on the calling job.
+on:
+  workflow_call:
+    outputs:
+      skip:
+        description: 'true when the event is a release-please pull_request whose files are all release-owned outputs and every commit is authored by the release bot'
+        value: ${{ jobs.check.outputs.skip }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+      - name: Detect a release-please-only diff
+        id: gate
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          bash scripts/ci/rp-diff-gate-decision.sh > gate-out.txt
+          cat gate-out.txt
+          grep '^skip=' gate-out.txt >> "$GITHUB_OUTPUT"
