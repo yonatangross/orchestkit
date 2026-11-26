@@ -18,7 +18,7 @@
  * lifecycle/goal-budget-guard (end). Reader of the brake: pretool/tool-dispatcher.
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputDeny } from './output.js';
@@ -133,7 +133,10 @@ export function closeRun(projectDir: string, run: OpenRun): GoalStatus {
 export function writeBrake(projectDir: string, brake: GoalBrake): void {
   const path = brakePath(projectDir, brake.session_id);
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, JSON.stringify(brake, null, 2));
+  // Rename into place: a kill mid-write never leaves a half brake file.
+  const draft = `${path}.${process.pid}.tmp`;
+  writeFileSync(draft, JSON.stringify(brake, null, 2));
+  renameSync(draft, path);
 }
 
 function readBrake(projectDir: string, sessionId: string): GoalBrake | null {
@@ -148,9 +151,10 @@ function readBrake(projectDir: string, sessionId: string): GoalBrake | null {
  */
 export function carryRun(projectDir: string, run: OpenRun, promptId: string): void {
   const sessionId = run.start.session_id;
-  appendHistory(projectDir, { kind: 'rekey', session_id: sessionId, prompt_id: promptId });
+  // Brake first: a kill before the history row leaves the call denied, not free.
   const brake = readBrake(projectDir, sessionId);
   if (brake) writeBrake(projectDir, { ...brake, prompt_id: promptId });
+  appendHistory(projectDir, { kind: 'rekey', session_id: sessionId, prompt_id: promptId });
 }
 
 export function removeBrake(projectDir: string, sessionId: string): void {
@@ -159,8 +163,10 @@ export function removeBrake(projectDir: string, sessionId: string): void {
 
 /**
  * The PreToolUse verdict for a tripped run, or null to let the call through.
- * One stat when no brake exists. Fails open: an unreadable or foreign brake
- * denies nothing.
+ * One stat when no brake exists. A brake file for this session that cannot be
+ * read or lacks its ids denies: it is evidence of a trip that nothing can
+ * check. A payload without session_id or prompt_id has no file to match and
+ * passes.
  *
  * Deny plus `continue: false` (outputDeny). A deny alone did not end a /goal
  * run: measured on CC 2.1.332, it looped until the 9 Stop-block cap. The
@@ -172,13 +178,18 @@ export function removeBrake(projectDir: string, sessionId: string): void {
 export function goalBrakeVerdict(input: HookInput, projectDir: string): HookResult | null {
   const { session_id: sessionId, prompt_id: promptId } = input;
   if (!sessionId || !promptId) return null;
-  let brake: GoalBrake;
+  const file = `.claude/state/${brakeName(sessionId)}`;
+  let brake: GoalBrake | null;
   try {
-    const found = readBrake(projectDir, sessionId);
-    if (!found) return null;
-    brake = found;
+    if (!existsSync(brakePath(projectDir, sessionId))) return null;
+    brake = readBrake(projectDir, sessionId);
   } catch {
-    return null;
+    brake = null;
+  }
+  if (!brake || typeof brake.session_id !== 'string' || typeof brake.prompt_id !== 'string') {
+    return outputDeny(
+      `[ork goal-budget] Tool calls are paused: ${file} cannot be read. Delete it, or send a new message, to go on.`,
+    );
   }
   if (brake.session_id !== sessionId || brake.prompt_id !== promptId) return null;
 
@@ -186,6 +197,6 @@ export function goalBrakeVerdict(input: HookInput, projectDir: string): HookResu
   const used = brake.reason === 'tokens_cap' ? brake.tokens : brake.turns;
   return outputDeny(
     `[ork goal-budget] Tool calls are paused: this goal run used ${used} ${unit}${used === 1 ? '' : 's'} ` +
-      `(cap ${brake.cap}). Run /goal clear, or delete .claude/state/${brakeName(sessionId)} to go on.`,
+      `(cap ${brake.cap}). Run /goal clear, or delete ${file} to go on.`,
   );
 }

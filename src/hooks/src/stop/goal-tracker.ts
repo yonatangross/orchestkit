@@ -85,7 +85,7 @@ export function goalTrackerStop(
       turns >= maxTurns ? 'turns_cap' : tokens >= maxTokens ? 'tokens_cap' : null;
     const alreadyTripped = run.tally?.tripped;
 
-    if (reason && !alreadyTripped) {
+    if (reason && !alreadyTripped && input.prompt_id) {
       writeBrake(projectDir, {
         tripped_at: new Date().toISOString(),
         session_id: sessionId,

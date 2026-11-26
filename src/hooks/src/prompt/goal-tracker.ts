@@ -74,9 +74,13 @@ export function goalTracker(
       }
       return outputSilentSuccess();
     }
+    // A user prompt releases this session's brake, open run or not, so a
+    // leftover from an interrupted write cannot outlive it.
+    if (!open || condition !== null || open.start.prompt_id !== input.prompt_id) {
+      removeBrake(projectDir, sessionId);
+    }
     if (open && (condition !== null || open.start.prompt_id !== input.prompt_id)) {
       const status = closeRun(projectDir, open);
-      removeBrake(projectDir, sessionId);
       ctx.log(HOOK_NAME, `closed /goal: status=${status}`);
     }
 

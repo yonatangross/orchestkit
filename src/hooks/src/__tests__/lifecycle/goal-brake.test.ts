@@ -10,7 +10,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { appendFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  appendFileSync, chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -312,13 +314,76 @@ describe('edges', () => {
     expect(history().some(row => row.kind === 'tally')).toBe(false);
   });
 
-  it('survives a corrupt brake file and a torn history line', async () => {
+  it('survives a torn history line', async () => {
     submit(`/goal ${CONDITION}`);
     appendFileSync(join(tmp, '.claude', 'state', 'goal-history.jsonl'), '{"torn\n');
     stop(1);
-    writeFileSync(brakePath(tmp, SID), 'not json');
     expect(openRun()?.tally?.turn_count).toBe(1);
-    expect((await toolCall()).hookSpecificOutput?.permissionDecision).toBeUndefined();
+  });
+});
+
+describe('unreadable evidence denies (a brake file that cannot be read is not a pass)', () => {
+  const state = () => join(tmp, '.claude', 'state');
+  const decision = async () => (await toolCall()).hookSpecificOutput?.permissionDecision;
+
+  it.each([
+    ['not JSON', 'not json'],
+    ['truncated', '{"session_id":"sess-brake","prompt_id":"pro'],
+    ['empty', ''],
+    ['an empty object', '{}'],
+    ['null', 'null'],
+    ['numbers for ids', '{"session_id":1,"prompt_id":2}'],
+  ])('denies when the brake file is %s', async (_label, body) => {
+    mkdirSync(state(), { recursive: true });
+    writeFileSync(brakePath(tmp, SID), body);
+    const result = await toolCall();
+    expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
+    expect(result.hookSpecificOutput?.permissionDecisionReason).toContain('cannot be read');
+  });
+
+  it('denies when the brake path cannot be read as a file', async () => {
+    mkdirSync(brakePath(tmp, SID), { recursive: true });
+    expect(await decision()).toBe('deny');
+  });
+
+  it('passes with no brake file at all', async () => {
+    expect(await decision()).toBeUndefined();
+  });
+
+  it('the next user prompt clears an unreadable leftover, with no open run', async () => {
+    mkdirSync(state(), { recursive: true });
+    writeFileSync(brakePath(tmp, SID), 'not json');
+    submit('carry on', 'prompt-2');
+    expect(existsSync(brakePath(tmp, SID))).toBe(false);
+  });
+});
+
+describe('writes survive a kill between them', () => {
+  const historyFile = () => join(tmp, '.claude', 'state', 'goal-history.jsonl');
+
+  it('leaves no temporary file beside the brake', () => {
+    process.env.ORK_GOAL_MAX_TURNS = '1';
+    submit(`/goal ${CONDITION}`);
+    stop(1);
+    expect(readdirSync(join(tmp, '.claude', 'state')).filter(name => name.endsWith('.tmp'))).toEqual([]);
+  });
+
+  it('moves the brake before the history row, so a failed row still denies', async () => {
+    process.env.ORK_GOAL_MAX_TURNS = '1';
+    submit(`/goal ${CONDITION}`);
+    stop(1);
+    chmodSync(historyFile(), 0o400);
+    submit('<task-notification>\n</task-notification>', 'prompt-notice');
+    chmodSync(historyFile(), 0o600);
+    expect((await toolCall({ prompt_id: 'prompt-notice' })).hookSpecificOutput?.permissionDecision).toBe('deny');
+  });
+
+  it('writes no brake for a run without a prompt_id', () => {
+    process.env.ORK_GOAL_MAX_TURNS = '1';
+    const base = { tool_name: '', session_id: SID, tool_input: {} };
+    goalTracker({ ...base, prompt: `/goal ${CONDITION}` }, ctx());
+    goalTrackerStop({ ...base, last_assistant_message: 'x' }, ctx());
+    expect(existsSync(brakePath(tmp, SID))).toBe(false);
   });
 });
 
