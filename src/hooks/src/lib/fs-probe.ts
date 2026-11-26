@@ -3,7 +3,7 @@
  * themselves (FH-ready policy, .claude/rules/hooks-development.md): the
  * handler takes these through an injected deps object.
  */
-import { lstatSync, readdirSync, realpathSync } from 'node:fs';
+import { lstatSync, readdirSync, realpathSync, statSync } from 'node:fs';
 
 /**
  * The names of the real subdirectories of `path` (symbolic links are not followed or listed), or []
@@ -44,6 +44,21 @@ export function isSymlinkPath(path: string): boolean {
 export function realpathPath(path: string): string | null {
   try {
     return realpathSync.native(path);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * True when `path` is a directory, false when it exists and is not one, null
+ * when the answer cannot be had (a missing path, a permission error). Used by
+ * guards that model `cd`: a resolved destination that is a regular file fails
+ * the cd with ENOTDIR, and an answer the probe cannot give leaves the move
+ * unestablished, so the caller fails closed either way.
+ */
+export function isDirPath(path: string): boolean | null {
+  try {
+    return statSync(path).isDirectory();
   } catch {
     return null;
   }
