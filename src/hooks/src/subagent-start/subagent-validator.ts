@@ -9,7 +9,17 @@
  * Version: 1.0.0 (TypeScript port)
  */
 
-import { existsSync, readFileSync, mkdirSync, renameSync, statSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  mkdirSync,
+  renameSync,
+  statSync,
+  appendFileSync,
+  openSync,
+  closeSync,
+  unlinkSync,
+} from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult , HookContext} from '../types.js';
@@ -358,19 +368,49 @@ function logSpawn(
     // Ignore — rotation is opportunistic.
   }
 
-  const rows = readSpawnLog(trackingLog);
-  const lineage = resolveLineage(rows, sessionId, subagentType, agentId);
-  // A background parent that wakes fires SubagentStart again for the same
-  // agent_id; one start row per agent keeps spawn counts honest (#5171).
-  if (lineage.duplicate) return null;
+  // #5464 review: read, claim and append are ONE step under an exclusive lock,
+  // and the start row is appended at once, not buffered to process exit.
+  // Otherwise two overlapping hooks both read the same log, both claim the
+  // first pretool intent, and both write a row for a reused agent_id. A lock
+  // that cannot be taken within the bound means the row goes in without
+  // lineage: an unknown parent is never guessed.
+  const lock = acquireSpawnLock(`${trackingLog}.lock`);
+  try {
+    const rows = lock ? readSpawnLog(trackingLog) : [];
+    const lineage = lock
+      ? resolveLineage(rows, sessionId, subagentType, agentId)
+      : { duplicate: false, paired: false };
+    // A background parent that wakes fires SubagentStart again for the same
+    // agent_id; one start row per agent keeps spawn counts honest (#5171).
+    if (lineage.duplicate) return null;
 
-  // A payload parent (if CC ever sends one) wins over the pretool pairing.
-  const parent = parentAgentId || lineage.parentAgentId;
-  const spawnDepth = parent
-    ? computeSpawnDepth(rows, parent)
-    : lineage.paired ? 1 : null;
+    // A payload parent (if CC ever sends one) wins over the pretool pairing.
+    const parent = parentAgentId || lineage.parentAgentId;
+    const spawnDepth = parent
+      ? computeSpawnDepth(rows, parent)
+      : lineage.paired ? 1 : null;
+    const entry = buildStartEntry(subagentType, description, sessionId, agentId, parent, spawnDepth);
+    try {
+      if (lock) appendFileSync(trackingLog, `${JSON.stringify(entry)}\n`);
+      else bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
+    } catch {
+      // Best-effort telemetry, never block a dispatch.
+    }
+    return spawnDepth;
+  } finally {
+    if (lock) releaseSpawnLock(lock);
+  }
+}
 
-  const entry = {
+function buildStartEntry(
+  subagentType: string,
+  description: string,
+  sessionId: string,
+  agentId: string | undefined,
+  parent: string | undefined,
+  spawnDepth: number | null,
+): Record<string, unknown> {
+  return {
     timestamp: new Date().toISOString(),
     source: 'start' as const,
     // M170/#3129: for NAMED spawns CC's SubagentStart agent_type carries the
@@ -384,14 +424,54 @@ function logSpawn(
     ...(parent ? { parent_agent_id: parent } : {}),
     ...(spawnDepth !== null ? { spawn_depth: spawnDepth } : {}),
   };
+}
 
+/** How long a start waits for the spawn-log lock, and when a lock is stale. */
+const SPAWN_LOCK_WAIT_MS = 100;
+const SPAWN_LOCK_STALE_MS = 2000;
+const SPAWN_LOCK_STEP_MS = 5;
+
+/**
+ * Take the spawn-log lock: create `lockPath` exclusively ('wx' fails when it
+ * exists). Waits up to SPAWN_LOCK_WAIT_MS in short synchronous steps (this is
+ * SubagentStart, not the PreToolUse hot path); a lock older than
+ * SPAWN_LOCK_STALE_MS is a crashed holder and is taken over once. Returns the
+ * fd and path, or null when the lock stayed busy.
+ */
+function acquireSpawnLock(lockPath: string): { fd: number; path: string } | null {
+  const deadline = Date.now() + SPAWN_LOCK_WAIT_MS;
+  let tookOverStale = false;
+  for (;;) {
+    try {
+      return { fd: openSync(lockPath, 'wx'), path: lockPath };
+    } catch {
+      // Held by another hook, or unwritable.
+    }
+    try {
+      if (!tookOverStale && Date.now() - statSync(lockPath).mtimeMs > SPAWN_LOCK_STALE_MS) {
+        tookOverStale = true;
+        unlinkSync(lockPath);
+        continue;
+      }
+    } catch {
+      // Gone between the two calls: try again.
+    }
+    if (Date.now() >= deadline) return null;
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, SPAWN_LOCK_STEP_MS);
+  }
+}
+
+function releaseSpawnLock(lock: { fd: number; path: string }): void {
   try {
-    bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
+    closeSync(lock.fd);
   } catch {
     // Ignore
   }
-
-  return spawnDepth;
+  try {
+    unlinkSync(lock.path);
+  } catch {
+    // Ignore
+  }
 }
 
 // -----------------------------------------------------------------------------

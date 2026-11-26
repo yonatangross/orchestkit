@@ -51,6 +51,11 @@ vi.mock('node:fs', () => ({
   statSync: vi.fn().mockReturnValue({ size: 100 }),
   renameSync: vi.fn(),
   readSync: vi.fn().mockReturnValue(0),
+  // The spawn-log lock (#5464 review): always granted in this mocked file;
+  // contention is covered on a real filesystem in subagent-lineage-concurrency.
+  openSync: vi.fn().mockReturnValue(3),
+  closeSync: vi.fn(),
+  unlinkSync: vi.fn(),
 }));
 
 vi.mock('node:child_process', () => ({
