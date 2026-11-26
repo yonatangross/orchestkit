@@ -125,6 +125,10 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Install ffmpeg
+        env:
+          # ffmpeg pulls about 90 packages: the 90 s default killed the v10.18.1
+          # and v10.20.0 renders, and those releases shipped with no media.
+          SYSTEM_DEPS_TIMEOUT: '420'
         run: bash .github/scripts/ensure-system-deps.sh ffmpeg
 
       - name: Install demo dependencies
@@ -239,6 +243,11 @@ jobs:
           repositories: orchestkit
           permission-contents: write
 
+      # The release tag's own copy of scripts/ci/release-media-body.mjs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Download video artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
@@ -264,3 +273,19 @@ jobs:
           for f in out/release-${VERSION}-*; do
             echo "- $(basename "$f")" >> "$GITHUB_STEP_SUMMARY"
           done
+
+      # Read the release back after the upload and put its media at the top of
+      # the notes. The body is untrusted text: it goes through files only.
+      - name: Embed media in the release body
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json body,assets > "$RUNNER_TEMP/release.json"
+          node scripts/ci/release-media-body.mjs "$RELEASE_TAG" \
+            "$RUNNER_TEMP/release.json" "$RUNNER_TEMP/release-body.md"
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --notes-file "$RUNNER_TEMP/release-body.md"
+          echo "Media embedded in the release body." >> "$GITHUB_STEP_SUMMARY"

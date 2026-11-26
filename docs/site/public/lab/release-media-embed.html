@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release notes that show their media</title>
+<style>
+  :root { color-scheme: light dark; --bg:#fff; --fg:#16181d; --mute:#5b6270; --line:#d9dce3; --stop:#b42318; --card:#f6f7f9; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#101216; --fg:#e8eaf0; --mute:#9aa2b1; --line:#2b303a; --stop:#ff8a7a; --card:#181b21; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:820px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } .mute { color:var(--mute); }
+  label { display:inline-flex; gap:6px; align-items:center; margin:0 16px 8px 0; }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:12px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  pre.stop { color:var(--stop); }
+  button { font:inherit; padding:6px 14px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:6px; cursor:pointer; }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Release notes that show their media"><meta property="og:description" content="Untick a release asset and see what the new workflow step writes at the top of the notes, or why it fails."><meta property="og:url" content="https://orchestkit.dev/lab/release-media-embed.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Release notes that show their media"><meta name="twitter:description" content="Untick a release asset and see what the new workflow step writes at the top of the notes, or why it fails."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Release notes that show their media</h1>
+  <p class="mute">A model of the new workflow step. Untick an asset to see the step fail.</p>
+  <div id="assets"></div>
+  <pre id="out" aria-live="polite"></pre>
+  <button id="copy" type="button">Copy as prompt</button> <span id="copied" class="mute" role="status"></span>
+</main>
+<script>
+  const names = ['release-1.2.3-preview.gif', 'release-1.2.3-landscape.mp4', 'release-1.2.3-square.mp4'];
+  const box = document.getElementById('assets');
+  const out = document.getElementById('out');
+  for (const name of names) {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = true;
+    input.value = name;
+    input.addEventListener('change', draw);
+    label.append(input, name);
+    box.append(label);
+  }
+  function missing() { return [...box.querySelectorAll('input')].filter(i => !i.checked).map(i => i.value); }
+  function draw() {
+    const gone = missing();
+    out.className = gone.length ? 'stop' : '';
+    out.textContent = gone.length
+      ? 'The step fails and the notes stay as they were:\nrelease asset ' + gone[0] + ' is missing, empty or not uploaded'
+      : '![Release v1.2.3 preview](.../' + names[0] + ')\n\nVideo: [landscape mp4](.../' + names[1] + ') · [square mp4](.../' + names[2] + ')\n\n## 1.2.3 (the notes, unchanged)';
+  }
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = 'Check scripts/ci/release-media-body.mjs with these assets missing: ' + (missing().join(', ') || 'none');
+    try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'Copied'; }
+    catch { document.getElementById('copied').textContent = text; }
+  });
+  draw();
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

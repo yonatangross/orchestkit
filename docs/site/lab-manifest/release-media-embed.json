@@ -1,0 +1,8 @@
+{
+  "slug": "release-media-embed",
+  "source": "docs/fix--release-media-embed-up9/index.html",
+  "title": "Release notes that show their media",
+  "description": "Untick a release asset and see what the new workflow step writes at the top of the notes, or why it fails.",
+  "tags": ["release", "ci", "workflows"],
+  "date": "2026-11-26"
+}
