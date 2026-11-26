@@ -12,8 +12,9 @@
 # HQ-only: requires yg-mcp-core>=0.3.0 from a private index +
 # the YG_PYPI_INDEX_URL secret (the full authenticated --extra-index-url,
 # so the host/username/scheme stay server-side, not in this public file) +
-# memory MCP reachable from the runner. On forks without those, the
-# script self-skips cleanly with WARN — the workflow still succeeds.
+# memory MCP reachable from the runner. The sweep runs with --require-read:
+# when the graph cannot be read the job FAILS and reports "unknown". A green
+# run means the graph was read.
 
 name: Memory KG staleness sweep
 
@@ -54,7 +55,7 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install yg-mcp-core (HQ-only — self-skips on forks)
+      - name: Install yg-mcp-core (HQ-only)
         env:
           # Full authenticated private-index URL (https://<user>:<pw>@<host>/simple/)
           # kept entirely in one secret — no host/username/scheme in this public file.
@@ -62,7 +63,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${YG_PYPI_INDEX_URL:-}" ]; then
-            echo "::warning::YG_PYPI_INDEX_URL not set — yg-mcp-core won't install; sweep will self-skip with WARN."
+            echo "::warning::YG_PYPI_INDEX_URL not set — yg-mcp-core won't install; the sweep will fail as unknown."
             exit 0
           fi
           python -m pip install --upgrade pip
@@ -80,13 +81,14 @@ jobs:
           python3 plugins/ork/skills/memory/scripts/staleness_cron.py \
             docs/reports \
             --threshold-days "$THRESHOLD_DAYS" \
-            --limit "$LIMIT"
+            --limit "$LIMIT" \
+            --require-read
 
       - name: Upload report as artifact
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: memory-staleness-${{ github.run_id }}
-          path: docs/reports/memory-staleness-*.md
+          path: docs/reports/memory-staleness-*
           if-no-files-found: ignore
           retention-days: 30

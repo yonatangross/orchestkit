@@ -14,22 +14,24 @@ and writes a Markdown staleness report sorted by staleness desc.
 
 Pure parsing/report helpers live in `staleness_lib.py`.
 
-Three exit-0 "skip" paths (none are errors):
+Without --require-read (a local run), two "skip" paths exit 0:
   - yg-mcp-core not importable
   - memory MCP unreachable
-  - empty KG (writes empty report + exit 0)
+With --require-read (the nightly workflow) the same two are "unknown" and
+exit 3. An empty KG is a real read: empty report + exit 0.
 
 Usage:
-  staleness_cron.py <reports-dir> [--threshold-days N] [--limit N]
+  staleness_cron.py <reports-dir> [--threshold-days N] [--limit N] [--require-read]
 
 Outputs:
   <reports-dir>/memory-staleness-YYYY-MM-DD.md
   <reports-dir>/memory-staleness-YYYY-MM-DD.json   (machine-readable + handoff)
 
 Exit codes:
-  0   success, auto-skip per signals, OR MCP/dep unreachable (WARN only)
+  0   success, OR MCP/dep unreachable without --require-read (WARN only)
   1   pre-flight failure (missing args, reports dir invalid)
-  2   memory MCP returned an error AFTER probe succeeded (real error)
+  2   memory MCP returned an error or an unreadable answer AFTER probe succeeded
+  3   --require-read and the KG could not be read (dep missing or unreachable)
 """
 
 from __future__ import annotations
@@ -46,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from staleness_lib import (  # noqa: E402
     build_report_payload,
     extract_entities,
+    is_entity_answer,
     render_markdown,
 )
 
@@ -77,14 +80,33 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DEFAULT_LIMIT,
         help=f"Max entries in the report (default: {DEFAULT_LIMIT}).",
     )
+    parser.add_argument(
+        "--require-read",
+        action="store_true",
+        help="Fail (exit 3, status unknown) instead of skipping when the KG cannot be read.",
+    )
     return parser.parse_args(argv)
 
 
-def _write_skip(handoff_path: Path, reason: str) -> None:
+def _write_unread(handoff_path: Path, status: str, reason: str) -> None:
     handoff_path.write_text(
-        json.dumps({"status": "skipped", "skip_reason": reason}, indent=2, sort_keys=True),
+        json.dumps({"status": status, "skip_reason": reason}, indent=2, sort_keys=True),
         encoding="utf-8",
     )
+
+
+def _unknown(handoff_path: Path, reason: str, code: int) -> int:
+    # stdout, so GitHub Actions turns it into an error annotation.
+    print(f"::error::staleness_cron: memory staleness is UNKNOWN: {reason}")
+    _write_unread(handoff_path, "unknown", reason)
+    return code
+
+
+def _not_read(handoff_path: Path, reason: str, require_read: bool) -> int:
+    if require_read:
+        return _unknown(handoff_path, reason, 3)
+    _write_unread(handoff_path, "skipped", reason)
+    return 0
 
 
 def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
@@ -114,7 +136,7 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
     md_path = reports_dir / f"memory-staleness-{date_str}.md"
     json_path = reports_dir / f"memory-staleness-{date_str}.json"
 
-    # MCP preflight — fail-soft on dep miss OR unreachable server.
+    # MCP preflight: dep miss OR unreachable server skips, unless --require-read.
     try:
         from mcp_core.client import (  # type: ignore[import-not-found]
             McpToolError,
@@ -127,14 +149,12 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
             "staleness_cron: WARN — yg-mcp-core not importable; skipping "
             "(install yg-mcp-core>=0.3.0 from pypi.yonyon.ai to enable)"
         )
-        _write_skip(json_path, "yg-mcp-core not importable")
-        return 0
+        return _not_read(json_path, "yg-mcp-core not importable", args.require_read)
 
     server = DEFAULT_MCP_SERVER
     if not probe(server):
         print(f"staleness_cron: WARN — {server!r} MCP unreachable; skipping")
-        _write_skip(json_path, f"{server!r} MCP unreachable")
-        return 0
+        return _not_read(json_path, f"{server!r} MCP unreachable", args.require_read)
 
     # Pull the KG.
     print(f"staleness_cron: fetching nodes from {server!r} (limit={SEARCH_LIMIT})")
@@ -142,7 +162,10 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
         result = call_tool(server, "search_nodes", {"query": "*", "limit": SEARCH_LIMIT})
     except (McpUnreachable, McpToolError) as exc:
         print(f"staleness_cron: ERROR — {type(exc).__name__}: {exc}", file=sys.stderr)
-        return 2
+        return _unknown(json_path, f"search_nodes raised {type(exc).__name__}", 2)
+
+    if not is_entity_answer(result):
+        return _unknown(json_path, "search_nodes answer holds no readable entity list", 2)
 
     entities = extract_entities(result)
     print(f"staleness_cron: {len(entities)} entities loaded")

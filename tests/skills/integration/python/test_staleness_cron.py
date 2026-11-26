@@ -235,6 +235,63 @@ def test_skips_when_mcp_unreachable(tmp_path: Path, shim_unreachable: Path) -> N
 
 
 # ---------------------------------------------------------------------------
+# --require-read: "could not read" is never a pass
+# ---------------------------------------------------------------------------
+
+
+def _assert_unknown(result: subprocess.CompletedProcess[str], reports_dir: Path) -> None:
+    assert result.returncode == 3, f"stdout: {result.stdout} stderr: {result.stderr}"
+    assert "::error::" in result.stdout
+    assert _load_handoff(reports_dir)["status"] == "unknown"
+    assert not list(reports_dir.glob("memory-staleness-*.md"))
+
+
+def test_require_read_unreachable_is_unknown(tmp_path: Path, shim_unreachable: Path) -> None:
+    result = _run(tmp_path, pythonpath=shim_unreachable, extra_args=["--require-read"])
+    _assert_unknown(result, tmp_path)
+
+
+def test_require_read_missing_dep_is_unknown(tmp_path: Path) -> None:
+    broken = _make_shim(tmp_path, "raise ImportError('shim: dependency missing')")
+    result = _run(tmp_path, pythonpath=broken, extra_args=["--require-read"])
+    _assert_unknown(result, tmp_path)
+
+
+def test_require_read_passes_on_a_real_read(tmp_path: Path, shim_mixed_kg: Path) -> None:
+    result = _run(tmp_path, pythonpath=shim_mixed_kg, extra_args=["--require-read"])
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    assert _load_handoff(tmp_path)["status"] == "fired"
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [None, "garbage", {}, {"error": "boom"}, {"entities": "x"}, ["a"], {"nodes": [1, 2]}],
+)
+def test_unreadable_answer_is_not_an_empty_graph(tmp_path: Path, answer: Any) -> None:
+    shim = _make_shim(
+        tmp_path,
+        f"""
+        def probe(server, **kwargs):
+            return True
+
+        def call_tool(server, tool, args=None, **kwargs):
+            return {answer!r}
+
+        class McpUnreachable(Exception): pass
+        class McpToolError(Exception): pass
+        """,
+    )
+    result = _run(tmp_path, pythonpath=shim)
+    assert result.returncode == 2, f"stdout: {result.stdout} stderr: {result.stderr}"
+    assert not list(tmp_path.glob("memory-staleness-*.md"))
+
+
+def test_workflow_requires_a_real_read() -> None:
+    workflow = SCRIPT_PATH.parents[5] / ".github" / "workflows" / "memory-staleness.yml"
+    assert "--require-read" in workflow.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
 # empty KG
 # ---------------------------------------------------------------------------
 
