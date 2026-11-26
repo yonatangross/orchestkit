@@ -1,0 +1,8 @@
+{
+  "slug": "mcp-app-host-support",
+  "source": "docs/feat--mcp-app-host-support-v2-up5/index.html",
+  "title": "What OrchestKit gives on each agent host",
+  "description": "A new docs MCP view: pick one of eight hosts, see what loads there and whether hooks run, and copy its install command.",
+  "tags": ["mcp", "docs-site", "install"],
+  "date": "2026-11-25"
+}
