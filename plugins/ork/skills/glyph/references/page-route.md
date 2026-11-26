@@ -61,6 +61,19 @@ Operator feedback, three rounds in one evening across four pages ("how didn't yo
 4. **What "richer than prose" meant when it was accepted.** Semantic emoji in tab labels, headings, card titles and list leads; a KPI strip under the hero; a sticky tab bar with hash routing when the page has more than one view; several real diagrams per page. Hex colors only inside any diagram library's class definitions (hsl is a known bug in one of them). Never inline a multi-megabyte diagram bundle; it hung a renderer and read as "broken".
 5. **Kit markup gotchas seen in the wild.** A meter is `span.name / div.track > div.fill / span.val`; a `<span><i><b>` shape renders no bar. Keep `.val` strings short. A pill is a TAG, not a form control: radios, checkboxes and buttons need real control markup or the page reads as "ugly and broken".
 
+## Section sidebar
+
+A long page may carry a sticky index of its sections. It is a thin index, never a second column of content. Reported on a 16-section status page (#5421): a 230px sidebar with 14px links and no max-height was taller than the viewport, the last links could not be reached without scrolling the whole page, and the tables beside it lost the width they needed.
+
+- **Only with 3 or more sections.** Fewer than that, no index at all.
+- **Width cap 170px** (the template uses 168px), gap about 22px to the content.
+- **Compact links:** 12.5px text, line-height 1.3, padding 4px by 8px. Anchor links only, the current section marked.
+- **Never taller than the viewport:** `position:sticky` with `max-height:calc(100vh - 24px)` and `overflow-y:auto`, so the index scrolls on its own and every link stays reachable.
+- **With more than 12 sections, no column:** fold the index into one wrapping row of chips above the content (`.rail.chips`). The same chip row is what narrow screens (under 900px) get.
+- On a house kit, use the kit's own nav if it has one; these limits still apply to it.
+
+`templates/explainer.html` ships `.layout`, `.rail` and `.rail.chips` with these values; use them rather than inventing sizes. When you check the page (section 4), take one screenshot scrolled to the last section and confirm the last index link is on screen.
+
 ## 5. Reference pages that passed all rounds
 
 - `docs/playgrounds/dev/cc-latest-capitalize-2026-08-29.html` in OrchestKit: KPI strip, six beats with inline SVG, three decision beats, sticky answer bar; corrected twice from screenshots (label collision, clipped annotations) before it was called done.

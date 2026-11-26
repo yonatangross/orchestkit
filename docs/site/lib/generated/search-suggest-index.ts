@@ -7354,6 +7354,7 @@ export const SEARCH_SUGGEST_INDEX: SearchSuggestEntry[] = [
       "2. Where a page lands (no kit)",
       "3. Quality bar for a novice page (normative)",
       "4. Not done until you have looked at it",
+      "Section sidebar",
       "5. Reference pages that passed all rounds"
     ]
   },
