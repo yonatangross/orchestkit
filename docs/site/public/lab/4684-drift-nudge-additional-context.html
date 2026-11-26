@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drift gate: stop the turn vs nudge the model (#4684)</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#6b6b6b;--line:#e2e2e2;--bg:#fbfbf9;--ok:#2f6f4e;--soft:#eef4f0;--stop:#b91c1c;--stopsoft:#fdecec}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:48px 24px 80px}
+  h1{font-size:clamp(26px,4.5vw,38px);line-height:1.15;margin:0 0 10px}
+  .lede{color:var(--muted);margin:0 0 24px;max-width:62ch}
+  .tabs{display:flex;gap:8px;margin:0 0 20px}
+  .tabs button{font:inherit;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .tabs button[aria-pressed="true"]{border-color:var(--ink);background:var(--soft)}
+  .turn{display:flex;flex-direction:column;gap:10px;margin:0 0 24px}
+  .step{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:#fff;display:flex;gap:12px;align-items:flex-start}
+  .step b{min-width:150px}
+  .step.stop{border-color:var(--stop);background:var(--stopsoft)}
+  .step.nudge{border-color:var(--ok);background:var(--soft)}
+  .step.dead{opacity:.35;text-decoration:line-through}
+  pre{background:#111;color:#e8e8e8;border-radius:10px;padding:14px;overflow:auto;font:13px/1.5 ui-monospace,Menlo,monospace;margin:0}
+  .why{margin-top:24px;color:var(--muted)}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Drift gate: stop the turn vs nudge the model"><meta property="og:description" content="One turn before and after the plugins/ drift hook moved from continue:false to a PostToolUse additionalContext reminder, with the exact hook output for each."><meta property="og:url" content="https://orchestkit.dev/lab/4684-drift-nudge-additional-context.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Drift gate: stop the turn vs nudge the model"><meta name="twitter:description" content="One turn before and after the plugins/ drift hook moved from continue:false to a PostToolUse additionalContext reminder, with the exact hook output for each."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<div class="wrap">
+  <h1>The plugins/ drift reminder no longer stops the turn</h1>
+  <p class="lede">After an edit under src/ changes a build input and plugins/ was not rebuilt, the drift hook reminds the model to run <code>npm run build</code>. Pick a version to see what one turn looks like.</p>
+  <div class="tabs">
+    <button id="before" aria-pressed="false">Before: continue:false</button>
+    <button id="after" aria-pressed="true">After: additionalContext</button>
+  </div>
+  <div class="turn" id="turn"></div>
+  <pre id="json"></pre>
+  <p class="why">Why: the edit has already landed when PostToolUse runs, so a block cannot undo it. Claude Code honours <code>continueOnBlock</code> on prompt hooks only, so <code>continue:false</code> from this command hook ended the whole turn mid-task. Detection, the 1-hour snapshot window and the git-timeout rule are unchanged.</p>
+</div>
+<script>
+  var MSG = '[plugins-drift] src/ edit detected but plugins/ has not been rebuilt this session.\nRun: npm run build\n(This would otherwise produce a plugins/ drift CI failure later.)';
+  var views = {
+    before: {
+      steps: [['', 'Edit src/hooks/hooks.json', 'the file is written'],
+              ['stop', 'PostToolUse drift hook', 'continue:false, the turn ends here'],
+              ['dead', 'Next tool call', 'never happens'],
+              ['dead', 'npm run build', 'the person has to ask again']],
+      json: {continue: false, stopReason: MSG}
+    },
+    after: {
+      steps: [['', 'Edit src/hooks/hooks.json', 'the file is written'],
+              ['nudge', 'PostToolUse drift hook', 'reminder added to the model context'],
+              ['', 'Next tool call', 'the model reads the reminder'],
+              ['', 'npm run build', 'plugins/ rebuilt in the same turn']],
+      json: {continue: true, suppressOutput: true, hookSpecificOutput: {hookEventName: 'PostToolUse', additionalContext: MSG}}
+    }
+  };
+  function show(k){
+    var v = views[k], t = document.getElementById('turn');
+    t.innerHTML = '';
+    v.steps.forEach(function(s){
+      var d = document.createElement('div'); d.className = 'step ' + s[0];
+      var b = document.createElement('b'); b.textContent = s[1];
+      var p = document.createElement('span'); p.textContent = s[2];
+      d.appendChild(b); d.appendChild(p); t.appendChild(d);
+    });
+    document.getElementById('json').textContent = JSON.stringify(v.json, null, 2);
+    document.getElementById('before').setAttribute('aria-pressed', String(k === 'before'));
+    document.getElementById('after').setAttribute('aria-pressed', String(k === 'after'));
+  }
+  document.getElementById('before').onclick = function(){ show('before'); };
+  document.getElementById('after').onclick = function(){ show('after'); };
+  show('after');
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
