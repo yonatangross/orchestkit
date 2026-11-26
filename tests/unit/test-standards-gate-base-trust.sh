@@ -325,13 +325,25 @@ assert "no paths filter (a required check must always report)" absent '^ *paths(
 assert "top-level permissions: {}" grep -qE '^permissions: \{\}' "$WORKFLOW"
 n_checkout="$(grep -cE 'uses: actions/checkout@' "$WORKFLOW" || true)"
 n_nocreds="$(grep -cE 'persist-credentials: false' "$WORKFLOW" || true)"
-same_count() { [ "$n_checkout" -ge 3 ] && [ "$n_checkout" = "$n_nocreds" ]; }
+same_count() { [ "$n_checkout" -ge 2 ] && [ "$n_checkout" = "$n_nocreds" ]; }
 assert "persist-credentials: false on every checkout ($n_nocreds of $n_checkout)" same_count
 assert "no step runs with head as its working directory" absent 'working-directory:.*head' "$WORKFLOW"
 # shellcheck disable=SC2016  # $GITHUB_WORKSPACE is matched literally in the YAML
 assert "nothing under head/ is executed" \
   absent '(bash|sh|python3?|uv run python|source|\.) +"?(\$GITHUB_WORKSPACE/)?head/' "$WORKFLOW"
 assert "no unsafe checkout opt-in and no secrets" absent 'allow-unsafe-pr-checkout|secrets\.' "$WORKFLOW"
+# A fork event must reach the trusted reader (#5204). The pinned
+# actions/checkout refuses a fork head under pull_request_target unless the
+# unsafe opt-in is set (src/unsafe-pr-checkout-helper.ts at the pinned SHA),
+# so the head tree may not come from it: no checkout step takes the head sha
+# or the pull refs, the tree is fetched with git instead, and the fetched
+# commit is pinned to the event head sha.
+assert "the head sha is never a checkout ref" \
+  absent 'ref:.*pull_request\.head\.sha|ref:.*refs/pull/' "$WORKFLOW"
+assert "the head tree is fetched with git, not an action" \
+  grep -qE 'git -C head .*fetch' "$WORKFLOW"
+assert "the fetched commit is pinned to the event head sha" \
+  grep -qE 'rev-parse FETCH_HEAD' "$WORKFLOW"
 # A fork head is the same data-only input as a branch head: nothing executes
 # it, so refusing forks only locks out contributors (#5204). No step may
 # compare the head repo to the base repo.
