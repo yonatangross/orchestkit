@@ -3322,7 +3322,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "name": "memory",
     "description": "Memory in three verbs: remember (store a decision or pattern), search (search, load, history, viz, status) and dream (consolidate stale memory files). Use when storing, finding or cleaning up what was learned or decided.",
     "version": "3.0.0",
-    "sha256": "7f4f790b136f7e5ab021a25b3bb8e2bb9c5eef722dc6493469361de292c3b204",
+    "sha256": "fb97abe82244ec1a617bb81b0737c29632c624b53166874b9a2ccbc5536e3c29",
     "author": "OrchestKit",
     "tags": [
       "memory",

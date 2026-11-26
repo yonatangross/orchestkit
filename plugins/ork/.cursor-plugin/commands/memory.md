@@ -135,7 +135,7 @@ python3 <ORK_PLUGIN_DIR>/skills/memory/scripts/staleness_cron.py docs/reports/ \
     --threshold-days 30 --limit 50
 ```
 
-Auto-skip conditions (all exit 0, all WARN-logged):
+Auto-skip conditions (exit 0 and WARN-logged on a local run; with `--require-read`, which the nightly workflow passes, exit 3 and status `unknown`). An unreadable `search_nodes` answer exits 2 in both modes:
 
 | Skip reason | Trigger |
 |-------------|---------|

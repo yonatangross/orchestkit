@@ -10,6 +10,7 @@ No I/O, no globals. Functions:
   - latest_observation_timestamp(entity) -> datetime | None
   - is_stale(entity, now, threshold_days) -> (bool, age_days | None)
   - extract_entities(result) -> list[dict]
+  - is_entity_answer(result) -> bool
   - build_report_payload(entities, ...) -> dict
   - render_markdown(payload) -> str
 """
@@ -101,6 +102,20 @@ def extract_entities(result: Any) -> list[dict[str, Any]]:
             if isinstance(entities, list):
                 return [e for e in entities if isinstance(e, dict)]
     return []
+
+
+def is_entity_answer(result: Any) -> bool:
+    """True only when the answer is a list of entity dicts, bare or keyed.
+
+    extract_entities() turns anything else into [], which would read as an
+    empty (healthy) graph.
+    """
+    if isinstance(result, dict):
+        result = next(
+            (result[k] for k in ("entities", "nodes", "result") if isinstance(result.get(k), list)),
+            None,
+        )
+    return isinstance(result, list) and all(isinstance(e, dict) for e in result)
 
 
 def _entity_name(entity: dict[str, Any]) -> str:
