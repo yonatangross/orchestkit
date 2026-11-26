@@ -17,6 +17,8 @@
 #                 (one object per changed file); unset fetches live.
 #   RP_COMMITS_JSON_FILE (tests only) file holding the pulls/N/commits
 #                 array; unset fetches live.
+#   RP_EVENTS_JSON_FILE (tests only) file holding the repository events
+#                 feed (the PushEvent stream); unset fetches live.
 #   RP_ALLOWLIST_FILE (tests only) override for the release-owned path list.
 #   GH_TOKEN, GITHUB_REPOSITORY for the live API reads.
 #
@@ -28,8 +30,12 @@
 # counts must equal what pulls/N reports (the list endpoints paginate and
 # cap), a rename must clear its previous_filename through the allowlist,
 # the last listed commit must equal the triggering head sha, a commit
-# whose author is not linked to a GitHub account counts as not-bot, and
-# any read or parse failure keeps the suites running.
+# whose author is not linked to a GitHub account counts as not-bot, the
+# triggering head must appear in the repository events feed as a
+# PushEvent head pushed to this ref by the release bot (author and
+# committer logins are only email attribution, forgeable by anyone who
+# can push; the feed records the real pusher, #5480), and any read or
+# parse failure keeps the suites running.
 #
 # Prints skip=true|false plus the reason, one key=value per line.
 
@@ -129,11 +135,9 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
 
   # The allowlist covers executable and dependency surfaces (hook dist
   # bundles, package-lock.json, pyproject.toml), so path-only is not enough:
-  # every commit on the PR must come from the release bot and carry a
-  # GitHub-verified signature (author.login is only the account the commit
-  # email resolves to; a forged author line could borrow it, #5480), the
-  # list must be complete, and its tail must equal the sha that triggered
-  # this run (a branch that moved mid-read never earns the skip).
+  # every commit on the PR must come from the release bot, the list must be
+  # complete, and its tail must equal the sha that triggered this run (a
+  # branch that moved mid-read never earns the skip).
   if [[ "$skip" == true ]]; then
     COMMITS_JSON="${RP_COMMITS_JSON_FILE:-}"
     commits_ok=true
@@ -166,29 +170,60 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
       echo "commits list ends at a different head than the trigger sha; not skipping"
       skip=false
     else
-      all_verified=""
-      if ! all_verified="$(jq -sr '[add[] | (.commit.verification.verified == true)] | all' < "$COMMITS_JSON")"; then
-        all_verified=""
+      # A commit whose author is not linked to a GitHub account reports
+      # author=null, which maps to an empty line here; an empty line is a
+      # not-bot author, never a missing row (Codex #5479, item 2).
+      AUTHORS="$(mktemp "${TMPDIR:-/tmp}/rp-gate-authors.XXXXXX")"
+      jq -sr 'add[] | .author.login // ""' < "$COMMITS_JSON" > "$AUTHORS"
+      while IFS= read -r author; do
+        if [[ -z "$author" ]]; then
+          echo "commit without a linked GitHub author; not skipping"
+          skip=false
+        elif [[ "$author" != "$RELEASE_BOT" ]]; then
+          echo "non-release-bot commit author: $author"
+          skip=false
+        fi
+      done < "$AUTHORS"
+    fi
+  fi
+
+  # Email attribution is forgeable by anyone able to push, so the trigger
+  # head is bound to the pusher instead: the repository events feed
+  # records every PushEvent with the actor that pushed it. A release bot
+  # PushEvent whose ref and head equal this head_ref and the trigger sha
+  # is the proof the app installation produced this head. The feed keeps
+  # only recent events (~300 over 90 days), so a head not yet or no longer
+  # listed, a human PushEvent carrying this head, and any read or parse
+  # failure all keep the suites running (#5480, conductor445 pick).
+  if [[ "$skip" == true ]]; then
+    EVENTS_JSON="${RP_EVENTS_JSON_FILE:-}"
+    events_ok=true
+    if [[ -z "$EVENTS_JSON" ]]; then
+      EVENTS_JSON="$(mktemp "${TMPDIR:-/tmp}/rp-gate-events.XXXXXX")"
+      if ! gh api "repos/$GITHUB_REPOSITORY/events?per_page=100" > "$EVENTS_JSON"; then
+        events_ok=false
       fi
-      if [[ "$all_verified" != true ]]; then
-        echo "commit without a GitHub-verified signature; not skipping"
-        skip=false
-      else
-        # A commit whose author is not linked to a GitHub account reports
-        # author=null, which maps to an empty line here; an empty line is a
-        # not-bot author, never a missing row (Codex #5479, item 2).
-        AUTHORS="$(mktemp "${TMPDIR:-/tmp}/rp-gate-authors.XXXXXX")"
-        jq -sr 'add[] | .author.login // ""' < "$COMMITS_JSON" > "$AUTHORS"
-        while IFS= read -r author; do
-          if [[ -z "$author" ]]; then
-            echo "commit without a linked GitHub author; not skipping"
-            skip=false
-          elif [[ "$author" != "$RELEASE_BOT" ]]; then
-            echo "non-release-bot commit author: $author"
-            skip=false
-          fi
-        done < "$AUTHORS"
+    fi
+    head_push=""
+    if [[ "$events_ok" == true ]]; then
+      if ! head_push="$(jq -s \
+          --arg ref "refs/heads/$HEAD_REF" \
+          --arg head "$trigger_head" \
+          --arg bot "$RELEASE_BOT" \
+          'add | [.[] | select(.type == "PushEvent" and .payload.ref == $ref and .payload.head == $head and .actor.login == $bot)] | length' \
+          < "$EVENTS_JSON")"; then
+        head_push=""
       fi
+    fi
+    if [[ "$events_ok" == false ]]; then
+      echo "events feed read failed; not skipping"
+      skip=false
+    elif ! [[ "$head_push" =~ ^[0-9]+$ ]]; then
+      echo "events feed unreadable; not skipping"
+      skip=false
+    elif [[ "$head_push" -lt 1 ]]; then
+      echo "no release-bot PushEvent records the trigger head on $HEAD_REF; not skipping"
+      skip=false
     fi
   fi
 fi

@@ -1,41 +1,29 @@
 [
   {
     "sha": "1111111111111111111111111111111111111111",
-    "author": {
-      "login": "orchestkit-release-bot[bot]"
-    },
+    "author": {"login": "orchestkit-release-bot[bot]"},
+    "committer": {"login": "web-flow"},
     "commit": {
-      "verification": {
-        "verified": true,
-        "reason": "valid",
-        "signature": "dummy"
-      }
+      "committer": {"name": "GitHub"},
+      "verification": {"verified": true, "reason": "valid", "signature": "dummy"}
     }
   },
   {
     "sha": "2222222222222222222222222222222222222222",
-    "author": {
-      "login": "orchestkit-release-bot[bot]"
-    },
+    "author": {"login": "orchestkit-release-bot[bot]"},
+    "committer": {"login": "orchestkit-release-bot[bot]"},
     "commit": {
-      "verification": {
-        "verified": true,
-        "reason": "valid",
-        "signature": "dummy"
-      }
+      "committer": {"name": "orchestkit-release-bot[bot]"},
+      "verification": {"verified": false, "reason": "unsigned", "signature": null}
     }
   },
   {
     "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "author": {
-      "login": "orchestkit-release-bot[bot]"
-    },
+    "author": {"login": "orchestkit-release-bot[bot]"},
+    "committer": {"login": "orchestkit-release-bot[bot]"},
     "commit": {
-      "verification": {
-        "verified": true,
-        "reason": "valid",
-        "signature": "dummy"
-      }
+      "committer": {"name": "orchestkit-release-bot[bot]"},
+      "verification": {"verified": false, "reason": "unsigned", "signature": null}
     }
   }
 ]
