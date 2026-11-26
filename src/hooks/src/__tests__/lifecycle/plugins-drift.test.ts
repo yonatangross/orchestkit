@@ -131,7 +131,7 @@ describe('check-plugins-drift (PostToolUse Write|Edit)', () => {
     expect(res.stopReason).toBeUndefined();
   });
 
-  it('blocks when hooks.json hash diverged AND plugins/ has not been rebuilt', () => {
+  it('nudges (never blocks) when hooks.json hash diverged AND plugins/ has not been rebuilt (#4684)', () => {
     pluginsDriftSnapshot(makeInput(), createTestContext({ projectDir }));
     // Simulate the user editing src/hooks/hooks.json without rebuilding.
     writeFileSync(join(projectDir, HOOKS_JSON_REL), '{"hooks":{"new":true}}');
@@ -142,9 +142,16 @@ describe('check-plugins-drift (PostToolUse Write|Edit)', () => {
       ctx,
     );
 
-    expect(res.continue).toBe(false);
-    expect(res.stopReason).toContain('plugins-drift');
-    expect(res.stopReason).toContain('npm run build');
+    // PostToolUse runs after the edit landed; a block cannot undo it and
+    // continueOnBlock is honoured on prompt hooks only, so it stopped the
+    // whole turn. The rebuild reminder rides additionalContext instead.
+    expect(res.continue).toBe(true);
+    expect(res.stopReason).toBeUndefined();
+    expect(res.decision).toBeUndefined();
+    expect(res.hookSpecificOutput?.hookEventName).toBe('PostToolUse');
+    const nudge = res.hookSpecificOutput?.additionalContext ?? '';
+    expect(nudge).toContain('[plugins-drift]');
+    expect(nudge).toContain('npm run build');
   });
 
   it('is silent when snapshot is missing', () => {
