@@ -1,0 +1,11 @@
+{
+  "slug": "5470-gha-scheduled-jobs",
+  "source": "docs/fix--gha-scheduled-jobs/rp-gate.html",
+  "title": "Release-please diff gate: which PRs skip the heavy suites",
+  "description": "Simulate the rp-diff-gate decision shipped in this PR: head branch, PR author and the changed-files list decide whether the heavy CI suites skip, using the same allowlist as scripts/ci/rp-diff-gate-allowlist.txt.",
+  "tags": [
+    "ci",
+    "github-actions"
+  ],
+  "date": "2026-11-26"
+}

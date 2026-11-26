@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release-please diff gate: what skips the heavy suites</title>
+<meta name="description" content="Simulate the rp-diff-gate decision shipped in this PR: head branch, PR author and the changed-files list decide whether the heavy CI suites skip. Uses the same allowlist as scripts/ci/rp-diff-gate-allowlist.txt.">
+<style>
+  :root { color-scheme: light; --paper:#f6f4ee; --ink:#182c30; --muted:#4f6468; --line:#ccd5d1; --good:#17624c; --bad:#a53232; --warn:#8a5a00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 system-ui,sans-serif; }
+  main { max-width:1000px; margin:auto; padding:48px 24px 72px; }
+  .eyebrow { font-size:.8rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--good); }
+  h1 { font-size:clamp(1.7rem,4vw,2.6rem); line-height:1.15; max-width:820px; margin:14px 0 20px; }
+  h2 { font-size:1.2rem; margin:0 0 10px; }
+  p { max-width:780px; }
+  .muted { color:var(--muted); }
+  section { margin-top:32px; padding-top:24px; border-top:1px solid var(--line); }
+  label { display:block; font-size:.85rem; font-weight:600; margin:14px 0 4px; }
+  input, textarea { font:14px/1.5 ui-monospace,monospace; width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  textarea { min-height:190px; }
+  .row { display:flex; flex-wrap:wrap; gap:12px; margin-top:14px; }
+  button { font:inherit; padding:8px 14px; border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:6px; cursor:pointer; }
+  button.ghost { background:#fff; color:var(--ink); }
+  .verdict { margin-top:18px; padding:14px 18px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:1.15rem; font-weight:700; }
+  .skip { color:var(--good); border-color:var(--good); }
+  .run { color:var(--bad); border-color:var(--bad); }
+  table { border-collapse:collapse; width:100%; margin-top:12px; font-size:.85rem; }
+  td { border-bottom:1px solid var(--line); padding:5px 8px; font-family:ui-monospace,monospace; }
+  td.own { color:var(--good); } td.out { color:var(--bad); font-weight:600; }
+  code { font-family:ui-monospace,monospace; }
+  footer { margin-top:36px; color:var(--muted); font-size:.9rem; }
+  :focus-visible { outline:3px solid #bf7100; outline-offset:4px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">CI playground: fix/gha-scheduled-jobs</div>
+  <h1>Which PRs skip the heavy suites?</h1>
+  <p>This PR adds a reusable gate (<code>rp-diff-gate.yml</code>) that lets the expensive CI jobs skip themselves on release-please PRs: those diffs touch only release-owned outputs, so 61 checks fired on #5463 for a version/changelog-only change. Fill in the event data below and see the gate's verdict. The file allowlist is the same list the shipped script uses (<code>scripts/ci/rp-diff-gate-allowlist.txt</code>).</p>
+
+  <section>
+    <h2>Event data</h2>
+    <label for="headref">Head branch</label>
+    <input id="headref" value="release-please--branches--main">
+    <label for="author">PR author</label>
+    <input id="author" value="orchestkit-release-bot[bot]">
+    <label for="files">Changed files (one per line)</label>
+    <textarea id="files" spellcheck="false"></textarea>
+    <div class="row">
+      <button id="preset-5463" type="button">Load the real #5463 diff</button>
+      <button id="preset-plant" type="button" class="ghost">Plant a plugin source file</button>
+      <button id="preset-bot" type="button" class="ghost">Wrong bot login</button>
+    </div>
+    <div id="verdict" class="verdict" aria-live="polite"></div>
+    <table id="detail"><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h2>Why this gate exists</h2>
+    <p class="muted">A release-please PR bumps versions and regenerates changelogs and dist bundles. Nothing in it can break a hook test or an eval, yet the full suite ran anyway. The gate classifies every changed path against release-owned shapes only: manifest and <code>plugin.json</code> files, hook <code>dist/</code> bundles, generated docs data, changelogs and version pins. One ordinary source file, the wrong bot login or a non-release branch turns the skip off. A first review found the gate had to know the repository's own release bot (<code>orchestkit-release-bot[bot]</code>, not <code>release-please[bot]</code>) and that a bare <code>plugins/*</code> glob would have counted real plugin source as release output; both are fixed and covered by <code>tests/ci/test-rp-diff-gate.sh</code>.</p>
+  </section>
+
+  <footer>
+    Source of truth for the demo: scripts/ci/rp-diff-gate-allowlist.txt and scripts/ci/rp-diff-gate-decision.sh on this branch.
+  </footer>
+</main>
+<script>
+const ALLOWLIST = [
+  /^\.claude-plugin\/marketplace\.json$/,
+  /^\.devin-plugin\/plugin\.json$/,
+  /^\.release-please-manifest\.json$/,
+  /^CHANGELOG\.md$/,
+  /^CLAUDE\.md$/,
+  /^README\.md$/,
+  /^version\.txt$/,
+  /^server\.json$/,
+  /^pyproject\.toml$/,
+  /^package\.json$/,
+  /^package-lock\.json$/,
+  /^plugin\.json$/,
+  /^manifests\/([^/]+\/)?[^/]+\.json$/,
+  /^docs\/site\/lib\/generated\/.+$/,
+  /^src\/hooks\/dist\/.+$/,
+  /^src\/codex\/[^/]+\/\.codex-plugin\/plugin\.json$/,
+  /^plugins\/[^/]+\/\.claude-plugin\/plugin\.json$/,
+  /^plugins\/[^/]+\/\.codex-plugin\/plugin\.json$/,
+  /^plugins\/[^/]+\/\.cursor-plugin\/plugin\.json$/,
+  /^plugins\/[^/]+\/plugin\.json$/,
+  /^plugins\/ork\/hooks\/dist\/.+$/
+];
+const REAL_5463 = [
+".claude-plugin/marketplace.json",".devin-plugin/plugin.json",".release-please-manifest.json","CHANGELOG.md","CLAUDE.md","README.md","docs/site/lib/generated/changelog-data.ts","docs/site/lib/generated/plugins-data.ts","manifests/codex/ork-codex.json","manifests/ork-extras.json","manifests/ork.json","package-lock.json","package.json","plugin.json","plugins/ork-codex/.codex-plugin/plugin.json","plugins/ork-extras/.claude-plugin/plugin.json","plugins/ork-extras/.cursor-plugin/plugin.json","plugins/ork-extras/plugin.json","plugins/ork/.claude-plugin/plugin.json","plugins/ork/.cursor-plugin/plugin.json","plugins/ork/hooks/dist/bundle-stats.json","plugins/ork/hooks/dist/lifecycle.mjs","plugins/ork/hooks/dist/posttool.mjs","plugins/ork/hooks/dist/pretool.mjs","plugins/ork/hooks/dist/prompt.mjs","plugins/ork/hooks/dist/stop.mjs","plugins/ork/hooks/dist/subagent.mjs","plugins/ork/plugin.json","pyproject.toml","server.json","src/codex/ork-codex/.codex-plugin/plugin.json","src/hooks/dist/bundle-stats.json","src/hooks/dist/lifecycle.mjs","src/hooks/dist/posttool.mjs","src/hooks/dist/pretool.mjs","src/hooks/dist/prompt.mjs","src/hooks/dist/stop.mjs","src/hooks/dist/subagent.mjs","version.txt"
+];
+const $ = (id) => document.getElementById(id);
+function decide() {
+  const head = $("headref").value.trim();
+  const author = $("author").value.trim();
+  const files = $("files").value.split("\n").map((s) => s.trim()).filter(Boolean);
+  const rows = files.map((f) => ({ f, owned: ALLOWLIST.some((re) => re.test(f)) }));
+  const eventOk = head.startsWith("release-please--") && author === "orchestkit-release-bot[bot]" && files.length > 0;
+  const outsiders = rows.filter((r) => !r.owned);
+  const skip = eventOk && outsiders.length === 0;
+  const v = $("verdict");
+  v.className = "verdict " + (skip ? "skip" : "run");
+  if (skip) {
+    v.textContent = "skip=true: every file is release-owned, the heavy suites do not run";
+  } else {
+    const why = [];
+    if (!head.startsWith("release-please--")) why.push("head branch is not release-please--*");
+    if (author !== "orchestkit-release-bot[bot]") why.push("author is not orchestkit-release-bot[bot]");
+    if (files.length === 0) why.push("no changed files");
+    if (outsiders.length) why.push(outsiders.length + " non-release-owned file" + (outsiders.length === 1 ? "" : "s"));
+    v.textContent = "skip=false: the suites run (" + why.join("; ") + ")";
+  }
+  $("detail").innerHTML = rows.map((r) =>
+    "<tr><td class='" + (r.owned ? "own" : "out") + "'>" + (r.owned ? "release-owned" : "NOT release-owned") + "</td><td>" + r.f.replace(/</g, "&lt;") + "</td></tr>"
+  ).join("");
+}
+$("preset-5463").addEventListener("click", () => { $("files").value = REAL_5463.join("\n"); decide(); });
+$("preset-plant").addEventListener("click", () => { $("files").value = REAL_5463.concat("plugins/ork/skills/npm-ci-symlink-guard/SKILL.md").join("\n"); decide(); });
+$("preset-bot").addEventListener("click", () => { $("author").value = "release-please[bot]"; decide(); });
+["headref","author","files"].forEach((id) => $(id).addEventListener("input", decide));
+$("files").value = REAL_5463.join("\n");
+decide();
+</script>
+</body>
+</html>
