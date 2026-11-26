@@ -14,7 +14,7 @@ import {
   appendFileSync, chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 
 import { goalBudgetGuard } from '../../lifecycle/goal-budget-guard.js';
 import { goalTracker } from '../../prompt/goal-tracker.js';
@@ -301,7 +301,7 @@ describe('edges', () => {
 
   it('keeps the brake file inside .claude/state for a hostile session_id', () => {
     const path = brakePath(tmp, '../../../etc/passwd');
-    expect(path.startsWith(join(tmp, '.claude', 'state') + '/') || path.startsWith(join(tmp, '.claude', 'state') + '\\')).toBe(true);
+    expect(path.startsWith(`${join(tmp, '.claude', 'state')}${sep}`)).toBe(true);
     expect(path).not.toContain('..');
   });
 
