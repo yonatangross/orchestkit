@@ -603,6 +603,68 @@ describe("register behavior (mutant-killing)", () => {
     expect(paths.some((p) => p.includes("/branches/main/"))).toBe(false);
   });
 
+  test("session.start matches a release/* head prefix into a second configured base (orchestkit#4623)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const env: Record<string, string> = { PROMOTE_HEAD: "release/*", PROMOTE_BASE: "qa,main" };
+    const fallback = makeDispatchingRun();
+    const releasePR = {
+      number: 4430,
+      headRefName: "release/v2026.11.10",
+      baseRefName: "main",
+      headRefOid: "abc123def4567",
+      title: "release v2026.11.10",
+      labels: [],
+    };
+    // Argv-aware: the PR is returned only by a query into main, never into qa.
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") {
+        const base = argv[argv.indexOf("--base") + 1];
+        return { exitCode: 0, stdout: JSON.stringify(base === "main" ? [releasePR] : []), stderr: "" };
+      }
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => env[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 4430 }));
+    const argvs = run.mock.calls.map((c) => c[0] as readonly string[]);
+    const lists = argvs.filter((argv) => argv[1] === "pr" && argv[2] === "list");
+    const bases = new Set(lists.map((argv) => argv[argv.indexOf("--base") + 1]));
+    expect(bases).toEqual(new Set(["qa", "main"]));
+    // The raw pattern and the raw list never reach gh.
+    for (const argv of lists) {
+      expect(argv.includes("release/*")).toBe(false);
+      expect(argv.includes("qa,main")).toBe(false);
+    }
+    // Required checks come from the matched PR's own base.
+    const paths = argvs.filter((argv) => argv[1] === "api").map((argv) => argv[2]);
+    expect(paths.some((p) => p.endsWith("/branches/main/protection"))).toBe(true);
+    expect(paths.some((p) => p.includes("/branches/qa/"))).toBe(false);
+  });
+
+  test("session.start picks the first base in order when both bases hold a promote PR (orchestkit#4623)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const env: Record<string, string> = { PROMOTE_HEAD: "development", PROMOTE_BASE: "qa,main" };
+    const fallback = makeDispatchingRun();
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") {
+        const base = argv[argv.indexOf("--base") + 1];
+        const pr = { number: base === "qa" ? 2391 : 2400, headRefName: "development", baseRefName: base, headRefOid: "abc123def4567", title: `development to ${base}`, labels: [] };
+        return { exitCode: 0, stdout: JSON.stringify([pr]), stderr: "" };
+      }
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => env[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 2391 }));
+    const paths = run.mock.calls.map((c) => c[0] as readonly string[]).filter((argv) => argv[1] === "api").map((argv) => argv[2]);
+    expect(paths.some((p) => p.endsWith("/branches/qa/protection"))).toBe(true);
+    expect(paths.some((p) => p.includes("/branches/main/"))).toBe(false);
+  });
+
   test("session.start with a promote PR starts a 60s clock and the first tick classifies all-green as passing", async () => {
     const { register } = await import("../hooks/register.ts");
     const handlers = captureHandlers(await import("../hooks/register.ts"));
@@ -615,11 +677,11 @@ describe("register behavior (mutant-killing)", () => {
     // Both list queries are filtered server side with an explicit limit
     // so a promote PR past position 30 is still returned.
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,baseRefName,headRefOid,title,labels", "--limit", "100"],
       { timeoutMs: 15000 }
     );
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,baseRefName,headRefOid,title,labels", "--limit", "100"],
       { timeoutMs: 15000 }
     );
 
@@ -848,6 +910,124 @@ describe("register behavior (mutant-killing)", () => {
       error: "head moved, stopped",
       session: expect.any(String),
     });
+  });
+
+  // orchestkit#5462 review (Codex probe 1): a PR retargeted from qa to main at
+  // the same head must never keep showing qa's verdict.
+  const retargetEnv: Record<string, string> = { PROMOTE_HEAD: "development", PROMOTE_BASE: "qa,main" };
+  const devIntoQa = JSON.stringify([
+    { number: 2391, headRefName: "development", baseRefName: "qa", headRefOid: "abc123def4567", title: "dev to qa", labels: [] },
+  ]);
+  const viewOnMain = JSON.stringify({ headRefOid: "abc123def4567", state: "OPEN", mergeStateStatus: "CLEAN", baseRefName: "main" });
+
+  test("a tick that sees the base moved stops and never publishes the old base's verdict (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const $ = createFake$({ prList: devIntoQa, prView: viewOnMain, envGet: vi.fn(async (k: string) => retargetEnv[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    const sets = ($.store.set as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[1] as Record<string, unknown>);
+    expect(sets.some((s) => s.passing === true)).toBe(false);
+    expect(sets.at(-1)).toEqual(expect.objectContaining({ error: "base moved from qa to main, stopped" }));
+    const handle = ($.clock.every as ReturnType<typeof vi.fn>).mock.results[0]?.value as { cancel: ReturnType<typeof vi.fn> } | undefined;
+    expect(handle?.cancel).toHaveBeenCalled();
+  });
+
+  test("turn.complete that sees the base moved stops tracking (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    let view = JSON.stringify({ headRefOid: "abc123def4567", state: "OPEN", mergeStateStatus: "CLEAN", baseRefName: "qa" });
+    const fallback = makeDispatchingRun();
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") return { exitCode: 0, stdout: devIntoQa, stderr: "" };
+      if (argv[1] === "pr" && argv[2] === "view") return { exitCode: 0, stdout: view, stderr: "" };
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => retargetEnv[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 2391, passing: true }));
+
+    view = viewOnMain;
+    await handlers.get("turn.complete")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenLastCalledWith(KEY, expect.objectContaining({ error: "base moved from qa to main, stopped" }));
+    const paths = run.mock.calls.map((c) => c[0] as readonly string[]).filter((a) => a[1] === "api").map((a) => a[2]);
+    expect(paths.some((p) => p.includes("/branches/main/"))).toBe(false);
+  });
+
+  // #5462 review round 2 (Codex): a watched PR whose base AND head move at once
+  // must be judged on the new head, never on the previous SHA.
+  const watchBoth = () => {
+    let view = JSON.stringify({ headRefOid: "feedbee1234567", state: "OPEN", mergeStateStatus: "BLOCKED", baseRefName: "main" });
+    const fallback = makeDispatchingRun({ protection: "{}", rulesets: "[]" });
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "view") return { exitCode: 0, stdout: view, stderr: "" };
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => (k === "PROMOTE_LIGHTS_WATCH" ? "acme/widgets#77" : undefined)) });
+    const moveBoth = () => {
+      view = JSON.stringify({ headRefOid: "c0ffee7654321", state: "OPEN", mergeStateStatus: "BLOCKED", baseRefName: "qa" });
+    };
+    const checkRunHeads = () =>
+      run.mock.calls
+        .map((c) => (c[0] as readonly string[])[2] ?? "")
+        .filter((p) => p.includes("/check-runs"))
+        .map((p) => /commits\/([^/]+)\/check-runs/.exec(p)?.[1]);
+    return { $, run, moveBoth, checkRunHeads };
+  };
+  const lastSnapshot = ($: Fake$) =>
+    ($.store.set as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[1] as Record<string, unknown>).filter((s) => "head" in s).at(-1);
+
+  test("turn.complete: a watched PR whose base and head both moved is judged on the new head (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const { $, moveBoth, checkRunHeads } = watchBoth();
+    await handlers.get("session.start")!($, {}, NEXT);
+    expect(lastSnapshot($)?.head).toBe("feedbee1234567");
+
+    moveBoth();
+    await handlers.get("turn.complete")!($, {}, NEXT);
+
+    expect(checkRunHeads().at(-1)).toBe("c0ffee7654321");
+    expect(lastSnapshot($)?.head).toBe("c0ffee7654321");
+  });
+
+  test("a tick: a watched PR whose base and head both moved is judged on the new head (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const { $, moveBoth, checkRunHeads } = watchBoth();
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    moveBoth();
+    await handlers.get("command.run")!($, { command: "lights", args: "refresh" }, NEXT);
+
+    expect(checkRunHeads().at(-1)).toBe("c0ffee7654321");
+    expect(lastSnapshot($)?.head).toBe("c0ffee7654321");
+  });
+
+  // Codex probe 2: a full page into the first base is an incomplete search, so a
+  // match in a later base (or no match) must be reported as degraded.
+  test("a capped page into the first base marks the search degraded before a later base wins (#5462)", async () => {
+    const handlers = captureHandlers(await import("../hooks/register.ts"));
+    const env: Record<string, string> = { PROMOTE_HEAD: "release/*", PROMOTE_BASE: "qa,main" };
+    const ordinary = Array.from({ length: 100 }, (_, i) => ({
+      number: 5000 + i, headRefName: `feature/${i}`, baseRefName: "qa", headRefOid: "abc123def4567", title: "work", labels: [],
+    }));
+    const release = { number: 4430, headRefName: "release/v2026.11.10", baseRefName: "main", headRefOid: "abc123def4567", title: "release", labels: [] };
+    const fallback = makeDispatchingRun();
+    const run = vi.fn(async (argv: readonly string[], init?: Record<string, unknown>) => {
+      if (argv[1] === "pr" && argv[2] === "list") {
+        const base = argv[argv.indexOf("--base") + 1];
+        const byLabel = argv.includes("--label");
+        const page = byLabel ? [] : base === "qa" ? ordinary : [release];
+        return { exitCode: 0, stdout: JSON.stringify(page), stderr: "" };
+      }
+      return fallback(argv, init);
+    });
+    const $ = createFake$({ run, envGet: vi.fn(async (k: string) => env[k]) });
+
+    await handlers.get("session.start")!($, {}, NEXT);
+
+    expect($.store.set).toHaveBeenCalledWith(KEY, expect.objectContaining({ prNumber: 4430, degraded: true }));
+    expect($.ui.status).toHaveBeenCalledWith(expect.stringMatching(/qa.*100|100.*qa/));
   });
 });
 

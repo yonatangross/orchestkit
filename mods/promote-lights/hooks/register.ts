@@ -18,7 +18,8 @@
  * - $.env.get (PROMOTE_HEAD and PROMOTE_BASE overrides, PROMOTE_LIGHTS_WATCH demo target)
  *
  * Two tracking modes share one tick:
- * - promote: the open promote PR (base main, dev head or promote label) in
+ * - promote: the open promote PR (base main or the PROMOTE_BASE list, dev
+ *   head or the PROMOTE_HEAD name or release/* prefix, or the promote label) in
  *   the session repo. An empty required-context union refuses green.
  * - watch: any open PR in any repo, named with `/lights watch owner/repo#N`
  *   or PROMOTE_LIGHTS_WATCH. An unprotected repo falls back to every check
@@ -27,7 +28,7 @@
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
-import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, DEFAULT_PROMOTE_BASE, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists } from "../src/gh.js";
+import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists, parseBases, PR_LIST_LIMIT, type PRDetails } from "../src/gh.js";
 import { buildStatusLine, buildBand, buildErrorBand, type Elements } from "../src/pane.js";
 import {
   parseWatchTarget,
@@ -274,57 +275,87 @@ async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["s
 
   const { owner, name } = repo;
 
-  // Only a real promote PR matches: dev head (or the configured
-  // promote head) with base main, or the promote label. An ordinary
-  // PR with base main must never match.
+  // Only a real promote PR matches: dev head (or the configured promote
+  // head, a trailing * as a prefix such as release/*) into a promote base,
+  // or the promote label. An ordinary PR into that base must never match.
   let promoteHead = DEFAULT_PROMOTE_HEAD;
   const configured = await $.env.get("PROMOTE_HEAD").catch(() => undefined);
   if (configured) promoteHead = configured;
-  // A dev, qa, main flow promotes into qa, so the base is configurable too
-  // (orchestkit#4623). The required checks below read this same base.
-  const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
+  // A dev, qa, main flow has a promote PR into qa and a release PR into
+  // main, so the base is a comma list searched in order (orchestkit#4623).
+  const promoteBases = parseBases(await $.env.get("PROMOTE_BASE").catch(() => undefined));
 
-  // Both queries are filtered server side so the result is complete
-  // no matter how many ordinary open PRs the repo has. A single
-  // unfiltered list returns at most 30 PRs by default, which misses
-  // a promote PR sitting past position 30. Settled, never all: one
-  // rejected query degrades the search instead of aborting the start.
-  const [headSettled, labelSettled] = await Promise.allSettled([
-    $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
-    $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
-  ]);
-  const byHead = headSettled.status === "fulfilled"
-    ? headSettled.value
-    : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
-  const byLabel = labelSettled.status === "fulfilled"
-    ? labelSettled.value
-    : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
+  let degraded = false;
+  let anyQueryOk = false;
+  let promotePR: (ReturnType<typeof parsePRList>)[number] | undefined;
+  let matchedBase = promoteBases[0];
 
-  if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
+  for (const promoteBase of promoteBases) {
+    // Both queries are filtered server side so the result is complete
+    // no matter how many ordinary open PRs the repo has. A single
+    // unfiltered list returns at most 30 PRs by default, which misses
+    // a promote PR sitting past position 30. Settled, never all: one
+    // rejected query degrades the search instead of aborting the start.
+    const [headSettled, labelSettled] = await Promise.allSettled([
+      $.process.run(buildHeadQueryArgs(promoteHead, promoteBase), { timeoutMs: 15000 }),
+      $.process.run(buildLabelQueryArgs(promoteBase), { timeoutMs: 15000 }),
+    ]);
+    const byHead = headSettled.status === "fulfilled"
+      ? headSettled.value
+      : { exitCode: 1, stdout: "", stderr: String(headSettled.reason) };
+    const byLabel = labelSettled.status === "fulfilled"
+      ? labelSettled.value
+      : { exitCode: 1, stdout: "", stderr: String(labelSettled.reason) };
+
+    if (byHead.exitCode === 0 || byLabel.exitCode === 0) anyQueryOk = true;
+
+    // One failed query must never pass silently: the search is degraded,
+    // the snapshot records it, and the band keeps saying DEGRADED.
+    if (byHead.exitCode !== 0 || byLabel.exitCode !== 0) {
+      degraded = true;
+      if (byHead.exitCode !== 0 && byLabel.exitCode !== 0) {
+        await warnStatus($, `lights: promote queries into ${promoteBase} failed`);
+      } else {
+        const failed = byHead.exitCode !== 0 ? "head" : "label";
+        const where = promoteBases.length > 1 ? ` into ${promoteBase}` : "";
+        await warnStatus($, `lights: promote ${failed} query${where} failed, continuing with the other`);
+      }
+    }
+
+    const headList = byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [];
+    const labelList = byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : [];
+    promotePR = mergePRLists(headList, labelList).find((pr) => isPromotePR(pr, promoteHead));
+    if (promotePR) {
+      matchedBase = promoteBase;
+      break;
+    }
+
+    // A full page is not the whole base (orchestkit#5462): a release/* head
+    // lists every open PR into the base, so with PR_LIST_LIMIT ordinary PRs
+    // ahead of it the promote PR may sit past the page. "No match here" is
+    // then unknown, not absent: say so before a later base wins or the search
+    // ends empty.
+    const limit = Number(PR_LIST_LIMIT);
+    if (headList.length >= limit || labelList.length >= limit) {
+      degraded = true;
+      await warnStatus($, `lights: promote search into ${promoteBase} hit the ${limit} PR cap, incomplete`);
+    }
+  }
+
+  if (!anyQueryOk) {
     await storeSet($, key, stamp({ error: "gh: not found" }));
     return;
   }
-
-  // One failed query must never pass silently: the search is degraded,
-  // the snapshot records it, and the band keeps saying DEGRADED.
-  const degraded = byHead.exitCode !== 0 || byLabel.exitCode !== 0;
-  if (degraded) {
-    const failed = byHead.exitCode !== 0 ? "head" : "label";
-    await warnStatus($, `lights: promote ${failed} query failed, continuing with the other`);
-  }
-
-  const prs = mergePRLists(
-    byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
-    byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
-  );
-  const promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
 
   if (!promotePR) {
     await storeDelete($, key);
     return;
   }
 
-  tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base: promoteBase, degraded };
+  // The required checks are read from the PR's own base, never from the
+  // query alone; the queried base is the fallback when gh omits the field.
+  const base = promotePR.baseRefName || matchedBase;
+  tracked = { owner, repo: name, number: promotePR.number, head: promotePR.headRefOid, mode: "promote", base, degraded };
 
   if (!ticking) {
     startTick($, key);
@@ -384,6 +415,18 @@ export const register: Register = (on) => {
       await storeDelete($, key);
       tracked = null;
       $.ui.invalidate("ui.render");
+      return next(e);
+    }
+
+    const moved = movedBase(tracked, details);
+    if (moved) {
+      if (tracked.mode === "watch") {
+        // Follow base and head together: the head check below never runs here.
+        tracked = { ...tracked, base: moved, head: details.headRefOid };
+        await doTick($, key);
+        return next(e);
+      }
+      await stopForMovedBase($, key, tracked.base, moved);
       return next(e);
     }
 
@@ -497,8 +540,8 @@ export const register: Register = (on) => {
     }
     if (stored && stored.error) return { text: `lights: ${stored.error}` };
     const promoteHead = (await $.env.get("PROMOTE_HEAD").catch(() => undefined)) || DEFAULT_PROMOTE_HEAD;
-    const promoteBase = (await $.env.get("PROMOTE_BASE").catch(() => undefined)) || DEFAULT_PROMOTE_BASE;
-    return { text: noPrHint(promoteHead, promoteBase) };
+    const promoteBases = parseBases(await $.env.get("PROMOTE_BASE").catch(() => undefined));
+    return { text: noPrHint(promoteHead, promoteBases.join(", ")) };
   });
 };
 
@@ -541,6 +584,26 @@ async function startWatch($: Hook$, key: string, target: WatchTarget): Promise<s
 function startTick($: Hook$, key: string): void {
   ticking = true;
   tickInterval = $.clock.every(TICK_MS, () => doTick($, key));
+}
+
+/**
+ * The base a PR read reports when it differs from the tracked one, else null
+ * (orchestkit#5462). A PR retargeted at the same head would otherwise keep
+ * being judged by its old base's required checks.
+ */
+function movedBase(t: Tracked, details: PRDetails | null): string | null {
+  const now = details?.baseRefName;
+  return now && now !== t.base ? now : null;
+}
+
+/** A promote PR whose base moved stops, the same way a moved head does. */
+async function stopForMovedBase($: Hook$, key: string, from: string, to: string): Promise<StoredLights> {
+  stopTick();
+  tracked = null;
+  const stopped: StoredLights = { error: `base moved from ${from} to ${to}, stopped` };
+  await storeSet($, key, stamp(stopped));
+  $.ui.invalidate("ui.render");
+  return stopped;
 }
 
 /** One tick: fetch, classify, store, draw. Returns what it stored. */
@@ -596,6 +659,17 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     const prViewResult = await $.process.run(prViewArgv(t), { timeoutMs: 10000 });
 
     const prDetails = parsePRView(prViewResult.stdout ?? "");
+    // Never publish a verdict read against a base the PR has left.
+    const moved = movedBase(t, prDetails);
+    if (moved) {
+      if (t.mode === "watch") {
+        // A watched PR is a demo of any PR: follow it to its new base, and to
+        // its new head too when both moved at once (#5462 review round 2).
+        tracked = { ...t, base: moved, head: prDetails?.headRefOid || t.head };
+        return doTick($, key);
+      }
+      return stopForMovedBase($, key, t.base, moved);
+    }
     const mergeStateStatus = prDetails?.mergeStateStatus ?? "";
     const passing = isPassing(lights);
     const label = labelFor(t);
