@@ -11,7 +11,7 @@ import { join, normalize } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { HookInput } from '../../../types.js';
 import { NOOP_CTX } from '../../../lib/context.js';
-import { npmCiDirShaky, npmCiSymlinkGuard, npmCiTargetDir, type NpmCiSymlinkGuardDeps } from '../../../pretool/bash/npm-ci-symlink-guard.js';
+import { npmCiDirShaky, npmCiSymlinkGuard, npmCiTargetDir, npmCiUnsupportedForm, type NpmCiSymlinkGuardDeps } from '../../../pretool/bash/npm-ci-symlink-guard.js';
 import { syncBashDispatcher } from '../../../pretool/bash/sync-bash-dispatcher.js';
 
 function bash(command: string, cwd = '/wt'): HookInput {
@@ -636,9 +636,15 @@ describe('command shapes the reader must follow to the install', () => {
 
     it.each([
       ["sh -c 'sh -c \"echo \\$(npm ci --prefix /lw)\"'"],
-      ['eval "npm ci --prefix /lw"'],
     ])('control: %s is quiet when nothing is linked', (command) => {
       expect(decision(command, nothingLinked)).toBeUndefined();
+    });
+
+    // eval runs its argument as shell text in the current shell, so the
+    // reader cannot model the outer directory state: the allowlist asks even
+    // when nothing links (round-4 review).
+    it('control: eval "npm ci --prefix /lw" asks when nothing is linked', () => {
+      expect(decision('eval "npm ci --prefix /lw"', nothingLinked)).toBe('ask');
     });
   });
 
@@ -1484,7 +1490,8 @@ describe('the Opus review variants (dirs -c, IFS trims, physical mode, part-brac
     'npm ci --prefix r${IFS%%??}el',
   ])('IFS variant, %s: denied or asked when the real target is linked', (command) => {
     expect(['deny', 'ask']).toContain(decision(command, relLinked));
-    expect(decision(command, nothingLinked)).toBeUndefined();
+    // An unmodeled IFS form asks on its own, link or no link (round-4 review).
+    expect(decision(command, nothingLinked)).toBe('ask');
   });
 
   // #37 physical mode can come from `set`, not only `cd -P`: the operand must go
@@ -1553,7 +1560,7 @@ describe('the round-3 allowlist variants (Opus-24 rows, Codex destination)', () 
   ])('IFS substring, %s: denied or asked when the real target is linked', (command, kind) => {
     const linked = kind === 'cd' ? decoyLinked : relLinked;
     expect(['deny', 'ask']).toContain(decision(command, linked));
-    expect(decision(command, nothingLinked)).toBeUndefined();
+    expect(decision(command, nothingLinked)).toBe('ask');
   });
 
   // #37: `cd -eP` carries -e (valid only with -P) and still resolves physically;
@@ -1577,7 +1584,25 @@ describe('the round-3 allowlist variants (Opus-24 rows, Codex destination)', () 
   ])('invalid option, %s: denied or asked when any reachable dir is linked', (command) => {
     const linked = linksAt('/wt/rel/node_modules', '/decoy/rel/node_modules');
     expect(['deny', 'ask']).toContain(decision(command, linked));
-    expect(decision(command, nothingLinked)).toBeUndefined();
+    // The allowlist contract: an unsupported clean-install form asks even
+    // when nothing links (Codex round-4: silent success was the bug).
+    expect(decision(command, nothingLinked)).toBe('ask');
+  });
+
+  // eval and source/dot run shell text in the current shell (Opus-24 round
+  // 4): a cd inside them moves the shell before the npm ci they also run,
+  // so the reader marks the parse shaky and asks.
+  it.each([
+    'eval "cd /decoy; npm ci --prefix rel"',
+    'eval cd /decoy\\; npm ci --prefix rel',
+    "eval 'cd /decoy; npm ci --prefix rel'",
+    'eval $(cat cmds.txt); npm ci --prefix rel',
+    'source /tmp/cmds.sh; npm ci --prefix rel',
+    '. /tmp/cmds.sh; npm ci --prefix rel',
+  ])('eval/source form, %s: denied or asked', (command) => {
+    const linked = linksAt('/wt/rel/node_modules', '/decoy/rel/node_modules');
+    expect(['deny', 'ask']).toContain(decision(command, linked));
+    expect(decision(command, nothingLinked)).toBe('ask');
   });
 
   // #40: a quoted separator inside braces means bash may not expand them at
@@ -1591,7 +1616,7 @@ describe('the round-3 allowlist variants (Opus-24 rows, Codex destination)', () 
   ])('quoted brace separator, %s: denied or asked when a landing dir is linked', (command, linkedDir) => {
     const deps = linksAt(linkedDir as string);
     expect(['deny', 'ask']).toContain(decision(command, deps));
-    expect(decision(command, nothingLinked)).toBeUndefined();
+    expect(decision(command, nothingLinked)).toBe('ask');
   });
 
   // Codex round-3: realpath resolving is not enough; the resolved destination
@@ -1656,6 +1681,7 @@ describe('the allowlist contract: seeded fuzz, mutant probe, quiet controls', ()
   it(`fuzz: ${FUZZ_COUNT} generated commands (seed ${FUZZ_SEED}) never silently allow a linked landing`, () => {
     const r = mulberry32(FUZZ_SEED);
     const failures: string[] = [];
+    const fallbackMisses: string[] = [];
     for (let i = 0; i < FUZZ_COUNT; i++) {
       const builtin = pick(r, BUILTINS);
       const opt = pick(r, OPTS);
@@ -1663,10 +1689,18 @@ describe('the allowlist contract: seeded fuzz, mutant probe, quiet controls', ()
       const dir = pick(r, DIRWORDS);
       const npm = pick(r, NPMS);
       const command = `${builtin} ${opt} ${dir.slice(0, 3)}${ifs}${dir.slice(3)}; ${npm}`;
-      const v = decision(command, { ...BROAD, realpath: (p) => p, isDirectory: () => true });
+      const deps = { realpath: (p: string) => p, isDirectory: () => true } as const;
+      const v = decision(command, { ...BROAD, ...deps });
       if (v === undefined) failures.push(`${i}: ${command}`);
+      // Link-free fixture: an unsupported command must ask on its own,
+      // not ride on a denial from some other candidate (Codex round-4).
+      const unsupported = npmCiUnsupportedForm(command, '/wt', '/home/u', deps.realpath, deps.isDirectory);
+      if (unsupported && decision(command, { ...nothingLinked, ...deps }) !== 'ask') {
+        fallbackMisses.push(`${i}: ${command}`);
+      }
     }
     expect(failures).toEqual([]);
+    expect(fallbackMisses).toEqual([]);
   });
 
   it('mutant probe: every unmodeled form is marked shaky; dropping the marking fails this', () => {
@@ -1681,10 +1715,19 @@ describe('the allowlist contract: seeded fuzz, mutant probe, quiet controls', ()
       'npm ci --prefix a{b",",c}',
       'pushd /a; pushd +1; npm ci --prefix rel',
       'cd -P /tmp/link/child/..; npm ci --prefix rel',
+      'eval "cd /decoy; npm ci --prefix rel"',
+      'source /tmp/cmds.sh; npm ci --prefix rel',
     ];
     for (const command of SHAKY) {
       expect(npmCiDirShaky(command, '/wt', '/home/u', (p) => p, () => true), command).toBe(true);
     }
+    // The unmodeled subset (the allowlist): these are the marks that also ask
+    // with no link at all. `cd -P` is modeled, so it is shaky but supported.
+    const UNSUPPORTED = SHAKY.filter((c) => !c.startsWith('cd -P '));
+    for (const command of UNSUPPORTED) {
+      expect(npmCiUnsupportedForm(command, '/wt', '/home/u', (p) => p, () => true), command).toBe(true);
+    }
+    expect(npmCiUnsupportedForm('cd -P /tmp/link/child/..; npm ci --prefix rel', '/wt', '/home/u', (p) => p, () => true)).toBe(false);
   });
 
   it('quiet controls: plain safe commands stay silent whether or not anything is linked', () => {

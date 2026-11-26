@@ -1185,7 +1185,7 @@ export function npmCiMentionDirs(command: string, cwd: string, home: string = pr
  * One reading of a command: every clean-install target in it (`target` is the first, or null) and every
  * directory it passed through. The whole command is scanned, never stopped at the first install.
  */
-function scan(command: string, cwd: string, home: string, realpath?: (path: string) => string | null, isDirectory?: (path: string) => boolean | null): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean; dirShaky: boolean } {
+function scan(command: string, cwd: string, home: string, realpath?: (path: string) => string | null, isDirectory?: (path: string) => boolean | null): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean; dirShaky: boolean; unsupported: boolean } {
   const seen: string[] = [cwd];
   const targets: string[] = [];
   // Every directory word the scan met (cd, env -C, --prefix), as written, for the uncertain-parse check.
@@ -1196,6 +1196,11 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
   // True when a directory change may have landed elsewhere than the reading assumes (row 17):
   // a multi-operand or metachar-heavy cd, an operand the reader cannot expand, CDPATH.
   let dirShaky = false;
+  // True when the command uses syntax the reader does not model at all (the
+  // round-3 allowlist): an option letter bash would refuse, an IFS sentinel,
+  // a quote inside a brace, a stack rotation, or an unmodeled builtin (dirs,
+  // eval, source, dot). Unsupported implies shaky, but also asks on its own.
+  let unsupported = false;
   let varsNow: Vars = new Map();
   // `$HOME` reads the inherited value until the command assigns one. varsNow
   // itself stays unseeded: a `HOME=` stored next to the seed would read as a
@@ -1274,6 +1279,10 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     // command-local one (`HOME=/h cd ~` expands before the assignment).
     const cands = dynamicCandidates(v);
     if (cands !== null) dirShaky = true;
+    if (v.includes(IFS_SENT)) {
+      dirShaky = true;
+      unsupported = true;
+    }
     // An operand that still holds a `$` or a backtick after expansion (a positional parameter, a
     // loop or `read` variable, an unquoted substitution) names a directory the text does not show.
     if (cands === null && /[$`]/.test(v)) dirShaky = true;
@@ -1380,7 +1389,10 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
         // A brace the shell kept inside quotes is literal text, not an expansion (#40).
         // Partly quoted braces may pair or not in bash, so the literal word and
         // every expansion are all candidates (#40 reviews).
-        if (w.braceInnerQuoted) dirShaky = true;
+        if (w.braceInnerQuoted) {
+          dirShaky = true;
+          unsupported = true;
+        }
         const parts =
           w.quotedBrace
             ? [p]
@@ -1404,6 +1416,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       // An IFS-glued command word may read as a builtin or as several words:
       // the builtin reading is applied and the rest fail closed (#36 reviews).
       dirShaky = true;
+      unsupported = true;
       seen.push(dir);
       for (const s of dirstack) seen.push(s);
       const cmd = ifsVariants(words[cdIdx]).find((v) => v === 'cd' || v === 'pushd');
@@ -1417,6 +1430,9 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       if (popOps.length === 0 && dirstack.length > 0) dir = dirstack.pop() as string;
       else {
         dirShaky = true;
+        // A rotation operand (+N/-N, or anything else popd does not take) is
+        // unmodeled; a bare popd on an empty stack is a modeled failure.
+        if (popOps.length > 0) unsupported = true;
         // `popd +N` removes a slot the reader cannot map to a directory: every
         // entry bash might have moved through stays a candidate (#41 reviews).
         for (const s of dirstack) seen.push(s);
@@ -1429,7 +1445,11 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       // `dirs -c` empties the stack a later popd pops; the other stack
       // builtins are not modelled, so the builtin fails closed (#41 reviews).
       dirShaky = true;
-      if (words.slice(cdIdx + 1).some((a) => /^-[a-zA-Z]*c[a-zA-Z]*$/.test(a))) dirstack.length = 0;
+      // Anything beyond a plain `-c` clear is a stack form the reader does
+      // not model, so the clean install that follows asks on its own.
+      const stackOps = words.slice(cdIdx + 1);
+      if (stackOps.length > 0 && !stackOps.every((a) => /^-[a-zA-Z]*c[a-zA-Z]*$/.test(a))) unsupported = true;
+      if (stackOps.some((a) => /^-[a-zA-Z]*c[a-zA-Z]*$/.test(a))) dirstack.length = 0;
       seen.push(dir);
       restore();
       continue;
@@ -1446,6 +1466,18 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
           i++;
         }
       }
+      restore();
+      continue;
+    }
+    if (cdIdx < words.length && (words[cdIdx] === 'eval' || words[cdIdx] === 'source' || words[cdIdx] === '.')) {
+      // `eval WORD` runs WORD as shell text in the current shell; `source` and
+      // `.` run a file's text there. Either can cd before a later npm ci, and
+      // an eval string's own reading starts from the cwd rather than where the
+      // eval lands, so the outer directory state is unmodeled (round-4 review).
+      dirShaky = true;
+      unsupported = true;
+      seen.push(dir);
+      for (const s of dirstack) seen.push(s);
       restore();
       continue;
     }
@@ -1487,6 +1519,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
         // An option letter bash does not take (or `-e` without `-P`) is a cd
         // that errors before it moves: the shell stays where it was.
         dirShaky = true;
+        unsupported = true;
         seen.push(beforeCd);
         restore();
         continue;
@@ -1515,6 +1548,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
         // An IFS form inside the operand may glue it into one word or split it
         // into several: every reading lands somewhere else (row 17, #36 reviews).
         dirShaky = true;
+        unsupported = true;
         seen.push(beforeCd);
         for (const a of cdOperands) {
           for (const v of ifsVariants(a)) {
@@ -1529,6 +1563,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       // move the reader cannot place, so every stack entry is a candidate (#41).
       if (words[cdIdx] === 'pushd' && cdOperands.some((a) => /^\+/.test(a) || /^-n$/.test(a) || /^-\d+$/.test(a))) {
         dirShaky = true;
+        unsupported = true;
         seen.push(beforeCd);
         for (const s of dirstack) seen.push(s);
         for (const a of cdOperands.filter((x) => !x.startsWith('-') && !x.startsWith('+'))) seen.push(resolveOp(beforeCd, a));
@@ -1688,6 +1723,10 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     // several: the command line is read under each outcome (row 17, #36
     // reviews). A word of only markers contributes nothing in either.
     const tokensBase = words.slice(start);
+    if (tokensBase.some((t) => t.includes(IFS_SENT))) {
+      dirShaky = true;
+      unsupported = true;
+    }
     const tokenStreams = tokensBase.some((t) => t.includes(IFS_SENT))
       ? [
           tokensBase.flatMap((t) => t.split(IFS_SENT).filter((x) => x !== '')),
@@ -1749,7 +1788,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     }
     restore();
   }
-  return { target: targets[0] ?? null, targets, seen, cdArgs, dynamic, dirShaky };
+  return { target: targets[0] ?? null, targets, seen, cdArgs, dynamic, dirShaky, unsupported };
 }
 
 /**
@@ -1773,6 +1812,21 @@ export function npmCiDirShaky(command: string, cwd: string, home: string = proce
   return readingsOf(command)
     .map((text) => scan(text, cwd, home, realpath, isDirectory))
     .some((s) => s.dirShaky);
+}
+
+/**
+ * The allowlist half of the parse check (round 3, and the round-4 review that
+ * required the verdict itself): true when any reading met syntax the reader
+ * does not model — an option letter bash would refuse, an IFS sentinel, a
+ * quote inside a brace, a stack rotation, or an unmodeled builtin (a dirs
+ * form beyond -c, eval, source, dot). Unlike dirShaky, which only asks when
+ * a link is reachable, an unsupported form asks on its own: the reading
+ * cannot be trusted to have seen the directory the install lands in.
+ */
+export function npmCiUnsupportedForm(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null, isDirectory?: (path: string) => boolean | null): boolean {
+  return readingsOf(command)
+    .map((text) => scan(text, cwd, home, realpath, isDirectory))
+    .some((s) => s.unsupported);
 }
 
 /**
@@ -1929,6 +1983,17 @@ function decide(command: string, cwd: string, ctx: HookContext, deps: NpmCiSymli
               'If it runs npm ci there, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command so each directory change is its own plain line.',
           );
         }
+      }
+      // The allowlist contract (round 4): an unsupported clean-install form
+      // asks on its own, link or no link. A merely shaky parse (an unbound
+      // variable, a substitution, a metachar operand) still needs a reachable
+      // link before it asks; the reader just could not model this syntax.
+      if (npmCiUnsupportedForm(command, cwd, undefined, deps.realpath, deps.isDirectory)) {
+        ctx.log(HOOK_NAME, 'asked about an unsupported clean-install form (unmodeled syntax, no link needed)');
+        return outputAsk(
+          'This command runs a clean install (npm ci) in a form the npm ci guard cannot read with certainty (an unmodeled option, IFS form, brace or quote form, eval, source, or another builtin). ' +
+            'If it runs npm ci where node_modules is a symlink, it empties the linked tree (the main repository in a reclaimed worktree). Use npm install instead, or split the command so each directory change is its own plain line.',
+        );
       }
     }
     return outputSilentSuccess();
