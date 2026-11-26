@@ -153,6 +153,44 @@ reviews:
         terminate the YAML block scalar and break the whole workflow rather
         than the one step. A gate whose failure text carries the fix is not a
         control: assert the thing the text asks for.
+    - path: "src/agents/**/*.md"
+      instructions: >-
+        Agents are edited in src/ only (plugins/ is generated). Each agent
+        declares its model tier in frontmatter; flag a security, safety or
+        architecture agent set below the heavy tier, and a mechanical single
+        file agent set above the light tier. A new agent must be added to
+        manifests/ork.json in the same PR.
+    - path: "**/*.md"
+      instructions: >-
+        Prose stays free of em dashes, en dashes and double hyphens, and of
+        filler words such as delve, leverage, robust and seamless.
+
+  # CUSTOM PRE-MERGE CHECKS. The same two as the Yonatan-HQ central config,
+  # mirrored by hand because a personal-account repo cannot inherit it.
+  # Plan limits (docs.coderabbit.ai/management/plans): 0 custom checks on
+  # private repos, up to 10 on public non-trial repos. This repo is public, so
+  # they should run here. UNVERIFIED until a review shows them in its
+  # pre-merge section: the live platform run read "Plan: Free".
+  pre_merge_checks:
+    docstrings:
+      mode: "off"
+    custom_checks:
+      - name: "Reachability"
+        mode: "warning"
+        instructions: >-
+          Fail if the PR adds a hook, skill, agent, function, guard or config
+          key that no call path reaches: a hook missing from either
+          src/hooks/hooks.json or the entries map, a skill missing from
+          manifests/ork.json, or a symbol defined but never called. Name the
+          unreached item and the registration or caller that should reach it.
+          Pass when every new item is registered or has a caller.
+      - name: "Vacuous tests"
+        mode: "warning"
+        instructions: >-
+          Fail if a new or changed test would still pass with the fix reverted:
+          it injects the failure it claims to reproduce, asserts a constant or
+          a mock's own return value, or stubs the function under test. Name the
+          test and say why it cannot fail. Pass when there are no test changes.
 
   finishing_touches:
     docstrings:
