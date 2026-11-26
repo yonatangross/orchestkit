@@ -55,7 +55,9 @@
       <button class="preset" data-v="2026-05-20T00:00:00Z">Z form</button>
       <button class="preset" data-v="2026-05-20T00:00:00">naive</button>
       <button class="preset" data-v="2026-05-21T02:30:00+03:00">offset (prior UTC day)</button>
+      <button class="preset" data-v="2026-05-20">date only</button>
       <button class="preset" data-v="not-a-date">malformed</button>
+      <button class="preset" data-v="2026-02-30T00:00:00Z">impossible date</button>
     </div>
     <div class="grid">
       <div class="card">
@@ -78,17 +80,33 @@ const input = document.getElementById('val');
 const oldCard = document.getElementById('old');
 const newCard = document.getElementById('new');
 
+function daysInMonth(y, m) {
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  return [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+}
+
 function parse(raw) {
-  // Mirrors datetime.fromisoformat after the script's "Z" -> "+00:00" rewrite.
+  // Mirrors datetime.fromisoformat after the script's "Z" -> "+00:00" rewrite:
+  // date-only and HH:MM are legal, ranges are validated (no Feb 30, no 25:00,
+  // offset capped at <24h) exactly the way fromisoformat raises ValueError.
   const s = raw.trim().replace(/Z$/, '+00:00');
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?([+-]\d{2}:\d{2})?$/);
+  const m = s.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?([+-]\d{2}:\d{2})?)?$/
+  );
   if (!m) return null;
   const [, Y, M, D, h, i, sec, off] = m;
-  const wallMs = Date.UTC(+Y, +M - 1, +D, +h, +i, +sec);
-  if (off === undefined) return { kind: 'naive', wallMs, wall: s.slice(0, 19) };
+  const y = +Y, mo = +M, d = +D;
+  const hh = h === undefined ? 0 : +h;
+  const mi = i === undefined ? 0 : +i;
+  const ss = sec === undefined ? 0 : +sec;
+  if (mo < 1 || mo > 12 || d < 1 || d > daysInMonth(y, mo)) return null;
+  if (hh > 23 || mi > 59 || ss > 59) return null;
+  const wallMs = Date.UTC(y, mo - 1, d, hh, mi, ss);
+  if (off === undefined) return { kind: 'naive', wallMs, wall: s };
   const sign = off[0] === '+' ? 1 : -1;
   const [oh, om] = off.slice(1).split(':').map(Number);
-  const utcMs = wallMs - sign * (oh * 3600 + om) * 1000;
+  if (oh > 23 || om > 59) return null;
+  const utcMs = wallMs - sign * (oh * 3600 + om * 60) * 1000;
   return { kind: 'aware', utcMs, offset: off };
 }
 
@@ -109,9 +127,17 @@ function oldResult(p) {
       <div><span class="k">reason</span> can't subtract offset-naive and offset-aware datetimes</div>
       <div><span class="k">report</span> none written</div></div>`;
   }
-  // aware: datetime keeps +03:00; strftime prints the offset wall clock + Z.
-  const wrongUtcMs = p.utcMs + offsetMs(p.offset);
-  const stamp = fmtWall(wrongUtcMs);
+  // aware: datetime keeps its own offset; strftime prints the offset wall
+  // clock + Z. With a zero offset (Z, +00:00) that is already the right
+  // instant, so the parent is correct too.
+  const off = offsetMs(p.offset);
+  const stamp = fmtWall(p.utcMs + off);
+  if (off === 0) {
+    return `<div class="verdict ok">exit 0</div>
+      <div class="kv"><div><span class="k">generated_at</span> ${stamp}Z</div>
+      <div><span class="k">filename</span> memory-staleness-${stamp.slice(0, 10)}.md</div>
+      <div><span class="k">note</span> zero offset: parent's stamp is already UTC</div></div>`;
+  }
   return `<div class="verdict warn">exit 0 - wrong instant</div>
     <div class="kv"><div><span class="k">generated_at</span> ${stamp}Z</div>
     <div><span class="k">filename</span> memory-staleness-${stamp.slice(0, 10)}.md</div>
@@ -121,7 +147,7 @@ function oldResult(p) {
 function offsetMs(off) {
   const sign = off[0] === '+' ? 1 : -1;
   const [oh, om] = off.slice(1).split(':').map(Number);
-  return sign * (oh * 3600 + om) * 1000;
+  return sign * (oh * 3600 + om * 60) * 1000;
 }
 
 // Fixed: naive attaches UTC, aware -> astimezone(UTC). Both land on the
