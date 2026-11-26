@@ -19,5 +19,5 @@ description: "Hooks triggered on Stop events (12 hooks)."
 | <span id="hook--skill-coverage-threshold-gate"></span>`coverage-threshold-gate` | `*` | Blocks | Blocks Stop when coverage after implementation is below the skill threshold. |
 | <span id="hook--skill-cross-instance-test-validator"></span>`cross-instance-test-validator` | `*` | Blocks | BLOCKING: every implementation file this session wrote must have a test file. |
 | <span id="hook--stop-uncommitted-check-mjs"></span>`stop-uncommitted-check.mjs` | `*` | Silent | - |
-| <span id="hook--stop-goal-tracker"></span>`goal-tracker` | `*` | Fire-and-forget | Closes the most recent open `/goal` entry for this session by appending a second JSONL line with `ended_at`, `ended_token_estimate`, `turn_count`, and an inferred `status: 'converged' \| 'spun' \| 'aborted'`. |
+| <span id="hook--stop-goal-tracker"></span>`goal-tracker` | `*` | Fire-and-forget | Goal Tracker: Stop Hook (M140 G3 #1790, #4684) |
 | <span id="hook--lifecycle-webhook-forwarder"></span>`webhook-forwarder` | `*` | Fire-and-forget | Registered for every CC event type in hooks.json (async: true). Delegates to telemetry.emit() which fans out to pluggable sinks (JSONL local + HTTP remote). No-op when no sinks are active. |

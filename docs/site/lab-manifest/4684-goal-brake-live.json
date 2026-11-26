@@ -1,0 +1,12 @@
+{
+  "slug": "4684-goal-brake-live",
+  "source": "docs/fix--goal-brake-4684-up8/index.html",
+  "title": "Goal brake: trip live, per run",
+  "description": "Set a turn cap and compare a /goal run before and after the brake moved to PreToolUse, with what was measured and what is unverified.",
+  "tags": [
+    "hooks",
+    "goal",
+    "pretooluse"
+  ],
+  "date": "2026-11-26"
+}

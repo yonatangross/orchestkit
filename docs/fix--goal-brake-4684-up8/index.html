@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Goal brake: trip live, per run</title>
+<style>
+  :root { color-scheme: light dark; --bg:#fff; --fg:#16181d; --mute:#5b6270; --line:#d9dce3; --stop:#b42318; --ok:#1b6b3a; --card:#f6f7f9; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#101216; --fg:#e8eaf0; --mute:#9aa2b1; --line:#2b303a; --stop:#ff8a7a; --ok:#6fd699; --card:#181b21; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:28px 0 8px; }
+  p { margin:6px 0; } .mute { color:var(--mute); }
+  label { display:inline-flex; gap:8px; align-items:center; margin-right:20px; }
+  button { font:inherit; padding:6px 14px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:6px; cursor:pointer; }
+  ol { list-style:none; padding:0; margin:12px 0; }
+  li { border:1px solid var(--line); background:var(--card); border-radius:6px; padding:8px 12px; margin:6px 0; }
+  li b { display:inline-block; min-width:70px; }
+  .stop { color:var(--stop); } .ok { color:var(--ok); }
+  code { font-family: ui-monospace, monospace; font-size:13px; word-break:break-word; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Goal brake: trip live, per run</h1>
+  <p class="mute">A model of the hook logic in this PR, not a recording of a live run.</p>
+
+  <h2>Set a cap and read each turn</h2>
+  <label>Turn cap <input id="cap" type="range" min="1" max="8" value="2"> <output id="capOut">2</output></label>
+  <label><input id="after" type="checkbox"> Before this PR</label>
+  <ol id="turns"></ol>
+
+  <h2>What was measured</h2>
+  <p>One headless <code>/goal</code> run on Claude Code 2.1.332 with a deny-only hook: the deny did not end it. It stopped at the cap of 9 consecutive Stop blocks (11 Stops, 4 PreToolUse calls, 2 denied, USD 0.2527).</p>
+  <p>This PR sends deny plus <code>continue: false</code>. That end-to-end stop is <b>UNVERIFIED</b> on a live run.</p>
+  <button id="copy" type="button">Copy as prompt</button> <span id="copied" class="mute" role="status"></span>
+</main>
+<script>
+  const cap = document.getElementById('cap');
+  const before = document.getElementById('after');
+  const list = document.getElementById('turns');
+  function row(turn, cls, text) {
+    const li = document.createElement('li');
+    const b = document.createElement('b');
+    b.textContent = 'Turn ' + turn;
+    const span = document.createElement('span');
+    span.className = cls;
+    span.textContent = text;
+    li.append(b, span);
+    return li;
+  }
+  function draw() {
+    const n = Number(cap.value);
+    document.getElementById('capOut').textContent = n;
+    list.replaceChildren();
+    for (let turn = 1; turn <= n + 1; turn++) {
+      if (before.checked) {
+        list.append(row(turn, 'ok', turn === 1
+          ? 'tool calls pass. Stop closes the run as converged after 1 turn.'
+          : 'tool calls pass. Nothing is counted, so no brake trips.'));
+      } else if (turn <= n) {
+        list.append(row(turn, 'ok', 'tool calls pass. Stop tallies ' + turn + (turn === n ? ' and writes the brake file.' : '.')));
+      } else {
+        list.append(row(turn, 'stop', 'PreToolUse answers deny plus continue: false. "this goal run used ' + n + ' turn' + (n === 1 ? '' : 's') + ' (cap ' + n + ')"'));
+      }
+    }
+  }
+  cap.addEventListener('input', draw);
+  before.addEventListener('change', draw);
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = 'Review the ork goal brake with ORK_GOAL_MAX_TURNS=' + cap.value + ': confirm the tally, the brake file and the PreToolUse answer for turn ' + (Number(cap.value) + 1) + '.';
+    try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'Copied'; }
+    catch { document.getElementById('copied').textContent = text; }
+  });
+  draw();
+</script>
+</body>
+</html>

@@ -10,7 +10,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { goalTrackerStop, findOpenEntry, inferStatus } from '../../stop/goal-tracker.js';
+import { goalTrackerStop, computeRunTokens } from '../../stop/goal-tracker.js';
+import { findOpenRun } from '../../lib/goal-run.js';
 import type { HookInput } from '../../types.js';
 import { createTestContext } from '../fixtures/test-context.js';
 
@@ -32,82 +33,67 @@ function writeHistory(lines: object[]): string {
   return path;
 }
 
-describe('findOpenEntry', () => {
+describe('findOpenRun', () => {
+  const lines = (rows: object[]) => rows.map(o => JSON.stringify(o)).join('\n');
+
   it('returns null when session has no entries', () => {
-    const raw = `${JSON.stringify({ session_id: 'other', started_at: 't', ended_at: null })}\n`;
-    expect(findOpenEntry(raw, 'sess-X')).toBeNull();
+    const raw = lines([{ session_id: 'other', started_at: 't', ended_at: null }]);
+    expect(findOpenRun(raw, 'sess-X')).toBeNull();
   });
 
-  it('returns null when entry already ended', () => {
-    const raw = [
+  it('returns null when the run already ended', () => {
+    const raw = lines([
       { session_id: 'sess-A', condition: 'c', started_at: 't', ended_at: null },
       { session_id: 'sess-A', ended_at: 't2' },
-    ].map(o => JSON.stringify(o)).join('\n');
-    expect(findOpenEntry(raw, 'sess-A')).toBeNull();
+    ]);
+    expect(findOpenRun(raw, 'sess-A')).toBeNull();
   });
 
-  it('returns most recent open entry for the session', () => {
-    const raw = [
-      { session_id: 'sess-A', condition: 'c1', started_at: 't1', ended_at: null },
+  it('returns the most recent open run, with its latest tally', () => {
+    const raw = lines([
+      { session_id: 'sess-A', prompt_id: 'p1', condition: 'c1', ended_at: null },
       { session_id: 'sess-A', ended_at: 't2' },
-      { session_id: 'sess-A', condition: 'c2', started_at: 't3', ended_at: null },
-    ].map(o => JSON.stringify(o)).join('\n');
-    const open = findOpenEntry(raw, 'sess-A');
-    expect(open?.condition).toBe('c2');
+      { session_id: 'sess-A', prompt_id: 'p2', condition: 'c2', ended_at: null },
+      { kind: 'tally', session_id: 'sess-A', prompt_id: 'p2', turn_count: 1 },
+      { kind: 'tally', session_id: 'sess-A', prompt_id: 'p2', turn_count: 2 },
+      { kind: 'tally', session_id: 'sess-A', prompt_id: 'p1', turn_count: 9 },
+    ]);
+    const run = findOpenRun(raw, 'sess-A');
+    expect(run?.start.condition).toBe('c2');
+    expect(run?.tally?.turn_count).toBe(2);
   });
 });
 
-describe('inferStatus', () => {
-  const baseInput: HookInput = { tool_name: '', session_id: 's', tool_input: {} };
+describe('computeRunTokens (#3317)', () => {
+  const run = { start: { session_id: 's', started_token_estimate: 100, started_tokens: 1000 }, tally: null };
 
-  it('returns converged when assistant produced a final message and stop hook not active', () => {
-    expect(
-      inferStatus({ ...baseInput, last_assistant_message: 'done.', stop_hook_active: false }, 5),
-    ).toBe('converged');
+  it('takes the accumulator delta against the run baseline', () => {
+    expect(computeRunTokens(run, 6000, 10)).toBe(5000);
   });
 
-  it('returns aborted when no final message and turn count low', () => {
-    expect(inferStatus(baseInput, 2)).toBe('aborted');
-  });
-
-  it('returns spun when high turn count and no natural stop', () => {
-    expect(inferStatus(baseInput, 25)).toBe('spun');
+  it('falls back to the running estimate with no accumulator data', () => {
+    expect(computeRunTokens(run, null, 10)).toBe(110);
   });
 });
 
 describe('goalTrackerStop hook', () => {
-  it('appends a closing entry matching the open session entry', () => {
-    writeHistory([
-      {
-        session_id: 'sess-A',
-        condition: 'c',
-        started_at: '2026-05-12T00:00:00Z',
-        started_token_estimate: 100,
-        ended_at: null,
-      },
+  it('appends a tally row and leaves the run open', () => {
+    const path = writeHistory([
+      { session_id: 'sess-A', condition: 'c', started_token_estimate: 100, ended_at: null },
     ]);
 
-    const ctx = createTestContext({ projectDir: tmp, sessionId: 'sess-A' });
-    const input: HookInput = {
-      tool_name: '',
-      session_id: 'sess-A',
-      tool_input: {},
-      last_assistant_message: 'all tests green.',
-      stop_hook_active: false,
-    };
+    const result = goalTrackerStop(
+      { tool_name: '', session_id: 'sess-A', tool_input: {}, last_assistant_message: 'all tests green.' },
+      createTestContext({ projectDir: tmp, sessionId: 'sess-A' }),
+    );
 
-    const result = goalTrackerStop(input, ctx);
     expect(result).toEqual({ continue: true, suppressOutput: true });
-
-    const path = join(tmp, '.claude', 'state', 'goal-history.jsonl');
     const lines = readFileSync(path, 'utf8').trim().split('\n');
     expect(lines.length).toBe(2);
-    const closing = JSON.parse(lines[1]);
-    expect(closing.session_id).toBe('sess-A');
-    expect(closing.status).toBe('converged');
-    expect(closing.ended_at).toBeTruthy();
-    expect(typeof closing.turn_count).toBe('number');
-    expect(closing.ended_token_estimate).toBeGreaterThan(0);
+    const tally = JSON.parse(lines[1]);
+    expect(tally).toMatchObject({ kind: 'tally', session_id: 'sess-A', turn_count: 1 });
+    expect(tally.ended_at).toBeUndefined();
+    expect(tally.ended_token_estimate).toBeGreaterThan(100);
   });
 
   it('returns silent success when history file is missing', () => {
@@ -132,110 +118,20 @@ describe('goalTrackerStop hook', () => {
     expect(lines.length).toBe(1);
   });
 
-  // ===========================================================================
-  // #3317 — turn_count must come from the real per-session turn counter, not
-  // from counting `/goal` START lines in goal-history.jsonl.
-  // ===========================================================================
-
-  describe('#3317 turn_count sources the real turn counter', () => {
-    let prevPluginData: string | undefined;
-
-    beforeEach(() => {
-      prevPluginData = process.env.CLAUDE_PLUGIN_DATA;
-      process.env.CLAUDE_PLUGIN_DATA = join(tmp, 'plugin-data');
-    });
-
-    afterEach(() => {
-      if (prevPluginData === undefined) delete process.env.CLAUDE_PLUGIN_DATA;
-      else process.env.CLAUDE_PLUGIN_DATA = prevPluginData;
-    });
-
-    /** Seed the counter prompt/cache-break-detector maintains for a session. */
-    function writeTurnCounter(sessionId: string, turnCount: number): void {
-      const dir = join(tmp, 'plugin-data', 'sessions', sessionId);
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        join(dir, 'cache-break-state.json'),
-        JSON.stringify({ lastShapeHash: 'h', lastMarkers: [], turnCount }),
-      );
-    }
-
-    function lastClosing(): Record<string, unknown> {
-      const path = join(tmp, '.claude', 'state', 'goal-history.jsonl');
-      const lines = readFileSync(path, 'utf8').trim().split('\n');
-      return JSON.parse(lines[lines.length - 1]);
-    }
-
-    it('records the turns actually spanned by the run', () => {
-      writeHistory([
-        {
-          session_id: 'sess-T',
-          condition: 'c',
-          started_at: '2026-05-12T00:00:00Z',
-          started_token_estimate: 100,
-          started_turn: 3,
-          ended_at: null,
-        },
-      ]);
-      writeTurnCounter('sess-T', 9); // run spanned turns 3..9 inclusive = 7
-
-      goalTrackerStop(
-        {
-          tool_name: '',
-          session_id: 'sess-T',
-          tool_input: {},
-          last_assistant_message: 'done.',
-          stop_hook_active: false,
-        },
-        createTestContext({ projectDir: tmp, sessionId: 'sess-T' }),
-      );
-
-      expect(lastClosing().turn_count).toBe(7);
-    });
-
-    it('does not inflate turn_count with the number of prior /goal starts', () => {
-      // Four earlier `/goal` starts for this session, none carrying a
-      // started_turn baseline (legacy rows). The old code counted these lines
-      // and wrote turn_count: 4.
-      writeHistory([
-        { session_id: 'sess-L', condition: 'c1', started_at: 't1', ended_at: null },
-        { session_id: 'sess-L', condition: 'c2', started_at: 't2', ended_at: null },
-        { session_id: 'sess-L', condition: 'c3', started_at: 't3', ended_at: null },
-        { session_id: 'sess-L', condition: 'c4', started_at: 't4', ended_at: null },
-      ]);
-      writeTurnCounter('sess-L', 4);
-
-      goalTrackerStop(
-        {
-          tool_name: '',
-          session_id: 'sess-L',
-          tool_input: {},
-          last_assistant_message: 'done.',
-          stop_hook_active: false,
-        },
-        createTestContext({ projectDir: tmp, sessionId: 'sess-L' }),
-      );
-
-      expect(lastClosing().turn_count).toBe(1);
-    });
-  });
-
-  it('infers aborted when no last_assistant_message and turn_count low', () => {
-    writeHistory([
-      {
-        session_id: 'sess-B',
-        condition: 'c',
-        started_at: '2026-05-12T00:00:00Z',
-        started_token_estimate: 50,
-        ended_at: null,
-      },
+  it('counts Stops of this run, not earlier /goal starts (#3317)', () => {
+    const path = writeHistory([
+      { session_id: 'sess-L', condition: 'c1', ended_at: null },
+      { session_id: 'sess-L', condition: 'c2', ended_at: null },
+      { session_id: 'sess-L', condition: 'c3', ended_at: null },
+      { session_id: 'sess-L', condition: 'c4', ended_at: null },
     ]);
-    const ctx = createTestContext({ projectDir: tmp, sessionId: 'sess-B' });
-    const input: HookInput = { tool_name: '', session_id: 'sess-B', tool_input: {} };
-    goalTrackerStop(input, ctx);
-    const path = join(tmp, '.claude', 'state', 'goal-history.jsonl');
+
+    goalTrackerStop(
+      { tool_name: '', session_id: 'sess-L', tool_input: {}, last_assistant_message: 'done.' },
+      createTestContext({ projectDir: tmp, sessionId: 'sess-L' }),
+    );
+
     const lines = readFileSync(path, 'utf8').trim().split('\n');
-    const closing = JSON.parse(lines[lines.length - 1]);
-    expect(closing.status).toBe('aborted');
+    expect(JSON.parse(lines[lines.length - 1]).turn_count).toBe(1);
   });
 });

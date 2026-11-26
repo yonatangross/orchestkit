@@ -101,8 +101,8 @@ interface PromptHookConfig {
   producesContext: boolean;
   /** If true, this hook runs only once per session (file-based flag tracking) */
   runOnce?: boolean;
-  /** If true, a continue:false result must stop the prompt immediately. */
-  blocksPrompt?: boolean;
+  /** If true, runs even on prompts the text-analysis guards skip. */
+  alwaysRun?: boolean;
   /** If true, budget/noise filters cannot omit this context from the response. */
   mustDeliverContext?: boolean;
   /** Called only after the final dispatcher response contains this context. */
@@ -140,10 +140,9 @@ const CONTEXT_JOIN_LINES = 3;
  * where they materialize rules files BEFORE CC loads instructions.
  */
 const HOOKS: PromptHookConfig[] = [
-  // Must stay synchronous: the budget brake has to intercept /goal before the
-  // model sees it. A block is returned directly instead of being treated as
-  // context or silently discarded.
-  { name: 'goal-tracker', fn: goalTracker, producesContext: false, blocksPrompt: true },
+  // Records /goal runs only (the brake acts at PreToolUse, #4684). Runs even on
+  // prompts the text-analysis guards skip, so every new prompt closes the old run.
+  { name: 'goal-tracker', fn: goalTracker, producesContext: false, alwaysRun: true },
 
   // Deferred WorktreeCreate advisories are consumed here so they share the
   // dispatcher's single Node process and consolidated UserPromptSubmit output.
@@ -530,7 +529,7 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
   for (const hook of HOOKS) {
     // Blocking safety and pending-delivery hooks run before text-analysis
     // guards; all other hooks retain protection from oversized/binary prompts.
-    if (skipTextAnalysis && !hook.blocksPrompt && !hook.mustDeliverContext) break;
+    if (skipTextAnalysis && !hook.alwaysRun && !hook.mustDeliverContext) break;
 
     try {
       // Low effort: skip once-per-session context hooks (handoffs, etc.) — they're heavy
@@ -551,13 +550,6 @@ export function unifiedPromptDispatcher(input: HookInput, ctx: HookContext = NOO
       }
 
       const result = hook.fn(input, ctx);
-
-      // goal-tracker owns the synchronous /goal budget brake. Preserve the
-      // top-level block envelope exactly; it must reach Claude Code before the
-      // prompt is processed and must not be folded into additionalContext.
-      if (hook.blocksPrompt && !result.continue) {
-        return result;
-      }
 
       // Mark once-per-session hook as done after successful execution
       if (hook.runOnce && sessionId) {

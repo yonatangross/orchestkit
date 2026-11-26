@@ -1,12 +1,12 @@
 /**
  * Regression coverage for UserPromptSubmit consolidation (#4847).
  *
- * The dispatcher must preserve the synchronous goal brake while folding the
+ * The dispatcher must run the goal tracker on every prompt while folding the
  * deferred worktree advisory into its single additionalContext response.
  */
 
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -82,18 +82,17 @@ describe('prompt/unified-dispatcher consolidation', () => {
     expect(registeredHookNames()).toContain('worktree-advisory-consumer');
   });
 
-  it('preserves the synchronous goal budget block', () => {
+  function goalRows(): Array<Record<string, unknown>> {
+    const raw = readFileSync(join(projectDir, '.claude', 'state', 'goal-history.jsonl'), 'utf8');
+    return raw.trim().split('\n').map(line => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  it('records a /goal prompt and never blocks it, brake file or not (#4684)', () => {
     const stateDir = join(projectDir, '.claude', 'state');
     mkdirSync(stateDir, { recursive: true });
     writeFileSync(
-      join(stateDir, 'goal-budget-tripped.json'),
-      JSON.stringify({
-        tripped_at: '2026-10-25T00:00:00Z',
-        session_id: 'blocked-session',
-        turns: 31,
-        tokens: 200,
-        reason: 'turns_cap',
-      }),
+      join(stateDir, 'goal-budget-tripped.blocked-session.json'),
+      JSON.stringify({ session_id: 'blocked-session', prompt_id: 'old', reason: 'turns_cap', turns: 31, cap: 30 }),
     );
 
     const result = unifiedPromptDispatcher(
@@ -101,20 +100,11 @@ describe('prompt/unified-dispatcher consolidation', () => {
       createTestContext({ projectDir, sessionId: 'blocked-session' }),
     );
 
-    expect(result.continue).toBe(false);
-    expect(result.stopReason).toContain('budget tripped');
-    expect(result.stopReason).toContain('turns_cap');
-    expect(result.hookSpecificOutput).toBeUndefined();
+    expect(result.continue).toBe(true);
+    expect(goalRows()).toHaveLength(1);
   });
 
-  it('checks the goal budget before skipping oversized prompt analysis', () => {
-    const stateDir = join(projectDir, '.claude', 'state');
-    mkdirSync(stateDir, { recursive: true });
-    writeFileSync(
-      join(stateDir, 'goal-budget-tripped.json'),
-      JSON.stringify({ session_id: 'large-goal-session', reason: 'tokens_cap' }),
-    );
-
+  it('records the goal run before skipping oversized prompt analysis', () => {
     const prompt = `/goal ${'continue '.repeat(Math.ceil(MAX_PROMPT_LENGTH / 9))}`;
     const result = unifiedPromptDispatcher(
       input(prompt, 'large-goal-session'),
@@ -122,9 +112,8 @@ describe('prompt/unified-dispatcher consolidation', () => {
     );
 
     expect(prompt.length).toBeGreaterThan(MAX_PROMPT_LENGTH);
-    expect(result.continue).toBe(false);
-    expect(result.stopReason).toContain('budget tripped');
-    expect(result.stopReason).toContain('tokens_cap');
+    expect(result.continue).toBe(true);
+    expect(goalRows()[0]?.session_id).toBe('large-goal-session');
   });
 
   it('delivers and consumes a deferred worktree advisory', () => {

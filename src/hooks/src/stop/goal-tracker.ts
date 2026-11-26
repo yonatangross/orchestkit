@@ -2,134 +2,63 @@
 // Created: 2026-05-12
 
 /**
- * Goal Tracker — Stop Hook (M140 G3 #1790)
+ * Goal Tracker: Stop Hook (M140 G3 #1790, #4684)
  *
- * Closes the most recent open `/goal` entry for this session by appending a
- * second JSONL line with `ended_at`, `ended_token_estimate`, `turn_count`,
- * and an inferred `status: 'converged' | 'spun' | 'aborted'`.
+ * Tallies the open `/goal` run of this prompt: one turn per Stop, plus tokens.
+ * It never closes the run, because a /goal run stops many times. When the tally
+ * reaches ORK_GOAL_MAX_TURNS or ORK_GOAL_MAX_TOKENS it writes the brake file,
+ * once per run, so a user who deletes the file stays released.
  *
- * Inference:
- *   - converged: model ended naturally (last_assistant_message present,
- *                stop_hook_active falsy → CC's regular end_turn path).
- *   - aborted:   no last_assistant_message AND low turn_count (Esc/Ctrl+F).
- *   - spun:     otherwise (high turn count + no natural stop signal).
- *
- * #3317: `turn_count` and `ended_token_estimate` are PER-RUN DELTAS against
- * baselines the prompt-side tracker captured at `/goal` start. They used to be
- * "how many `/goal` starts have I seen" and "opening prompt + final message",
- * neither of which measures a turn or a spend, so the budget guard summed
- * invocation counts into 1+2+...+N and braked a healthy session at ~8 `/goal`s.
- *
- * Async: telemetry write only — must not block Stop.
+ * Async and silent: it must not block or answer a Stop.
  */
 
-import { existsSync, mkdirSync, readFileSync, appendFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { readTurnCount, turnsSpanned } from '../lib/session-turn-counter.js';
+import {
+  appendHistory,
+  findOpenRun,
+  readHistory,
+  writeBrake,
+  type GoalCapReason,
+  type OpenRun,
+} from '../lib/goal-run.js';
 import { loadAccumStateOrNull } from '../lib/session-token-accum.js';
 
 const HOOK_NAME = 'stop/goal-tracker';
-const HISTORY_REL = join('.claude', 'state', 'goal-history.jsonl');
-const SPIN_TURN_THRESHOLD = 10;
-
-interface HistoryEntry {
-  session_id?: string;
-  condition?: string;
-  started_at?: string;
-  started_token_estimate?: number;
-  /** Turn counter when the run opened — baseline for turns spanned (#3317). */
-  started_turn?: number;
-  /** Accumulator tokens when the run opened — baseline for spend (#3317). */
-  started_tokens?: number;
-  ended_at?: string | null;
-  ended_token_estimate?: number;
-  turn_count?: number;
-  status?: 'converged' | 'spun' | 'aborted';
-}
-
-/**
- * Find the most recent open (ended_at == null) entry matching session_id by
- * scanning the JSONL backwards. Returns null if no open entry exists.
- */
-export function findOpenEntry(
-  contents: string,
-  sessionId: string,
-): HistoryEntry | null {
-  const lines = contents.split(/\r?\n/).filter(l => l.trim().length > 0);
-  // Build a per-session view: an entry is "open" when there's no later line
-  // for the same session_id (closer entries are end markers).
-  let lastStartForSession: HistoryEntry | null = null;
-  let lastIsClosed = false;
-  for (let i = 0; i < lines.length; i++) {
-    let parsed: HistoryEntry;
-    try {
-      parsed = JSON.parse(lines[i]);
-    } catch {
-      continue;
-    }
-    if (parsed.session_id !== sessionId) continue;
-    if (parsed.ended_at) {
-      lastIsClosed = true;
-    } else {
-      lastStartForSession = parsed;
-      lastIsClosed = false;
-    }
-  }
-  if (!lastStartForSession || lastIsClosed) return null;
-  return lastStartForSession;
-}
-
-export function inferStatus(
-  input: HookInput,
-  turnCount: number,
-): 'converged' | 'spun' | 'aborted' {
-  const hasFinalMessage =
-    typeof input.last_assistant_message === 'string' &&
-    input.last_assistant_message.trim().length > 0;
-  if (hasFinalMessage && !input.stop_hook_active) {
-    return 'converged';
-  }
-  if (!hasFinalMessage && turnCount < SPIN_TURN_THRESHOLD) {
-    return 'aborted';
-  }
-  return 'spun';
-}
+const DEFAULT_MAX_TURNS = 30;
+const DEFAULT_MAX_TOKENS = 250_000;
 
 function estimateTokens(text: string): number {
   return Math.ceil((text || '').length / 3.5);
 }
 
+/** A positive number from the variable, else from its pre-#4684 `_PER_SESSION` name. */
+function readCap(name: string, fallback: number): number {
+  const n = Number(process.env[name] || process.env[`${name}_PER_SESSION`]);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 /**
- * Token spend for THIS run (#3317).
+ * Token spend of the run so far (#3317).
  *
- * Prefers the session token accumulator — real per-tool-result accounting
- * written by `posttool/context-crossing-warn` — and takes the delta against
- * the baseline captured when the run opened, so repeated runs report what each
- * one actually spent instead of re-reporting the opening prompt every time.
- *
- * `currentTokens` is null when the accumulator holds no data for the session
- * (nothing recorded yet, or an older CC). In that case, and for legacy history
- * rows written before this field existed, fall back to the original
- * chars/3.5 estimate so the field is never empty.
+ * The larger of two readings: the session token accumulator (written by
+ * posttool/context-crossing-warn) as a delta against the baseline captured when
+ * the run opened, and a running total that adds a chars/3.5 estimate of each
+ * turn's final message. `currentTokens` is null when the accumulator is empty.
  */
 export function computeRunTokens(
-  open: HistoryEntry,
+  run: OpenRun,
   currentTokens: number | null,
   finalMessageEstimate: number,
 ): number {
-  const started = Number(open.started_tokens);
-  if (
-    currentTokens !== null &&
-    Number.isFinite(currentTokens) &&
-    Number.isFinite(started) &&
-    currentTokens > started
-  ) {
-    return Math.round(currentTokens - started);
-  }
-  return (open.started_token_estimate || 0) + finalMessageEstimate;
+  const soFar = run.tally?.ended_token_estimate ?? run.start.started_token_estimate ?? 0;
+  const started = Number(run.start.started_tokens);
+  const delta =
+    currentTokens !== null && Number.isFinite(started) && currentTokens > started
+      ? Math.round(currentTokens - started)
+      : 0;
+  return Math.max(soFar + finalMessageEstimate, delta);
 }
 
 export function goalTrackerStop(
@@ -138,58 +67,49 @@ export function goalTrackerStop(
 ): HookResult {
   const sessionId = input.session_id || ctx.sessionId || 'unknown';
   const projectDir = ctx.projectDir;
-  const path = join(projectDir, HISTORY_REL);
 
-  if (!existsSync(path)) {
-    return outputSilentSuccess();
-  }
-
-  let raw: string;
   try {
-    raw = readFileSync(path, 'utf8');
-  } catch (err) {
-    ctx.log(
-      HOOK_NAME,
-      `read failed: ${err instanceof Error ? err.message : String(err)}`,
-      'warn',
+    const raw = readHistory(projectDir);
+    const run = raw === null ? null : findOpenRun(raw, sessionId);
+    if (!run || run.start.prompt_id !== input.prompt_id) return outputSilentSuccess();
+
+    const turns = (run.tally?.turn_count ?? 0) + 1;
+    const tokens = computeRunTokens(
+      run,
+      loadAccumStateOrNull(projectDir, sessionId)?.estimatedTokens ?? null,
+      estimateTokens(input.last_assistant_message || ''),
     );
-    return outputSilentSuccess();
-  }
+    const maxTurns = readCap('ORK_GOAL_MAX_TURNS', DEFAULT_MAX_TURNS);
+    const maxTokens = readCap('ORK_GOAL_MAX_TOKENS', DEFAULT_MAX_TOKENS);
+    const reason: GoalCapReason | null =
+      turns >= maxTurns ? 'turns_cap' : tokens >= maxTokens ? 'tokens_cap' : null;
+    const alreadyTripped = run.tally?.tripped;
 
-  const open = findOpenEntry(raw, sessionId);
-  if (!open) {
-    return outputSilentSuccess();
-  }
+    if (reason && !alreadyTripped) {
+      writeBrake(projectDir, {
+        tripped_at: new Date().toISOString(),
+        session_id: sessionId,
+        prompt_id: input.prompt_id,
+        reason,
+        turns,
+        tokens,
+        cap: reason === 'turns_cap' ? maxTurns : maxTokens,
+      });
+      ctx.log(HOOK_NAME, `BRAKE tripped: reason=${reason} turns=${turns} tokens=${tokens}`, 'warn');
+    }
 
-  // Real turns spanned by THIS run, measured against the per-session turn
-  // counter (#3317). Recording a per-run delta is what keeps the budget guard's
-  // sum honest: summing deltas across runs gives total turns spent under
-  // `/goal`, whereas the old invocation count summed to 1+2+...+N.
-  const turnCount = turnsSpanned(open.started_turn, readTurnCount(sessionId));
-
-  const status = inferStatus(input, turnCount);
-  const endedTokenEstimate = computeRunTokens(
-    open,
-    loadAccumStateOrNull(projectDir, sessionId)?.estimatedTokens ?? null,
-    estimateTokens(input.last_assistant_message || ''),
-  );
-
-  const endEntry: HistoryEntry = {
-    session_id: sessionId,
-    ended_at: new Date().toISOString(),
-    ended_token_estimate: endedTokenEstimate,
-    turn_count: turnCount,
-    status,
-  };
-
-  try {
-    mkdirSync(dirname(path), { recursive: true });
-    appendFileSync(path, `${JSON.stringify(endEntry)}\n`, 'utf8');
-    ctx.log(HOOK_NAME, `closed /goal: status=${status} turns=${turnCount}`);
+    appendHistory(projectDir, {
+      kind: 'tally',
+      session_id: sessionId,
+      prompt_id: input.prompt_id,
+      turn_count: turns,
+      ended_token_estimate: tokens,
+      tripped: alreadyTripped ?? reason ?? undefined,
+    });
   } catch (err) {
     ctx.log(
       HOOK_NAME,
-      `append failed: ${err instanceof Error ? err.message : String(err)}`,
+      `tally failed: ${err instanceof Error ? err.message : String(err)}`,
       'warn',
     );
   }
