@@ -988,6 +988,98 @@ describe('subagentValidator', () => {
       expect(() => subagentValidator(input)).not.toThrow();
       expect(getSpawnEntry().spawn_depth).toBe(2);
     });
+
+    // orchestkit#5171, measured on CC 2.1.332: the SubagentStart payload has
+    // no parent id (only session_id, transcript_path, prompt_id, agent_id,
+    // agent_type). The pretool row spawn-intent-logger wrote for the same
+    // spawn carries parent_agent_id, so depth comes from pairing the two.
+    const S = 'test-session-validator-001';
+    const pretool = (type: string, parent?: string, name?: string): string =>
+      JSON.stringify({
+        timestamp: '2026-11-26T10:00:00.000Z',
+        source: 'pretool',
+        subagent_type: type,
+        ...(name ? { agent_name: name } : {}),
+        session_id: S,
+        ...(parent ? { parent_agent_id: parent } : {}),
+      });
+    const start = (type: string, agentId: string, depth?: number, parent?: string): string =>
+      JSON.stringify({
+        timestamp: '2026-11-26T10:00:00.200Z',
+        source: 'start',
+        subagent_type: type,
+        session_id: S,
+        agent_id: agentId,
+        ...(parent ? { parent_agent_id: parent } : {}),
+        ...(depth !== undefined ? { spawn_depth: depth } : {}),
+      });
+    const startCalls = (): unknown[][] =>
+      (appendFileSync as ReturnType<typeof vi.fn>).mock.calls.filter(
+        (c: unknown[]) => typeof c[0] === 'string' && normalizePath(c[0] as string).includes('subagent-spawns.jsonl'),
+      );
+
+    test('a main-thread spawn paired with its pretool row records spawn_depth 1 (#5171)', () => {
+      mockSpawnLog([pretool('general-purpose')]);
+      subagentValidator(createToolInput({ agent_id: 'af956b896139ff31d', tool_input: { subagent_type: 'general-purpose' } }));
+      const entry = getSpawnEntry();
+      expect(entry.spawn_depth).toBe(1);
+      expect(entry).not.toHaveProperty('parent_agent_id');
+    });
+
+    test('a nested spawn takes parent_agent_id and depth from its pretool row (#5171)', () => {
+      mockSpawnLog([
+        pretool('general-purpose'),
+        start('general-purpose', 'af956b896139ff31d', 1),
+        pretool('Explore', 'af956b896139ff31d'),
+      ]);
+      subagentValidator(createToolInput({ agent_id: 'abef76e482664a94c', tool_input: { subagent_type: 'Explore' } }));
+      const entry = getSpawnEntry();
+      expect(entry.parent_agent_id).toBe('af956b896139ff31d');
+      expect(entry.spawn_depth).toBe(2);
+    });
+
+    test('depth chains to 3 through two pretool pairings (#5171)', () => {
+      mockSpawnLog([
+        pretool('general-purpose'),
+        start('general-purpose', 'p1', 1),
+        pretool('general-purpose', 'p1'),
+        start('general-purpose', 'p2', 2, 'p1'),
+        pretool('Explore', 'p2'),
+      ]);
+      subagentValidator(createToolInput({ agent_id: 'c3', tool_input: { subagent_type: 'Explore' } }));
+      expect(getSpawnEntry()).toEqual(expect.objectContaining({ parent_agent_id: 'p2', spawn_depth: 3 }));
+    });
+
+    test('pretool rows of one type pair first in, first out (#5171)', () => {
+      mockSpawnLog([
+        pretool('Explore', 'pa'),
+        pretool('Explore', 'pb'),
+        start('Explore', 'first-child', 2, 'pa'),
+        start('pa', 'unrelated', 1),
+      ]);
+      subagentValidator(createToolInput({ agent_id: 'second-child', tool_input: { subagent_type: 'Explore' } }));
+      expect(getSpawnEntry().parent_agent_id).toBe('pb');
+    });
+
+    test('a named spawn pairs by agent_name, since SubagentStart reports the name (#5171)', () => {
+      mockSpawnLog([pretool('general-purpose', 'boss', 'reviewer-x'), pretool('general-purpose')]);
+      subagentValidator(createToolInput({ agent_id: 'named-1', tool_input: { subagent_type: 'reviewer-x' } }));
+      expect(getSpawnEntry().parent_agent_id).toBe('boss');
+    });
+
+    test('a pretool row from another session never pairs (#5171)', () => {
+      mockSpawnLog([JSON.stringify({ source: 'pretool', subagent_type: 'Explore', session_id: 'other', parent_agent_id: 'x' })]);
+      subagentValidator(createToolInput({ agent_id: 'c1', tool_input: { subagent_type: 'Explore' } }));
+      const entry = getSpawnEntry();
+      expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry).not.toHaveProperty('spawn_depth');
+    });
+
+    test('a second start for an agent_id that already has one writes no row (#5171)', () => {
+      mockSpawnLog([pretool('general-purpose'), start('general-purpose', 'bg-1', 1)]);
+      subagentValidator(createToolInput({ agent_id: 'bg-1', tool_input: { subagent_type: 'general-purpose' } }));
+      expect(startCalls()).toHaveLength(0);
+    });
   });
 
   // -----------------------------------------------------------------------
