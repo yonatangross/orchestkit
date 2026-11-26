@@ -77,10 +77,26 @@ function scan(mode) {
 }
 function render() {
   for (const mode of ["before","after"]) {
+    const box = document.getElementById(mode);
+    box.textContent = "";
     const rows = scan(mode);
-    document.getElementById(mode).innerHTML = rows.length
-      ? rows.map((r) => "<div><span class='" + (DEAD.has(r.ref) ? "dead" : "hit") + "'>#" + r.ref + "</span>" + (DEAD.has(r.ref) ? " dead lookup" : "") + "</div>").join("")
-      : "<div class='muted'>no references</div>";
+    if (!rows.length) {
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.textContent = "no references";
+      box.appendChild(empty);
+      continue;
+    }
+    for (const r of rows) {
+      const dead = DEAD.has(r.ref);
+      const div = document.createElement("div");
+      const span = document.createElement("span");
+      span.className = dead ? "dead" : "hit";
+      span.textContent = "#" + r.ref;
+      div.appendChild(span);
+      if (dead) div.appendChild(document.createTextNode(" dead lookup"));
+      box.appendChild(div);
+    }
   }
 }
 document.getElementById("lines").addEventListener("input", render);
