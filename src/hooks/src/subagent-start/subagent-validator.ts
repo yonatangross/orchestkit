@@ -15,10 +15,9 @@ import {
   mkdirSync,
   renameSync,
   statSync,
-  appendFileSync,
   openSync,
   closeSync,
-  unlinkSync,
+  rmSync,
 } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
@@ -285,54 +284,41 @@ function computeSpawnDepth(rows: SpawnLogRow[], parentAgentId: string | undefine
   return 2;
 }
 
+/** Directory of per-agent start claims, next to the spawn log. */
+function claimsDir(trackingLog: string): string {
+  return join(dirname(trackingLog), 'spawn-claims');
+}
+
 /**
- * Lineage for one SubagentStart, read from the spawn log (#5171).
+ * Claim the one start row an agent_id may have (#5171, #5464 review).
  *
- * Measured on CC 2.1.332: the SubagentStart payload names no parent, but the
- * PreToolUse row spawn-intent-logger wrote for the same spawn carries the
- * spawner as parent_agent_id (absent for a main-thread spawn). Nothing in
- * either payload links the two, so they pair by session and by the type
- * SubagentStart reports (the spawn's name for a named spawn), first in first
- * out: each earlier start row of that type consumes the oldest pretool row.
- * Two parents spawning the same type at the same instant can swap lineage;
- * that is the limit of what CC exposes.
+ * A background parent that wakes fires SubagentStart again for the same
+ * agent_id, and two such hooks can overlap. The claim is a file created with
+ * 'wx', which fails when the file exists: an atomic unique key on the child id,
+ * with no lock to wait on, time out or take over. Returns false only when the
+ * claim already exists; any other error fails open (the row is written).
  */
-function resolveLineage(
-  rows: SpawnLogRow[],
-  sessionId: string,
-  subagentType: string,
-  agentId: string | undefined,
-): { duplicate: boolean; paired: boolean; parentAgentId?: string } {
-  const pending = new Map<string, Array<string | null>>();
-  let duplicate = false;
-  for (const row of rows) {
-    if (row.session_id !== sessionId) continue;
-    if (row.source === 'pretool') {
-      const key = row.agent_name || row.subagent_type || '';
-      const queue = pending.get(key) ?? [];
-      queue.push(row.parent_agent_id || null);
-      pending.set(key, queue);
-    } else if (row.source === 'start') {
-      if (agentId && row.agent_id === agentId) duplicate = true;
-      pending.get(row.subagent_type || '')?.shift();
-    }
+function claimAgentStart(trackingLog: string, sessionId: string, agentId: string): boolean {
+  const safe = (s: string) => s.replace(/[^A-Za-z0-9_-]/g, '_');
+  try {
+    mkdirSync(claimsDir(trackingLog), { recursive: true });
+    closeSync(openSync(join(claimsDir(trackingLog), `${safe(sessionId)}.agent.${safe(agentId)}`), 'wx'));
+    return true;
+  } catch (err) {
+    return !(err && typeof err === 'object' && (err as { code?: string }).code === 'EEXIST');
   }
-  const queue = pending.get(subagentType);
-  if (!queue || queue.length === 0) return { duplicate, paired: false };
-  const parent = queue[0];
-  return { duplicate, paired: true, ...(parent ? { parentAgentId: parent } : {}) };
 }
 
 /**
  * Returns the computed spawn depth when lineage is resolvable, else null.
  *
  * HONESTY NOTE (#2371 finding 3, re-measured on CC 2.1.332 for #5171): CC
- * still sends NO `parent_agent_id` at SubagentStart. Lineage comes from the
- * pretool row of the same spawn instead (resolveLineage). With no pretool
- * row to pair (log rotated, pretool hook off) `spawn_depth` is OMITTED
- * rather than fabricated as 1, which would under-count nested spawns.
- * A payload `parent_agent_id`, if CC ever ships one
- * (anthropics/claude-code#16424), wins over the pairing.
+ * still sends NO `parent_agent_id` at SubagentStart, and nothing in that
+ * payload links a start to its PreToolUse row. `spawn_depth` is therefore
+ * OMITTED rather than guessed. The lineage path lights up automatically if CC
+ * ships parent context (anthropics/claude-code#16424). CC's own
+ * subagents/agent-<id>.meta.json carries parentAgentId and spawnDepth, but it
+ * is written after SubagentStart (present at SubagentStop).
  */
 function logSpawn(
   subagentType: string,
@@ -363,43 +349,37 @@ function logSpawn(
     if (existsSync(trackingLog) && statSync(trackingLog).size > SPAWN_LOG_ROTATE_BYTES) {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
       renameSync(trackingLog, `${trackingLog}.old.${ts}`);
+      // The claims belong to the rows that just rotated away.
+      rmSync(claimsDir(trackingLog), { recursive: true, force: true });
     }
   } catch {
     // Ignore — rotation is opportunistic.
   }
 
-  // #5464 review: read, claim and append are ONE step under an exclusive lock,
-  // and the start row is appended at once, not buffered to process exit.
-  // Otherwise two overlapping hooks both read the same log, both claim the
-  // first pretool intent, and both write a row for a reused agent_id. A lock
-  // that cannot be taken within the bound means the row goes in without
-  // lineage: an unknown parent is never guessed.
-  const lock = acquireSpawnLock(`${trackingLog}.lock`);
-  try {
-    const rows = lock ? readSpawnLog(trackingLog) : [];
-    const lineage = lock
-      ? resolveLineage(rows, sessionId, subagentType, agentId)
-      : { duplicate: false, paired: false };
-    // A background parent that wakes fires SubagentStart again for the same
-    // agent_id; one start row per agent keeps spawn counts honest (#5171).
-    if (lineage.duplicate) return null;
-
-    // A payload parent (if CC ever sends one) wins over the pretool pairing.
-    const parent = parentAgentId || lineage.parentAgentId;
-    const spawnDepth = parent
-      ? computeSpawnDepth(rows, parent)
-      : lineage.paired ? 1 : null;
-    const entry = buildStartEntry(subagentType, description, sessionId, agentId, parent, spawnDepth);
-    try {
-      if (lock) appendFileSync(trackingLog, `${JSON.stringify(entry)}\n`);
-      else bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
-    } catch {
-      // Best-effort telemetry, never block a dispatch.
+  // One start row per agent_id (#5171): a waking background parent fires
+  // SubagentStart again. The atomic claim covers overlapping hooks; the log
+  // check covers rows written before claims existed.
+  if (agentId) {
+    if (!claimAgentStart(trackingLog, sessionId, agentId)) return null;
+    if (readSpawnLog(trackingLog).some((r) => r.source === 'start' && r.session_id === sessionId && r.agent_id === agentId)) {
+      return null;
     }
-    return spawnDepth;
-  } finally {
-    if (lock) releaseSpawnLock(lock);
   }
+
+  // Lineage only from a payload parent, never paired from the PreToolUse row:
+  // measured on CC 2.1.332, nothing in the SubagentStart payload links a start
+  // to its spawn (no tool_use_id) and CC's own subagents/agent-<id>.meta.json
+  // is written after SubagentStart. FIFO pairing guessed wrong after a
+  // declined spawn (#5464 review), so without a clean key the row carries no
+  // lineage, as on main.
+  const spawnDepth = parentAgentId ? computeSpawnDepth(readSpawnLog(trackingLog), parentAgentId) : null;
+  const entry = buildStartEntry(subagentType, description, sessionId, agentId, parentAgentId, spawnDepth);
+  try {
+    bufferWrite(trackingLog, `${JSON.stringify(entry)}\n`);
+  } catch {
+    // Best-effort telemetry, never block a dispatch.
+  }
+  return spawnDepth;
 }
 
 function buildStartEntry(
@@ -424,54 +404,6 @@ function buildStartEntry(
     ...(parent ? { parent_agent_id: parent } : {}),
     ...(spawnDepth !== null ? { spawn_depth: spawnDepth } : {}),
   };
-}
-
-/** How long a start waits for the spawn-log lock, and when a lock is stale. */
-const SPAWN_LOCK_WAIT_MS = 100;
-const SPAWN_LOCK_STALE_MS = 2000;
-const SPAWN_LOCK_STEP_MS = 5;
-
-/**
- * Take the spawn-log lock: create `lockPath` exclusively ('wx' fails when it
- * exists). Waits up to SPAWN_LOCK_WAIT_MS in short synchronous steps (this is
- * SubagentStart, not the PreToolUse hot path); a lock older than
- * SPAWN_LOCK_STALE_MS is a crashed holder and is taken over once. Returns the
- * fd and path, or null when the lock stayed busy.
- */
-function acquireSpawnLock(lockPath: string): { fd: number; path: string } | null {
-  const deadline = Date.now() + SPAWN_LOCK_WAIT_MS;
-  let tookOverStale = false;
-  for (;;) {
-    try {
-      return { fd: openSync(lockPath, 'wx'), path: lockPath };
-    } catch {
-      // Held by another hook, or unwritable.
-    }
-    try {
-      if (!tookOverStale && Date.now() - statSync(lockPath).mtimeMs > SPAWN_LOCK_STALE_MS) {
-        tookOverStale = true;
-        unlinkSync(lockPath);
-        continue;
-      }
-    } catch {
-      // Gone between the two calls: try again.
-    }
-    if (Date.now() >= deadline) return null;
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, SPAWN_LOCK_STEP_MS);
-  }
-}
-
-function releaseSpawnLock(lock: { fd: number; path: string }): void {
-  try {
-    closeSync(lock.fd);
-  } catch {
-    // Ignore
-  }
-  try {
-    unlinkSync(lock.path);
-  } catch {
-    // Ignore
-  }
 }
 
 // -----------------------------------------------------------------------------

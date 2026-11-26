@@ -1023,53 +1023,34 @@ describe('subagentValidator', () => {
         (c: unknown[]) => typeof c[0] === 'string' && normalizePath(c[0] as string).includes('subagent-spawns.jsonl'),
       );
 
-    test('a main-thread spawn paired with its pretool row records spawn_depth 1 (#5171)', () => {
-      mockSpawnLog([pretool('general-purpose')]);
-      subagentValidator(createToolInput({ agent_id: 'af956b896139ff31d', tool_input: { subagent_type: 'general-purpose' } }));
+    // #5464 review (Opus HOLD at b76bd94a): FIFO pairing with pretool rows was
+    // withdrawn. Nothing in the SubagentStart payload links a start to its
+    // spawn, and a declined spawn's pretool row shifted every later lineage of
+    // that type. Without a clean key a start row carries no lineage, as on main.
+    test('a declined spawn never shifts lineage: Opus three-row case (#5464)', () => {
+      mockSpawnLog([
+        pretool('Explore', 'sub-A'), // declined, never starts
+        pretool('Explore'), // starts as child-1
+        pretool('Explore', 'child-1'), // starts as grand-1
+      ]);
+      subagentValidator(createToolInput({ agent_id: 'child-1', tool_input: { subagent_type: 'Explore' } }));
       const entry = getSpawnEntry();
-      expect(entry.spawn_depth).toBe(1);
+      expect(entry.agent_id).toBe('child-1');
       expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry).not.toHaveProperty('spawn_depth');
     });
 
-    test('a nested spawn takes parent_agent_id and depth from its pretool row (#5171)', () => {
+    test('a start never takes lineage from a pretool row, nested or named (#5464)', () => {
       mockSpawnLog([
         pretool('general-purpose'),
-        start('general-purpose', 'af956b896139ff31d', 1),
-        pretool('Explore', 'af956b896139ff31d'),
+        start('general-purpose', 'p1'),
+        pretool('Explore', 'p1'),
+        pretool('general-purpose', 'boss', 'reviewer-x'),
       ]);
-      subagentValidator(createToolInput({ agent_id: 'abef76e482664a94c', tool_input: { subagent_type: 'Explore' } }));
+      subagentValidator(createToolInput({ agent_id: 'c2', tool_input: { subagent_type: 'Explore' } }));
       const entry = getSpawnEntry();
-      expect(entry.parent_agent_id).toBe('af956b896139ff31d');
-      expect(entry.spawn_depth).toBe(2);
-    });
-
-    test('depth chains to 3 through two pretool pairings (#5171)', () => {
-      mockSpawnLog([
-        pretool('general-purpose'),
-        start('general-purpose', 'p1', 1),
-        pretool('general-purpose', 'p1'),
-        start('general-purpose', 'p2', 2, 'p1'),
-        pretool('Explore', 'p2'),
-      ]);
-      subagentValidator(createToolInput({ agent_id: 'c3', tool_input: { subagent_type: 'Explore' } }));
-      expect(getSpawnEntry()).toEqual(expect.objectContaining({ parent_agent_id: 'p2', spawn_depth: 3 }));
-    });
-
-    test('pretool rows of one type pair first in, first out (#5171)', () => {
-      mockSpawnLog([
-        pretool('Explore', 'pa'),
-        pretool('Explore', 'pb'),
-        start('Explore', 'first-child', 2, 'pa'),
-        start('pa', 'unrelated', 1),
-      ]);
-      subagentValidator(createToolInput({ agent_id: 'second-child', tool_input: { subagent_type: 'Explore' } }));
-      expect(getSpawnEntry().parent_agent_id).toBe('pb');
-    });
-
-    test('a named spawn pairs by agent_name, since SubagentStart reports the name (#5171)', () => {
-      mockSpawnLog([pretool('general-purpose', 'boss', 'reviewer-x'), pretool('general-purpose')]);
-      subagentValidator(createToolInput({ agent_id: 'named-1', tool_input: { subagent_type: 'reviewer-x' } }));
-      expect(getSpawnEntry().parent_agent_id).toBe('boss');
+      expect(entry).not.toHaveProperty('parent_agent_id');
+      expect(entry).not.toHaveProperty('spawn_depth');
     });
 
     test('a pretool row from another session never pairs (#5171)', () => {

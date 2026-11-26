@@ -82,14 +82,20 @@ afterEach(() => {
 });
 
 describe('overlapping SubagentStart hooks (#5464 review)', () => {
-  test('two overlapping starts of one type consume two different intents', () => {
+  // FIFO pairing was withdrawn (Opus HOLD at b76bd94a, no clean key), so
+  // overlapping starts write no lineage at all, which no race can make wrong.
+  test('two overlapping starts of one type write no guessed lineage', () => {
     writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
 
     subagentValidator(start('child-1'));
     subagentValidator(start('child-2'));
 
-    const parents = startRows().map((r) => r.parent_agent_id).sort();
-    expect(parents).toEqual(['parentA', 'parentB']);
+    const rows = startRows();
+    expect(rows.map((r) => r.agent_id).sort()).toEqual(['child-1', 'child-2']);
+    for (const r of rows) {
+      expect(r).not.toHaveProperty('parent_agent_id');
+      expect(r).not.toHaveProperty('spawn_depth');
+    }
   });
 
   test('an overlapping second start for the same agent_id writes no second row', () => {
@@ -102,49 +108,30 @@ describe('overlapping SubagentStart hooks (#5464 review)', () => {
     expect(rows).toHaveLength(1);
   });
 
-  // Round 2 (Codex HOLD at b76bd94a): a start blocked by another hook's lock
-  // fell back to "no lineage" without consuming its intent, so the next start
-  // took the wrong parent; and it skipped the duplicate check.
-  const blockShared = () => {
-    // A busy spawn-log lock, as another hook in flight leaves it.
-    writeFileSync(`${log}.lock`, String(process.pid));
-  };
-  const unblockShared = () => rmSync(`${log}.lock`, { force: true });
+  // Codex HOLD round 2 at b76bd94a: the lock's timeout path and its stale
+  // takeover. No lock exists any more; the per-agent claim is an atomic 'wx'
+  // create with nothing to wait on, time out, take over or unlink.
+  test('a pending first start and a waking second start write one row, and no lock file is ever made', () => {
+    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n`);
 
-  test('a start that meets a busy hook still consumes its own intent, so the next start gets the next parent', () => {
-    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
-
-    blockShared();
     subagentValidator(start('child-1'));
-    unblockShared();
-    subagentValidator(start('child-2'));
-
-    const byAgent = Object.fromEntries(startRows().map((r) => [r.agent_id, r.parent_agent_id]));
-    expect(byAgent).toEqual({ 'child-1': 'parentA', 'child-2': 'parentB' });
-  });
-
-  test('a start that meets a busy hook still writes one row per agent_id', () => {
-    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
-
-    blockShared();
+    expect(existsSync(`${log}.lock`)).toBe(false);
     subagentValidator(start('child-1'));
     subagentValidator(start('child-1'));
-    unblockShared();
 
     expect(startRows().filter((r) => r.agent_id === 'child-1')).toHaveLength(1);
   });
 
-  test('an intent claimed by a slow start, however old the claim, is never taken by another start', () => {
-    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
-    // A start that claimed parentA long ago and has not written its row yet.
+  test('an old claim from a crashed start is never taken over: the agent stays at one row', () => {
     const claims = join(project, '.claude', 'logs', 'spawn-claims');
     mkdirSync(claims, { recursive: true });
-    const held = join(claims, `${SESSION}.intent.toolu_a`);
-    writeFileSync(held, 'slow-child');
+    const held = join(claims, `${SESSION}.agent.child-1`);
+    writeFileSync(held, '');
     utimesSync(held, new Date(Date.now() - 60_000), new Date(Date.now() - 60_000));
 
-    subagentValidator(start('child-2'));
+    subagentValidator(start('child-1'));
 
-    expect(startRows().map((r) => r.parent_agent_id)).toEqual(['parentB']);
+    expect(startRows()).toHaveLength(0);
+    expect(existsSync(held)).toBe(true);
   });
 });
