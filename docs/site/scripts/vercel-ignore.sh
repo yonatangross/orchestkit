@@ -2,8 +2,11 @@
 # Vercel "Ignored Build Step" for the docs site (vercel.json -> ignoreCommand).
 # Runs from docs/site. Exit 1 = build, exit 0 = skip.
 #
-#   main            builds when a site input changed since the last successful
-#                   deployment; also with no usable previous SHA or on a redeploy.
+#   main            builds on release commits only ("chore(main): release ..." and
+#                   "chore(release): pin stable channel to ..."), on a redeploy of
+#                   the deployed SHA, when version.txt changed since the deployed
+#                   SHA, or when the subject carries [deploy]. A docs fix that
+#                   cannot wait for a release: add [deploy] to the subject.
 #   unknown ref     builds: when Vercel does not expose VERCEL_GIT_COMMIT_REF
 #                   to this step, failing toward a build is the safe answer.
 #   other branches  skipped, unless the head commit message contains [preview].
@@ -27,32 +30,40 @@ if [ -z "$ref" ]; then
 fi
 
 if [ "$ref" = "main" ]; then
-	# Everything the site build reads: this folder, the shared generators and
-	# data it imports, the root manifests, and any HTML page a lab entry copies.
-	# A new input outside this list must be added here, or main will not redeploy
-	# when it changes.
-	inputs=(
-		':(top)docs/site' ':(top)scripts/seo' ':(top)scripts/lib' ':(top)shared'
-		':(top)manifests' ':(top)package.json' ':(top)package-lock.json'
-		':(top)version.txt' ':(top,glob)**/*.html'
-	)
-	# git's own error for a missing commit stays in the build log.
-	if [ -z "$prev" ] || ! git cat-file -e "${prev}^{commit}"; then
-		echo "vercel-ignore: build (main, no usable previous SHA)"
+	subject="${msg%%$'\n'*}"
+	if [ -z "$subject" ]; then
+		subject="$(git log -1 --format=%s)"
+	fi
+	if [ -z "$subject" ]; then
+		echo "vercel-ignore: build (main, commit subject unknown, fails toward building)"
 		exit 1
 	fi
-	# The same SHA again is a redeploy someone asked for.
-	if [ "$(git rev-parse "${prev}^{commit}")" = "$(git rev-parse HEAD)" ]; then
-		echo "vercel-ignore: build (main, redeploy of ${prev:0:7})"
+	case "$subject" in
+	"chore(main): release "* | "chore(release): pin stable channel to "*)
+		echo "vercel-ignore: build (main, release commit)"
 		exit 1
+		;;
+	*"[deploy]"*)
+		echo "vercel-ignore: build (main, [deploy] requested)"
+		exit 1
+		;;
+	esac
+	# A release that was never deployed (failed or replaced build) is picked up by
+	# the next commit while its deployed predecessor is still in the clone. git's
+	# own error for a missing commit stays in the build log.
+	if [ -n "$prev" ] && git cat-file -e "${prev}^{commit}"; then
+		# The same SHA again is a redeploy someone asked for.
+		if [ "$(git rev-parse "${prev}^{commit}")" = "$(git rev-parse HEAD)" ]; then
+			echo "vercel-ignore: build (main, redeploy of ${prev:0:7})"
+			exit 1
+		fi
+		if ! git diff --quiet "$prev" HEAD -- ':(top)version.txt'; then
+			echo "vercel-ignore: build (main, version changed since ${prev:0:7})"
+			exit 1
+		fi
 	fi
-	# Any other git result, an error included, builds.
-	if git diff --quiet "$prev" HEAD -- "${inputs[@]}"; then
-		echo "vercel-ignore: skip main (no site input changed since ${prev:0:7})"
-		exit 0
-	fi
-	echo "vercel-ignore: build (main, site inputs changed since ${prev:0:7})"
-	exit 1
+	echo "vercel-ignore: skip main (not a release commit; add [deploy] to the subject to deploy)"
+	exit 0
 fi
 
 case "$msg" in
