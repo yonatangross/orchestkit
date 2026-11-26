@@ -55,7 +55,14 @@ for (const rel of files) {
   const lines = readFileSync(path.join(ROOT, rel), 'utf8').split('\n');
   lines.forEach((line, i) => {
     if (!FORWARD.test(line)) return;
-    const refs = [...line.matchAll(/#(\d{3,5})\b/g)].map((m) => m[1]);
+    // Digits after a # inside a URL or glued to a token are fragment anchors,
+    // not issue refs. Live false positive: version-compatibility.md links
+    // CHANGELOG.md#21314 (the CC 2.1.314 changelog anchor) on a line that also
+    // says "will be refused", and the dead #21314 lookup made every weekly
+    // sweep blind since 2026-11-16. Strip markdown link targets and bare URLs,
+    // and keep a # only where no word/URL character precedes it.
+    const prose = line.replace(/\]\([^)]*\)/g, ']').replace(/https?:\/\/\S+/g, '');
+    const refs = [...prose.matchAll(/(?<![\w./-])#(\d{3,5})\b/g)].map((m) => m[1]);
     if (refs.length === 0) return;
     candidates.push({ file: rel, line: i + 1, refs, excerpt: line.trim().slice(0, 160) });
   });
