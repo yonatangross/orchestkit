@@ -684,6 +684,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.20.1](https://github.com/yonatangross/orchestkit/compare/v10.20.0...v10.20.1)** · 2026-11-26
+
+- **#5184:** close six residual npm-ci-symlink-guard bypasses (#5465)
+- **ci:** judge fork PRs in the standards gate like branches (#5460)
+- **glyph:** keep the page section sidebar a thin index (#5457)
+- **hooks:** drift gate nudges via additionalContext (#4684) (#5461)
+- **hooks:** record the spawner, one start row per agent (#5171) (#5464)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.20.0](https://github.com/yonatangross/orchestkit/compare/v10.19.0...v10.20.0)** · 2026-11-26
 
 - **site:** host support MCP app on the docs MCP (#5452)
@@ -732,15 +741,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **memory-lens:** show no recall line, context to the model only (#5296)
 - **site,ci:** redirect skill sub-URLs, retry dropped npm audit requests (#5295)
-
-**[v10.15.0](https://github.com/yonatangross/orchestkit/compare/v10.14.0...v10.15.0)** · 2026-11-18
-
-- **plugins:** move 7 operator skills to ork-extras, slash-only (#5287)
-- **site:** add a skill card and an install picker to the docs MCP app (#5291)
-- **skills:** one design-to-code skill that reads Claude Design exports (#5277)
-- **browser-tools:** Windows no-pipe note, doctor version check (#5290)
-- **design-to-code:** quote the PR title in ship mode, body from a file (#5286)
-- …and 5 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
