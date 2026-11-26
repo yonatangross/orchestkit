@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.20.1](https://github.com/yonatangross/orchestkit/compare/v10.20.0...v10.20.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* **#5184:** close six residual npm-ci-symlink-guard bypasses ([#5465](https://github.com/yonatangross/orchestkit/issues/5465)) ([23a7456](https://github.com/yonatangross/orchestkit/commit/23a74560c21b2c95fe33f739c1dd6618b3b3534a))
+* **ci:** judge fork PRs in the standards gate like branches ([#5460](https://github.com/yonatangross/orchestkit/issues/5460)) ([3c4dcfb](https://github.com/yonatangross/orchestkit/commit/3c4dcfb4006fb6b3103cd53e7cdd348cae306ebd))
+* **glyph:** keep the page section sidebar a thin index ([#5457](https://github.com/yonatangross/orchestkit/issues/5457)) ([4269b79](https://github.com/yonatangross/orchestkit/commit/4269b7935ee1a40b199cad030b5ca77797535a4d))
+* **hooks:** drift gate nudges via additionalContext ([#4684](https://github.com/yonatangross/orchestkit/issues/4684)) ([#5461](https://github.com/yonatangross/orchestkit/issues/5461)) ([c63d24d](https://github.com/yonatangross/orchestkit/commit/c63d24d777f52de016e7c73d9c94e5bf9bc71c63))
+* **hooks:** record the spawner, one start row per agent ([#5171](https://github.com/yonatangross/orchestkit/issues/5171)) ([#5464](https://github.com/yonatangross/orchestkit/issues/5464)) ([c89f85d](https://github.com/yonatangross/orchestkit/commit/c89f85d0444e2b5e626741892d5812fd050acdb2))
+* **hooks:** trip the /goal brake live, per run ([#4684](https://github.com/yonatangross/orchestkit/issues/4684)) ([#5468](https://github.com/yonatangross/orchestkit/issues/5468)) ([4825b45](https://github.com/yonatangross/orchestkit/commit/4825b45530ee37261b724b38c7de46e5c51eeb86))
+* **promote-lights:** PROMOTE_BASE list and release/* head ([#4623](https://github.com/yonatangross/orchestkit/issues/4623)) ([#5462](https://github.com/yonatangross/orchestkit/issues/5462)) ([e6f7926](https://github.com/yonatangross/orchestkit/commit/e6f7926c995bf33bfc86b00702ae49aab6d26255))
+
+
+### Documentation
+
+* **memory-lens:** record prompt.submit delivery on CC 2.1.332 ([#5176](https://github.com/yonatangross/orchestkit/issues/5176)) ([#5467](https://github.com/yonatangross/orchestkit/issues/5467)) ([827f4cc](https://github.com/yonatangross/orchestkit/commit/827f4ccc72a05d8a15b95d193d4d115b0e24c870))
+
 ## [10.20.0](https://github.com/yonatangross/orchestkit/compare/v10.19.0...v10.20.0) (2026-11-26)
 
 
