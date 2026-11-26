@@ -168,12 +168,16 @@ describe("host support lab page", () => {
 	const manifest = JSON.parse(
 		readFileSync(resolve(__dirname, "../lab-manifest/mcp-app-host-support.json"), "utf8"),
 	) as { source: string };
-	// The registered source, and the copy the Lab serves (the source plus the Lab
-	// chrome). Both are checked: the served copy is the page people open.
+	// The copy the Lab serves (the source plus the Lab chrome) is the page people
+	// open, so it is always checked. The registered source is checked while it
+	// exists: a branch playground source is pruned later, and lab-manifest then
+	// serves the committed copy alone.
 	const PAGES: Record<string, string> = {
-		source: manifest.source,
 		"served copy": "docs/site/public/lab/mcp-app-host-support.html",
+		...(existsSync(resolve(REPO, manifest.source)) ? { source: manifest.source } : {}),
 	};
+	const REGENERATE =
+		"Rebuild the VIEWS entry of the registered page from HOST_SUPPORT_HTML and the tool result, then run `node scripts/lab-manifest.mjs --repo ../..` in docs/site to refresh the served copy.";
 	const page = (which: string) => readFileSync(resolve(REPO, PAGES[which]), "utf8");
 	type Embedded = { label: string; html: string; data: unknown };
 	const embedded = (html: string): Embedded[] => {
@@ -182,19 +186,11 @@ describe("host support lab page", () => {
 		return JSON.parse(found[1]) as Embedded[];
 	};
 
-	it("is registered under the directory the PR Playground job derives from the branch", () => {
-		const head = process.env.GITHUB_HEAD_REF;
-		if (!head) return; // only a pull request run names its branch
-		const dir = `docs/${head.replace(/\//g, "--")}`;
-		expect(existsSync(resolve(REPO, dir))).toBe(true);
-		expect(manifest.source.startsWith(`${dir}/`)).toBe(true);
-	});
-
 	it.each(Object.keys(PAGES))("the %s embeds the shipped view and the tool's own result", async (which) => {
 		const [shipped] = embedded(page(which));
 		expect(shipped.label).toBe(URI);
-		expect(shipped.html).toBe(HOST_SUPPORT_HTML);
-		expect(shipped.data).toEqual((await call()).structuredContent);
+		expect(shipped.html, REGENERATE).toBe(HOST_SUPPORT_HTML);
+		expect(shipped.data, REGENERATE).toEqual((await call()).structuredContent);
 	});
 
 	it.each(Object.keys(PAGES))(
