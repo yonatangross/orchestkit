@@ -3,7 +3,7 @@
  * themselves (FH-ready policy, .claude/rules/hooks-development.md): the
  * handler takes these through an injected deps object.
  */
-import { lstatSync, readdirSync } from 'node:fs';
+import { lstatSync, readdirSync, realpathSync } from 'node:fs';
 
 /**
  * The names of the real subdirectories of `path` (symbolic links are not followed or listed), or []
@@ -32,5 +32,18 @@ export function isSymlinkPath(path: string): boolean {
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
     return !(code === 'ENOENT' || code === 'ENOTDIR');
+  }
+}
+
+/**
+ * The physical path of `path` with every symlink in it dereferenced, or `path`
+ * unchanged when it cannot be resolved. Used by guards that model `cd -P`,
+ * which resolves `..` against the linked-to directory, not the lexical path.
+ */
+export function realpathPath(path: string): string {
+  try {
+    return realpathSync.native(path);
+  } catch {
+    return path;
   }
 }

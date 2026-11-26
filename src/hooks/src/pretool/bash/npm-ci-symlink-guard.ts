@@ -22,7 +22,7 @@ import { isAbsolute, join, resolve } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../../types.js';
 import { outputSilentSuccess, outputDeny, outputAsk } from '../../lib/common.js';
 import { NOOP_CTX } from '../../lib/context.js';
-import { isSymlinkPath, listSubdirs } from '../../lib/fs-probe.js';
+import { isSymlinkPath, listSubdirs, realpathPath } from '../../lib/fs-probe.js';
 
 const HOOK_NAME = 'npm-ci-symlink-guard';
 
@@ -39,9 +39,11 @@ export interface NpmCiSymlinkGuardDeps {
   isSymlink: (path: string) => boolean;
   /** The real subdirectory names of a path; used only to search for a link when the parse is uncertain. */
   listSubdirs?: (path: string) => string[];
+  /** The physical path with every symlink dereferenced; used to model `cd -P` (#37). */
+  realpath?: (path: string) => string;
 }
 
-const DEFAULT_DEPS: NpmCiSymlinkGuardDeps = { isSymlink: isSymlinkPath, listSubdirs };
+const DEFAULT_DEPS: NpmCiSymlinkGuardDeps = { isSymlink: isSymlinkPath, listSubdirs, realpath: realpathPath };
 
 /** npm options that take their value as the next word (`--prefix` and `-C` are handled apart). */
 const VALUE_FLAGS = new Set([
@@ -153,19 +155,25 @@ function readAnsiC(text: string, start: number): { value: string; end: number } 
  * reads them. It ends at an unquoted blank, at an unquoted `<` or `>` (a redirection is not part of
  * the word next to it) or at a character of `stops`.
  */
-function readWord(text: string, start: number, stops: string): { value: string; end: number; hasExpand: boolean; splits: boolean } {
+function readWord(text: string, start: number, stops: string): { value: string; end: number; hasExpand: boolean; splits: boolean; quotedBrace: boolean } {
   let cur = '';
   let i = start;
   // Whether bash expands anything in this word, and whether an expansion sits
   // outside all quoting so its result splits on IFS (reviews on #5336).
   let hasExpand = false;
   let splits = false;
+  // Brace expansion does not reach braces inside quotes or after a backslash:
+  // `'a{b,c}'` is one literal word, `a{b,c}` is three words (row 17, #40).
+  let braceQuoted = false;
+  let braceBare = false;
   while (i < text.length) {
     const c = text[i];
     if (/\s/.test(c) || c === '<' || c === '>' || stops.includes(c)) break;
     if (c === "'") {
       const end = text.indexOf("'", i + 1);
-      cur += end === -1 ? text.slice(i + 1) : text.slice(i + 1, end);
+      const inner = end === -1 ? text.slice(i + 1) : text.slice(i + 1, end);
+      if (/[{}]/.test(inner)) braceQuoted = true;
+      cur += inner;
       i = end === -1 ? text.length : end + 1;
     } else if (c === '"') {
       i++;
@@ -176,12 +184,14 @@ function readWord(text: string, start: number, stops: string): { value: string; 
           i += 2;
         } else {
           if (text[i] === '$' || text[i] === '`') hasExpand = true;
+          if (text[i] === '{' || text[i] === '}') braceQuoted = true;
           cur += text[i++];
         }
       }
       i++;
     } else if (c === '$' && text[i + 1] === "'") {
       const ansi = readAnsiC(text, i + 2);
+      if (/[{}]/.test(ansi.value)) braceQuoted = true;
       cur += ansi.value;
       i = ansi.end;
     } else if (c === '$' && text[i + 1] === '"') {
@@ -189,23 +199,27 @@ function readWord(text: string, start: number, stops: string): { value: string; 
       i++;
     } else if (c === '\\' && i + 1 < text.length) {
       if (text[i + 1] !== '\n') cur += text[i + 1];
+      if (text[i + 1] === '{' || text[i + 1] === '}') braceQuoted = true;
       i += 2;
     } else {
       if (c === '$' || c === '`') {
         hasExpand = true;
         splits = true;
       }
+      if (c === '{' || c === '}') braceBare = true;
       cur += c;
       i++;
     }
   }
-  return { value: cur, end: i, hasExpand, splits };
+  return { value: cur, end: i, hasExpand, splits, quotedBrace: braceQuoted && !braceBare };
 }
 
 /** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
-// The text inside the braces may hold `$` or `{` (`${IFS:-$x}`), but the scan from one `${IFS` stops
-// at the next one, so a run of unclosed openers is linear.
-const IFS_BLANK = /\$\{IFS(?:(?!\$\{IFS)[^}])*\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
+// Only the forms that yield separators whatever IFS holds are blanked: IFS itself, the `#`/`%`
+// trims of it, and `/`-substitutions with an empty replacement (`${IFS//x/}` still reads as
+// separators). A `+`/`-`/`?`/`=` form or a nonempty replacement can produce arbitrary text
+// (`${IFS:+x}` is `x` when IFS is set), so those are left for expandVars to answer (row 17, #36).
+const IFS_BLANK = /\$\{IFS(?:[#%][^}]*)?\}|\$\{IFS\/{1,2}[^}/]*\/?\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
 
 
 
@@ -220,8 +234,8 @@ const DQ_ESCAPABLE = '$`"\\\n';
  * character. Quote characters of the other kind stay in the word, so
  * "a'b" is a'b and '/L\z' is /L\z.
  */
-function shellWords(segment: string): Array<{ value: string; hasExpand: boolean; splits: boolean }> {
-  const words: Array<{ value: string; hasExpand: boolean; splits: boolean }> = [];
+function shellWords(segment: string): Array<{ value: string; hasExpand: boolean; splits: boolean; quotedBrace: boolean }> {
+  const words: Array<{ value: string; hasExpand: boolean; splits: boolean; quotedBrace: boolean }> = [];
   let i = 0;
   // Where the last word ended, where it began in the segment (a quoted fd number is not one),
   // and whether the next word is the target of a redirection.
@@ -257,7 +271,7 @@ function shellWords(segment: string): Array<{ value: string; hasExpand: boolean;
     i = word.end;
     if (dropNext) dropNext = false;
     else {
-      words.push({ value: word.value, hasExpand: word.hasExpand, splits: word.splits });
+      words.push({ value: word.value, hasExpand: word.hasExpand, splits: word.splits, quotedBrace: word.quotedBrace });
       lastEnd = i;
       lastStart = wStart;
     }
@@ -325,7 +339,8 @@ const BRACE_MAX_WORD = 512;
  * Brace expansion: `c{i,}` is `ci` and `c`, and the shell hands both to the command as separate
  * words. Returns every word, or [DYNAMIC] when the expansion is too large to follow. A brace that is
  * not an expansion (`${x}`, no comma) is left alone. The shell does not expand quoted braces; the
- * quotes are gone by now, so a quoted one is read as an expansion (it can only add a candidate).
+ * caller skips this for a word whose braces were all quoted (row 17, #40), so a literal `'a{b,c}'`
+ * stays one directory name.
  */
 function braceExpand(word: string): string[] {
   if (!word.includes('{') || word.length > BRACE_MAX_WORD) return [word];
@@ -751,8 +766,12 @@ function closeOfBacktick(text: string, open: number): number {
  * take as a comment (right after a substitution, in a heredoc body, after `$'\''`)
  * would hide what follows it. readingsOf() reads both ways, so a misread comment can
  * only add candidates, never remove them.
+ *
+ * `quotesLiteral` is for a heredoc body under an unquoted delimiter: apostrophes and
+ * double quotes are data there, not quoting, so `` '`npm ci`' `` still runs `npm ci`
+ * (row 17, #29b). Substitutions are still read; only the quote handling is off.
  */
-function substitutionSpans(text: string, skipComments = false): SubstitutionSpan[] {
+function substitutionSpans(text: string, skipComments = false, quotesLiteral = false): SubstitutionSpan[] {
   const spans: SubstitutionSpan[] = [];
   let inDouble = false;
   let i = 0;
@@ -769,10 +788,10 @@ function substitutionSpans(text: string, skipComments = false): SubstitutionSpan
       // A comment runs to the end of its line; nothing in it is a substitution.
       const end = text.indexOf('\n', i + 1);
       i = end === -1 ? text.length : end + 1;
-    } else if (c === "'" && !inDouble) {
+    } else if (c === "'" && !inDouble && !quotesLiteral) {
       const end = text.indexOf("'", i + 1);
       i = end === -1 ? i + 1 : end + 1;
-    } else if (c === '"') {
+    } else if (c === '"' && !quotesLiteral) {
       inDouble = !inDouble;
       i++;
     } else if ((c === '$' || ((c === '<' || c === '>') && !inDouble)) && text[i + 1] === '(') {
@@ -807,10 +826,10 @@ function substitutionSpans(text: string, skipComments = false): SubstitutionSpan
  * its separators do not split the outer command. Quote-aware: a quoted ')' does
  * not end a substitution early and leave a real terminator behind.
  */
-function blankSubstitutions(command: string, skipComments = false): string {
+function blankSubstitutions(command: string, skipComments = false, quotesLiteral = false): string {
   let out = '';
   let last = 0;
-  for (const span of substitutionSpans(command, skipComments)) {
+  for (const span of substitutionSpans(command, skipComments, quotesLiteral)) {
     out += `${command.slice(last, span.start)}${DYNAMIC}`;
     last = span.end;
   }
@@ -832,8 +851,8 @@ function resolveDir(base: string, dir: string, home: string): string {
  * take a value (`--loglevel warn`, `-w api`) are skipped with their value, so
  * the value is never read as the subcommand.
  */
-export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? ''): string | null {
-  return scan(blankSubstitutions(command), cwd, home).target;
+export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string | null {
+  return scan(blankSubstitutions(command), cwd, home, realpath).target;
 }
 
 /** The script of every `bash -c '<script>'` (and sh, zsh, dash, ksh) in the command (#5169). */
@@ -903,22 +922,30 @@ const SHELL_OPTIONS_MAX = 12;
 const HEREDOC_OPERATOR = /(?<!<)<<(-?)\s*(?:'([^'\n]*)'|"([^"\n]*)"|\\?([\w.-]+))/g;
 
 /**
+ * Marks a heredoc body that came in under an UNQUOTED delimiter. Inside such a body every
+ * quote character is data, while `$` and backticks still expand, so `` '`npm ci`' `` runs
+ * `npm ci` (row 17, #29b). readAllWays strips the mark and reads the body with quotes off.
+ */
+const HEREDOC_RAW = '\u0004';
+
+/**
  * The command with its heredoc bodies cut out, and the bodies. The body of a quoted-delimiter
  * heredoc is literal text, and an apostrophe or backtick in it must not pair with one in the command
- * after it. Read as an extra reading beside the others, so a misplaced cut can only add candidates.
+ * after it. An unquoted-delimiter body still expands, so it is marked for the quote-off reading.
+ * Read as an extra reading beside the others, so a misplaced cut can only add candidates.
  */
 function splitHeredocs(text: string): { rest: string; bodies: string[] } {
   if (!text.includes('<<')) return { rest: text, bodies: [] };
   const keep: string[] = [];
   const bodies: string[] = [];
-  const pending: Array<{ delimiter: string; stripTabs: boolean }> = [];
+  const pending: Array<{ delimiter: string; stripTabs: boolean; expand: boolean }> = [];
   let body: string[] = [];
   for (const line of text.split('\n')) {
     if (pending.length > 0) {
       const { delimiter, stripTabs } = pending[0];
       if ((stripTabs ? line.replace(/^\t+/, '') : line) === delimiter) {
-        pending.shift();
-        bodies.push(body.join('\n'));
+        const done = pending.shift() as { delimiter: string; stripTabs: boolean; expand: boolean };
+        bodies.push((done.expand ? HEREDOC_RAW : '') + body.join('\n'));
         body = [];
       } else {
         body.push(line);
@@ -927,15 +954,17 @@ function splitHeredocs(text: string): { rest: string; bodies: string[] } {
     }
     keep.push(line);
     for (const m of line.matchAll(HEREDOC_OPERATOR)) {
-      pending.push({ delimiter: m[2] ?? m[3] ?? m[4] ?? '', stripTabs: m[1] === '-' });
+      // A quoted delimiter ('EOF' or "EOF") makes the body literal; a bare or
+      // escaped one leaves expansions live, including inside apostrophes.
+      pending.push({ delimiter: m[2] ?? m[3] ?? m[4] ?? '', stripTabs: m[1] === '-', expand: m[2] === undefined && m[3] === undefined });
     }
   }
-  if (pending.length > 0 && body.length > 0) bodies.push(body.join('\n'));
+  if (pending.length > 0 && body.length > 0) bodies.push((pending[0].expand ? HEREDOC_RAW : '') + body.join('\n'));
   return { rest: keep.join('\n'), bodies };
 }
 
 /** Bodies of every $(...) and `...` in the command, nested ones included, each with its own substitutions blanked. */
-function substitutionBodies(command: string): string[] {
+function substitutionBodies(command: string, quotesLiteral = false): string[] {
   const bodies = new Set<string>();
   // No depth cap (a cap that stops quietly fails open): every body is strictly shorter than the
   // text it came from, so the walk ends; the set keeps repeated bodies from being walked twice.
@@ -952,7 +981,7 @@ function substitutionBodies(command: string): string[] {
     if (work > PARSE_MAX_WORK) throw new ParseBudgetExceeded();
     // Both readings: with comments skipped and without (see substitutionSpans).
     for (const skip of [false, true]) {
-      for (const span of substitutionSpans(text, skip)) {
+      for (const span of substitutionSpans(text, skip, quotesLiteral)) {
         if (walked.has(span.inner)) continue;
         if (walked.size >= PARSE_MAX_SPANS) throw new ParseBudgetExceeded();
         walked.add(span.inner);
@@ -974,8 +1003,8 @@ function substitutionBodies(command: string): string[] {
  * reading passed through, and every target. A misparse then checks too many
  * directories, never too few.
  */
-export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
-  const scans = readingsOf(command).map((text) => scan(text, cwd, home));
+export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string[] {
+  const scans = readingsOf(command).map((text) => scan(text, cwd, home, realpath));
   if (!scans.some((s) => s.targets.length > 0)) return [];
   const dirs = new Set<string>([cwd]);
   for (const s of scans) {
@@ -1020,12 +1049,21 @@ function readAllWays(command: string): string[] {
     stack.push(next);
   };
   while (stack.length > 0) {
-    const text = stack.pop() as string;
+    const marked = stack.pop() as string;
+    // A body of an unquoted-delimiter heredoc carries the HEREDOC_RAW mark: its quotes are
+    // data, not quoting, so substitutions inside apostrophes still run (#29b).
+    const quotesLiteral = marked.startsWith(HEREDOC_RAW);
+    const text = quotesLiteral ? marked.slice(HEREDOC_RAW.length) : marked;
     // Each text is read in full, so a chain of scripts that each drop one word costs length squared.
     work += text.length;
     if (work > PARSE_MAX_READ_WORK) throw new ParseBudgetExceeded();
-    const bodies = substitutionBodies(text);
-    readings.push(blankSubstitutions(text), blankSubstitutions(text, true), text, ...bodies);
+    const bodies = substitutionBodies(text, quotesLiteral);
+    readings.push(
+      blankSubstitutions(text, false, quotesLiteral),
+      blankSubstitutions(text, true, quotesLiteral),
+      text,
+      ...bodies,
+    );
     for (const body of nestedShellBodies(text)) enqueue(body, text);
     for (const source of [text, ...bodies]) {
       for (const script of nestedScripts(source)) enqueue(script, text);
@@ -1047,13 +1085,14 @@ function readAllWays(command: string): string[] {
  * escapes are removed), return the cwd and every directory any reading passed
  * through, so the guard can ask instead of failing open. [] otherwise.
  */
-export function npmCiMentionDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
-  const words = shellWord(command).split(/[\s;&|()]+/).filter(Boolean);
+export function npmCiMentionDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string[] {
+  // Backticks split too: a command substitution may wrap the npm word (`'`npm ci`'`).
+  const words = shellWord(command).split(/[\s;&|()`]+/).filter(Boolean);
   const npmAt = words.findIndex((w) => baseName(w) === 'npm');
   const mentioned = npmAt !== -1 && words.slice(npmAt + 1).some((w) => CLEAN_INSTALL.has(w));
   // A command or subcommand the reader could not resolve (`$NPM ci`, `npm $SUB`) counts as a mention.
   if (!mentioned && !MAY_BE_DYNAMIC.test(command)) return [];
-  const scans = readingsOf(command).map((text) => scan(text, cwd, home));
+  const scans = readingsOf(command).map((text) => scan(text, cwd, home, realpath));
   if (!mentioned && !scans.some((s) => s.dynamic)) return [];
   const dirs = new Set<string>([cwd]);
   for (const s of scans) for (const d of s.seen) dirs.add(d);
@@ -1064,7 +1103,7 @@ export function npmCiMentionDirs(command: string, cwd: string, home: string = pr
  * One reading of a command: every clean-install target in it (`target` is the first, or null) and every
  * directory it passed through. The whole command is scanned, never stopped at the first install.
  */
-function scan(command: string, cwd: string, home: string): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean; dirShaky: boolean } {
+function scan(command: string, cwd: string, home: string, realpath?: (path: string) => string): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean; dirShaky: boolean } {
   const seen: string[] = [cwd];
   const targets: string[] = [];
   // Every directory word the scan met (cd, env -C, --prefix), as written, for the uncertain-parse check.
@@ -1081,9 +1120,14 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
   // conflict and go null, and refreshTildeHomes needs undefined to mean "no
   // assignment seen".
   const varsForExpand = (): Vars => {
-    if (varsNow.has('HOME')) return varsNow;
+    if (varsNow.has('HOME') && varsNow.has('IFS')) return varsNow;
     const m: Vars = new Map(varsNow);
-    m.set('HOME', home);
+    if (!m.has('HOME')) m.set('HOME', home);
+    // Bash starts IFS at space-tab-newline, so `${IFS:+x}` answers `x` until the
+    // command assigns its own IFS (row 17, #36). varsNow itself stays unseeded:
+    // `ifs` above reads unset to mean the same default and an explicit `IFS=`
+    // to mean no splitting.
+    if (!m.has('IFS')) m.set('IFS', ' \t\n');
     return m;
   };
   const varsAll = new Map<string, Set<string>>();
@@ -1092,9 +1136,12 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
   // outcome and `-`/`:-` keep the default alongside the value (round 3).
   const maybeUnset = new Set<string>();
   let dir = cwd;
-  // A subshell runs in a copy of the shell: a cd and an assignment inside it end
-  // when it closes. Each '(' saves the directory and the variables (#55).
-  const saved: Array<{ dir: string; vars: Vars }> = [];
+  // pushd and popd move the shell through a directory stack (row 17, #41): a
+  // `pushd /a; popd` pair leaves the shell where it started, not in /a.
+  const dirstack: string[] = [];
+  // A subshell runs in a copy of the shell: a cd, an assignment and a stack
+  // change inside it end when it closes. Each '(' saves them all (#55, #41).
+  const saved: Array<{ dir: string; vars: Vars; dirstack: string[] }> = [];
   // Unpack a `DYNAMIC name DYNAMIC arg` expansion: the variable's history plus
   // the arg are the directories bash could use. An empty name (the `+`/`:+`
   // forms) contributes only the arg; the variable's past values never become
@@ -1169,7 +1216,7 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     while (closes < segment.length && segment[segment.length - 1 - closes] === ')') closes++;
     segment = segment.slice(0, segment.length - closes).trim();
     for (let n = 0; n < opens; n++) {
-      saved.push({ dir, vars: varsNow });
+      saved.push({ dir, vars: varsNow, dirstack: [...dirstack] });
       // The subshell's variable map is a copy: an assignment or a CDPATH change
       // inside it must not leak into the parent shell (reviews on #5336).
       varsNow = new Map(varsNow);
@@ -1181,6 +1228,8 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         if (s !== undefined) {
           dir = s.dir;
           varsNow = s.vars;
+          dirstack.length = 0;
+          dirstack.push(...s.dirstack);
         }
       }
     };
@@ -1243,7 +1292,8 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       // (`cd $p` with p empty is bare `cd` into HOME) whether or not IFS is set.
       const pieces = !w.splits ? [ex] : ex === '' ? [] : ifs === '' ? [ex] : ex.split(ifsSplit).filter(Boolean);
       return pieces.flatMap((p) => {
-        const parts = braceExpand(p);
+        // A brace the shell kept inside quotes is literal text, not an expansion (#40).
+        const parts = w.quotedBrace ? [p] : braceExpand(p);
         return parts.length === 1 && parts[0] === p ? parts : parts.filter((x) => x !== '');
       });
     });
@@ -1252,8 +1302,34 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
     let cdIdx = 0;
     while (cdIdx < words.length && /^\w+=/.test(words[cdIdx])) cdIdx++;
     while (cdIdx < words.length && (words[cdIdx] === 'builtin' || words[cdIdx] === 'command')) cdIdx++;
+    if (cdIdx < words.length && words[cdIdx] === 'popd') {
+      // `popd` alone moves the shell back to the directory the last pushd came from.
+      // An empty stack fails, and a `+N`/`-N` rotation is a move the reader cannot place
+      // (row 17, #41), so both mark the parse shaky and leave the directory where it is.
+      const popOps = words.slice(cdIdx + 1).filter((a) => !CD_OPTIONS.has(a));
+      if (popOps.length === 0 && dirstack.length > 0) dir = dirstack.pop() as string;
+      else dirShaky = true;
+      seen.push(dir);
+      restore();
+      continue;
+    }
     const cdWord = cdIdx < words.length && (words[cdIdx] === 'cd' || words[cdIdx] === 'pushd');
-    const cdOperands = cdWord ? words.slice(cdIdx + 1).filter((a) => !CD_OPTIONS.has(a)) : [];
+    // Options sit before the operands and `--` ends them: a later `-L` is positional
+    // (`cd -- -L /d` is two operands bash refuses), and the last of -L/-P wins
+    // (row 17, #37 and #38).
+    const afterCd = cdWord ? words.slice(cdIdx + 1) : [];
+    let optEnd = 0;
+    let physical = false;
+    while (optEnd < afterCd.length && CD_OPTIONS.has(afterCd[optEnd]) && afterCd[optEnd] !== '--') {
+      if (afterCd[optEnd] === '-P') physical = true;
+      else if (afterCd[optEnd] === '-L') physical = false;
+      optEnd++;
+    }
+    if (optEnd < afterCd.length && afterCd[optEnd] === '--') optEnd++;
+    const cdOperands = afterCd.slice(optEnd);
+    // An operand that still looks like an option after `--` is positional to bash: it names a
+    // directory like `-L`, which almost never exists, so the cd fails rather than moving.
+    if (cdOperands.some((a) => a.startsWith('-'))) dirShaky = true;
     if (cdWord) {
       const beforeCd = dir;
       // `NAME=x cd sub` applies NAME to this one command and does not persist:
@@ -1278,6 +1354,12 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
       if (cdOperands.length !== 1 || /['"\\$`<>|#{}]/.test(segment)) dirShaky = true;
       if (cdOperands.length === 0) {
         if (words[cdIdx] === 'cd') dir = cdHome;
+        else if (dirstack.length > 0) {
+          // A bare pushd swaps the cwd with the stack top (row 17, #41).
+          const top = dirstack.pop() as string;
+          dirstack.push(dir);
+          dir = top;
+        } else dirShaky = true; // an empty stack: pushd fails and nothing moves
         seen.push(dir);
         restore();
         continue;
@@ -1337,6 +1419,16 @@ function scan(command: string, cwd: string, home: string): { target: string | nu
         continue;
       }
       dir = resolveOp(dir, op);
+      // A pushd that really moved keeps the directory it left (row 17, #41).
+      if (words[cdIdx] === 'pushd') dirstack.push(beforeCd);
+      // `cd -P` resolves `..` against the directory each link points at, not the
+      // lexical path (row 17, #37). Without a realpath probe the landing spot is
+      // not knowable, so the stayed-behind directory remains a candidate.
+      if (physical) {
+        dirShaky = true;
+        seen.push(beforeCd);
+        if (realpath !== undefined) dir = realpath(dir);
+      }
       // CDPATH: a relative cd may resolve under a CDPATH entry instead of the cwd
       // (#37). Bash skips it only for operands that ARE `.` or `..` or start
       // with `./` or `../`; a hidden name like `.worktrees` still searches it.
@@ -1449,9 +1541,9 @@ export function npmCiParseIsUncertain(command: string): boolean {
  * redirection the shell and this reader treat differently. The uncertain path
  * then probes every directory word against every base the command passed.
  */
-export function npmCiDirShaky(command: string, cwd: string, home: string = process.env.HOME ?? ''): boolean {
+export function npmCiDirShaky(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): boolean {
   return readingsOf(command)
-    .map((text) => scan(text, cwd, home))
+    .map((text) => scan(text, cwd, home, realpath))
     .some((s) => s.dirShaky);
 }
 
@@ -1461,8 +1553,8 @@ export function npmCiDirShaky(command: string, cwd: string, home: string = proce
  * taken against each of those, since the reading that resolved a relative cd against the wrong
  * base is the one that cannot be trusted. Over-collects on purpose.
  */
-export function npmCiUncertainDirs(command: string, cwd: string, home: string = process.env.HOME ?? ''): string[] {
-  const scans = readingsOf(command).map((text) => scan(text, cwd, home));
+export function npmCiUncertainDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string[] {
+  const scans = readingsOf(command).map((text) => scan(text, cwd, home, realpath));
   const bases = new Set<string>([cwd]);
   for (const s of scans) for (const d of s.seen) bases.add(d);
   const dirs = new Set<string>(bases);
@@ -1473,15 +1565,15 @@ export function npmCiUncertainDirs(command: string, cwd: string, home: string = 
 }
 
 /** True when any reading of the command has a directory word (cd, env -C, --prefix) that is not absolute. */
-export function npmCiHasRelativeCd(command: string, cwd: string, home: string = process.env.HOME ?? ''): boolean {
+export function npmCiHasRelativeCd(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): boolean {
   return readingsOf(command)
-    .map((text) => scan(text, cwd, home))
+    .map((text) => scan(text, cwd, home, realpath))
     .some((s) => s.cdArgs.some((arg) => !isAbsolute(expandHome(arg, home))));
 }
 
 /** Where the search for a reachable link starts: the cwd, every directory a reading saw, and the repo's .worktrees. */
 function uncertainSearchRoots(command: string, cwd: string, deps: NpmCiSymlinkGuardDeps, home: string): string[] {
-  const roots = new Set<string>(npmCiUncertainDirs(command, cwd, home));
+  const roots = new Set<string>(npmCiUncertainDirs(command, cwd, home, deps.realpath));
   const list = deps.listSubdirs;
   if (list !== undefined) {
     // The repo's .worktrees directory: the nearest one above the cwd (a worktree sits inside it).
@@ -1564,12 +1656,12 @@ export function npmCiSymlinkGuard(
 }
 
 function decide(command: string, cwd: string, ctx: HookContext, deps: NpmCiSymlinkGuardDeps): HookResult {
-  const candidates = npmCiCandidateDirs(command, cwd);
+  const candidates = npmCiCandidateDirs(command, cwd, undefined, deps.realpath);
   if (candidates.length === 0) {
     // No reading found a clean install, yet the text names one: a shape the
     // parser cannot place. Ask instead of failing open, but only where a
     // linked node_modules is at stake (#5169).
-    const mentioned = npmCiMentionDirs(command, cwd)
+    const mentioned = npmCiMentionDirs(command, cwd, undefined, deps.realpath)
       .map((d) => join(d, 'node_modules'))
       .find((m) => deps.isSymlink(m));
     if (mentioned === undefined) return outputSilentSuccess();
@@ -1585,8 +1677,8 @@ function decide(command: string, cwd: string, ctx: HookContext, deps: NpmCiSymli
     // is one the reader cannot place with certainty, or a directory change may have landed
     // elsewhere than the reading assumes (row 17, #5336), ask if any directory it could reach
     // is linked, instead of trusting the reading (row 16 fix round 1).
-    if (npmCiParseIsUncertain(command) || npmCiDirShaky(command, cwd)) {
-      const reachable = npmCiUncertainDirs(command, cwd)
+    if (npmCiParseIsUncertain(command) || npmCiDirShaky(command, cwd, undefined, deps.realpath)) {
+      const reachable = npmCiUncertainDirs(command, cwd, undefined, deps.realpath)
         .map((d) => join(d, 'node_modules'))
         .find((m) => deps.isSymlink(m));
       if (reachable !== undefined) {
@@ -1599,7 +1691,7 @@ function decide(command: string, cwd: string, ctx: HookContext, deps: NpmCiSymli
       // Ruling B (row 16 fix round 2): with a relative cd in an uncertain parse, no resolution of
       // the cd chain is trusted, so ask whenever ANY link is reachable: below the repo's
       // .worktrees, the cwd or any directory a reading saw. No depth to get wrong.
-      if (npmCiHasRelativeCd(command, cwd)) {
+      if (npmCiHasRelativeCd(command, cwd, undefined, deps.realpath)) {
         const { found, truncated } = findLinkedBelow(uncertainSearchRoots(command, cwd, deps, process.env.HOME ?? ''), deps);
         if (found !== undefined || truncated) {
           const where = found !== undefined ? `${found} is a symlink the command may reach` : 'the search for a linked node_modules was cut short';

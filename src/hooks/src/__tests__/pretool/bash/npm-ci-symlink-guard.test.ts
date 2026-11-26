@@ -1383,3 +1383,64 @@ describe('a function header and a prefix the text does not show', () => {
     expect(decision(`d=${W}; npm ci --prefix "$d"`, linked)).toBe('deny');
   });
 });
+
+// The six exploit shapes the Vercel Security Review left open on main (#5184): each puts the
+// shell in an unlinked cwd and links only the directory bash would really run the clean install
+// in. A deny or an ask proves the guard sees it; a silent allow is the bypass.
+describe('the six residual findings (#29b, #36, #37, #38, #40, #41)', () => {
+  const relLinked = linksAt('/wt/rel/node_modules');
+  const nothingLinked = linksAt();
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps) =>
+    npmCiSymlinkGuard(bash(command, '/wt'), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  // #29b: an unquoted delimiter expands backticks inside apostrophes too; the
+  // substituted npm ci runs in the cwd, so the cwd is the linked directory.
+  it("#29b a backtick inside apostrophes in an unquoted heredoc: denied or asked when the cwd is linked", () => {
+    const cwdLinked = linksAt('/wt/node_modules');
+    expect(['deny', 'ask']).toContain(decision("cat <<EOF\n'`npm ci`'\nEOF", cwdLinked));
+    expect(decision("cat <<EOF\n'`npm ci`'\nEOF", nothingLinked)).toBeUndefined();
+  });
+
+  it.each([
+    // #36: ${IFS:+x} expands to a real operand when IFS is set, so bash refuses the cd.
+    ['cd /decoy${IFS:+ /also}; npm ci --prefix rel', 'rel'],
+    ['cd /decoy${IFS:+/also}; npm ci --prefix rel', 'rel'],
+    // #38: after -- every word is positional; cd -- -L /decoy is two operands, bash refuses.
+    ['cd -- -L /decoy; npm ci --prefix rel', 'rel'],
+    // #41: popd returns the shell to the pushed-from directory.
+    ['pushd /a; popd; npm ci --prefix rel', 'rel'],
+    ['pushd /a; popd; pushd /b; popd; npm ci --prefix rel', 'rel'],
+  ])('%s: denied or asked when the real target is linked', (command, _tag) => {
+    expect(['deny', 'ask']).toContain(decision(command, relLinked));
+  });
+
+  // #37: cd -P resolves `..` after dereferencing the symlink, so it lands where
+  // the link's target's parent is, not where the lexical path points.
+  it('#37 cd -P resolves physically: denied or asked when the physical dir is linked', () => {
+    const deps: NpmCiSymlinkGuardDeps = {
+      ...relLinked,
+      // The lexical path /tmp/link/child/.. resolves to /tmp/link first; the
+      // physical path of that (through the link) is /wt.
+      realpath: (p: string) => (p === '/tmp/link' ? '/wt' : p),
+    };
+    expect(['deny', 'ask']).toContain(decision('cd -P /tmp/link/child/..; npm ci --prefix rel', deps));
+  });
+
+  // #40: quoted braces are literal text in bash; --prefix 'a{b,c}' names one directory.
+  it('#40 quoted brace literal: denied or asked when the literal dir is linked', () => {
+    const deps = linksAt('/wt/a{b,c}/node_modules');
+    expect(['deny', 'ask']).toContain(decision("npm ci --prefix 'a{b,c}'", deps));
+    expect(decision("npm ci --prefix 'a{b,c}'", nothingLinked)).toBeUndefined();
+  });
+
+  it.each([
+    ["cat <<EOF\n'`npm ci`'\nEOF"],
+    ['cd /decoy${IFS:+ /also}; npm ci --prefix rel'],
+    ['cd -- -L /decoy; npm ci --prefix rel'],
+    ['pushd /a; popd; npm ci --prefix rel'],
+    ['cd /decoy; npm ci --prefix rel'],
+    ['npm ci --prefix rel'],
+  ])('control, %s: quiet when nothing is linked', (command) => {
+    expect(decision(command, nothingLinked)).toBeUndefined();
+  });
+});
