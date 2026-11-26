@@ -139,6 +139,7 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
     # MCP preflight: dep miss OR unreachable server skips, unless --require-read.
     try:
         from mcp_core.client import (  # type: ignore[import-not-found]
+            McpTimeout,
             McpToolError,
             McpUnreachable,
             call_tool,
@@ -160,7 +161,7 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
     print(f"staleness_cron: fetching nodes from {server!r} (limit={SEARCH_LIMIT})")
     try:
         result = call_tool(server, "search_nodes", {"query": "*", "limit": SEARCH_LIMIT})
-    except (McpUnreachable, McpToolError) as exc:
+    except (McpUnreachable, McpToolError, McpTimeout) as exc:
         print(f"staleness_cron: ERROR — {type(exc).__name__}: {exc}", file=sys.stderr)
         return _unknown(json_path, f"search_nodes raised {type(exc).__name__}", 2)
 

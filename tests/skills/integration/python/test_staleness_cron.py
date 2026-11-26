@@ -263,6 +263,30 @@ def test_require_read_passes_on_a_real_read(tmp_path: Path, shim_mixed_kg: Path)
     assert _load_handoff(tmp_path)["status"] == "fired"
 
 
+def test_post_probe_timeout_writes_unknown_handoff(tmp_path: Path) -> None:
+    shim = _make_shim(
+        tmp_path,
+        """
+        def probe(server, **kwargs):
+            return True
+
+        class McpTimeout(Exception): pass
+        class McpUnreachable(Exception): pass
+        class McpToolError(Exception): pass
+
+        def call_tool(server, tool, args=None, **kwargs):
+            raise McpTimeout("shim: deadline after a successful probe")
+        """,
+    )
+    result = _run(tmp_path, pythonpath=shim, extra_args=["--require-read"])
+    assert result.returncode == 2, f"stdout: {result.stdout} stderr: {result.stderr}"
+    assert "McpTimeout" in result.stderr
+    handoff = _load_handoff(tmp_path)
+    assert handoff["status"] == "unknown"
+    assert "McpTimeout" in handoff["skip_reason"]
+    assert not list(tmp_path.glob("memory-staleness-*.md"))
+
+
 @pytest.mark.parametrize(
     "answer",
     [None, "garbage", {}, {"error": "boom"}, {"entities": "x"}, ["a"], {"nodes": [1, 2]}],
@@ -279,6 +303,7 @@ def test_unreadable_answer_is_not_an_empty_graph(tmp_path: Path, answer: Any) ->
 
         class McpUnreachable(Exception): pass
         class McpToolError(Exception): pass
+        class McpTimeout(Exception): pass
         """,
     )
     result = _run(tmp_path, pythonpath=shim)
