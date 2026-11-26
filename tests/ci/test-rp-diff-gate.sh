@@ -7,7 +7,9 @@
 # counted ordinary plugin source as release output (review of #5470).
 # Codex's #5479 review added the completeness arms: a truncated file or
 # commit list, a rename whose source escapes the allowlist, and a branch
-# that moved mid-read must all keep the suites running.
+# that moved mid-read must all keep the suites running. Issue #5480 adds
+# the verified-signature arm: a bot-looking commit without a
+# GitHub-verified signature runs every suite.
 #
 # Decision logic lives in scripts/ci/rp-diff-gate-decision.sh so this test
 # feeds it recorded event data without a stub gh.
@@ -200,6 +202,23 @@ if grep -qx 'skip=false' "$OUT" && grep -qF 'commit without a linked GitHub auth
   log_pass "an unlinked-author commit does not skip"
 else
   log_fail "an unlinked author was dropped from the check: $(cat "$OUT")"
+fi
+
+section "15. A bot-authored commit with no verified signature does not skip"
+UNVERIFIED="$WORK_DIR/commits-unverified.json"
+jq '.[1].commit.verification.verified = false' "$COMMITS_5463" > "$UNVERIFIED"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "$UNVERIFIED"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'without a GitHub-verified signature' "$OUT"; then
+  log_pass "an unverified bot commit does not skip"
+else
+  log_fail "an unverified commit slipped the check: $(cat "$OUT")"
+fi
+jq '.[1].commit.verification = null' "$COMMITS_5463" > "$UNVERIFIED"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "$UNVERIFIED"
+if grep -qx 'skip=false' "$OUT"; then
+  log_pass "a commit with no verification object does not skip"
+else
+  log_fail "a missing verification object slipped the check: $(cat "$OUT")"
 fi
 
 echo

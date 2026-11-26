@@ -1,5 +1,41 @@
 [
-  {"sha": "1111111111111111111111111111111111111111", "author": {"login": "orchestkit-release-bot[bot]"}},
-  {"sha": "2222222222222222222222222222222222222222", "author": {"login": "orchestkit-release-bot[bot]"}},
-  {"sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "author": {"login": "orchestkit-release-bot[bot]"}}
+  {
+    "sha": "1111111111111111111111111111111111111111",
+    "author": {
+      "login": "orchestkit-release-bot[bot]"
+    },
+    "commit": {
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "dummy"
+      }
+    }
+  },
+  {
+    "sha": "2222222222222222222222222222222222222222",
+    "author": {
+      "login": "orchestkit-release-bot[bot]"
+    },
+    "commit": {
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "dummy"
+      }
+    }
+  },
+  {
+    "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "author": {
+      "login": "orchestkit-release-bot[bot]"
+    },
+    "commit": {
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "dummy"
+      }
+    }
+  }
 ]

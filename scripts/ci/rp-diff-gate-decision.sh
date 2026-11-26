@@ -129,9 +129,11 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
 
   # The allowlist covers executable and dependency surfaces (hook dist
   # bundles, package-lock.json, pyproject.toml), so path-only is not enough:
-  # every commit on the PR must come from the release bot, the list must be
-  # complete, and its tail must equal the sha that triggered this run (a
-  # branch that moved mid-read never earns the skip).
+  # every commit on the PR must come from the release bot and carry a
+  # GitHub-verified signature (author.login is only the account the commit
+  # email resolves to; a forged author line could borrow it, #5480), the
+  # list must be complete, and its tail must equal the sha that triggered
+  # this run (a branch that moved mid-read never earns the skip).
   if [[ "$skip" == true ]]; then
     COMMITS_JSON="${RP_COMMITS_JSON_FILE:-}"
     commits_ok=true
@@ -164,20 +166,29 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
       echo "commits list ends at a different head than the trigger sha; not skipping"
       skip=false
     else
-      # A commit whose author is not linked to a GitHub account reports
-      # author=null, which maps to an empty line here; an empty line is a
-      # not-bot author, never a missing row (Codex #5479, item 2).
-      AUTHORS="$(mktemp "${TMPDIR:-/tmp}/rp-gate-authors.XXXXXX")"
-      jq -sr 'add[] | .author.login // ""' < "$COMMITS_JSON" > "$AUTHORS"
-      while IFS= read -r author; do
-        if [[ -z "$author" ]]; then
-          echo "commit without a linked GitHub author; not skipping"
-          skip=false
-        elif [[ "$author" != "$RELEASE_BOT" ]]; then
-          echo "non-release-bot commit author: $author"
-          skip=false
-        fi
-      done < "$AUTHORS"
+      all_verified=""
+      if ! all_verified="$(jq -sr '[add[] | (.commit.verification.verified == true)] | all' < "$COMMITS_JSON")"; then
+        all_verified=""
+      fi
+      if [[ "$all_verified" != true ]]; then
+        echo "commit without a GitHub-verified signature; not skipping"
+        skip=false
+      else
+        # A commit whose author is not linked to a GitHub account reports
+        # author=null, which maps to an empty line here; an empty line is a
+        # not-bot author, never a missing row (Codex #5479, item 2).
+        AUTHORS="$(mktemp "${TMPDIR:-/tmp}/rp-gate-authors.XXXXXX")"
+        jq -sr 'add[] | .author.login // ""' < "$COMMITS_JSON" > "$AUTHORS"
+        while IFS= read -r author; do
+          if [[ -z "$author" ]]; then
+            echo "commit without a linked GitHub author; not skipping"
+            skip=false
+          elif [[ "$author" != "$RELEASE_BOT" ]]; then
+            echo "non-release-bot commit author: $author"
+            skip=false
+          fi
+        done < "$AUTHORS"
+      fi
     fi
   fi
 fi
