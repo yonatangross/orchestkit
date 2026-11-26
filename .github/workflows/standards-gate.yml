@@ -2,20 +2,24 @@
 # weaken the gate that judges it.
 #
 # Trigger is pull_request_target, so this YAML and every program it runs come
-# from the BASE branch, never from the PR. Three checkouts, none of which
-# persists credentials:
+# from the BASE branch, never from the PR. Two checkouts, none of which
+# persists credentials, and one credential-free fetch:
 #   trusted  github.sha, the base branch tip (the same commit as this YAML):
 #            the gate scripts and the only tree anything is installed into.
 #   base     pull_request.base.sha, configs only: the FLOOR. The allowlists and
 #            the baseline a PR is judged by.
-#   head     pull_request.head.sha, full tree: DATA ONLY. Read as text by the
-#            trusted reader. Nothing in it is executed, sourced or installed,
-#            and no step uses it as a working directory (a sparse tree would
-#            break the reader, which lists files with git ls-files).
+#   head     pull_request.head.sha, full tree: DATA ONLY, fetched with git.
+#            Not actions/checkout: the pinned action refuses a fork head under
+#            pull_request_target unless its unsafe opt-in is set, and the
+#            opt-in is deliberately not taken for a tree nothing executes.
+#            Read as text by the trusted reader. Nothing in it is executed,
+#            sourced or installed, and no step uses it as a working directory
+#            (the reader lists files with git ls-files).
 # No secrets are used, the token is contents: read, and the runner is hosted
 # and ephemeral (a pull_request_target job must never run on the shared
-# self-hosted pool). The first step refuses forks explicitly, so a fork can
-# never read as a skipped (green) check.
+# self-hosted pool). A fork pull request is judged the same way: its head is
+# data like any other, so the verdict can never read as a skipped check and
+# a fork contributor needs nothing extra (#5204).
 #
 # What the verdict fails on: a head violation not in the BASE baseline, head
 # allowlists looser than base (configs/standards.json), a head baseline that
@@ -58,17 +62,6 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Refuse fork pull requests (fail, never skip)
-        env:
-          HEAD_REPO_ID: ${{ github.event.pull_request.head.repo.id }}
-          BASE_REPO_ID: ${{ github.event.pull_request.base.repo.id }}
-        run: |
-          set -euo pipefail
-          if [ "${HEAD_REPO_ID}" != "${BASE_REPO_ID}" ]; then
-            echo "::error title=standards gate::a fork pull request cannot be judged here; run scripts/standards-gate-verdict.sh locally and paste the report"
-            exit 1
-          fi
-
       - name: Trusted gate code (base branch tip, same commit as this YAML)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -85,11 +78,26 @@ jobs:
           persist-credentials: false
 
       - name: PR head as data (full tree, never executed)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          path: head
-          persist-credentials: false
+        # The pull ref makes the head commit reachable in the base repo for
+        # forks and branches alike, and the pin check refuses a ref that
+        # moved since the event fired. No credentials anywhere: anonymous
+        # https read of this repo, credential.helper explicitly emptied.
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git init -q head
+          if ! git -C head -c credential.helper= fetch -q --depth=1 \
+            "https://github.com/${GITHUB_REPOSITORY}" "${HEAD_SHA}"; then
+            git -C head -c credential.helper= fetch -q --depth=1 \
+              "https://github.com/${GITHUB_REPOSITORY}" "refs/pull/${PR_NUM}/head"
+          fi
+          if [ "$(git -C head rev-parse FETCH_HEAD)" != "${HEAD_SHA}" ]; then
+            echo "::error title=standards gate::the pull ref moved since the event fired; rerun the check"
+            exit 1
+          fi
+          git -C head -c advice.detachedHead=false checkout -q FETCH_HEAD
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
