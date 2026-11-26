@@ -9,7 +9,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { appendFileSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -102,16 +102,49 @@ describe('overlapping SubagentStart hooks (#5464 review)', () => {
     expect(rows).toHaveLength(1);
   });
 
-  test('a held lock never lets a start claim lineage it could not serialize', () => {
-    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n`);
-    // Another hook holds the lock (fresh, not stale).
+  // Round 2 (Codex HOLD at b76bd94a): a start blocked by another hook's lock
+  // fell back to "no lineage" without consuming its intent, so the next start
+  // took the wrong parent; and it skipped the duplicate check.
+  const blockShared = () => {
+    // A busy spawn-log lock, as another hook in flight leaves it.
     writeFileSync(`${log}.lock`, String(process.pid));
+  };
+  const unblockShared = () => rmSync(`${log}.lock`, { force: true });
 
+  test('a start that meets a busy hook still consumes its own intent, so the next start gets the next parent', () => {
+    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
+
+    blockShared();
     subagentValidator(start('child-1'));
+    unblockShared();
+    subagentValidator(start('child-2'));
 
-    const rows = startRows();
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).not.toHaveProperty('parent_agent_id');
-    expect(rows[0]).not.toHaveProperty('spawn_depth');
+    const byAgent = Object.fromEntries(startRows().map((r) => [r.agent_id, r.parent_agent_id]));
+    expect(byAgent).toEqual({ 'child-1': 'parentA', 'child-2': 'parentB' });
+  });
+
+  test('a start that meets a busy hook still writes one row per agent_id', () => {
+    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
+
+    blockShared();
+    subagentValidator(start('child-1'));
+    subagentValidator(start('child-1'));
+    unblockShared();
+
+    expect(startRows().filter((r) => r.agent_id === 'child-1')).toHaveLength(1);
+  });
+
+  test('an intent claimed by a slow start, however old the claim, is never taken by another start', () => {
+    writeFileSync(log, `${pretool('Explore', 'parentA', 'toolu_a')}\n${pretool('Explore', 'parentB', 'toolu_b')}\n`);
+    // A start that claimed parentA long ago and has not written its row yet.
+    const claims = join(project, '.claude', 'logs', 'spawn-claims');
+    mkdirSync(claims, { recursive: true });
+    const held = join(claims, `${SESSION}.intent.toolu_a`);
+    writeFileSync(held, 'slow-child');
+    utimesSync(held, new Date(Date.now() - 60_000), new Date(Date.now() - 60_000));
+
+    subagentValidator(start('child-2'));
+
+    expect(startRows().map((r) => r.parent_agent_id)).toEqual(['parentB']);
   });
 });
