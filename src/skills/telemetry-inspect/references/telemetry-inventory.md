@@ -65,8 +65,8 @@ Note: `appendAnalytics` writes its own filename set (`task-usage.jsonl`, `team-a
 
 | Path | Writer |
 |------|--------|
-| `.claude/state/goal-history.jsonl` | `lifecycle/goal-budget-guard`, `prompt/goal-tracker` |
-| `.claude/state/goal-budget-tripped.json` | `lifecycle/goal-budget-guard`, `prompt/goal-tracker` |
+| `.claude/state/goal-history.jsonl` | `prompt/goal-tracker`, `stop/goal-tracker`, `lifecycle/goal-budget-guard` |
+| `.claude/state/goal-budget-tripped.<session_id>.json` | `stop/goal-tracker` (read by `pretool/tool-dispatcher`) |
 | `.claude/state/last-test-run.json` | `pretool/bash/pre-commit-test-gate` |
 | `.claude/state/plugins-snapshot.json` | `lifecycle/plugins-drift-snapshot`, `posttool/check-plugins-drift` |
 | `.claude/state/dev-stack.json` | `lib/dev-stack-state` |

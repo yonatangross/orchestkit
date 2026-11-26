@@ -17,6 +17,8 @@
  * the per-handler registry and never names it.
  *
  * Contract:
+ * - A tripped /goal run (lib/goal-run.ts) is denied for every tool and the
+ *   primary is skipped; observers and the forward still run.
  * - The route's primary (sync) handler result is returned unchanged, so a
  *   deny, ask, defer or updatedInput reaches CC exactly as today.
  * - Observers (today registered async) run after the primary handler; their
@@ -44,6 +46,7 @@ import { workflowAgentTypeAdvisor } from './task/workflow-agenttype-advisor.js';
 import { webhookForwarder } from '../lifecycle/webhook-forwarder.js';
 import { ccMatcherMatches } from '../lib/cc-matcher.js';
 import { TIMED_OUT, withBudget } from '../lib/budget.js';
+import { goalBrakeVerdict } from '../lib/goal-run.js';
 
 const HOOK_NAME = 'tool-dispatcher';
 
@@ -175,9 +178,11 @@ export async function toolDispatcher(
   const left = (id: string) => Math.min(budgetOf(id), deadline - Date.now());
   const proof = new ProofLog(env, 'PreToolUse', tool);
 
-  let result: HookResult = outputSilentSuccess();
+  // A tripped /goal run is denied for every tool, before any handler (#4684).
+  const braked = goalBrakeVerdict(input, ctx.projectDir);
+  let result: HookResult = braked ?? outputSilentSuccess();
   try {
-    if (route?.primary) {
+    if (!braked && route?.primary) {
       const primaryId = route.handlers[0];
       try {
         const primary = route.primary;

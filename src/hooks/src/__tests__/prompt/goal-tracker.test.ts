@@ -79,18 +79,12 @@ describe('goalTracker hook', () => {
     expect(existsSync(join(tmp, '.claude', 'state', 'goal-history.jsonl'))).toBe(false);
   });
 
-  it('returns outputBlock when the brake belongs to THIS session', () => {
+  it('never blocks, even with a brake file on disk (the brake acts at PreToolUse, #4684)', () => {
     const brakeDir = join(tmp, '.claude', 'state');
     mkdirSync(brakeDir, { recursive: true });
     writeFileSync(
-      join(brakeDir, 'goal-budget-tripped.json'),
-      JSON.stringify({
-        tripped_at: '2026-05-12T12:00:00Z',
-        session_id: 'sess-C',
-        turns: 35,
-        tokens: 100,
-        reason: 'turns_cap',
-      }),
+      join(brakeDir, 'goal-budget-tripped.sess-C.json'),
+      JSON.stringify({ session_id: 'sess-C', prompt_id: 'p1', reason: 'turns_cap', turns: 35, cap: 30 }),
     );
 
     const ctx = createTestContext({ projectDir: tmp, sessionId: 'sess-C' });
@@ -99,64 +93,11 @@ describe('goalTracker hook', () => {
       session_id: 'sess-C',
       tool_input: {},
       prompt: '/goal try again',
+      prompt_id: 'p2',
     };
 
-    const result = goalTracker(input, ctx);
-    expect(result.continue).toBe(false);
-    expect(result.stopReason).toMatch(/budget tripped/);
-    expect(result.stopReason).toMatch(/turns_cap/);
-    // Should NOT append history while brake is active
+    expect(goalTracker(input, ctx)).toEqual({ continue: true, suppressOutput: true });
     const historyPath = join(tmp, '.claude', 'state', 'goal-history.jsonl');
-    expect(existsSync(historyPath)).toBe(false);
-  });
-
-  it('ignores a brake tripped by a DIFFERENT session (#2919 cross-session bleed)', () => {
-    const brakeDir = join(tmp, '.claude', 'state');
-    mkdirSync(brakeDir, { recursive: true });
-    writeFileSync(
-      join(brakeDir, 'goal-budget-tripped.json'),
-      JSON.stringify({
-        tripped_at: '2026-05-12T12:00:00Z',
-        session_id: 'some-other-session',
-        turns: 35,
-        tokens: 100,
-        reason: 'turns_cap',
-      }),
-    );
-
-    const ctx = createTestContext({ projectDir: tmp, sessionId: 'sess-C' });
-    const input: HookInput = {
-      tool_name: '',
-      session_id: 'sess-C',
-      tool_input: {},
-      prompt: '/goal try again',
-    };
-
-    const result = goalTracker(input, ctx);
-    expect(result).toEqual({ continue: true, suppressOutput: true });
-    // /goal proceeds normally: history IS appended for this session
-    const historyPath = join(tmp, '.claude', 'state', 'goal-history.jsonl');
-    expect(existsSync(historyPath)).toBe(true);
-    expect(JSON.parse(readFileSync(historyPath, 'utf8').trim()).session_id).toBe('sess-C');
-  });
-
-  it('ignores a legacy brake file without session_id (#2919)', () => {
-    const brakeDir = join(tmp, '.claude', 'state');
-    mkdirSync(brakeDir, { recursive: true });
-    writeFileSync(
-      join(brakeDir, 'goal-budget-tripped.json'),
-      JSON.stringify({ tripped_at: '2026-05-12T12:00:00Z', turns: 35, tokens: 100, reason: 'turns_cap' }),
-    );
-
-    const ctx = createTestContext({ projectDir: tmp, sessionId: 'sess-C' });
-    const input: HookInput = {
-      tool_name: '',
-      session_id: 'sess-C',
-      tool_input: {},
-      prompt: '/goal try again',
-    };
-
-    const result = goalTracker(input, ctx);
-    expect(result).toEqual({ continue: true, suppressOutput: true });
+    expect(JSON.parse(readFileSync(historyPath, 'utf8').trim()).prompt_id).toBe('p2');
   });
 });

@@ -2,34 +2,26 @@
 // Created: 2026-05-12
 
 /**
- * Goal Tracker — UserPromptSubmit Hook (M140 G3 #1790)
+ * Goal Tracker: UserPromptSubmit Hook (M140 G3 #1790, #4684)
  *
- * Detects `/goal <condition>` invocations in the user prompt and appends a
- * "started" entry to `.claude/state/goal-history.jsonl`. The companion
- * Stop hook (`stop/goal-tracker`) appends an "ended" entry that
- * `lifecycle/goal-budget-guard` (M140 G5) reads for convergence telemetry +
- * cost circuit-breaking.
+ * Records only, never blocks. A new user prompt closes the session's open run
+ * (status from its last tally) and removes its brake; a `/goal <condition>`
+ * prompt opens a new run keyed on `prompt_id`. The brake itself acts at
+ * PreToolUse (lib/goal-run.ts goalBrakeVerdict), because a /goal continuation
+ * fires no UserPromptSubmit.
  *
- * Brake-file integration with G5:
- *   If `.claude/state/goal-budget-tripped.json` exists for THIS session, surface its reason as
- *   `outputBlock`; the user overrides by deleting the file. CC honors
- *   `continueOnBlock` on prompt hooks only, so this is a full block (#4684).
- *
- * Sync (not async): we need to inject the brake message in front of the
- * model BEFORE it processes the /goal — async hooks can't gate the prompt.
+ * A `<task-notification>` prompt is CC reporting background work, not the user:
+ * it arrives with a new prompt_id, so the open run moves to that id instead of
+ * closing.
  */
 
-import { existsSync, mkdirSync, readFileSync, appendFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
-import { outputSilentSuccess, outputBlock } from '../lib/common.js';
+import { outputSilentSuccess } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
-import { readTurnCount } from '../lib/session-turn-counter.js';
+import { appendHistory, carryRun, closeRun, findOpenRun, readHistory, removeBrake } from '../lib/goal-run.js';
 import { loadAccumStateOrNull } from '../lib/session-token-accum.js';
 
 const HOOK_NAME = 'prompt/goal-tracker';
-const HISTORY_REL = join('.claude', 'state', 'goal-history.jsonl');
-const BRAKE_REL = join('.claude', 'state', 'goal-budget-tripped.json');
 
 /**
  * Extract the condition string from a /goal invocation. Returns null if the
@@ -45,8 +37,7 @@ export function extractGoalCondition(prompt: string): string | null {
   for (const line of lines) {
     const trimmed = line.trimStart();
     if (trimmed.startsWith('/goal ')) {
-      const condition = trimmed.slice('/goal '.length).trim();
-      return condition.length > 0 ? condition : null;
+      return trimmed.slice('/goal '.length).trim();
     }
     if (trimmed === '/goal') {
       return '';
@@ -55,32 +46,8 @@ export function extractGoalCondition(prompt: string): string | null {
   return null;
 }
 
-interface BrakeFile {
-  tripped_at?: string;
-  session_id?: string;
-  turns?: number;
-  tokens?: number;
-  reason?: 'turns_cap' | 'tokens_cap';
-}
-
-function readBrake(projectDir: string): BrakeFile | null {
-  try {
-    const path = join(projectDir, BRAKE_REL);
-    if (!existsSync(path)) return null;
-    const raw = readFileSync(path, 'utf8');
-    const parsed = JSON.parse(raw) as BrakeFile;
-    if (!parsed || typeof parsed !== 'object') return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function appendHistory(projectDir: string, entry: Record<string, unknown>): void {
-  const path = join(projectDir, HISTORY_REL);
-  mkdirSync(dirname(path), { recursive: true });
-  appendFileSync(path, `${JSON.stringify(entry)}\n`, 'utf8');
-}
+/** These words remove the goal (code.claude.com/docs/en/goal). */
+const NOT_A_CONDITION = new Set(['clear', 'stop', 'off', 'reset', 'none', 'cancel']);
 
 /** Estimate token usage from prompt length (~3.5 chars/token). */
 function estimateTokens(text: string): number {
@@ -92,44 +59,44 @@ export function goalTracker(
   ctx: HookContext = NOOP_CTX,
 ): HookResult {
   const prompt = input.prompt || '';
-  const condition = extractGoalCondition(prompt);
-  if (condition === null) return outputSilentSuccess();
-
+  const isNotification = prompt.trimStart().startsWith('<task-notification>');
+  const condition = isNotification ? null : extractGoalCondition(prompt);
   const sessionId = input.session_id || ctx.sessionId || 'unknown';
   const projectDir = ctx.projectDir;
 
-  // Check brake file first — couples to G5 budget guard.
-  // The budget is per-session (G5 sums goal-history filtered by session_id),
-  // so the brake only applies to the session that tripped it (#2919). A
-  // brake left by another concurrent session — or a legacy file without a
-  // session_id — must not block this session's /goal.
-  const brake = readBrake(projectDir);
-  if (brake && brake.session_id === sessionId) {
-    const reason = brake.reason || 'budget';
-    const turns = brake.turns ?? '?';
-    const tokens = brake.tokens ?? '?';
-    const trippedAt = brake.tripped_at || '?';
-    const msg =
-      `[goal-tracker] /goal blocked: per-session budget tripped (${reason}).\n` +
-      `Session ${brake.session_id || '?'} hit turns=${turns} tokens=${tokens} at ${trippedAt}.\n` +
-      `To override, delete .claude/state/goal-budget-tripped.json and retry.`;
-    ctx.log(HOOK_NAME, `brake active: ${reason}`);
-    return outputBlock(msg);
-  }
-
-  // Record start entry.
-  //
-  // #3317: started_turn / started_tokens are the BASELINES the Stop hook
-  // subtracts from to get what this run actually cost. Without them the Stop
-  // hook had to guess, and its guess (count `/goal` start lines) counted
-  // invocations, which the budget guard then summed into 1+2+...+N.
   try {
+    const raw = readHistory(projectDir);
+    const open = raw === null ? null : findOpenRun(raw, sessionId);
+    if (isNotification) {
+      if (open && input.prompt_id && open.start.prompt_id !== input.prompt_id) {
+        carryRun(projectDir, open, input.prompt_id);
+      }
+      return outputSilentSuccess();
+    }
+    // `/goal` alone only shows status: it keeps the run, its tally and its brake.
+    if (condition === '') return outputSilentSuccess();
+
+    // Releasing needs a prompt that names its session and itself. A new /goal or a
+    // clear word replaces the run either way.
+    const identified = Boolean(input.session_id && input.prompt_id);
+    const replaces = condition !== null || (identified && open?.start.prompt_id !== input.prompt_id);
+    if (open && replaces) {
+      ctx.log(HOOK_NAME, `closed /goal: status=${closeRun(projectDir, open)}`);
+    }
+    // End row first, brake second (see tripBrake). With no open run this also
+    // clears a leftover from an interrupted write.
+    if (identified && (replaces || !open)) removeBrake(projectDir, sessionId);
+
+    if (condition === null || NOT_A_CONDITION.has(condition.toLowerCase())) return outputSilentSuccess();
+
+    // started_tokens is the baseline the Stop hook subtracts from to get what
+    // this run actually spent (#3317).
     appendHistory(projectDir, {
       session_id: sessionId,
+      prompt_id: input.prompt_id,
       condition,
       started_at: new Date().toISOString(),
       started_token_estimate: estimateTokens(prompt),
-      started_turn: readTurnCount(sessionId),
       started_tokens: loadAccumStateOrNull(projectDir, sessionId)?.estimatedTokens ?? 0,
       ended_at: null,
     });
@@ -137,7 +104,7 @@ export function goalTracker(
   } catch (err) {
     ctx.log(
       HOOK_NAME,
-      `failed to append history: ${err instanceof Error ? err.message : String(err)}`,
+      `failed to record: ${err instanceof Error ? err.message : String(err)}`,
       'warn',
     );
   }
