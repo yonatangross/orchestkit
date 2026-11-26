@@ -1,0 +1,11 @@
+{
+  "slug": "5184-guard-residuals",
+  "source": "docs/fix--5184-guard-residuals/six-residuals.html",
+  "title": "Six residual npm ci guard bypasses, plus their review variants",
+  "description": "Pick a command and a linked-worktree setup to see what the npm ci symlink guard says on main and on this branch: heredoc backticks, IFS trims, cd -P and set physical, option clusters, partly quoted braces, and the directory stack.",
+  "tags": [
+    "hooks",
+    "security"
+  ],
+  "date": "2026-11-26"
+}
