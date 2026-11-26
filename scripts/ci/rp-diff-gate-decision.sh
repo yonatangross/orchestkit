@@ -204,13 +204,18 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
         events_ok=false
       fi
     fi
+    # One jq reports a verdict word: "bot" when every PushEvent that
+    # carries the trigger head on this ref is by the release bot,
+    # "absent" when none does, "conflict" when a non-bot push also
+    # carries it (the feed then disagrees on who produced the head and
+    # must not earn the skip; Codex #5481).
     head_push=""
     if [[ "$events_ok" == true ]]; then
-      if ! head_push="$(jq -s \
+      if ! head_push="$(jq -r -s \
           --arg ref "refs/heads/$HEAD_REF" \
           --arg head "$trigger_head" \
           --arg bot "$RELEASE_BOT" \
-          'add | [.[] | select(.type == "PushEvent" and .payload.ref == $ref and .payload.head == $head and .actor.login == $bot)] | length' \
+          'add | [.[] | select(.type == "PushEvent" and .payload.ref == $ref and .payload.head == $head) | (.actor.login == $bot)] | if length == 0 then "absent" elif all then "bot" else "conflict" end' \
           < "$EVENTS_JSON")"; then
         head_push=""
       fi
@@ -218,11 +223,14 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
     if [[ "$events_ok" == false ]]; then
       echo "events feed read failed; not skipping"
       skip=false
-    elif ! [[ "$head_push" =~ ^[0-9]+$ ]]; then
-      echo "events feed unreadable; not skipping"
-      skip=false
-    elif [[ "$head_push" -lt 1 ]]; then
+    elif [[ "$head_push" == "absent" ]]; then
       echo "no release-bot PushEvent records the trigger head on $HEAD_REF; not skipping"
+      skip=false
+    elif [[ "$head_push" == "conflict" ]]; then
+      echo "a non-bot PushEvent also carries the trigger head on $HEAD_REF; not skipping"
+      skip=false
+    elif [[ "$head_push" != "bot" ]]; then
+      echo "events feed unreadable; not skipping"
       skip=false
     fi
   fi

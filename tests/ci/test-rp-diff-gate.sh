@@ -208,37 +208,50 @@ else
 fi
 
 section "15. The trigger head must be a bot PushEvent on the release ref"
+# Every call below must pass the fixture head sha as $8: an empty value is
+# preserved by decide() for the missing-head control in section 13 and
+# would stop the run before the events feed is ever read (Codex #5481).
 HUMAN_PUSH="$WORK_DIR/events-human-push.json"
 jq 'map(if .type == "PushEvent" then .actor.login = "some-human" else . end)' \
   "$EVENTS_5463" > "$HUMAN_PUSH"
-decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "" "$HUMAN_PUSH"
-if grep -qx 'skip=false' "$OUT" && grep -qF 'no release-bot PushEvent records the trigger head' "$OUT"; then
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$HUMAN_PUSH"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'a non-bot PushEvent also carries the trigger head' "$OUT"; then
   log_pass "a human push carrying the head does not skip"
 else
-  log_fail "a human-pushed head skipped: $(cat "$OUT")"
+  log_fail "a human-pushed head skipped or failed for the wrong reason: $(cat "$OUT")"
+fi
+MIXED_ACTORS="$WORK_DIR/events-mixed-actors.json"
+jq --arg ref 'refs/heads/release-please--branches--main' --arg head "$HEAD_5463" \
+  '. + [{type: "PushEvent", actor: {login: "some-human"}, payload: {ref: $ref, head: $head}}]' \
+  "$EVENTS_5463" > "$MIXED_ACTORS"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$MIXED_ACTORS"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'a non-bot PushEvent also carries the trigger head' "$OUT"; then
+  log_pass "bot and human pushes on the same head do not skip"
+else
+  log_fail "conflicting pusher evidence skipped or failed for the wrong reason: $(cat "$OUT")"
 fi
 OLD_HEAD="$WORK_DIR/events-old-head.json"
 jq 'map(if .type == "PushEvent" then .payload.head = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef" else . end)' \
   "$EVENTS_5463" > "$OLD_HEAD"
-decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "" "$OLD_HEAD"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$OLD_HEAD"
 if grep -qx 'skip=false' "$OUT" && grep -qF 'no release-bot PushEvent records the trigger head' "$OUT"; then
   log_pass "a head not yet in the feed does not skip"
 else
-  log_fail "a head missing from the feed skipped: $(cat "$OUT")"
+  log_fail "a head missing from the feed failed for the wrong reason: $(cat "$OUT")"
 fi
 printf '[]\n' > "$WORK_DIR/events-empty.json"
-decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "" "$WORK_DIR/events-empty.json"
-if grep -qx 'skip=false' "$OUT"; then
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$WORK_DIR/events-empty.json"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'no release-bot PushEvent records the trigger head' "$OUT"; then
   log_pass "an empty feed does not skip"
 else
-  log_fail "an empty feed skipped: $(cat "$OUT")"
+  log_fail "an empty feed failed for the wrong reason: $(cat "$OUT")"
 fi
 printf 'this is not json\n' > "$WORK_DIR/events-garbage.json"
-decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "" "$WORK_DIR/events-garbage.json"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$WORK_DIR/events-garbage.json"
 if grep -qx 'skip=false' "$OUT" && grep -qF 'events feed unreadable' "$OUT"; then
   log_pass "an unreadable feed does not skip"
 else
-  log_fail "an unreadable feed skipped: $(cat "$OUT")"
+  log_fail "an unreadable feed failed for the wrong reason: $(cat "$OUT")"
 fi
 
 echo
