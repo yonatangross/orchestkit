@@ -1,0 +1,12 @@
+{
+  "slug": "4684-drift-nudge-additional-context",
+  "source": "docs/fix--4684-drift-nudge-additional-context-up7/index.html",
+  "title": "Drift gate: stop the turn vs nudge the model",
+  "description": "One turn before and after the plugins/ drift hook moved from continue:false to a PostToolUse additionalContext reminder, with the exact hook output for each.",
+  "tags": [
+    "hooks",
+    "drift",
+    "posttooluse"
+  ],
+  "date": "2026-11-26"
+}

@@ -9,14 +9,17 @@
  * After a Write/Edit under `src/`, compare current build-input hashes
  * (`src/hooks/hooks.json` + `manifests/ork.json`) against the snapshot
  * captured at SessionStart by `plugins-drift-snapshot`. If they diverge
- * AND `plugins/` has not been touched in git since the snapshot, block
- * with a reminder to run `npm run build`.
+ * AND `plugins/` has not been touched in git since the snapshot, nudge
+ * the model with a reminder to run `npm run build`.
  *
- * Why a block (not a notify):
+ * Why a nudge (not a block, #4684):
  *   The drift CI check fails the PR later; surfacing this at Write time
  *   prevents a wasted push/CI roundtrip. PostToolUse runs after the edit
- *   is applied. CC honors `continueOnBlock` on prompt hooks only, so the
- *   block is not softened (#4684).
+ *   is applied, so a block cannot undo it, and CC honors `continueOnBlock`
+ *   on prompt hooks only, so `continue:false` here stopped the whole turn
+ *   mid-edit. The reminder rides PostToolUse additionalContext instead.
+ *
+ * @behavior injects
  *
  * Why time-window the snapshot:
  *   A stale snapshot from a long-running session would false-positive
@@ -29,7 +32,7 @@ import { join, sep } from 'node:path';
 import type { HookInput, HookResult, HookContext } from '../types.js';
 import {
   outputSilentSuccess,
-  outputBlock,
+  outputWithContext,
   getField,
 } from '../lib/common.js';
 import { NOOP_CTX } from '../lib/context.js';
@@ -45,7 +48,7 @@ const HOOKS_JSON_REL = join('src', 'hooks', 'hooks.json');
 const MANIFEST_REL = join('manifests', 'ork.json');
 const SNAPSHOT_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
 
-const BLOCK_MESSAGE =
+const NUDGE_MESSAGE =
   '[plugins-drift] src/ edit detected but plugins/ has not been rebuilt this session.\n' +
   'Run: npm run build\n' +
   '(This would otherwise produce a plugins/ drift CI failure later.)';
@@ -85,7 +88,7 @@ export function gitTimedOut(err: unknown): boolean {
 /**
  * The rebuild evidence from the two git queries. `null` is a query that
  * timed out: unknown, which is not the same as "not rebuilt", so it never
- * produces a block on its own.
+ * produces a nudge on its own.
  */
 export function rebuildEvidence(touched: boolean | null, dirty: boolean | null): 'rebuilt' | 'none' | 'unknown' {
   if (touched === true || dirty === true) return 'rebuilt';
@@ -123,7 +126,7 @@ export function pluginsTouchedSince(projectDir: string, sinceIso: string): boole
  * Is `plugins/` dirty in the working tree right now?
  *
  * `npm run build` rewrites plugins/ WITHOUT committing, so commit history
- * alone misses an in-session rebuild — the hook then re-blocks every src/
+ * alone misses an in-session rebuild, and the hook then re-nudges every src/
  * edit until something touching plugins/ is committed (observed after a
  * branch switch mid-session: snapshot hashes from the old branch never
  * match, and the rebuild evidence never appears). Uncommitted plugins/
@@ -178,8 +181,8 @@ export function checkPluginsDrift(
   // (npm run build rewrites the working tree without committing).
   const evidence = rebuildEvidence(pluginsTouchedSince(ctx.projectDir, snapshot.at), pluginsDirtyNow(ctx.projectDir));
   if (evidence === 'unknown') {
-    // A timed-out git query is not proof of drift: no block on it alone.
-    ctx.log(HOOK_NAME, 'git timed out checking plugins/ rebuild evidence; not blocking');
+    // A timed-out git query is not proof of drift: no nudge on it alone.
+    ctx.log(HOOK_NAME, 'git timed out checking plugins/ rebuild evidence; not nudging');
     return outputSilentSuccess();
   }
   if (evidence === 'rebuilt') {
@@ -201,5 +204,5 @@ export function checkPluginsDrift(
     HOOK_NAME,
     `drift detected: hooks=${hooksChanged} manifest=${manifestChanged} file=${filePath}`,
   );
-  return outputBlock(BLOCK_MESSAGE);
+  return outputWithContext(NUDGE_MESSAGE, 'PostToolUse');
 }
