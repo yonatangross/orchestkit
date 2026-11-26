@@ -5,10 +5,16 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 script="$here/../../docs/site/scripts/vercel-ignore.sh"
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+work="$(mktemp -d "${TMPDIR:-/tmp}/ork-vercel-ignore.XXXXXX")"
+trap 'rm -rf "$work"' EXIT
+tmp="$work/repo"
+mkdir -p "$tmp"
 fail=0
 ran=0
+
+# The fixture repo reads only a throwaway git config (#4664).
+source "$here/../fixtures/git-isolate.sh"
+git_isolate "$work"
 
 g() { git -C "$tmp" -c user.email=t@example.invalid -c user.name=t "$@"; }
 
