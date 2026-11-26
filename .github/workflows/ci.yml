@@ -26,6 +26,9 @@ jobs:
   # consult this gate and skip themselves on that diff.
   rp-gate:
     uses: ./.github/workflows/rp-diff-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
 
   # ============================================================================
   # STAGE 0: Build + Artifacts (< 1m)

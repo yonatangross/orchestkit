@@ -47,6 +47,9 @@ env:
 jobs:
   rp-gate:
     uses: ./.github/workflows/rp-diff-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
   # ============================================================================
   # Build indexes (both with and without)
   # ============================================================================

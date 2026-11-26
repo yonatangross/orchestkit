@@ -27,6 +27,9 @@ concurrency:
 jobs:
   rp-gate:
     uses: ./.github/workflows/rp-diff-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
   validate:
     name: Validate eval cases (offline)
     needs: rp-gate

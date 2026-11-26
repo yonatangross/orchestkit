@@ -17,6 +17,9 @@ permissions: {}
 jobs:
   rp-gate:
     uses: ./.github/workflows/rp-diff-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
   analyze:
     name: CodeQL Analysis
     needs: rp-gate

@@ -7,6 +7,11 @@ name: Release-please Diff Gate
 # version/changelog-only diff. Consumers add `needs: rp-gate` and
 # `if: needs.rp-gate.outputs.skip != 'true'`. Skipped jobs still satisfy
 # required checks, the same way path-filtered jobs do.
+#
+# The decision lives in scripts/ci/rp-diff-gate-decision.sh so its event
+# data is covered by tests/ci/test-rp-diff-gate.sh. The repository release
+# bot is orchestkit-release-bot[bot]; callers must pass permissions
+# (pull-requests: read, contents: read) on the calling job.
 on:
   workflow_call:
     outputs:
@@ -19,10 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:
+      contents: read
       pull-requests: read
     outputs:
       skip: ${{ steps.gate.outputs.skip }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
       - name: Detect a release-please-only diff
         id: gate
         env:
@@ -30,20 +37,8 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          set -euo pipefail
-          skip=false
-          if [[ -n "$PR_NUMBER" && "$HEAD_REF" == release-please--* && "$PR_AUTHOR" == "release-please[bot]" ]]; then
-            skip=true
-            gh api "repos/$REPO/pulls/$PR_NUMBER/files?per_page=100" --paginate --jq '.[].filename' |
-              while IFS= read -r f; do
-                case "$f" in
-                  CHANGELOG.md|CLAUDE.md|README.md|version.txt|server.json|pyproject.toml|package.json|package-lock.json|plugin.json|.release-please-manifest.json|.claude-plugin/marketplace.json|.devin-plugin/plugin.json) ;;
-                  manifests/*|plugins/*|src/hooks/dist/*|docs/site/lib/generated/*|src/codex/*/.codex-plugin/plugin.json) ;;
-                  *) echo "non-release-owned file: $f"; exit 42 ;;
-                esac
-              done || skip=false
-          fi
-          echo "skip=$skip" >> "$GITHUB_OUTPUT"
-          echo "release-please-only diff: $skip"
+          bash scripts/ci/rp-diff-gate-decision.sh > gate-out.txt
+          cat gate-out.txt
+          grep '^skip=' gate-out.txt >> "$GITHUB_OUTPUT"
