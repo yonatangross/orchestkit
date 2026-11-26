@@ -22,33 +22,6 @@ function assetUrl(assets, name) {
   return found.url;
 }
 
-// Stands where text was cut out. Cutting to nothing would join both sides, and
-// a "!" plus a link could then read as an image.
-const CUT = '�';
-
-/**
- * The notes with everything Markdown shows as text cut out: fenced blocks
- * (closed or not), indented code, HTML comments and code spans.
- */
-function renderedText(body) {
-  return body
-    .replace(/^ {0,3}(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?)?(?:^ {0,3}\1[`~]*[ \t\r]*$|(?![\s\S]))/gm, CUT)
-    // A fence inside a quote: cut it and the rest of that quote. Never past it.
-    .replace(/^(?: {0,3}>)+[ \t]{0,4}(?:`{3,}|~{3,})[^\n]*(?:\n {0,3}>[^\n]*)*/gm, CUT)
-    .replace(/^(?: {4}|\t).*$/gm, CUT)
-    .replace(/<!--[\s\S]*?(?:-->|(?![\s\S]))/g, CUT)
-    .replace(/(`+)[\s\S]*?\1/g, CUT);
-}
-
-/**
- * Is the gif shown as an image? A link to it is not. When in doubt the answer
- * is no: a second copy is cosmetic, missing media is the bug.
- */
-function showsImage(body, url) {
-  const literal = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(?<!\\\\)!\\[[^\\]\\n]*\\]\\(${literal}(?:[ \\t]+"[^"\\n]*")?\\)`).test(renderedText(body));
-}
-
 export function embedMedia(body, tag, assets) {
   if (!tag) throw new Error('no release tag');
   if (typeof body !== 'string') throw new Error('release body was not read');
@@ -73,8 +46,8 @@ export function embedMedia(body, tag, assets) {
     if (to < 0) throw new Error('release body has a start marker and no end marker');
     return block + body.slice(to + END.length);
   }
-  // Someone embedded this gif by hand: leave their layout alone.
-  if (showsImage(body, gif)) return body;
+  // The rest of the notes is never read for media: guessing what Markdown
+  // renders can leave a release without it, and a second copy is only cosmetic.
   return `${block}\n\n${body}`;
 }
 

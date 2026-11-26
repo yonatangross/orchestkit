@@ -1,0 +1,8 @@
+{
+  "slug": "release-media-simplify",
+  "source": "docs/lane--release-media-simplify/index.html",
+  "title": "Release media: always on top",
+  "description": "Type any release notes and see the workflow step add its media block above them, once.",
+  "tags": ["release", "ci", "workflows"],
+  "date": "2026-11-26"
+}

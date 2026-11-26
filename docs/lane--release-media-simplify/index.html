@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release media: always on top</title>
+<style>
+  :root { color-scheme: light dark; --bg:#fff; --fg:#16181d; --mute:#5b6270; --line:#d9dce3; --card:#f6f7f9; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#101216; --fg:#e8eaf0; --mute:#9aa2b1; --line:#2b303a; --card:#181b21; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width:820px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; } .mute { color:var(--mute); }
+  textarea, pre { box-sizing:border-box; width:100%; background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:12px; font:13px/1.5 ui-monospace, monospace; }
+  pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+  button { font:inherit; padding:6px 14px; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:6px; cursor:pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Release media: always on top</h1>
+  <p class="mute">A model of the workflow step. Type any release notes: the step no longer reads them for media. It adds its block above, or replaces its own block at the top.</p>
+  <label for="notes">Release notes</label>
+  <textarea id="notes" rows="6">![my own preview](.../release-1.2.3-preview.gif)
+
+## 1.2.3
+
+* a fix</textarea>
+  <p><button id="run" type="button">Run the step again on the result</button></p>
+  <pre id="out" aria-live="polite"></pre>
+  <button id="copy" type="button">Copy as prompt</button> <span id="copied" class="mute" role="status"></span>
+</main>
+<script>
+  const START = '<!-- release-media:start -->';
+  const END = '<!-- release-media:end -->';
+  const block = [START, '![Release v1.2.3 preview](.../release-1.2.3-preview.gif)', '',
+    'Video: [landscape mp4](.../release-1.2.3-landscape.mp4) · [square mp4](.../release-1.2.3-square.mp4)', END].join('\n');
+  const notes = document.getElementById('notes');
+  const out = document.getElementById('out');
+  function step(body) {
+    if (body.startsWith(START)) {
+      const to = body.indexOf(END);
+      return to < 0 ? null : block + body.slice(to + END.length);
+    }
+    return block + '\n\n' + body;
+  }
+  function show(body) {
+    const next = step(body);
+    out.textContent = next === null ? 'The step fails: the notes have a start marker and no end marker.' : next;
+  }
+  notes.addEventListener('input', () => show(notes.value));
+  document.getElementById('run').addEventListener('click', () => {
+    notes.value = out.textContent;
+    show(notes.value);
+  });
+  document.getElementById('copy').addEventListener('click', async () => {
+    const text = 'Check scripts/ci/release-media-body.mjs on these release notes:\n' + notes.value;
+    try { await navigator.clipboard.writeText(text); document.getElementById('copied').textContent = 'Copied'; }
+    catch { document.getElementById('copied').textContent = text; }
+  });
+  show(notes.value);
+</script>
+</body>
+</html>

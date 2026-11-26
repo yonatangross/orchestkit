@@ -35,18 +35,25 @@ test('a second run replaces its own block, never stacks one', () => {
   assert.equal(embedMedia(once, TAG, ASSETS), once);
 });
 
-test('leaves a body alone that already embeds the gif by hand', () => {
-  const byHand = `![x](${url(NAMES[0])})\n\n${NOTES}`;
-  assert.equal(embedMedia(byHand, TAG, ASSETS), byHand);
-});
-
 test('a plain link to the gif is not an embed', () => {
   const linked = `see ${url(NAMES[0])}\n`;
   assert.notEqual(embedMedia(linked, TAG, ASSETS), linked);
 });
 
 const GIF = url(NAMES[0]);
-const NOT_AN_EMBED = {
+// The job does not guess what the notes already show: it adds its block above
+// them. A second copy of the gif is cosmetic, missing media is the bug.
+const EXISTING_NOTES = {
+  'a plain hand embed': `![preview](${GIF})`,
+  'a hand embed with a title': `![preview](${GIF} "release")`,
+  'a hand embed inside a link': `[![preview](${GIF})](https://example.com)`,
+  'a hand embed after text on the line': `Watch: ![preview](${GIF})`,
+  'a hand embed in a quote': `> ![preview](${GIF})`,
+  'a hand embed after a quoted fence ends': `> ~~~\n> code\n> ~~~\n\n![preview](${GIF})`,
+  'an image in a fence inside a list item': `- ~~~\n  ![preview](${GIF})\n  ~~~`,
+  'an image in a quoted list item fence': `> - ~~~\n>   ![preview](${GIF})\n>   ~~~`,
+  'a quoted fence with a tab between quote marks': `>\t> ~~~\n>\t> ![preview](${GIF})\n>\t> ~~~`,
+  'a quoted fence with four spaces between quote marks': `>    > ~~~\n>    > ![preview](${GIF})\n>    > ~~~`,
   'a labeled link': `[download the preview](${GIF})`,
   'a labeled link with a bang before a space': `Look! [preview](${GIF})`,
   'an autolink': `<${GIF}>`,
@@ -58,7 +65,6 @@ const NOT_AN_EMBED = {
   'an image in an indented code block': `text\n\n    ![preview](${GIF})`,
   'an image in an HTML comment': `<!-- ![preview](${GIF}) -->`,
   'an image of another file': `![preview](${GIF}.png)`,
-  // Removed text must not join what stood on either side of it.
   'a bang split from a link by a code span': `!\`x\`[preview](${GIF})`,
   'a bang split from a link by a comment': `!<!-- x -->[preview](${GIF})`,
   'a link split from its url by a comment': `![preview]<!-- x -->(${GIF})`,
@@ -71,27 +77,15 @@ const NOT_AN_EMBED = {
   'an image in a second quoted fence': `> ~~~\n> a\n\ntext\n\n> ~~~\n> ![preview](${GIF})`,
 };
 
-for (const [label, text] of Object.entries(NOT_AN_EMBED)) {
-  test(`adds the media when the notes hold only ${label}`, () => {
+for (const [label, text] of Object.entries(EXISTING_NOTES)) {
+  test(`adds its block above notes that hold ${label}, once`, () => {
     const body = `${text}\n\n${NOTES}`;
     const out = embedMedia(body, TAG, ASSETS);
-    assert.ok(out.startsWith('<!-- release-media:start -->\n'), out.slice(0, 80));
+    assert.ok(out.startsWith('<!-- release-media:start -->\n![Release'), out.slice(0, 80));
     assert.ok(out.includes(`[landscape mp4](${url(NAMES[1])})`));
     assert.ok(out.includes(`[square mp4](${url(NAMES[2])})`));
-    assert.ok(out.endsWith(body));
-  });
-}
-
-for (const [label, text] of Object.entries({
-  'with a title': `![preview](${GIF} "release")`,
-  'inside a link': `[![preview](${GIF})](https://example.com)`,
-  'after text on the line': `Watch: ![preview](${GIF})`,
-  'in a quote': `> ![preview](${GIF})`,
-  'after a quoted fence ends': `> ~~~\n> code\n> ~~~\n\n![preview](${GIF})`,
-})) {
-  test(`leaves a hand embed alone ${label}`, () => {
-    const body = `${text}\n\n${NOTES}`;
-    assert.equal(embedMedia(body, TAG, ASSETS), body);
+    assert.ok(out.endsWith(`<!-- release-media:end -->\n\n${body}`));
+    assert.equal(embedMedia(out, TAG, ASSETS), out);
   });
 }
 
