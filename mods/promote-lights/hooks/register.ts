@@ -28,7 +28,7 @@
 
 import { matchAndClassify, isPassing, type ClassifiedLight } from "../src/classify.js";
 import { computeRequiredUnion } from "../src/required.js";
-import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists, parseBases } from "../src/gh.js";
+import { parsePRList, parsePRView, parseCheckRuns, isPromotePR, DEFAULT_PROMOTE_HEAD, buildHeadQueryArgs, buildLabelQueryArgs, mergePRLists, parseBases, PR_LIST_LIMIT, type PRDetails } from "../src/gh.js";
 import { buildStatusLine, buildBand, buildErrorBand, type Elements } from "../src/pane.js";
 import {
   parseWatchTarget,
@@ -322,14 +322,23 @@ async function discover($: Hook$, key: string, repo: Awaited<ReturnType<Hook$["s
       }
     }
 
-    const prs = mergePRLists(
-      byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [],
-      byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : []
-    );
-    promotePR = prs.find((pr) => isPromotePR(pr, promoteHead));
+    const headList = byHead.exitCode === 0 ? parsePRList(byHead.stdout) : [];
+    const labelList = byLabel.exitCode === 0 ? parsePRList(byLabel.stdout) : [];
+    promotePR = mergePRLists(headList, labelList).find((pr) => isPromotePR(pr, promoteHead));
     if (promotePR) {
       matchedBase = promoteBase;
       break;
+    }
+
+    // A full page is not the whole base (orchestkit#5462): a release/* head
+    // lists every open PR into the base, so with PR_LIST_LIMIT ordinary PRs
+    // ahead of it the promote PR may sit past the page. "No match here" is
+    // then unknown, not absent: say so before a later base wins or the search
+    // ends empty.
+    const limit = Number(PR_LIST_LIMIT);
+    if (headList.length >= limit || labelList.length >= limit) {
+      degraded = true;
+      await warnStatus($, `lights: promote search into ${promoteBase} hit the ${limit} PR cap, incomplete`);
     }
   }
 
@@ -406,6 +415,17 @@ export const register: Register = (on) => {
       await storeDelete($, key);
       tracked = null;
       $.ui.invalidate("ui.render");
+      return next(e);
+    }
+
+    const moved = movedBase(tracked, details);
+    if (moved) {
+      if (tracked.mode === "watch") {
+        tracked = { ...tracked, base: moved };
+        await doTick($, key);
+        return next(e);
+      }
+      await stopForMovedBase($, key, tracked.base, moved);
       return next(e);
     }
 
@@ -565,6 +585,26 @@ function startTick($: Hook$, key: string): void {
   tickInterval = $.clock.every(TICK_MS, () => doTick($, key));
 }
 
+/**
+ * The base a PR read reports when it differs from the tracked one, else null
+ * (orchestkit#5462). A PR retargeted at the same head would otherwise keep
+ * being judged by its old base's required checks.
+ */
+function movedBase(t: Tracked, details: PRDetails | null): string | null {
+  const now = details?.baseRefName;
+  return now && now !== t.base ? now : null;
+}
+
+/** A promote PR whose base moved stops, the same way a moved head does. */
+async function stopForMovedBase($: Hook$, key: string, from: string, to: string): Promise<StoredLights> {
+  stopTick();
+  tracked = null;
+  const stopped: StoredLights = { error: `base moved from ${from} to ${to}, stopped` };
+  await storeSet($, key, stamp(stopped));
+  $.ui.invalidate("ui.render");
+  return stopped;
+}
+
 /** One tick: fetch, classify, store, draw. Returns what it stored. */
 async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
   if (!tracked) return null;
@@ -618,6 +658,16 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     const prViewResult = await $.process.run(prViewArgv(t), { timeoutMs: 10000 });
 
     const prDetails = parsePRView(prViewResult.stdout ?? "");
+    // Never publish a verdict read against a base the PR has left.
+    const moved = movedBase(t, prDetails);
+    if (moved) {
+      if (t.mode === "watch") {
+        // A watched PR is a demo of any PR: follow it to its new base.
+        tracked = { ...t, base: moved };
+        return doTick($, key);
+      }
+      return stopForMovedBase($, key, t.base, moved);
+    }
     const mergeStateStatus = prDetails?.mergeStateStatus ?? "";
     const passing = isPassing(lights);
     const label = labelFor(t);
