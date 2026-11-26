@@ -18,6 +18,7 @@ import {
   openSync,
   closeSync,
   rmSync,
+  readdirSync,
 } from 'node:fs';
 import { bufferWrite } from '../lib/analytics-buffer.js';
 import { join, dirname } from 'node:path';
@@ -289,6 +290,26 @@ function claimsDir(trackingLog: string): string {
   return join(dirname(trackingLog), 'spawn-claims');
 }
 
+/** A claim older than this belongs to a start long finished; rotation prunes it. */
+const CLAIM_MAX_AGE_MS = 24 * 3600 * 1000;
+
+function pruneOldClaims(trackingLog: string): void {
+  const dir = claimsDir(trackingLog);
+  const cutoff = Date.now() - CLAIM_MAX_AGE_MS;
+  try {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name);
+      try {
+        if (statSync(path).mtimeMs < cutoff) rmSync(path, { force: true });
+      } catch {
+        // Gone already, or unreadable: leave it.
+      }
+    }
+  } catch {
+    // No claims directory yet.
+  }
+}
+
 /**
  * Claim the one start row an agent_id may have (#5171, #5464 review).
  *
@@ -349,8 +370,10 @@ function logSpawn(
     if (existsSync(trackingLog) && statSync(trackingLog).size > SPAWN_LOG_ROTATE_BYTES) {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
       renameSync(trackingLog, `${trackingLog}.old.${ts}`);
-      // The claims belong to the rows that just rotated away.
-      rmSync(claimsDir(trackingLog), { recursive: true, force: true });
+      // Never clear all claims here: a claimed start may still be buffered,
+      // and a second start for that agent would claim again (Codex HOLD at
+      // 8a0f9ae9). Only claims older than a day go, far past any pending write.
+      pruneOldClaims(trackingLog);
     }
   } catch {
     // Ignore — rotation is opportunistic.
