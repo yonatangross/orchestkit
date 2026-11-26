@@ -421,7 +421,8 @@ export const register: Register = (on) => {
     const moved = movedBase(tracked, details);
     if (moved) {
       if (tracked.mode === "watch") {
-        tracked = { ...tracked, base: moved };
+        // Follow base and head together: the head check below never runs here.
+        tracked = { ...tracked, base: moved, head: details.headRefOid };
         await doTick($, key);
         return next(e);
       }
@@ -662,8 +663,9 @@ async function doTick($: Hook$, key: string): Promise<StoredLights | null> {
     const moved = movedBase(t, prDetails);
     if (moved) {
       if (t.mode === "watch") {
-        // A watched PR is a demo of any PR: follow it to its new base.
-        tracked = { ...t, base: moved };
+        // A watched PR is a demo of any PR: follow it to its new base, and to
+        // its new head too when both moved at once (#5462 review round 2).
+        tracked = { ...t, base: moved, head: prDetails?.headRefOid || t.head };
         return doTick($, key);
       }
       return stopForMovedBase($, key, t.base, moved);
