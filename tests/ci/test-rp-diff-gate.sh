@@ -29,9 +29,10 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 OUT="$WORK_DIR/out.txt"
 
 decide() {
-  # $1: files list path, $2: HEAD_REF, $3: PR_AUTHOR, $4: PR_NUMBER
+  # $1: files list path, $2: HEAD_REF, $3: PR_AUTHOR, $4: PR_NUMBER,
+  # $5: optional RP_ALLOWLIST_FILE override
   RP_FILES_FILE="$1" \
-    HEAD_REF="$2" PR_AUTHOR="$3" PR_NUMBER="$4" \
+    HEAD_REF="$2" PR_AUTHOR="$3" PR_NUMBER="$4" RP_ALLOWLIST_FILE="${5:-}" \
     bash "$DECISION" > "$OUT" 2>&1
 }
 
@@ -83,7 +84,15 @@ else
   log_fail "empty files list skipped"
 fi
 
-section "6. A non-PR event does not skip"
+section "6. An allowlist error does not skip"
+decide "$REAL_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "$WORK_DIR/missing-allowlist.txt"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'allowlist read or regex error' "$OUT"; then
+  log_pass "an unreadable allowlist keeps the suites running"
+else
+  log_fail "an allowlist error silently skipped: $(cat "$OUT")"
+fi
+
+section "7. A non-PR event does not skip"
 decide "$REAL_5463" "main" "orchestkit-release-bot[bot]" ""
 if grep -qx 'skip=false' "$OUT"; then
   log_pass "no PR number does not skip"
