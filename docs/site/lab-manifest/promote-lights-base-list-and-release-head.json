@@ -1,0 +1,12 @@
+{
+  "slug": "promote-lights-base-list-and-release-head",
+  "source": "docs/fix--promote-lights-base-list-4623/base-list-and-release-head.html",
+  "title": "promote-lights 0.0.16: a dev, qa, main flow finds its promote PR",
+  "description": "Pick the open PRs and the PROMOTE_HEAD and PROMOTE_BASE config, and see which promote PR promote-lights tracks and which branch protection it reads, before and after 0.0.16.",
+  "tags": [
+    "mods",
+    "promote-lights",
+    "config"
+  ],
+  "date": "2026-11-26"
+}

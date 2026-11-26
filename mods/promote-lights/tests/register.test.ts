@@ -677,11 +677,11 @@ describe("register behavior (mutant-killing)", () => {
     // Both list queries are filtered server side with an explicit limit
     // so a promote PR past position 30 is still returned.
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      ["gh", "pr", "list", "--base", "main", "--head", "dev", "--state", "open", "--json", "number,headRefName,baseRefName,headRefOid,title,labels", "--limit", "100"],
       { timeoutMs: 15000 }
     );
     expect($.process.run).toHaveBeenCalledWith(
-      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,headRefOid,title,labels", "--limit", "100"],
+      ["gh", "pr", "list", "--base", "main", "--label", "promote", "--state", "open", "--json", "number,headRefName,baseRefName,headRefOid,title,labels", "--limit", "100"],
       { timeoutMs: 15000 }
     );
 
