@@ -45,6 +45,52 @@ test('a plain link to the gif is not an embed', () => {
   assert.notEqual(embedMedia(linked, TAG, ASSETS), linked);
 });
 
+const GIF = url(NAMES[0]);
+const NOT_AN_EMBED = {
+  'a labeled link': `[download the preview](${GIF})`,
+  'a labeled link with a bang before a space': `Look! [preview](${GIF})`,
+  'an autolink': `<${GIF}>`,
+  'an escaped image': `\\![preview](${GIF})`,
+  'an image in a code span': `write \`![preview](${GIF})\` to embed it`,
+  'an image in a fenced block': `\`\`\`md\n![preview](${GIF})\n\`\`\``,
+  'an image in a tilde fence': `~~~\n![preview](${GIF})\n~~~`,
+  'an image in an unclosed fence': `\`\`\`\n![preview](${GIF})`,
+  'an image in an indented code block': `text\n\n    ![preview](${GIF})`,
+  'an image in an HTML comment': `<!-- ![preview](${GIF}) -->`,
+  'an image of another file': `![preview](${GIF}.png)`,
+};
+
+for (const [label, text] of Object.entries(NOT_AN_EMBED)) {
+  test(`adds the media when the notes hold only ${label}`, () => {
+    const body = `${text}\n\n${NOTES}`;
+    const out = embedMedia(body, TAG, ASSETS);
+    assert.ok(out.startsWith('<!-- release-media:start -->\n'), out.slice(0, 80));
+    assert.ok(out.includes(`[landscape mp4](${url(NAMES[1])})`));
+    assert.ok(out.includes(`[square mp4](${url(NAMES[2])})`));
+    assert.ok(out.endsWith(body));
+  });
+}
+
+for (const [label, text] of Object.entries({
+  'with a title': `![preview](${GIF} "release")`,
+  'inside a link': `[![preview](${GIF})](https://example.com)`,
+  'after text on the line': `Watch: ![preview](${GIF})`,
+})) {
+  test(`leaves a hand embed alone ${label}`, () => {
+    const body = `${text}\n\n${NOTES}`;
+    assert.equal(embedMedia(body, TAG, ASSETS), body);
+  });
+}
+
+test('a marker quoted inside the notes is text, not our block', () => {
+  for (const quoted of ['* fix: handle <!-- release-media:start --> markers', '<!-- release-media:start -->\nx\n<!-- release-media:end -->']) {
+    const body = `${NOTES}\n${quoted}\n`;
+    const out = embedMedia(body, TAG, ASSETS);
+    assert.ok(out.startsWith('<!-- release-media:start -->\n![Release'));
+    assert.ok(out.endsWith(body));
+  }
+});
+
 test('an empty body still gets the media', () => {
   assert.ok(embedMedia('', TAG, ASSETS).includes(url(NAMES[0])));
 });

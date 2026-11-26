@@ -22,6 +22,27 @@ function assetUrl(assets, name) {
   return found.url;
 }
 
+/**
+ * The notes with everything Markdown shows as text removed: fenced blocks
+ * (closed or not), indented code, HTML comments and code spans.
+ */
+function renderedText(body) {
+  return body
+    .replace(/^ {0,3}(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?)?(?:^ {0,3}\1[`~]*[ \t\r]*$|(?![\s\S]))/gm, '')
+    .replace(/^(?: {4}|\t).*$/gm, '')
+    .replace(/<!--[\s\S]*?(?:-->|(?![\s\S]))/g, '')
+    .replace(/(`+)[\s\S]*?\1/g, '');
+}
+
+/**
+ * Is the gif shown as an image? A link to it is not. When in doubt the answer
+ * is no: a second copy is cosmetic, missing media is the bug.
+ */
+function showsImage(body, url) {
+  const literal = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<!\\\\)!\\[[^\\]\\n]*\\]\\(${literal}(?:[ \\t]+"[^"\\n]*")?\\)`).test(renderedText(body));
+}
+
 export function embedMedia(body, tag, assets) {
   if (!tag) throw new Error('no release tag');
   if (typeof body !== 'string') throw new Error('release body was not read');
@@ -39,14 +60,15 @@ export function embedMedia(body, tag, assets) {
     END,
   ].join('\n');
 
-  const from = body.indexOf(START);
-  if (from >= 0) {
-    const to = body.indexOf(END, from);
+  // Our block is always written at the top. The markers anywhere else are text
+  // (a commit title may quote them).
+  if (body.startsWith(START)) {
+    const to = body.indexOf(END);
     if (to < 0) throw new Error('release body has a start marker and no end marker');
-    return body.slice(0, from) + block + body.slice(to + END.length);
+    return block + body.slice(to + END.length);
   }
   // Someone embedded this gif by hand: leave their layout alone.
-  if (body.includes(`](${gif})`)) return body;
+  if (showsImage(body, gif)) return body;
   return `${block}\n\n${body}`;
 }
 
