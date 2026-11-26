@@ -51,9 +51,20 @@ from staleness_lib import (  # noqa: E402
 
 # Override at test time via env var.
 DEFAULT_MCP_SERVER = os.environ.get("ORK_MEMORY_MCP_SERVER", "memory")
+NOW_OVERRIDE_ENV = "ORK_MEMORY_NOW_OVERRIDE"
 DEFAULT_THRESHOLD_DAYS = 30
 DEFAULT_LIMIT = 50
 SEARCH_LIMIT = 1000
+
+
+def _now_from_env() -> datetime | None:
+    raw = os.environ.get(NOW_OVERRIDE_ENV)
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -92,6 +103,14 @@ def main(argv: list[str] | None = None, *, now: datetime | None = None) -> int:
     reports_dir: Path = args.reports_dir
     threshold_days: int = args.threshold_days
     limit: int = args.limit
+    if now is None and os.environ.get(NOW_OVERRIDE_ENV):
+        now = _now_from_env()
+        if now is None:
+            print(
+                f"staleness_cron: {NOW_OVERRIDE_ENV} is not ISO 8601",
+                file=sys.stderr,
+            )
+            return 1
     now_dt = now or datetime.now(UTC)
 
     if threshold_days < 0:

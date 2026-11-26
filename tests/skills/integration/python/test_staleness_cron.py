@@ -31,6 +31,9 @@ SCRIPT_PATH = (
 )
 
 
+FIXED_NOW = "2026-05-20T00:00:00Z"
+
+
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
@@ -150,6 +153,8 @@ def _run(
     if pythonpath is not None:
         prev = env.get("PYTHONPATH", "")
         env["PYTHONPATH"] = f"{pythonpath}{os.pathsep}{prev}" if prev else str(pythonpath)
+    if fake_now is not None:
+        env["ORK_MEMORY_NOW_OVERRIDE"] = fake_now
     argv = ["python3", str(SCRIPT_PATH), str(reports_dir)]
     if extra_args:
         argv.extend(extra_args)
@@ -258,7 +263,7 @@ def test_empty_kg_writes_empty_report(tmp_path: Path, shim_empty_kg: Path) -> No
 
 
 def test_mixed_kg_split_correctly(tmp_path: Path, shim_mixed_kg: Path) -> None:
-    result = _run(tmp_path, pythonpath=shim_mixed_kg)
+    result = _run(tmp_path, pythonpath=shim_mixed_kg, fake_now=FIXED_NOW)
     assert result.returncode == 0, f"stderr: {result.stderr}"
 
     handoff = _load_handoff(tmp_path)
@@ -278,7 +283,7 @@ def test_mixed_kg_split_correctly(tmp_path: Path, shim_mixed_kg: Path) -> None:
 
 def test_top_stale_sort_order(tmp_path: Path, shim_mixed_kg: Path) -> None:
     """Sort: no-timestamp first, then by age desc."""
-    result = _run(tmp_path, pythonpath=shim_mixed_kg)
+    result = _run(tmp_path, pythonpath=shim_mixed_kg, fake_now=FIXED_NOW)
     assert result.returncode == 0
 
     payload = _load_handoff(tmp_path)
@@ -292,7 +297,7 @@ def test_top_stale_sort_order(tmp_path: Path, shim_mixed_kg: Path) -> None:
 
 
 def test_limit_caps_top_stale(tmp_path: Path, shim_mixed_kg: Path) -> None:
-    result = _run(tmp_path, pythonpath=shim_mixed_kg, extra_args=["--limit", "2"])
+    result = _run(tmp_path, pythonpath=shim_mixed_kg, extra_args=["--limit", "2"], fake_now=FIXED_NOW)
     assert result.returncode == 0
     payload = _load_handoff(tmp_path)
     # stale_count is the TRUE count (4); top_stale is capped at --limit.
@@ -302,7 +307,7 @@ def test_limit_caps_top_stale(tmp_path: Path, shim_mixed_kg: Path) -> None:
 
 def test_custom_threshold_changes_split(tmp_path: Path, shim_mixed_kg: Path) -> None:
     # 365-day threshold: only the 200-day-old and undated entities stay stale.
-    result = _run(tmp_path, pythonpath=shim_mixed_kg, extra_args=["--threshold-days", "365"])
+    result = _run(tmp_path, pythonpath=shim_mixed_kg, extra_args=["--threshold-days", "365"], fake_now=FIXED_NOW)
     assert result.returncode == 0
     payload = _load_handoff(tmp_path)
     # ancient (200d) is FRESH at 365d threshold; undated still stale.
