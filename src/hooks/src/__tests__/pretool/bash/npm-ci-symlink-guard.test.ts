@@ -7,7 +7,7 @@
  */
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, normalize } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { HookInput } from '../../../types.js';
 import { NOOP_CTX } from '../../../lib/context.js';
@@ -1419,11 +1419,22 @@ describe('the six residual findings (#29b, #36, #37, #38, #40, #41)', () => {
   it('#37 cd -P resolves physically: denied or asked when the physical dir is linked', () => {
     const deps: NpmCiSymlinkGuardDeps = {
       ...relLinked,
-      // The lexical path /tmp/link/child/.. resolves to /tmp/link first; the
-      // physical path of that (through the link) is /wt.
-      realpath: (p: string) => (p === '/tmp/link' ? '/wt' : p),
+      // The operand goes to realpath as written; /tmp/link is a symlink whose
+      // target lives under /wt.
+      realpath: (p: string) => (p === '/tmp/link/child/..' ? '/wt' : p),
     };
     expect(['deny', 'ask']).toContain(decision('cd -P /tmp/link/child/..; npm ci --prefix rel', deps));
+  });
+
+  // #37: the resolved destination itself is asserted, and a component that does
+  // not exist fails the cd, so the shell stays where it was.
+  it('#37 asserts the physically resolved destination and the failed-cd stay', () => {
+    const realpath = (p: string): string | null =>
+      p === '/tmp/link/child/..' ? '/wt' : p === '/decoy/real' ? '/elsewhere' : null;
+    expect(npmCiTargetDir('cd -P /tmp/link/child/..; npm ci', '/decoy', '/home/u', realpath)).toBe('/wt');
+    expect(npmCiTargetDir('cd -P real; npm ci', '/decoy', '/home/u', realpath)).toBe('/elsewhere');
+    // realpath fails: the cd fails and the install runs in the stayed-behind dir.
+    expect(npmCiTargetDir('cd -P /missing/child/..; npm ci', '/decoy', '/home/u', realpath)).toBe('/decoy');
   });
 
   // #40: quoted braces are literal text in bash; --prefix 'a{b,c}' names one directory.
@@ -1442,5 +1453,81 @@ describe('the six residual findings (#29b, #36, #37, #38, #40, #41)', () => {
     ['npm ci --prefix rel'],
   ])('control, %s: quiet when nothing is linked', (command) => {
     expect(decision(command, nothingLinked)).toBeUndefined();
+  });
+});
+
+describe('the Opus review variants (dirs -c, IFS trims, physical mode, part-braces, rotations)', () => {
+  const relLinked = linksAt('/wt/rel/node_modules');
+  const nothingLinked = linksAt();
+  const decision = (command: string, deps: NpmCiSymlinkGuardDeps) =>
+    npmCiSymlinkGuard(bash(command, '/wt'), NOOP_CTX, deps).hookSpecificOutput?.permissionDecision;
+
+  // Regression vs main: `dirs -c` clears the stack, so popd fails and the shell
+  // stays in /a; the reader that ignores it moved back to /wt and missed /a/rel.
+  it('dirs -c clears the stack: the failed popd still fails closed', () => {
+    expect(['deny', 'ask']).toContain(decision('pushd /a; dirs -c; popd; npm ci --prefix rel', relLinked));
+    expect(decision('pushd /a; dirs -c; popd; npm ci --prefix rel', nothingLinked)).toBeUndefined();
+  });
+
+  // #36 trims that yield EMPTY glue their neighbours into one word in bash;
+  // trims that keep separators split the word. Both must not relocate the probe.
+  it.each([
+    'npm ci --prefix r${IFS%%*}el',
+    'npm ci --prefix r${IFS##*}el',
+    'npm ci --prefix ${IFS%%*}rel',
+    'cd r${IFS%%*}el; npm ci',
+    'cd r${IFS##*}el; npm ci',
+    'npm ci --prefix r${IFS%%x}el',
+    'npm ci --prefix r${IFS%?}el',
+    'npm ci --prefix r${IFS%%??}el',
+  ])('IFS variant, %s: denied or asked when the real target is linked', (command) => {
+    expect(['deny', 'ask']).toContain(decision(command, relLinked));
+    expect(decision(command, nothingLinked)).toBeUndefined();
+  });
+
+  // #37 physical mode can come from `set`, not only `cd -P`: the operand must go
+  // to realpath the way bash hands it, and the resolved landing is asserted.
+  it.each([
+    ['set -P; cd /tmp/link/child/..; npm ci --prefix rel'],
+    ['set -o physical; cd /tmp/link/child/..; npm ci --prefix rel'],
+    ['cd -LP /tmp/link/child/..; npm ci --prefix rel'],
+    ['cd -PL /tmp/link/child/..; npm ci --prefix rel'],
+  ])('physical variant, %s: denied or asked when the physical dir is linked', (command) => {
+    const deps: NpmCiSymlinkGuardDeps = {
+      ...relLinked,
+      // /tmp/link is a symlink to /wt: the physical path maps the prefix and
+      // resolves `..` against the linked-to tree.
+      realpath: (p: string) => (p.startsWith('/tmp/link') ? normalize(p.replace('/tmp/link', '/wt')) : p),
+    };
+    expect(['deny', 'ask']).toContain(decision(command, deps));
+  });
+
+  it('set physical asserts the resolved destination', () => {
+    const realpath = (p: string): string | null => (p === '/tmp/link/child/..' ? '/wt' : null);
+    expect(npmCiTargetDir('set -o physical; cd /tmp/link/child/..; npm ci', '/decoy', '/home/u', realpath)).toBe('/wt');
+    expect(npmCiTargetDir('cd -LP /tmp/link/child/..; npm ci', '/decoy', '/home/u', realpath)).toBe('/wt');
+  });
+
+  // #40 partly quoted braces: bash pairs only unquoted braces, so the literal
+  // word and its expansions are different candidates. All must be probed.
+  it.each([
+    ["npm ci --prefix r'{'el}", '/wt/r{el}/node_modules'],
+    ["npm ci --prefix 'r{'el}", '/wt/r{el}/node_modules'],
+    ["npm ci --prefix r\\{el}", '/wt/r{el}/node_modules'],
+    ["npm ci --prefix r{e,l\\}}", '/wt/re/node_modules'],
+    ["npm ci --prefix 'r{e,l}'x", '/wt/r{e,l}x/node_modules'],
+  ])('part-brace, %s: denied or asked when the literal dir is linked', (command, linkedDir) => {
+    const deps = linksAt(linkedDir as string);
+    expect(['deny', 'ask']).toContain(decision(command, deps));
+  });
+
+  // #41 pushd/popd rotations pick a stack slot the reader cannot place.
+  it.each([
+    'pushd /a; pushd +1; npm ci --prefix rel',
+    'pushd /a; pushd -n /b; npm ci --prefix rel',
+    'pushd /a; pushd /b; popd +0; npm ci --prefix rel',
+    'pushd /a; popd -0; npm ci --prefix rel',
+  ])('rotation, %s: denied or asked when a stack dir is linked', (command) => {
+    expect(['deny', 'ask']).toContain(decision(command, relLinked));
   });
 });

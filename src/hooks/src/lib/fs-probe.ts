@@ -36,14 +36,15 @@ export function isSymlinkPath(path: string): boolean {
 }
 
 /**
- * The physical path of `path` with every symlink in it dereferenced, or `path`
- * unchanged when it cannot be resolved. Used by guards that model `cd -P`,
- * which resolves `..` against the linked-to directory, not the lexical path.
+ * The physical path of `path` with every symlink in it dereferenced, or null
+ * when it cannot be resolved (a missing component, a dangling link). Used by
+ * guards that model `cd -P`, which fails when any component does not exist;
+ * the null carries that failure so the caller fails closed.
  */
-export function realpathPath(path: string): string {
+export function realpathPath(path: string): string | null {
   try {
     return realpathSync.native(path);
   } catch {
-    return path;
+    return null;
   }
 }

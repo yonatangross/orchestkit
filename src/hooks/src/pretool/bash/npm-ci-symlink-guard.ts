@@ -39,8 +39,8 @@ export interface NpmCiSymlinkGuardDeps {
   isSymlink: (path: string) => boolean;
   /** The real subdirectory names of a path; used only to search for a link when the parse is uncertain. */
   listSubdirs?: (path: string) => string[];
-  /** The physical path with every symlink dereferenced; used to model `cd -P` (#37). */
-  realpath?: (path: string) => string;
+  /** The physical path with every symlink dereferenced, or null when it cannot resolve (`cd -P` then fails) (#37). */
+  realpath?: (path: string) => string | null;
 }
 
 const DEFAULT_DEPS: NpmCiSymlinkGuardDeps = { isSymlink: isSymlinkPath, listSubdirs, realpath: realpathPath };
@@ -155,7 +155,7 @@ function readAnsiC(text: string, start: number): { value: string; end: number } 
  * reads them. It ends at an unquoted blank, at an unquoted `<` or `>` (a redirection is not part of
  * the word next to it) or at a character of `stops`.
  */
-function readWord(text: string, start: number, stops: string): { value: string; end: number; hasExpand: boolean; splits: boolean; quotedBrace: boolean } {
+function readWord(text: string, start: number, stops: string): { value: string; end: number; hasExpand: boolean; splits: boolean; quotedBrace: boolean; braceMixed: boolean } {
   let cur = '';
   let i = start;
   // Whether bash expands anything in this word, and whether an expansion sits
@@ -211,7 +211,7 @@ function readWord(text: string, start: number, stops: string): { value: string; 
       i++;
     }
   }
-  return { value: cur, end: i, hasExpand, splits, quotedBrace: braceQuoted && !braceBare };
+  return { value: cur, end: i, hasExpand, splits, quotedBrace: braceQuoted && !braceBare, braceMixed: braceQuoted && braceBare };
 }
 
 /** `${IFS}`, `${IFS%?}`, `$IFS$9` and a bare `$IFS`: the shell splits words at them. */
@@ -220,6 +220,21 @@ function readWord(text: string, start: number, stops: string): { value: string; 
 // separators). A `+`/`-`/`?`/`=` form or a nonempty replacement can produce arbitrary text
 // (`${IFS:+x}` is `x` when IFS is set), so those are left for expandVars to answer (row 17, #36).
 const IFS_BLANK = /\$\{IFS(?:[#%][^}]*)?\}|\$\{IFS\/{1,2}[^}/]*\/?\}|\$IFS\$\d|\$IFS(?![A-Za-z0-9_])/g;
+
+/**
+ * Marker left where an IFS expansion was blanked. The form is ambiguous: a
+ * trim can yield separators (the word splits) or nothing (the neighbours glue
+ * into one word), and the reader cannot always tell which. Both readings are
+ * candidates wherever the marker lands (row 17, #36 reviews).
+ */
+const IFS_SENT = '';
+
+/** The glued reading plus every split piece of a word holding IFS markers. */
+function ifsVariants(word: string): string[] {
+  const out = new Set<string>([word.replaceAll(IFS_SENT, '')]);
+  for (const piece of word.split(IFS_SENT)) if (piece !== '') out.add(piece);
+  return [...out];
+}
 
 
 
@@ -234,8 +249,8 @@ const DQ_ESCAPABLE = '$`"\\\n';
  * character. Quote characters of the other kind stay in the word, so
  * "a'b" is a'b and '/L\z' is /L\z.
  */
-function shellWords(segment: string): Array<{ value: string; hasExpand: boolean; splits: boolean; quotedBrace: boolean }> {
-  const words: Array<{ value: string; hasExpand: boolean; splits: boolean; quotedBrace: boolean }> = [];
+function shellWords(segment: string): Array<{ value: string; hasExpand: boolean; splits: boolean; quotedBrace: boolean; braceMixed: boolean }> {
+  const words: Array<{ value: string; hasExpand: boolean; splits: boolean; quotedBrace: boolean; braceMixed: boolean }> = [];
   let i = 0;
   // Where the last word ended, where it began in the segment (a quoted fd number is not one),
   // and whether the next word is the target of a redirection.
@@ -271,7 +286,7 @@ function shellWords(segment: string): Array<{ value: string; hasExpand: boolean;
     i = word.end;
     if (dropNext) dropNext = false;
     else {
-      words.push({ value: word.value, hasExpand: word.hasExpand, splits: word.splits, quotedBrace: word.quotedBrace });
+      words.push({ value: word.value, hasExpand: word.hasExpand, splits: word.splits, quotedBrace: word.quotedBrace, braceMixed: word.braceMixed });
       lastEnd = i;
       lastStart = wStart;
     }
@@ -374,6 +389,24 @@ function braceExpand(word: string): string[] {
     return true;
   };
   return expand(word) ? out : [DYNAMIC];
+}
+
+/**
+ * Brace expansions a word with partly hidden quoting can take: each `}` after
+ * the first `{` could be the close bash pairs (a `}` that was escaped or quoted
+ * still sits in the value). The literal word is added by the caller (#40 reviews).
+ */
+function braceExpandAlt(word: string): string[] {
+  const open = word.indexOf('{');
+  if (open === -1) return [word];
+  const out = new Set<string>();
+  for (let close = word.indexOf('}', open + 1); close !== -1; close = word.indexOf('}', close + 1)) {
+    const inner = word.slice(open + 1, close);
+    if (!inner.includes(',')) continue;
+    for (const piece of inner.split(',')) out.add(word.slice(0, open) + piece + word.slice(close + 1));
+  }
+  if (out.size === 0) return [word];
+  return [...out];
 }
 
 /**
@@ -851,7 +884,7 @@ function resolveDir(base: string, dir: string, home: string): string {
  * take a value (`--loglevel warn`, `-w api`) are skipped with their value, so
  * the value is never read as the subcommand.
  */
-export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string | null {
+export function npmCiTargetDir(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null): string | null {
   return scan(blankSubstitutions(command), cwd, home, realpath).target;
 }
 
@@ -1003,7 +1036,7 @@ function substitutionBodies(command: string, quotesLiteral = false): string[] {
  * reading passed through, and every target. A misparse then checks too many
  * directories, never too few.
  */
-export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string[] {
+export function npmCiCandidateDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null): string[] {
   const scans = readingsOf(command).map((text) => scan(text, cwd, home, realpath));
   if (!scans.some((s) => s.targets.length > 0)) return [];
   const dirs = new Set<string>([cwd]);
@@ -1085,7 +1118,7 @@ function readAllWays(command: string): string[] {
  * escapes are removed), return the cwd and every directory any reading passed
  * through, so the guard can ask instead of failing open. [] otherwise.
  */
-export function npmCiMentionDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string[] {
+export function npmCiMentionDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null): string[] {
   // Backticks split too: a command substitution may wrap the npm word (`'`npm ci`'`).
   const words = shellWord(command).split(/[\s;&|()`]+/).filter(Boolean);
   const npmAt = words.findIndex((w) => baseName(w) === 'npm');
@@ -1103,7 +1136,7 @@ export function npmCiMentionDirs(command: string, cwd: string, home: string = pr
  * One reading of a command: every clean-install target in it (`target` is the first, or null) and every
  * directory it passed through. The whole command is scanned, never stopped at the first install.
  */
-function scan(command: string, cwd: string, home: string, realpath?: (path: string) => string): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean; dirShaky: boolean } {
+function scan(command: string, cwd: string, home: string, realpath?: (path: string) => string | null): { target: string | null; targets: string[]; seen: string[]; cdArgs: string[]; dynamic: boolean; dirShaky: boolean } {
   const seen: string[] = [cwd];
   const targets: string[] = [];
   // Every directory word the scan met (cd, env -C, --prefix), as written, for the uncertain-parse check.
@@ -1139,6 +1172,9 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
   // pushd and popd move the shell through a directory stack (row 17, #41): a
   // `pushd /a; popd` pair leaves the shell where it started, not in /a.
   const dirstack: string[] = [];
+  // `set -P`/`set -o physical` switches every later cd to physical resolution
+  // until `set +P`/`set -o logical` switches it back (row 17, #37 reviews).
+  let physicalMode = false;
   // A subshell runs in a copy of the shell: a cd, an assignment and a stack
   // change inside it end when it closes. Each '(' saves them all (#55, #41).
   const saved: Array<{ dir: string; vars: Vars; dirstack: string[] }> = [];
@@ -1236,7 +1272,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     // A brace group runs in the current shell, so `{ cd X; }` moves the
     // directory for what follows; only the grammar is stripped (#5169).
     // ${IFS} and $IFS (with an empty positional after it) are the blank the shell splits words at.
-    segment = stripShellGrammar(segment).replace(IFS_BLANK, ' ');
+    segment = stripShellGrammar(segment).replace(IFS_BLANK, IFS_SENT);
     // The comment cut applies to cd and pushd only: on an npm line it would drop
     // words the shell keeps whenever this reader splits finer than the shell.
     if (CD_SEGMENT.test(segment)) segment = cutAtComment(segment);
@@ -1284,7 +1320,7 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     // and disables word splitting, it does not reset the default (#5336).
     const ifs = typeof ifsValue === 'string' ? ifsValue : ' \t\n';
     const ifsSplit = new RegExp(`[${ifs.replace(/[\\\-\]^[]/g, '\\$&')}]+`);
-    const words = rawWords.flatMap((w) => {
+    const wordsAll = rawWords.flatMap((w) => {
       const ex = w.hasExpand ? expandVars(w.value, varsForExpand(), maybeUnset) : w.value;
       // Only an unquoted expansion splits on IFS: `cd "$d"` is one operand
       // even when $d holds blanks, and `IFS=` turns splitting off entirely.
@@ -1293,23 +1329,66 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       const pieces = !w.splits ? [ex] : ex === '' ? [] : ifs === '' ? [ex] : ex.split(ifsSplit).filter(Boolean);
       return pieces.flatMap((p) => {
         // A brace the shell kept inside quotes is literal text, not an expansion (#40).
-        const parts = w.quotedBrace ? [p] : braceExpand(p);
+        // Partly quoted braces may pair or not in bash, so the literal word and
+        // every expansion are all candidates (#40 reviews).
+        const parts = w.quotedBrace ? [p] : w.braceMixed ? [...new Set([p, ...braceExpand(p), ...braceExpandAlt(p)])] : braceExpand(p);
         return parts.length === 1 && parts[0] === p ? parts : parts.filter((x) => x !== '');
       });
     });
+    // A word that is only IFS markers sits between real blanks: it splits (or
+    // vanishes) exactly the way bash reads it, so it contributes no operand.
+    const words = wordsAll.filter((w) => w.replaceAll(IFS_SENT, '') !== '');
     // `builtin cd` and `command cd` really change the directory (#41); assignments
     // and those two prefixes may stand between the start and the command word.
     let cdIdx = 0;
     while (cdIdx < words.length && /^\w+=/.test(words[cdIdx])) cdIdx++;
     while (cdIdx < words.length && (words[cdIdx] === 'builtin' || words[cdIdx] === 'command')) cdIdx++;
+    if (cdIdx < words.length && words[cdIdx].includes(IFS_SENT)) {
+      // An IFS-glued command word may read as a builtin or as several words:
+      // the builtin reading is applied and the rest fail closed (#36 reviews).
+      dirShaky = true;
+      seen.push(dir);
+      for (const s of dirstack) seen.push(s);
+      const cmd = ifsVariants(words[cdIdx]).find((v) => v === 'cd' || v === 'pushd');
+      if (cmd !== undefined) words[cdIdx] = cmd;
+    }
     if (cdIdx < words.length && words[cdIdx] === 'popd') {
       // `popd` alone moves the shell back to the directory the last pushd came from.
       // An empty stack fails, and a `+N`/`-N` rotation is a move the reader cannot place
       // (row 17, #41), so both mark the parse shaky and leave the directory where it is.
       const popOps = words.slice(cdIdx + 1).filter((a) => !CD_OPTIONS.has(a));
       if (popOps.length === 0 && dirstack.length > 0) dir = dirstack.pop() as string;
-      else dirShaky = true;
+      else {
+        dirShaky = true;
+        // `popd +N` removes a slot the reader cannot map to a directory: every
+        // entry bash might have moved through stays a candidate (#41 reviews).
+        for (const s of dirstack) seen.push(s);
+      }
       seen.push(dir);
+      restore();
+      continue;
+    }
+    if (cdIdx < words.length && words[cdIdx] === 'dirs') {
+      // `dirs -c` empties the stack a later popd pops; the other stack
+      // builtins are not modelled, so the builtin fails closed (#41 reviews).
+      dirShaky = true;
+      if (words.slice(cdIdx + 1).some((a) => /^-[a-zA-Z]*c[a-zA-Z]*$/.test(a))) dirstack.length = 0;
+      seen.push(dir);
+      restore();
+      continue;
+    }
+    if (cdIdx < words.length && words[cdIdx] === 'set') {
+      for (let i = cdIdx + 1; i < words.length; i++) {
+        const a = words[i];
+        if (/^-[a-zA-Z]+$/.test(a) && a.includes('P')) physicalMode = true;
+        else if (/^\+[a-zA-Z]+$/.test(a) && a.includes('P')) physicalMode = false;
+        else if (a === '-o' || a === '+o') {
+          const name = i + 1 < words.length ? words[i + 1] : '';
+          if (name === 'physical') physicalMode = a === '-o';
+          else if (name === 'logical') physicalMode = a === '+o';
+          i++;
+        }
+      }
       restore();
       continue;
     }
@@ -1319,14 +1398,19 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
     // (row 17, #37 and #38).
     const afterCd = cdWord ? words.slice(cdIdx + 1) : [];
     let optEnd = 0;
-    let physical = false;
-    while (optEnd < afterCd.length && CD_OPTIONS.has(afterCd[optEnd]) && afterCd[optEnd] !== '--') {
-      if (afterCd[optEnd] === '-P') physical = true;
-      else if (afterCd[optEnd] === '-L') physical = false;
+    let optPhysical = false;
+    while (optEnd < afterCd.length && afterCd[optEnd] !== '--') {
+      const a = afterCd[optEnd];
+      if (a === '-P') optPhysical = true;
+      else if (a === '-L') optPhysical = false;
+      else if (/^-[LP]{2,}$/.test(a)) optPhysical = a.endsWith('P');
+      else if (!CD_OPTIONS.has(a)) break;
       optEnd++;
     }
     if (optEnd < afterCd.length && afterCd[optEnd] === '--') optEnd++;
     const cdOperands = afterCd.slice(optEnd);
+    // `set -o physical` makes a bare cd resolve like `cd -P` (#37 reviews).
+    const physical = optPhysical || physicalMode;
     // An operand that still looks like an option after `--` is positional to bash: it names a
     // directory like `-L`, which almost never exists, so the cd fails rather than moving.
     if (cdOperands.some((a) => a.startsWith('-'))) dirShaky = true;
@@ -1352,6 +1436,30 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       // reader disagree about (row 17); an operand count other than one is a cd bash
       // refuses (too many arguments) or a bare `cd`, which goes to the home directory.
       if (cdOperands.length !== 1 || /['"\\$`<>|#{}]/.test(segment)) dirShaky = true;
+      if (cdOperands.some((a) => a.includes(IFS_SENT))) {
+        // An IFS form inside the operand may glue it into one word or split it
+        // into several: every reading lands somewhere else (row 17, #36 reviews).
+        dirShaky = true;
+        seen.push(beforeCd);
+        for (const a of cdOperands) {
+          for (const v of ifsVariants(a)) {
+            cdArgs.push(v);
+            seen.push(v === '' ? cdHome : resolveOp(beforeCd, v));
+          }
+        }
+        restore();
+        continue;
+      }
+      // `pushd +N` rotates the stack and `pushd -n` stacks without moving: a
+      // move the reader cannot place, so every stack entry is a candidate (#41).
+      if (words[cdIdx] === 'pushd' && cdOperands.some((a) => /^\+/.test(a) || /^-n$/.test(a) || /^-\d+$/.test(a))) {
+        dirShaky = true;
+        seen.push(beforeCd);
+        for (const s of dirstack) seen.push(s);
+        for (const a of cdOperands.filter((x) => !x.startsWith('-') && !x.startsWith('+'))) seen.push(resolveOp(beforeCd, a));
+        restore();
+        continue;
+      }
       if (cdOperands.length === 0) {
         if (words[cdIdx] === 'cd') dir = cdHome;
         else if (dirstack.length > 0) {
@@ -1418,17 +1526,41 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
         restore();
         continue;
       }
+      if (physical) {
+        // `cd -P` resolves every component through the filesystem: a `..`
+        // unwinds the tree the link points at, and a missing component anywhere
+        // fails the cd (row 17, #37). The operand goes to realpath as written,
+        // joined to the shell's directory, never through the lexical
+        // normalizer, so `child/..` still costs a component that may not exist.
+        dirShaky = true;
+        seen.push(beforeCd);
+        const rawOp = expandHome(op, tildeHome());
+        const physicalPath = realpath?.(isAbsolute(rawOp) ? rawOp : `${beforeCd}/${rawOp}`);
+        if (physicalPath === undefined) {
+          // No probe to answer the physical path: keep the lexical reading as
+          // one more candidate and mark the parse shaky.
+          dir = resolveOp(dir, op);
+          if (words[cdIdx] === 'pushd') dirstack.push(beforeCd);
+          seen.push(dir);
+          restore();
+          continue;
+        }
+        if (physicalPath === null) {
+          // The cd fails: bash stays in the directory it had, and the install
+          // runs there.
+          seen.push(dir);
+          restore();
+          continue;
+        }
+        dir = physicalPath;
+        if (words[cdIdx] === 'pushd') dirstack.push(beforeCd);
+        seen.push(dir);
+        restore();
+        continue;
+      }
       dir = resolveOp(dir, op);
       // A pushd that really moved keeps the directory it left (row 17, #41).
       if (words[cdIdx] === 'pushd') dirstack.push(beforeCd);
-      // `cd -P` resolves `..` against the directory each link points at, not the
-      // lexical path (row 17, #37). Without a realpath probe the landing spot is
-      // not knowable, so the stayed-behind directory remains a candidate.
-      if (physical) {
-        dirShaky = true;
-        seen.push(beforeCd);
-        if (realpath !== undefined) dir = realpath(dir);
-      }
       // CDPATH: a relative cd may resolve under a CDPATH entry instead of the cwd
       // (#37). Bash skips it only for operands that ARE `.` or `..` or start
       // with `./` or `../`; a hidden name like `.worktrees` still searches it.
@@ -1475,49 +1607,68 @@ function scan(command: string, cwd: string, home: string, realpath?: (path: stri
       // timeout takes a duration before the command.
       if (wrapper === 'timeout' && start < words.length && /^\d/.test(words[start])) start++;
     }
-    const tokens = words.slice(start);
-    const commandIsNpm = tokens.length > 0 && baseName(tokens[0]) === 'npm';
-    const commandIsDynamic = tokens.length > 0 && isDynamicWord(tokens[0]);
-    if (!commandIsNpm && !commandIsDynamic) {
-      restore();
-      continue;
-    }
-    let prefix: string | null = null;
-    let sub: string | null = null;
-    let dynamicSub = false;
-    for (let i = 1; i < tokens.length; i++) {
-      const t = tokens[i];
-      // Words are already read as the shell reads them; no second unquote.
-      if (t.startsWith('--prefix=')) prefix = t.slice('--prefix='.length);
-      else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = tokens[++i];
-      else if (VALUE_FLAGS.has(t)) i++;
-      else if (!t.startsWith('-') && sub === null) {
-        if (isDynamicWord(t)) dynamicSub = true;
-        else sub = t;
+    // An IFS form inside a word may glue it into one word or split it into
+    // several: the command line is read under each outcome (row 17, #36
+    // reviews). A word of only markers contributes nothing in either.
+    const tokensBase = words.slice(start);
+    const tokenStreams = tokensBase.some((t) => t.includes(IFS_SENT))
+      ? [
+          tokensBase.flatMap((t) => t.split(IFS_SENT).filter((x) => x !== '')),
+          tokensBase.map((t) => t.replaceAll(IFS_SENT, '')),
+        ]
+      : [tokensBase];
+    for (const tokens of tokenStreams) {
+      const commandIsNpm = tokens.length > 0 && baseName(tokens[0]) === 'npm';
+      const commandIsDynamic = tokens.length > 0 && isDynamicWord(tokens[0]);
+      if (!commandIsNpm && !commandIsDynamic) continue;
+      let prefix: string | null = null;
+      let sub: string | null = null;
+      let dynamicSub = false;
+      for (let i = 1; i < tokens.length; i++) {
+        const t = tokens[i];
+        // Words are already read as the shell reads them; no second unquote.
+        if (t.startsWith('--prefix=')) prefix = t.slice('--prefix='.length);
+        else if (PREFIX_FLAGS.has(t) && i + 1 < tokens.length) prefix = tokens[++i];
+        else if (VALUE_FLAGS.has(t)) i++;
+        else if (!t.startsWith('-')) {
+          if (sub === null) {
+            if (isDynamicWord(t)) dynamicSub = true;
+            else sub = t;
+          } else if (segment.includes('{') || segment.includes('}')) {
+            // A word a brace expansion produced may sit where bash put the
+            // flag's value: every expansion is a directory candidate (#40 reviews).
+            seen.push(resolveOp(cmdDir, t));
+          }
+        }
       }
-    }
-    if (prefix !== null) probeDir(cmdDir, prefix);
-    if (commandIsDynamic && !commandIsNpm) {
-      // The command word is a variable or substitution the reader cannot resolve. A clean-install
-      // word after it is the shape of `$NPM ci`: not certain, so it is recorded, not denied.
-      if (sub !== null && CLEAN_INSTALL.has(sub)) {
+      if (prefix !== null) probeDir(cmdDir, prefix);
+      if (commandIsDynamic && !commandIsNpm) {
+        // The command word is a variable or substitution the reader cannot resolve. A clean-install
+        // word after it is the shape of `$NPM ci`: not certain, so it is recorded, not denied.
+        if (sub !== null && CLEAN_INSTALL.has(sub)) {
+          dynamic = true;
+          seen.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
+        }
+        continue;
+      }
+      if (sub === null && dynamicSub) {
+        // `npm $SUB`: the subcommand cannot be read.
         dynamic = true;
         seen.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
       }
-      restore();
-      continue;
-    }
-    if (sub === null && dynamicSub) {
-      // `npm $SUB`: the subcommand cannot be read.
-      dynamic = true;
-      seen.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
-    }
-    if (sub !== null && CLEAN_INSTALL.has(sub)) {
-      // Keep scanning: a later clean install (after a cd into a linked worktree, say) must
-      // not be hidden by an earlier one in a directory that is safe (Vercel Security Review,
-      // row 16 finding 5). Every target is collected and every directory the scan passes
-      // through is still recorded.
-      targets.push(prefix === null ? cmdDir : resolveOp(cmdDir, prefix));
+      if (sub !== null && CLEAN_INSTALL.has(sub)) {
+        // Keep scanning: a later clean install (after a cd into a linked worktree, say) must
+        // not be hidden by an earlier one in a directory that is safe (Vercel Security Review,
+        // row 16 finding 5). Every target is collected and every directory the scan passes
+        // through is still recorded.
+        const t = prefix === null ? cmdDir : resolveOp(cmdDir, prefix);
+        targets.push(t);
+        // A lexical landing can still pass through a symlink (`cd -PL link/..`
+        // keeps the logical name but writes in the target): the physical reading
+        // of the install directory is a candidate too (row 17, #37 reviews).
+        const tp = realpath?.(t);
+        if (tp !== null && tp !== undefined && tp !== t) seen.push(tp);
+      }
     }
     restore();
   }
@@ -1541,7 +1692,7 @@ export function npmCiParseIsUncertain(command: string): boolean {
  * redirection the shell and this reader treat differently. The uncertain path
  * then probes every directory word against every base the command passed.
  */
-export function npmCiDirShaky(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): boolean {
+export function npmCiDirShaky(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null): boolean {
   return readingsOf(command)
     .map((text) => scan(text, cwd, home, realpath))
     .some((s) => s.dirShaky);
@@ -1553,7 +1704,7 @@ export function npmCiDirShaky(command: string, cwd: string, home: string = proce
  * taken against each of those, since the reading that resolved a relative cd against the wrong
  * base is the one that cannot be trusted. Over-collects on purpose.
  */
-export function npmCiUncertainDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): string[] {
+export function npmCiUncertainDirs(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null): string[] {
   const scans = readingsOf(command).map((text) => scan(text, cwd, home, realpath));
   const bases = new Set<string>([cwd]);
   for (const s of scans) for (const d of s.seen) bases.add(d);
@@ -1565,7 +1716,7 @@ export function npmCiUncertainDirs(command: string, cwd: string, home: string = 
 }
 
 /** True when any reading of the command has a directory word (cd, env -C, --prefix) that is not absolute. */
-export function npmCiHasRelativeCd(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string): boolean {
+export function npmCiHasRelativeCd(command: string, cwd: string, home: string = process.env.HOME ?? '', realpath?: (path: string) => string | null): boolean {
   return readingsOf(command)
     .map((text) => scan(text, cwd, home, realpath))
     .some((s) => s.cdArgs.some((arg) => !isAbsolute(expandHome(arg, home))));
