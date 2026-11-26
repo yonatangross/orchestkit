@@ -55,6 +55,8 @@
       <button class="preset" data-v="2026-05-20T00:00:00Z">Z form</button>
       <button class="preset" data-v="2026-05-20T00:00:00">naive</button>
       <button class="preset" data-v="2026-05-21T02:30:00+03:00">offset (prior UTC day)</button>
+      <button class="preset" data-v="2026-05-21T02:30:00+0300">compact offset +HHMM</button>
+      <button class="preset" data-v="">empty (unset)</button>
       <button class="preset" data-v="2026-05-20">date only</button>
       <button class="preset" data-v="not-a-date">malformed</button>
       <button class="preset" data-v="2026-02-30T00:00:00Z">impossible date</button>
@@ -69,6 +71,16 @@
         <div id="new"></div>
       </div>
     </div>
+  </section>
+
+  <section>
+    <h2>Self-check vs real runs</h2>
+    <p class="muted">Each row is one recorded run of this branch's <code>staleness_cron.py</code> (empty-KG shim, 2026-11-26). The "sim says" column is the same simulator as above run on that input; a row is PASS only when the simulated exit and report filename match the real run.</p>
+    <table id="truth">
+      <thead><tr><th>input</th><th>real run</th><th>sim says</th><th>verdict</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p id="truth-summary" class="muted"></p>
   </section>
 
   <footer>
@@ -86,28 +98,35 @@ function daysInMonth(y, m) {
 }
 
 function parse(raw) {
-  // Mirrors datetime.fromisoformat after the script's "Z" -> "+00:00" rewrite:
-  // date-only and HH:MM are legal, ranges are validated (no Feb 30, no 25:00,
-  // offset capped at <24h) exactly the way fromisoformat raises ValueError.
-  const s = raw.trim().replace(/Z$/, '+00:00');
+  // Mirrors the script exactly: os.environ truthy check (empty -> unset,
+  // real clock), raw.replace("Z","+00:00") on EVERY Z, then
+  // datetime.fromisoformat's grammar: any single char separator, hour-only
+  // or HH:MM[:SS[.,frac]] time (compact HHMMSS accepted, fraction only on
+  // seconds), offset Z / +HH / +HHMM / +HH:MM / +HHMMSS / +HH:MM:SS
+  // capped below 24h, hour 24 rolls to the next day.
+  if (raw === '') return { kind: 'unset' };
+  const s = raw.replace(/Z/g, '+00:00');
   const m = s.match(
-    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?([+-]\d{2}:\d{2})?)?$/
+    /^(\d{4})-(\d{2})-(\d{2})(?:.(\d{2})(?::(\d{2})(?::(\d{2})([.,]\d+)?)?|(?:(\d{2})(\d{2})([.,]\d+)|(\d{2})(\d{2})|(\d{2})))?(?:([+-])(\d{2})(?::(\d{2})(?::(\d{2}))?|(\d{2})(\d{2})?)?)?)?$/
   );
-  if (!m) return null;
-  const [, Y, M, D, h, i, sec, off] = m;
+  if (!m) return { kind: 'invalid' };
+  const [, Y, M, D, h, mc, sc, frac, ccMm1, ccSs1, ccFr1, ccMm2, ccSs2, ccMm3,
+             sign, oh, om, os, omc, osc] = m;
   const y = +Y, mo = +M, d = +D;
   const hh = h === undefined ? 0 : +h;
-  const mi = i === undefined ? 0 : +i;
-  const ss = sec === undefined ? 0 : +sec;
-  if (mo < 1 || mo > 12 || d < 1 || d > daysInMonth(y, mo)) return null;
-  if (hh > 23 || mi > 59 || ss > 59) return null;
-  const wallMs = Date.UTC(y, mo - 1, d, hh, mi, ss);
-  if (off === undefined) return { kind: 'naive', wallMs, wall: s };
-  const sign = off[0] === '+' ? 1 : -1;
-  const [oh, om] = off.slice(1).split(':').map(Number);
-  if (oh > 23 || om > 59) return null;
-  const utcMs = wallMs - sign * (oh * 3600 + om * 60) * 1000;
-  return { kind: 'aware', utcMs, offset: off };
+  const mi = +(mc || ccMm1 || ccMm2 || ccMm3 || 0);
+  const ss = +(sc || ccSs1 || ccSs2 || 0);
+  const frStr = frac || ccFr1;
+  const fr = frStr ? parseFloat(frStr.replace(',', '.')) : 0;
+  if (mo < 1 || mo > 12 || d < 1 || d > daysInMonth(y, mo)) return { kind: 'invalid' };
+  if (hh > 24 || mi > 59 || ss > 59) return { kind: 'invalid' };
+  if (hh === 24 && (mi !== 0 || ss !== 0 || fr !== 0)) return { kind: 'invalid' };
+  const wallMs = Date.UTC(y, mo - 1, d, hh, mi, ss) + Math.round(fr * 1000);
+  if (sign === undefined) return { kind: 'naive', wallMs };
+  const omins = +(om || omc || 0), osecs = +(os || osc || 0);
+  if (+oh > 23 || omins > 59 || osecs > 59) return { kind: 'invalid' };
+  const offMs = (sign === '+' ? 1 : -1) * (+oh * 3600 + omins * 60 + osecs) * 1000;
+  return { kind: 'aware', wallMs, utcMs: wallMs - offMs, offMs };
 }
 
 function fmtWall(ms) {
@@ -116,62 +135,94 @@ function fmtWall(ms) {
   return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;
 }
 
-// Parent: strftime("%Y-%m-%dT%H:%M:%SZ") on the datetime as parsed.
-// naive -> wall clock printed with Z; aware -> ITS OWN wall clock (offset kept
-// internally, so filename + generated_at use the unconverted local fields).
-function oldResult(p) {
-  if (!p) return `<div class="verdict warn">exit 1</div><div class="kv"><div><span class="k">stderr</span> ORK_MEMORY_NOW_OVERRIDE is not ISO 8601</div></div>`;
-  if (p.kind === 'naive') {
-    return `<div class="verdict crash">exit 1 - TypeError</div>
-      <div class="kv"><div><span class="k">crash at</span> is_stale(): now - latest</div>
-      <div><span class="k">reason</span> can't subtract offset-naive and offset-aware datetimes</div>
-      <div><span class="k">report</span> none written</div></div>`;
+// Structured outcomes, shared by the compare cards and the self-check table.
+// Parent (66806feb): strftime("%Y-%m-%dT%H:%M:%SZ") on the datetime as parsed;
+// naive crashes in is_stale() on the dated entity, aware prints its own
+// offset wall clock with a Z. Fixed: naive attaches UTC, aware astimezone(UTC).
+function sim(p, isFixed) {
+  if (p.kind === 'unset') return { exit: 0, realClock: true };
+  if (p.kind === 'invalid') return { exit: 1, err: 'ORK_MEMORY_NOW_OVERRIDE is not ISO 8601' };
+  if (!isFixed && p.kind === 'naive') {
+    return { exit: 1, crash: "can't subtract offset-naive and offset-aware datetimes" };
   }
-  // aware: datetime keeps its own offset; strftime prints the offset wall
-  // clock + Z. With a zero offset (Z, +00:00) that is already the right
-  // instant, so the parent is correct too.
-  const off = offsetMs(p.offset);
-  const stamp = fmtWall(p.utcMs + off);
-  if (off === 0) {
-    return `<div class="verdict ok">exit 0</div>
-      <div class="kv"><div><span class="k">generated_at</span> ${stamp}Z</div>
-      <div><span class="k">filename</span> memory-staleness-${stamp.slice(0, 10)}.md</div>
-      <div><span class="k">note</span> zero offset: parent's stamp is already UTC</div></div>`;
-  }
-  return `<div class="verdict warn">exit 0 - wrong instant</div>
-    <div class="kv"><div><span class="k">generated_at</span> ${stamp}Z</div>
-    <div><span class="k">filename</span> memory-staleness-${stamp.slice(0, 10)}.md</div>
-    <div><span class="k">true UTC</span> ${fmtWall(p.utcMs)}Z</div></div>`;
-}
-
-function offsetMs(off) {
-  const sign = off[0] === '+' ? 1 : -1;
-  const [oh, om] = off.slice(1).split(':').map(Number);
-  return sign * (oh * 3600 + om * 60) * 1000;
-}
-
-// Fixed: naive attaches UTC, aware -> astimezone(UTC). Both land on the
-// correct instant; generated_at and filename use UTC fields.
-function newResult(p) {
-  if (!p) return `<div class="verdict warn">exit 1</div><div class="kv"><div><span class="k">stderr</span> ORK_MEMORY_NOW_OVERRIDE is not ISO 8601</div></div>`;
-  const ms = p.kind === 'naive' ? p.wallMs : p.utcMs;
+  const ms = p.kind === 'naive' ? p.wallMs
+           : isFixed ? p.utcMs
+           : p.wallMs; // parent keeps the offset wall clock
   const stamp = fmtWall(ms);
-  return `<div class="verdict ok">exit 0</div>
-    <div class="kv"><div><span class="k">generated_at</span> ${stamp}Z</div>
-    <div><span class="k">filename</span> memory-staleness-${stamp.slice(0, 10)}.md</div>
-    <div><span class="k">age math</span> ${p.kind === 'naive' ? 'naive input attached UTC; no crash' : 'offset converted before use'}</div></div>`;
+  return { exit: 0, stamp, file: `memory-staleness-${stamp.slice(0, 10)}.md`,
+           wrongInstant: !isFixed && p.kind === 'aware' && p.offMs !== 0,
+           trueUtc: p.kind === 'aware' ? fmtWall(p.utcMs) : null };
+}
+
+function render(o, isFixed) {
+  if (o.realClock) return `<div class="verdict ok">exit 0</div><div class="kv"><div><span class="k">override</span> unset / empty: ignored</div><div><span class="k">clock</span> real wall clock (datetime.now(UTC))</div></div>`;
+  if (o.err) return `<div class="verdict warn">exit 1</div><div class="kv"><div><span class="k">stderr</span> staleness_cron: ${o.err}</div></div>`;
+  if (o.crash) return `<div class="verdict crash">exit 1 - TypeError</div>
+    <div class="kv"><div><span class="k">crash at</span> is_stale(): now - latest</div>
+    <div><span class="k">reason</span> ${o.crash}</div><div><span class="k">report</span> none written</div></div>`;
+  const cls = o.wrongInstant ? 'warn' : 'ok';
+  const lbl = o.wrongInstant ? 'exit 0 - wrong instant' : 'exit 0';
+  let kv = `<div class="kv"><div><span class="k">generated_at</span> ${o.stamp}Z</div>
+    <div><span class="k">filename</span> ${o.file}</div>`;
+  if (o.wrongInstant) kv += `<div><span class="k">true UTC</span> ${o.trueUtc}Z</div>`;
+  if (!o.wrongInstant && o.stamp && !isFixed && o.trueUtc) kv += `<div><span class="k">note</span> zero offset: parent's stamp is already UTC</div>`;
+  return `<div class="verdict ${cls}">${lbl}</div>${kv}</div>`;
 }
 
 function compare() {
   const p = parse(input.value);
-  oldCard.innerHTML = oldResult(p);
-  newCard.innerHTML = newResult(p);
+  oldCard.innerHTML = render(sim(p, false), false);
+  newCard.innerHTML = render(sim(p, true), true);
 }
 
 document.getElementById('go').addEventListener('click', compare);
 input.addEventListener('keydown', (e) => { if (e.key === 'Enter') compare(); });
 document.querySelectorAll('.preset').forEach((b) => b.addEventListener('click', () => { input.value = b.dataset.v; compare(); }));
 compare();
+
+// Recorded runs of THIS branch's staleness_cron.py (empty-KG shim, collected
+// 2026-11-26). file = the report name the run wrote; 'real clock' means the
+// env var was ignored and the wall clock stamped the report.
+const REAL_RUNS = [
+  { in: '',                          exit: 0, file: 'real clock' },
+  { in: ' ',                         exit: 1 },
+  { in: '2026-05-20',                exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-20T00:00:00Z',      exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-20T00:00:00z',      exit: 1 },
+  { in: '2026-05-21T02:30:00+03:00', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+0300',  exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+03',    exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30+03:00',    exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+03:00:15', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00+033015', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-02-30T00:00:00Z',      exit: 1 },
+  { in: 'garbage',                   exit: 1 },
+  { in: '2026-05-20 12:00:00',       exit: 0, file: 'memory-staleness-2026-05-20.md' },
+  { in: '2026-05-21T02:30:00-05:30', exit: 0, file: 'memory-staleness-2026-05-21.md' },
+  { in: '2026-05-20T00:00:00.123456Z', exit: 0, file: 'memory-staleness-2026-05-20.md' },
+];
+
+const tbody = document.querySelector('#truth tbody');
+let pass = 0;
+for (const r of REAL_RUNS) {
+  const o = sim(parse(r.in), true);
+  const simDesc = o.realClock ? 'exit 0, real clock'
+    : o.err || o.crash ? 'exit 1'
+    : `exit 0, ${o.file}`;
+  const realDesc = r.exit === 1 ? 'exit 1'
+    : r.file === 'real clock' ? 'exit 0, real clock'
+    : `exit 0, ${r.file}`;
+  const ok = o.exit === r.exit &&
+    (r.exit === 1 || (r.file === 'real clock' ? !!o.realClock : o.file === r.file));
+  if (ok) pass++;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><code>${r.in === '' ? '(empty)' : r.in === ' ' ? '(one space)' : r.in}</code></td>
+    <td>${realDesc}</td><td>${simDesc}</td>
+    <td class="${ok ? 'ok' : 'crash'}">${ok ? 'PASS' : 'MISMATCH'}</td>`;
+  tbody.appendChild(tr);
+}
+document.getElementById('truth-summary').textContent =
+  `${pass}/${REAL_RUNS.length} rows match real script runs.`;
 </script>
 <!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
 </html>
