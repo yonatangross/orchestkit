@@ -1,0 +1,119 @@
+[
+  {
+    "filename": ".claude-plugin/marketplace.json"
+  },
+  {
+    "filename": ".devin-plugin/plugin.json"
+  },
+  {
+    "filename": ".release-please-manifest.json"
+  },
+  {
+    "filename": "CHANGELOG.md"
+  },
+  {
+    "filename": "CLAUDE.md"
+  },
+  {
+    "filename": "README.md"
+  },
+  {
+    "filename": "docs/site/lib/generated/changelog-data.ts"
+  },
+  {
+    "filename": "docs/site/lib/generated/plugins-data.ts"
+  },
+  {
+    "filename": "manifests/codex/ork-codex.json"
+  },
+  {
+    "filename": "manifests/ork-extras.json"
+  },
+  {
+    "filename": "manifests/ork.json"
+  },
+  {
+    "filename": "package-lock.json"
+  },
+  {
+    "filename": "package.json"
+  },
+  {
+    "filename": "plugin.json"
+  },
+  {
+    "filename": "plugins/ork-codex/.codex-plugin/plugin.json"
+  },
+  {
+    "filename": "plugins/ork-extras/.claude-plugin/plugin.json"
+  },
+  {
+    "filename": "plugins/ork-extras/.cursor-plugin/plugin.json"
+  },
+  {
+    "filename": "plugins/ork-extras/plugin.json"
+  },
+  {
+    "filename": "plugins/ork/.claude-plugin/plugin.json"
+  },
+  {
+    "filename": "plugins/ork/.cursor-plugin/plugin.json"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/bundle-stats.json"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/lifecycle.mjs"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/posttool.mjs"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/pretool.mjs"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/prompt.mjs"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/stop.mjs"
+  },
+  {
+    "filename": "plugins/ork/hooks/dist/subagent.mjs"
+  },
+  {
+    "filename": "plugins/ork/plugin.json"
+  },
+  {
+    "filename": "pyproject.toml"
+  },
+  {
+    "filename": "server.json"
+  },
+  {
+    "filename": "src/codex/ork-codex/.codex-plugin/plugin.json"
+  },
+  {
+    "filename": "src/hooks/dist/bundle-stats.json"
+  },
+  {
+    "filename": "src/hooks/dist/lifecycle.mjs"
+  },
+  {
+    "filename": "src/hooks/dist/posttool.mjs"
+  },
+  {
+    "filename": "src/hooks/dist/pretool.mjs"
+  },
+  {
+    "filename": "src/hooks/dist/prompt.mjs"
+  },
+  {
+    "filename": "src/hooks/dist/stop.mjs"
+  },
+  {
+    "filename": "src/hooks/dist/subagent.mjs"
+  },
+  {
+    "filename": "version.txt"
+  }
+]
