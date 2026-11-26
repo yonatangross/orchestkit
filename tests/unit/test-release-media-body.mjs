@@ -58,6 +58,11 @@ const NOT_AN_EMBED = {
   'an image in an indented code block': `text\n\n    ![preview](${GIF})`,
   'an image in an HTML comment': `<!-- ![preview](${GIF}) -->`,
   'an image of another file': `![preview](${GIF}.png)`,
+  // Removed text must not join what stood on either side of it.
+  'a bang split from a link by a code span': `!\`x\`[preview](${GIF})`,
+  'a bang split from a link by a comment': `!<!-- x -->[preview](${GIF})`,
+  'a link split from its url by a comment': `![preview]<!-- x -->(${GIF})`,
+  'a link split from its url by a code span': `![preview]\`x\`(${GIF})`,
 };
 
 for (const [label, text] of Object.entries(NOT_AN_EMBED)) {

@@ -22,16 +22,20 @@ function assetUrl(assets, name) {
   return found.url;
 }
 
+// Stands where text was cut out. Cutting to nothing would join both sides, and
+// a "!" plus a link could then read as an image.
+const CUT = '�';
+
 /**
- * The notes with everything Markdown shows as text removed: fenced blocks
+ * The notes with everything Markdown shows as text cut out: fenced blocks
  * (closed or not), indented code, HTML comments and code spans.
  */
 function renderedText(body) {
   return body
-    .replace(/^ {0,3}(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?)?(?:^ {0,3}\1[`~]*[ \t\r]*$|(?![\s\S]))/gm, '')
-    .replace(/^(?: {4}|\t).*$/gm, '')
-    .replace(/<!--[\s\S]*?(?:-->|(?![\s\S]))/g, '')
-    .replace(/(`+)[\s\S]*?\1/g, '');
+    .replace(/^ {0,3}(`{3,}|~{3,})[^\n]*(?:\n[\s\S]*?)?(?:^ {0,3}\1[`~]*[ \t\r]*$|(?![\s\S]))/gm, CUT)
+    .replace(/^(?: {4}|\t).*$/gm, CUT)
+    .replace(/<!--[\s\S]*?(?:-->|(?![\s\S]))/g, CUT)
+    .replace(/(`+)[\s\S]*?\1/g, CUT);
 }
 
 /**
