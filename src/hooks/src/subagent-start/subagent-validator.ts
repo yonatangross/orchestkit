@@ -233,39 +233,96 @@ const SPAWN_LOG_ROTATE_BYTES = 500 * 1024;
  * (bounded — rotated at 500KB) and add 1. Parent missing from the log (rotated
  * away, or written pre-upgrade without lineage) → conservative depth 2.
  */
-function computeSpawnDepth(trackingLog: string, parentAgentId: string | undefined): number {
-  if (!parentAgentId) return 1;
+interface SpawnLogRow {
+  source?: string;
+  session_id?: string;
+  subagent_type?: string;
+  agent_name?: string;
+  agent_id?: string;
+  parent_agent_id?: string;
+  spawn_depth?: number;
+}
+
+/** Parsed spawn-log rows, oldest first; malformed lines dropped. Best-effort. */
+function readSpawnLog(trackingLog: string): SpawnLogRow[] {
   try {
-    if (existsSync(trackingLog)) {
-      const lines = readFileSync(trackingLog, 'utf8').trimEnd().split('\n');
-      // Walk backwards — the most recent entry for the parent wins.
-      for (let i = lines.length - 1; i >= 0; i--) {
-        try {
-          const entry = JSON.parse(lines[i]) as { agent_id?: string; spawn_depth?: number };
-          if (entry.agent_id && entry.agent_id === parentAgentId) {
-            return (typeof entry.spawn_depth === 'number' ? entry.spawn_depth : 1) + 1;
-          }
-        } catch {
-          // Skip malformed line.
-        }
+    if (!existsSync(trackingLog)) return [];
+    const rows: SpawnLogRow[] = [];
+    for (const line of readFileSync(trackingLog, 'utf8').trimEnd().split('\n')) {
+      try {
+        const row = JSON.parse(line) as unknown;
+        if (row && typeof row === 'object') rows.push(row as SpawnLogRow);
+      } catch {
+        // Skip malformed line.
       }
     }
+    return rows;
   } catch {
-    // Best-effort — never block a dispatch on telemetry.
+    // Best-effort, never block a dispatch on telemetry.
+    return [];
+  }
+}
+
+function computeSpawnDepth(rows: SpawnLogRow[], parentAgentId: string | undefined): number {
+  if (!parentAgentId) return 1;
+  // Walk backwards: the most recent entry for the parent wins.
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const entry = rows[i];
+    if (entry.agent_id && entry.agent_id === parentAgentId) {
+      return (typeof entry.spawn_depth === 'number' ? entry.spawn_depth : 1) + 1;
+    }
   }
   return 2;
 }
 
 /**
+ * Lineage for one SubagentStart, read from the spawn log (#5171).
+ *
+ * Measured on CC 2.1.332: the SubagentStart payload names no parent, but the
+ * PreToolUse row spawn-intent-logger wrote for the same spawn carries the
+ * spawner as parent_agent_id (absent for a main-thread spawn). Nothing in
+ * either payload links the two, so they pair by session and by the type
+ * SubagentStart reports (the spawn's name for a named spawn), first in first
+ * out: each earlier start row of that type consumes the oldest pretool row.
+ * Two parents spawning the same type at the same instant can swap lineage;
+ * that is the limit of what CC exposes.
+ */
+function resolveLineage(
+  rows: SpawnLogRow[],
+  sessionId: string,
+  subagentType: string,
+  agentId: string | undefined,
+): { duplicate: boolean; paired: boolean; parentAgentId?: string } {
+  const pending = new Map<string, Array<string | null>>();
+  let duplicate = false;
+  for (const row of rows) {
+    if (row.session_id !== sessionId) continue;
+    if (row.source === 'pretool') {
+      const key = row.agent_name || row.subagent_type || '';
+      const queue = pending.get(key) ?? [];
+      queue.push(row.parent_agent_id || null);
+      pending.set(key, queue);
+    } else if (row.source === 'start') {
+      if (agentId && row.agent_id === agentId) duplicate = true;
+      pending.get(row.subagent_type || '')?.shift();
+    }
+  }
+  const queue = pending.get(subagentType);
+  if (!queue || queue.length === 0) return { duplicate, paired: false };
+  const parent = queue[0];
+  return { duplicate, paired: true, ...(parent ? { parentAgentId: parent } : {}) };
+}
+
+/**
  * Returns the computed spawn depth when lineage is resolvable, else null.
  *
- * HONESTY NOTE (#2371 finding 3, live-verified 2026-06-11): CC ≤ 2.1.173
- * sends NO `parent_agent_id` at SubagentStart, so nested spawns are
- * indistinguishable from top-level ones here. We therefore OMIT
- * `spawn_depth` rather than fabricate `1` for every entry (which made
- * nested spawns under-count and kept the depth ≥ 4 warning permanently
- * dormant). The lineage path below lights up automatically if CC ships
- * parent context (upstream: anthropics/claude-code#16424).
+ * HONESTY NOTE (#2371 finding 3, re-measured on CC 2.1.332 for #5171): CC
+ * still sends NO `parent_agent_id` at SubagentStart. Lineage comes from the
+ * pretool row of the same spawn instead (resolveLineage). With no pretool
+ * row to pair (log rotated, pretool hook off) `spawn_depth` is OMITTED
+ * rather than fabricated as 1, which would under-count nested spawns.
+ * A payload `parent_agent_id`, if CC ever ships one
+ * (anthropics/claude-code#16424), wins over the pairing.
  */
 function logSpawn(
   subagentType: string,
@@ -301,7 +358,17 @@ function logSpawn(
     // Ignore — rotation is opportunistic.
   }
 
-  const spawnDepth = parentAgentId ? computeSpawnDepth(trackingLog, parentAgentId) : null;
+  const rows = readSpawnLog(trackingLog);
+  const lineage = resolveLineage(rows, sessionId, subagentType, agentId);
+  // A background parent that wakes fires SubagentStart again for the same
+  // agent_id; one start row per agent keeps spawn counts honest (#5171).
+  if (lineage.duplicate) return null;
+
+  // A payload parent (if CC ever sends one) wins over the pretool pairing.
+  const parent = parentAgentId || lineage.parentAgentId;
+  const spawnDepth = parent
+    ? computeSpawnDepth(rows, parent)
+    : lineage.paired ? 1 : null;
 
   const entry = {
     timestamp: new Date().toISOString(),
@@ -314,7 +381,7 @@ function logSpawn(
     description: description,
     session_id: sessionId,
     ...(agentId ? { agent_id: agentId } : {}),
-    ...(parentAgentId ? { parent_agent_id: parentAgentId } : {}),
+    ...(parent ? { parent_agent_id: parent } : {}),
     ...(spawnDepth !== null ? { spawn_depth: spawnDepth } : {}),
   };
 
@@ -343,10 +410,9 @@ export function subagentValidator(input: HookInput, ctx: HookContext = NOOP_CTX)
 
   ctx.log('subagent-validator', `Task invocation: ${subagentType} - ${description}`);
 
-  // Log spawn to tracking file. Nesting lineage is currently DORMANT: CC
-  // ≤ 2.1.173 sends no parent_agent_id at SubagentStart, so spawn_depth is
-  // omitted and the depth warning below never fires today. The lineage path
-  // lights up automatically if CC ships parent context (anthropics/claude-code#16424).
+  // Log spawn to tracking file. CC sends no parent_agent_id at SubagentStart
+  // (re-measured on 2.1.332), so logSpawn pairs this start with its pretool
+  // row for parent and depth (#5171); the depth warning below reads that.
   const spawnDepth = logSpawn(subagentType, description, sessionId, input.agent_id, input.parent_agent_id);
   if (spawnDepth !== null && spawnDepth >= 4) {
     ctx.log('subagent-validator', `WARNING: spawn depth ${spawnDepth} approaching CC's 5-level nesting limit`);
