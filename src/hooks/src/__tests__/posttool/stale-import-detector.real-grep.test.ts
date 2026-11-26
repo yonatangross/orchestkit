@@ -67,6 +67,27 @@ describe('staleImportDetector with the real grep (#3801)', () => {
     const result = staleImportDetector(writeInput(), createTestContext({ projectDir: proj }));
     expect(result.stopReason).toMatch(/Stale imports detected for b\.ts \(3 references\)/);
   });
+
+  // #5383: the report as filed. A Windows project dir (drive letter and
+  // backslashes, not a git repo) and a Write of a plain .js file outside it.
+  // Up to v10.10.3 the dir went through assertSafeShellArg(), which has no
+  // room for `\`, so this threw "Unsafe shell project dir" and the dispatcher
+  // turned the throw into a block on every Write. The answer must be a plain
+  // pass: no throw, no block.
+  it('passes a Write outside a Windows drive-letter project dir', () => {
+    mkdirSync(join(proj, 'scratch'), { recursive: true });
+    const scratchFile = join(proj, 'scratch', 'note.js');
+    writeFileSync(scratchFile, 'module.exports = 1;\n');
+    const input = {
+      tool_name: 'Write',
+      session_id: '00000000-0000-4000-8000-000000000000',
+      tool_input: { file_path: scratchFile, content: 'module.exports = 1;\n' },
+    } as HookInput;
+    const run = () =>
+      staleImportDetector(input, createTestContext({ projectDir: 'C:\\Users\\RICU\\ops' }));
+    expect(run).not.toThrow();
+    expect(run().continue).toBe(true);
+  });
 });
 
 describe('parseGrepRef (#5113)', () => {
