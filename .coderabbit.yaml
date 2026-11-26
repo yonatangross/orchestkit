@@ -165,40 +165,13 @@ reviews:
         Prose stays free of em dashes, en dashes and double hyphens, and of
         filler words such as delve, leverage, robust and seamless.
 
-  # CUSTOM PRE-MERGE CHECKS. The same two as the Yonatan-HQ central config,
-  # mirrored by hand because a personal-account repo cannot inherit it.
-  # Plan limits (docs.coderabbit.ai/management/plans): 0 custom checks on
-  # private repos, up to 10 on public non-trial repos. This repo is public, so
-  # they should run here. UNVERIFIED until a review shows them in its
-  # pre-merge section: the live platform run read "Plan: Free".
+  # No custom pre-merge checks: the Essentials plan allows 0 (read in the
+  # CodeRabbit web settings 2026-11-26), so they would be dead config. The
+  # reachability and vacuous-test rules live in the path instructions above
+  # (hooks, tests, skills).
   pre_merge_checks:
     docstrings:
       mode: "off"
-    custom_checks:
-      - name: "Reachability"
-        mode: "warning"
-        instructions: >-
-          Fail if the PR adds a hook, skill, agent, function, guard or config
-          key that no call path reaches: a hook missing from either
-          src/hooks/hooks.json or the entries map, a skill missing from
-          manifests/ork.json, or a symbol defined but never called. Name the
-          unreached item and the registration or caller that should reach it.
-          Pass when every new item is registered or has a caller.
-      - name: "Vacuous tests"
-        mode: "warning"
-        instructions: >-
-          Fail if a new or changed test would still pass with the fix reverted:
-          it injects the failure it claims to reproduce, asserts a constant or
-          a mock's own return value, or stubs the function under test. Name the
-          test and say why it cannot fail. Pass when there are no test changes.
-      - name: "CR control 1126 (temporary)"
-        mode: "error"
-        instructions: >-
-          Fail if any file in the diff contains the single token made by
-          joining the words ZZ, CR, CONTROL and 1126 with hyphens. This
-          instruction text itself does not contain that token. Name the file.
-          Pass when no file contains it.
-          Temporary negative control, removed before this PR lands.
 
   finishing_touches:
     docstrings:
