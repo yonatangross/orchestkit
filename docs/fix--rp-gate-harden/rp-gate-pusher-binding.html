@@ -107,11 +107,27 @@ const ALLOWLIST = [
 const BOT = "orchestkit-release-bot[bot]";
 const RP_PREFIX = "release-please" + "--";
 const HEAD_A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const GATE_SCRIPT = "scripts/ci/rp-diff-gate-decision.sh";
 const REAL_5463 = [
 ".claude-plugin/marketplace.json",".devin-plugin/plugin.json",".release-please-manifest.json","CHANGELOG.md","CLAUDE.md","README.md","docs/site/lib/generated/changelog-data.ts","docs/site/lib/generated/plugins-data.ts","manifests/codex/ork-codex.json","manifests/ork-extras.json","manifests/ork.json","package-lock.json","package.json","plugin.json","plugins/ork-codex/.codex-plugin/plugin.json","plugins/ork-extras/.claude-plugin/plugin.json","plugins/ork-extras/.cursor-plugin/plugin.json","plugins/ork-extras/plugin.json","plugins/ork/.claude-plugin/plugin.json","plugins/ork/.cursor-plugin/plugin.json","plugins/ork/hooks/dist/bundle-stats.json","plugins/ork/hooks/dist/lifecycle.mjs","plugins/ork/hooks/dist/posttool.mjs","plugins/ork/hooks/dist/pretool.mjs","plugins/ork/hooks/dist/prompt.mjs","plugins/ork/hooks/dist/stop.mjs","plugins/ork/hooks/dist/subagent.mjs","plugins/ork/plugin.json","pyproject.toml","server.json","src/codex/ork-codex/.codex-plugin/plugin.json","src/hooks/dist/bundle-stats.json","src/hooks/dist/lifecycle.mjs","src/hooks/dist/posttool.mjs","src/hooks/dist/pretool.mjs","src/hooks/dist/prompt.mjs","src/hooks/dist/stop.mjs","src/hooks/dist/subagent.mjs","version.txt"
 ];
 const $ = (id) => document.getElementById(id);
+// The checkbox is the source of truth for whether the gate script is in the
+// diff: scripts/ci is not release-owned, so an edit makes the real gate run
+// every suite. Keeping it in the file list makes the sim show that instead of
+// a skip=true the note then has to talk down.
+function syncGateScript() {
+  const lines = $("files").value.split("\n").map((s) => s.trim()).filter(Boolean);
+  const i = lines.indexOf(GATE_SCRIPT);
+  if ($("editscript").checked) {
+    if (i === -1) lines.push(GATE_SCRIPT);
+  } else if (i !== -1) {
+    lines.splice(i, 1);
+  }
+  $("files").value = lines.join("\n");
+}
 function decide() {
+  syncGateScript();
   const head = $("headref").value.trim();
   const author = $("author").value.trim();
   const trigger = $("trigger").value.trim();
