@@ -18,6 +18,33 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.20.2",
+    "date": "2026-11-27",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.20.1...v10.20.2",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** always add release media, never guess it is already there ([#5474](https://github.com/yonatangross/orchestkit/issues/5474)) ([76c6a16](https://github.com/yonatangross/orchestkit/commit/76c6a16b60cae555b7bb7ca5d55a3f8d37188c09))",
+          "**ci:** release-please gate fails closed on skip decisions ([#5479](https://github.com/yonatangross/orchestkit/issues/5479)) ([192c08d](https://github.com/yonatangross/orchestkit/commit/192c08d166a91fe5bde57c6803a22ab2d82b10c9))",
+          "**ci:** root causes for two scheduled-job failures ([#5478](https://github.com/yonatangross/orchestkit/issues/5478)) ([2b62f1b](https://github.com/yonatangross/orchestkit/commit/2b62f1b16f5278e99c43c87e5019dfc096aeeb2b))",
+          "**ci:** rp gate runs the base script, requires verified commits ([#5481](https://github.com/yonatangross/orchestkit/issues/5481)) ([236d064](https://github.com/yonatangross/orchestkit/commit/236d064543f552011be433c9883354e75178a230))",
+          "**ci:** show release media in the notes, give ffmpeg install time ([#5469](https://github.com/yonatangross/orchestkit/issues/5469)) ([e15131a](https://github.com/yonatangross/orchestkit/commit/e15131a1cd86b717bc1b9b8ae8b68e5bde61cc08))",
+          "**memory:** fail an unread staleness sweep as unknown ([#5472](https://github.com/yonatangross/orchestkit/issues/5472)) ([400ab0c](https://github.com/yonatangross/orchestkit/commit/400ab0c775b6336ae02cfef5626d4cbccc3c029f))",
+          "**test:** pin the staleness fixture clock and collect python tests in CI ([#5476](https://github.com/yonatangross/orchestkit/issues/5476)) ([ab592a2](https://github.com/yonatangross/orchestkit/commit/ab592a20aef53c6ed95f344a348a3ff3dde5ec6b))"
+        ]
+      },
+      {
+        "type": "changed",
+        "heading": "CI/CD",
+        "items": [
+          "**site:** build the docs site on release commits only ([#5475](https://github.com/yonatangross/orchestkit/issues/5475)) ([217acbe](https://github.com/yonatangross/orchestkit/commit/217acbe65c1e8bd7e43018563d53c6be5b32ea27))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.20.1",
     "date": "2026-11-26",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.20.0...v10.20.1",
