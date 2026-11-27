@@ -1,0 +1,11 @@
+{
+  "slug": "rp-gate-pusher-binding",
+  "source": "docs/fix--rp-gate-harden/rp-gate-pusher-binding.html",
+  "title": "Release-please gate: bot-push binding and the base-branch script",
+  "description": "Simulate the hardened rp-diff-gate decision: the triggering head must appear as a PushEvent head on the release ref pushed by orchestkit-release-bot[bot], and the gate script runs from the base branch checkout.",
+  "tags": [
+    "ci",
+    "github-actions"
+  ],
+  "date": "2026-11-26"
+}

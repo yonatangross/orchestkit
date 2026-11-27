@@ -17,6 +17,8 @@
 #                 (one object per changed file); unset fetches live.
 #   RP_COMMITS_JSON_FILE (tests only) file holding the pulls/N/commits
 #                 array; unset fetches live.
+#   RP_EVENTS_JSON_FILE (tests only) file holding the repository events
+#                 feed (the PushEvent stream); unset fetches live.
 #   RP_ALLOWLIST_FILE (tests only) override for the release-owned path list.
 #   GH_TOKEN, GITHUB_REPOSITORY for the live API reads.
 #
@@ -28,8 +30,12 @@
 # counts must equal what pulls/N reports (the list endpoints paginate and
 # cap), a rename must clear its previous_filename through the allowlist,
 # the last listed commit must equal the triggering head sha, a commit
-# whose author is not linked to a GitHub account counts as not-bot, and
-# any read or parse failure keeps the suites running.
+# whose author is not linked to a GitHub account counts as not-bot, the
+# triggering head must appear in the repository events feed as a
+# PushEvent head pushed to this ref by the release bot (author and
+# committer logins are only email attribution, forgeable by anyone who
+# can push; the feed records the real pusher, #5480), and any read or
+# parse failure keeps the suites running.
 #
 # Prints skip=true|false plus the reason, one key=value per line.
 
@@ -178,6 +184,54 @@ if [[ "${PR_AUTHOR:-}" == "$RELEASE_BOT" ]]; then
           skip=false
         fi
       done < "$AUTHORS"
+    fi
+  fi
+
+  # Email attribution is forgeable by anyone able to push, so the trigger
+  # head is bound to the pusher instead: the repository events feed
+  # records every PushEvent with the actor that pushed it. A release bot
+  # PushEvent whose ref and head equal this head_ref and the trigger sha
+  # is the proof the app installation produced this head. The feed keeps
+  # only recent events (~300 over 90 days), so a head not yet or no longer
+  # listed, a human PushEvent carrying this head, and any read or parse
+  # failure all keep the suites running (#5480, conductor445 pick).
+  if [[ "$skip" == true ]]; then
+    EVENTS_JSON="${RP_EVENTS_JSON_FILE:-}"
+    events_ok=true
+    if [[ -z "$EVENTS_JSON" ]]; then
+      EVENTS_JSON="$(mktemp "${TMPDIR:-/tmp}/rp-gate-events.XXXXXX")"
+      if ! gh api "repos/$GITHUB_REPOSITORY/events?per_page=100" > "$EVENTS_JSON"; then
+        events_ok=false
+      fi
+    fi
+    # One jq reports a verdict word: "bot" when every PushEvent that
+    # carries the trigger head on this ref is by the release bot,
+    # "absent" when none does, "conflict" when a non-bot push also
+    # carries it (the feed then disagrees on who produced the head and
+    # must not earn the skip; Codex #5481).
+    head_push=""
+    if [[ "$events_ok" == true ]]; then
+      if ! head_push="$(jq -r -s \
+          --arg ref "refs/heads/$HEAD_REF" \
+          --arg head "$trigger_head" \
+          --arg bot "$RELEASE_BOT" \
+          'add | [.[] | select(.type == "PushEvent" and .payload.ref == $ref and .payload.head == $head) | (.actor.login == $bot)] | if length == 0 then "absent" elif all then "bot" else "conflict" end' \
+          < "$EVENTS_JSON")"; then
+        head_push=""
+      fi
+    fi
+    if [[ "$events_ok" == false ]]; then
+      echo "events feed read failed; not skipping"
+      skip=false
+    elif [[ "$head_push" == "absent" ]]; then
+      echo "no release-bot PushEvent records the trigger head on $HEAD_REF; not skipping"
+      skip=false
+    elif [[ "$head_push" == "conflict" ]]; then
+      echo "a non-bot PushEvent also carries the trigger head on $HEAD_REF; not skipping"
+      skip=false
+    elif [[ "$head_push" != "bot" ]]; then
+      echo "events feed unreadable; not skipping"
+      skip=false
     fi
   fi
 fi

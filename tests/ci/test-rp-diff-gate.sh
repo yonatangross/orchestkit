@@ -7,7 +7,10 @@
 # counted ordinary plugin source as release output (review of #5470).
 # Codex's #5479 review added the completeness arms: a truncated file or
 # commit list, a rename whose source escapes the allowlist, and a branch
-# that moved mid-read must all keep the suites running.
+# that moved mid-read must all keep the suites running. Issue #5480 adds
+# the PushEvent arms: the triggering head must appear in the repository
+# events feed as a PushEvent head pushed to the release branch by the bot
+# (author logins are email attribution; the feed records the real pusher).
 #
 # Decision logic lives in scripts/ci/rp-diff-gate-decision.sh so this test
 # feeds it recorded event data without a stub gh.
@@ -36,6 +39,7 @@ OUT="$WORK_DIR/out.txt"
 FILES_5463="$SCRIPT_DIR/fixtures/rp-diff-gate-files-5463.json"
 COMMITS_5463="$SCRIPT_DIR/fixtures/rp-diff-gate-commits-5463.json"
 PR_5463="$SCRIPT_DIR/fixtures/rp-diff-gate-pr-5463.json"
+EVENTS_5463="$SCRIPT_DIR/fixtures/rp-diff-gate-events-5463.json"
 HEAD_5463="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 mk_pr() {
@@ -50,11 +54,12 @@ decide() {
   # $1: files array path, $2: HEAD_REF, $3: PR_AUTHOR, $4: PR_NUMBER,
   # $5: optional RP_ALLOWLIST_FILE, $6: optional RP_COMMITS_JSON_FILE,
   # $7: optional RP_PR_JSON_FILE (defaults to the real #5463 object),
-  # $8: optional HEAD_SHA (defaults to the real #5463 head)
+  # $8: optional HEAD_SHA (defaults to the real #5463 head),
+  # $9: optional RP_EVENTS_JSON_FILE (defaults to the 5463 feed slice)
   RP_FILES_JSON_FILE="$1" \
     HEAD_REF="$2" PR_AUTHOR="$3" PR_NUMBER="$4" RP_ALLOWLIST_FILE="${5:-}" \
     RP_COMMITS_JSON_FILE="${6:-$COMMITS_5463}" RP_PR_JSON_FILE="${7:-$PR_5463}" \
-    HEAD_SHA="${8-$HEAD_5463}" \
+    HEAD_SHA="${8-$HEAD_5463}" RP_EVENTS_JSON_FILE="${9-$EVENTS_5463}" \
     bash "$DECISION" > "$OUT" 2>&1
 }
 
@@ -200,6 +205,53 @@ if grep -qx 'skip=false' "$OUT" && grep -qF 'commit without a linked GitHub auth
   log_pass "an unlinked-author commit does not skip"
 else
   log_fail "an unlinked author was dropped from the check: $(cat "$OUT")"
+fi
+
+section "15. The trigger head must be a bot PushEvent on the release ref"
+# Every call below must pass the fixture head sha as $8: an empty value is
+# preserved by decide() for the missing-head control in section 13 and
+# would stop the run before the events feed is ever read (Codex #5481).
+HUMAN_PUSH="$WORK_DIR/events-human-push.json"
+jq 'map(if .type == "PushEvent" then .actor.login = "some-human" else . end)' \
+  "$EVENTS_5463" > "$HUMAN_PUSH"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$HUMAN_PUSH"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'a non-bot PushEvent also carries the trigger head' "$OUT"; then
+  log_pass "a human push carrying the head does not skip"
+else
+  log_fail "a human-pushed head skipped or failed for the wrong reason: $(cat "$OUT")"
+fi
+MIXED_ACTORS="$WORK_DIR/events-mixed-actors.json"
+jq --arg ref 'refs/heads/release-please--branches--main' --arg head "$HEAD_5463" \
+  '. + [{type: "PushEvent", actor: {login: "some-human"}, payload: {ref: $ref, head: $head}}]' \
+  "$EVENTS_5463" > "$MIXED_ACTORS"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$MIXED_ACTORS"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'a non-bot PushEvent also carries the trigger head' "$OUT"; then
+  log_pass "bot and human pushes on the same head do not skip"
+else
+  log_fail "conflicting pusher evidence skipped or failed for the wrong reason: $(cat "$OUT")"
+fi
+OLD_HEAD="$WORK_DIR/events-old-head.json"
+jq 'map(if .type == "PushEvent" then .payload.head = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef" else . end)' \
+  "$EVENTS_5463" > "$OLD_HEAD"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$OLD_HEAD"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'no release-bot PushEvent records the trigger head' "$OUT"; then
+  log_pass "a head not yet in the feed does not skip"
+else
+  log_fail "a head missing from the feed failed for the wrong reason: $(cat "$OUT")"
+fi
+printf '[]\n' > "$WORK_DIR/events-empty.json"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$WORK_DIR/events-empty.json"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'no release-bot PushEvent records the trigger head' "$OUT"; then
+  log_pass "an empty feed does not skip"
+else
+  log_fail "an empty feed failed for the wrong reason: $(cat "$OUT")"
+fi
+printf 'this is not json\n' > "$WORK_DIR/events-garbage.json"
+decide "$FILES_5463" "release-please--branches--main" "orchestkit-release-bot[bot]" "5463" "" "" "" "$HEAD_5463" "$WORK_DIR/events-garbage.json"
+if grep -qx 'skip=false' "$OUT" && grep -qF 'events feed unreadable' "$OUT"; then
+  log_pass "an unreadable feed does not skip"
+else
+  log_fail "an unreadable feed failed for the wrong reason: $(cat "$OUT")"
 fi
 
 echo

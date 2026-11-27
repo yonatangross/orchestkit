@@ -1,0 +1,30 @@
+[
+  {
+    "type": "PushEvent",
+    "actor": {"login": "orchestkit-release-bot[bot]"},
+    "payload": {
+      "ref": "refs/heads/release-please--branches--main",
+      "before": "9999999999999999999999999999999999999999",
+      "head": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "type": "PullRequestEvent",
+    "actor": {"login": "orchestkit-release-bot[bot]"},
+    "payload": {"action": "opened"}
+  },
+  {
+    "type": "IssueCommentEvent",
+    "actor": {"login": "some-human"},
+    "payload": {"action": "created"}
+  },
+  {
+    "type": "PushEvent",
+    "actor": {"login": "some-human"},
+    "payload": {
+      "ref": "refs/heads/feat/whatever",
+      "before": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "head": "cccccccccccccccccccccccccccccccccccccccc"
+    }
+  }
+]

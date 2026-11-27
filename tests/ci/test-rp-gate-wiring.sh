@@ -120,6 +120,19 @@ else
   log_fail "rp-gate caller count drifted in ci.yml"
 fi
 
+section "7. The gate runs the base branch's script, never the PR's own copy"
+GATE_WF="$WF_DIR/rp-diff-gate.yml"
+if grep -qF 'github.event.pull_request.base.sha' "$GATE_WF" && grep -qF 'path: base' "$GATE_WF" && grep -qF 'base/scripts/ci/rp-diff-gate-decision.sh' "$GATE_WF"; then
+  log_pass "the gate checks out scripts/ci from the base sha"
+else
+  log_fail "the gate runs the PR's own script copy: a PR can weaken its own gate"
+fi
+if grep -qF 'github.event.pull_request.head.sha' "$GATE_WF" && grep -qF "hashFiles('base/scripts/ci/rp-diff-gate-decision.sh') == ''" "$GATE_WF"; then
+  log_pass "the head copy only runs when the base lacks the script"
+else
+  log_fail "the head fallback is unguarded or missing"
+fi
+
 echo
 if [[ $FAIL -gt 0 ]]; then
   echo "${RED}FAILED${NC}: $FAIL failed, $PASS passed"

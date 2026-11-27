@@ -13,8 +13,12 @@ name: Release-please Diff Gate
 # result so a gate that could not decide never reads as green.
 #
 # The decision lives in scripts/ci/rp-diff-gate-decision.sh so its event
-# data is covered by tests/ci/test-rp-diff-gate.sh. The repository release
-# bot is orchestkit-release-bot[bot]; callers must pass permissions
+# data is covered by tests/ci/test-rp-diff-gate.sh, and it runs from the
+# BASE branch's copy (the review-thread-replies pattern): a PR cannot
+# weaken its own gate by editing the script or the allowlist. Only while
+# the base lacks the files (the PR that introduced them) does the head
+# copy run, with a notice. The repository release bot is
+# orchestkit-release-bot[bot]; callers must pass permissions
 # (pull-requests: read, contents: read) on the calling job.
 on:
   workflow_call:
@@ -33,7 +37,24 @@ jobs:
     outputs:
       skip: ${{ steps.gate.outputs.skip }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6.0.3
+      - name: Check out the base branch (the gate's own code)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          sparse-checkout: scripts/ci
+          persist-credentials: false
+
+      - name: Check out the PR head (only when the base lacks the script)
+        id: head
+        if: ${{ hashFiles('base/scripts/ci/rp-diff-gate-decision.sh') == '' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+          sparse-checkout: scripts/ci
+          persist-credentials: false
+
       - name: Detect a release-please-only diff
         id: gate
         env:
@@ -43,7 +64,13 @@ jobs:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          FROM_HEAD: ${{ steps.head.outcome == 'success' }}
         run: |
-          bash scripts/ci/rp-diff-gate-decision.sh > gate-out.txt
+          script=base/scripts/ci/rp-diff-gate-decision.sh
+          if [ "$FROM_HEAD" = "true" ]; then
+            echo "::notice::The base branch does not carry the gate script yet; running the PR head copy (this PR introduces it)."
+            script=head/scripts/ci/rp-diff-gate-decision.sh
+          fi
+          bash "$script" > gate-out.txt
           cat gate-out.txt
           grep '^skip=' gate-out.txt >> "$GITHUB_OUTPUT"
