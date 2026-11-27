@@ -684,6 +684,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.20.2](https://github.com/yonatangross/orchestkit/compare/v10.20.1...v10.20.2)** · 2026-11-27
+
+- **ci:** always add release media, never guess it is already there (#5474)
+- **ci:** release-please gate fails closed on skip decisions (#5479)
+- **ci:** root causes for two scheduled-job failures (#5478)
+- **ci:** rp gate runs the base script, requires verified commits (#5481)
+- **ci:** show release media in the notes, give ffmpeg install time (#5469)
+- …and 3 more (see [CHANGELOG.md](CHANGELOG.md))
+
 **[v10.20.1](https://github.com/yonatangross/orchestkit/compare/v10.20.0...v10.20.1)** · 2026-11-26
 
 - **#5184:** close six residual npm-ci-symlink-guard bypasses (#5465)
@@ -736,11 +745,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **cli:** ignore directories during host detection (#5319)
 - **cli:** treat --help and --version as flags after a command (#5318)
 - …and 16 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.15.1](https://github.com/yonatangross/orchestkit/compare/v10.15.0...v10.15.1)** · 2026-11-19
-
-- **memory-lens:** show no recall line, context to the model only (#5296)
-- **site,ci:** redirect skill sub-URLs, retry dropped npm audit requests (#5295)
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
