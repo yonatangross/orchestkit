@@ -27,6 +27,9 @@ on:
         description: 'true when the event is a release-please pull_request whose files are all release-owned outputs and every commit is authored by the release bot'
         value: ${{ jobs.check.outputs.skip }}
 
+# Deny by default; the check job declares the two read scopes it needs.
+permissions: {}
+
 jobs:
   check:
     runs-on: ubuntu-latest
