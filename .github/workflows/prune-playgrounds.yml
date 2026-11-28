@@ -49,12 +49,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write # push archive branch + open removal PR
+      contents: read # writes go through the short-lived app token below
     steps:
+      # The archive and removal branches are written with a short-lived Release
+      # Bot token instead of a job-level contents: write. Minted only on apply.
+      - name: Mint Release Bot token
+        id: app-token
+        if: ${{ inputs.apply == true }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: orchestkit
+          permission-contents: write
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          persist-credentials: true
+          token: ${{ steps.app-token.outputs.token || github.token }}
+          persist-credentials: ${{ inputs.apply == true }}
 
       - name: Identify prunable dirs
         id: scan
