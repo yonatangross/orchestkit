@@ -55,9 +55,14 @@ describe("Markdown twin registry", () => {
 	it("hasMarkdownTwin never claims a page that owns its own .md route", () => {
 		// /pricing.md, /auth.md and /api-policy.md are real handlers. A twin claim
 		// here would make middleware shadow them with a rewrite.
-		for (const slug of ["pricing", "auth", "api-policy", "about", "terms"]) {
+		for (const slug of ["pricing", "auth", "api-policy", "terms"]) {
 			expect(hasMarkdownTwin(slug), `must not claim ${slug}`).toBe(false);
 		}
+	});
+
+	it("registers /about as a Markdown twin", () => {
+		expect(MARKDOWN_TWIN_SLUGS).toContain("about");
+		expect(hasMarkdownTwin("about")).toBe(true);
 	});
 });
 
@@ -161,6 +166,37 @@ describe("/yonyon.md", () => {
 	});
 });
 
+describe("/about.md", () => {
+	const md = pageMarkdown("about");
+
+	it("opens with the same title and lead as the HTML page", () => {
+		expect(md.split("\n").find((l) => l.startsWith("# "))).toBe(
+			"# About OrchestKit",
+		);
+		expect(md).toContain(
+			"> OrchestKit is a free, open-source library of skills and agents",
+		);
+	});
+
+	it("carries the authored about-page facts an agent reads it for", () => {
+		for (const text of [
+			"## What OrchestKit is",
+			"## Creator",
+			"Yonatan Gross",
+			"## Contributors",
+			"## Why it exists",
+			"## Get started",
+		]) {
+			expect(md).toContain(text);
+		}
+	});
+
+	it("uses absolute site links so a fetched copy stays navigable", () => {
+		expect(md).toContain("https://orchestkit.dev/docs/getting-started/installation");
+		expect(md).not.toMatch(/\]\(\/[a-z]/);
+	});
+});
+
 describe("HTML pages keep the names a search engine matches on", () => {
 	it("/developers spells the studio name in its <title>", () => {
 		const src = readFileSync(
@@ -196,8 +232,9 @@ describe("HTML pages keep the names a search engine matches on", () => {
 });
 
 describe("llms.txt advertises the twins", () => {
-	it("links /developers.md and /yonyon.md", () => {
+	it("links /about.md, /developers.md and /yonyon.md", () => {
 		const src = readFileSync(resolve(APP, "llms.txt/route.ts"), "utf8");
+		expect(src).toContain("/about.md");
 		expect(src).toContain("/developers.md");
 		expect(src).toContain("/yonyon.md");
 		expect(src).toContain("/developers/llms.txt");

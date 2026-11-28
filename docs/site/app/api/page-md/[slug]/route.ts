@@ -1,4 +1,4 @@
-import { hasMarkdownTwin, pageMarkdown } from "@/lib/page-markdown";
+import { MARKDOWN_TWIN_SLUGS, hasMarkdownTwin, pageMarkdown } from "@/lib/page-markdown";
 import { MARKDOWN_NEGOTIATED_HEADERS } from "@/lib/md-frontmatter";
 import { problemResponse } from "@/lib/problem";
 import { SITE } from "@/lib/constants";
@@ -11,7 +11,7 @@ import { notFoundExtensions } from "@/lib/not-found-body";
 export const dynamic = "force-static";
 
 export function generateStaticParams() {
-	return [{ slug: "developers" }, { slug: "yonyon" }];
+	return MARKDOWN_TWIN_SLUGS.map((slug) => ({ slug }));
 }
 
 export async function GET(

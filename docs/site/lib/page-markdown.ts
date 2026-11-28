@@ -12,14 +12,15 @@
 // SAME data the HTML pages render from (lib/developer-resources.ts,
 // lib/yonyon-faqs.ts) so the two representations cannot drift.
 
-import { COUNTS, SITE, YONYON } from "@/lib/constants";
+import { COUNTS, PERSON, SITE, YONYON } from "@/lib/constants";
 import { withFrontmatter } from "@/lib/md-frontmatter";
 import { DEVELOPER_RESOURCES } from "@/lib/developer-resources";
 import { YONYON_FAQS } from "@/lib/yonyon-faqs";
 import { PRODUCT_LINE } from "@/lib/host-support";
+import contributorsData from "@/lib/contributors-data.json";
 
 /** Slugs with a Markdown twin. Kept in sync with app/(home)/* by a unit test. */
-export const MARKDOWN_TWIN_SLUGS = ["developers", "yonyon"] as const;
+export const MARKDOWN_TWIN_SLUGS = ["about", "developers", "yonyon"] as const;
 export type MarkdownTwinSlug = (typeof MARKDOWN_TWIN_SLUGS)[number];
 
 export function hasMarkdownTwin(slug: string): slug is MarkdownTwinSlug {
@@ -28,6 +29,70 @@ export function hasMarkdownTwin(slug: string): slug is MarkdownTwinSlug {
 
 function absolute(href: string): string {
 	return href.startsWith("http") ? href : `${SITE.domain}${href}`;
+}
+
+const ABOUT_TITLE = `About ${SITE.name}`;
+const ABOUT_LEAD = `${SITE.name} is ${PRODUCT_LINE}: a curated toolkit of skills, agents, and quality-gate hooks that adds AI-assisted development best practices out of the box.`;
+
+type Contributor = {
+	login: string;
+	url: string;
+	contributions: number;
+	isBot: boolean;
+};
+
+function contributorLines(bot: boolean): string[] {
+	return (contributorsData.contributors as Contributor[])
+		.filter((c) => c.isBot === bot)
+		.map(
+			(c) =>
+				`- [${c.login}](${c.url})${bot ? " (Bot)" : ""}: ${c.contributions.toLocaleString("en-US")} ${
+					c.contributions === 1 ? "contribution" : "contributions"
+				}`,
+		);
+}
+
+function aboutMarkdown(): string {
+	return [
+		`# ${ABOUT_TITLE}`,
+		"",
+		`> ${ABOUT_LEAD}`,
+		"",
+		"## What OrchestKit is",
+		"",
+		`OrchestKit is a plugin for [Claude Code](https://www.anthropic.com/claude-code), Anthropic's agentic command-line coding tool. It packages ${COUNTS.skills} reusable skills, ${COUNTS.agents} specialized agents, and ${COUNTS.hooks} lifecycle hooks into a single install. The skills encode patterns for authentication, database migrations, API design, testing, and review; the agents are task-specific personas such as security auditors and backend architects; the hooks enforce security and quality gates automatically as you work.`,
+		"",
+		"It is not a hosted service and not a general-purpose editor assistant. It is infrastructure that runs inside Claude Code to make the agent more capable, consistent, and safe.",
+		"",
+		"## Creator",
+		"",
+		`OrchestKit was created by [${PERSON.name}](${PERSON.url}) (GitHub: [github.com/yonatangross](${PERSON.url})).`,
+		"",
+		"## Who builds it",
+		"",
+		`OrchestKit is built and maintained by [${PERSON.name}](${PERSON.url}) as an open-source project under the MIT license. Development happens publicly on [GitHub](${SITE.github}), where every skill, agent, and hook is version-controlled and reviewed. Issues, discussions, and pull requests are welcome; the fastest way to reach the maintainer is to [open an issue](${SITE.github}/issues).`,
+		"",
+		"## Contributors",
+		"",
+		`Everyone with a commit in the [GitHub repository](${SITE.github}/graphs/contributors), from the GitHub contributors list as of ${contributorsData.snapshotDate}. Automation accounts are listed apart and marked Bot.`,
+		"",
+		"### People",
+		"",
+		...contributorLines(false),
+		"",
+		"### Bots",
+		"",
+		...contributorLines(true),
+		"",
+		"## Why it exists",
+		"",
+		"Teams adopting AI coding agents repeatedly rebuild the same scaffolding: prompt patterns, guardrails, review workflows, and memory. OrchestKit ships those as composable primitives so you can stop explaining your stack to the agent and start shipping. Everything is loaded on demand, so there is zero runtime cost when a capability is not in use.",
+		"",
+		"## Get started",
+		"",
+		`Install from a terminal with \`${SITE.installCommand}\` (Claude Code ${SITE.ccVersion}), then read the [installation guide](${SITE.domain}/docs/getting-started/installation). See [pricing](${SITE.domain}/pricing), [how it compares](${SITE.domain}/compare), or [how to get in touch](${SITE.domain}/contact).`,
+		"",
+	].join("\n");
 }
 
 const DEVELOPERS_TITLE = `${SITE.name} by Yonyon: developer resources (API, OpenAPI spec, MCP server)`;
@@ -88,6 +153,7 @@ function yonyonMarkdown(): string {
 }
 
 const RENDERERS: Record<MarkdownTwinSlug, () => string> = {
+	about: aboutMarkdown,
 	developers: developersMarkdown,
 	yonyon: yonyonMarkdown,
 };
@@ -102,6 +168,11 @@ const FRONTMATTER: Record<
 	MarkdownTwinSlug,
 	{ title: string; description: string; canonical: string }
 > = {
+	about: {
+		title: ABOUT_TITLE,
+		description: ABOUT_LEAD,
+		canonical: `${SITE.domain}/about`,
+	},
 	developers: {
 		title: DEVELOPERS_TITLE,
 		description: DEVELOPERS_LEAD,

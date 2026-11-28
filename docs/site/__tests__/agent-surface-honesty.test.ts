@@ -270,8 +270,8 @@ describe("AI-bot User-Agents get Markdown", () => {
 		const res = middleware(
 			new NextRequest(`${ORIGIN}/docs/foundations/overview`, {
 				headers: {
-					// What these clients actually send: no text/markdown, no .md, no flag.
-					accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+					// No positive text/html, no text/markdown, no .md, no flag.
+					accept: "*/*",
 					"user-agent": ua,
 					"x-real-ip": `198.51.100.${20 + BOT_UAS.indexOf(ua)}`,
 				},
