@@ -18,6 +18,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
+    "version": "10.20.3",
+    "date": "2026-11-28",
+    "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.20.2...v10.20.3",
+    "sections": [
+      {
+        "type": "fixed",
+        "heading": "Bug Fixes",
+        "items": [
+          "**ci:** scope token permissions on rp-diff-gate and prune-playgrounds ([#5485](https://github.com/yonatangross/orchestkit/issues/5485)) ([9570b05](https://github.com/yonatangross/orchestkit/commit/9570b05f4d20b13e207c8850b2c497621aa6a08a))"
+        ]
+      }
+    ]
+  },
+  {
     "version": "10.20.2",
     "date": "2026-11-27",
     "compareUrl": "https://github.com/yonatangross/orchestkit/compare/v10.20.1...v10.20.2",
