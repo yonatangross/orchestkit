@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Essential context for Claude Code when working on OrchestKit.
+Essential context for Claude Code on OrchestKit.
 
 ## Language
 
@@ -18,7 +18,7 @@ ASCII art + 12 semantic emojis for any structured chat answer: status, compariso
 
 **OrchestKit**, a Claude Code plugin for AI-assisted development with built-in best practices, security patterns, and quality gates.
 
-For live component counts (skills / agents / hooks / per-session token cost) run `claude plugin details ork`.
+For component counts (skills / agents / hooks / per-session token cost) run `claude plugin details ork`.
 
 ## Directory Structure
 
