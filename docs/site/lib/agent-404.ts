@@ -45,8 +45,9 @@ export const SERVED_EXACT: ReadonlySet<string> = new Set([
 	"/auth.md",
 	"/api-policy.md",
 	"/pricing.md",
-	// Markdown twins of the two name-queried pages (rewritten by middleware to
+	// Markdown twins of the name-queried pages (rewritten by middleware to
 	// app/api/page-md; listed so the allowlist reads as the full served surface).
+	"/about.md",
 	"/developers.md",
 	"/developers/llms.txt",
 	"/yonyon.md",

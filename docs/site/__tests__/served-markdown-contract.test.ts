@@ -225,7 +225,7 @@ describe("Vary is carried by the response, not just declared in config", () => {
 		["/developers", "named twin"],
 		["/yonyon", "named twin"],
 	])("%s carries Vary on the BOT (Markdown) response", (path) => {
-		const res = middleware(req(path, BOT));
+		const res = middleware(req(path, BOT, "*/*"));
 		expect(res?.headers.get("x-middleware-rewrite")).toBeTruthy();
 		expect(res?.headers.get("Vary")).toBe(MARKDOWN_VARY);
 	});

@@ -121,6 +121,7 @@ export function GET() {
 		`- [${SITE.name} developer resource hub: API docs, OpenAPI spec, MCP server, SDK packages](/developers) · [as Markdown](/developers.md) · [scoped index](/developers/llms.txt)`,
 		`- [${SITE.name} llms.txt navigation index](/llms.txt)`,
 		`- [${SITE.name} llms-full.txt budgeted docs dump](/llms-full.txt)`,
+		`- [About ${SITE.name}](/about) · [as Markdown](/about.md)`,
 		"- [About Yonyon, the studio behind OrchestKit](/yonyon) · [as Markdown](/yonyon.md)",
 		"- [Best Claude Code plugins roundup (maintainer-disclosed)](/best-claude-code-plugins)",
 		"- [Claude Agent SDK vs Claude Code plugins](/claude-agent-sdk-vs-claude-code-plugins)",

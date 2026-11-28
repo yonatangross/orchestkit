@@ -2,7 +2,7 @@
 // Created: 2026-06-05
 
 import { type NextRequest, NextResponse } from "next/server";
-import { markdownAccept } from "@/lib/accept-markdown";
+import { acceptsHtml, markdownAccept } from "@/lib/accept-markdown";
 import {
 	prefersJsonError,
 	prefersMarkdownError,
@@ -216,13 +216,15 @@ function routeRequest(
 	// Markdown handlers' own headers) is load-bearing, not decoration. Without
 	// the User-Agent token a shared cache is free to hand a browser the copy it
 	// stored for GPTBot, which is a worse bug than never serving bots Markdown.
+	// The bot fallback yields when the crawler positively accepts HTML: q=0 is a
+	// refusal, while browser-style wildcard entries do not mask it.
 	const isAiBot = isAiBotFamily(audience.ua_family);
 	const acceptMarkdown = markdownAccept(accept);
 	const wantsMarkdown =
 		acceptMarkdown === "accepted" ||
 		pathname.endsWith(".md") ||
 		searchParams.get("mode") === "agent" ||
-		(isAiBot && acceptMarkdown !== "rejected");
+		(isAiBot && acceptMarkdown !== "rejected" && !acceptsHtml(accept));
 
 	if (wantsMarkdown) {
 		const target = mdTarget(pathname);

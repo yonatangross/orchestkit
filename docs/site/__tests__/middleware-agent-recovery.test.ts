@@ -214,8 +214,10 @@ describe("docs Markdown negotiation", () => {
 	it.each([
 		[path, "text/html, text/markdown;q=0", null],
 		[path, "text/html, text/markdown;charset=csUTF8;q=0", null],
-		[path, "text/html, text/markdown;q=0;charset=iso-8859-1", target],
-		[path, "text/html", target],
+		[path, "text/html, text/markdown;q=0;charset=iso-8859-1", null],
+		[path, "text/html", null],
+		[path, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", null],
+		[path, "text/html;q=0, */*;q=0.8", target],
 		[`${path}.md`, "text/markdown;q=0", target],
 		[`${path}?mode=agent`, "text/markdown;q=0", target],
 	])("preserves URL overrides and gates bot fallback for %s (%s)", (url, accept, rewrite) => {
@@ -226,6 +228,7 @@ describe("docs Markdown negotiation", () => {
 
 describe("Markdown twins for the named pages", () => {
 	it.each([
+		["/about.md", "/api/page-md/about"],
 		["/developers.md", "/api/page-md/developers"],
 		["/yonyon.md", "/api/page-md/yonyon"],
 	])("%s rewrites to %s", (from, to) => {

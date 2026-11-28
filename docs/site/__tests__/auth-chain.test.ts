@@ -335,6 +335,9 @@ describe("the 401 hint is raised only where it is true", () => {
 		expect(md).toContain('error="invalid_token"');
 		expect(md).toContain("GET https://orchestkit.dev/agent/identity");
 		expect(md).toMatch(/Identity is optional/);
+		expect(md).toContain("Why the discovery hint is scoped");
+		expect(md).toMatch(/never attached to anonymous requests/i);
+		expect(md).toMatch(/would claim protection that does not exist/i);
 	});
 });
 

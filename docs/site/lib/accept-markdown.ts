@@ -1,5 +1,26 @@
 import { mediaRanges } from "./media-ranges";
 
+function qValue(params: string[]): number {
+	for (const param of params) {
+		const separator = param.indexOf("=");
+		if (separator < 0) continue;
+		if (param.slice(0, separator).trim().toLowerCase() !== "q") continue;
+		const raw = param.slice(separator + 1).trim();
+		if (!/^(?:0(?:\.\d{0,3})?|1(?:\.0{0,3})?)$/.test(raw)) return 1;
+		return Number.parseFloat(raw);
+	}
+	return 1;
+}
+
+// Positive acceptance of HTML. q=0 means the client refuses the type, so it is
+// not positive acceptance even when a wildcard elsewhere in the header survives.
+export function acceptsHtml(accept: string): boolean {
+	for (const [type, ...params] of mediaRanges(accept)) {
+		if (type.toLowerCase() === "text/html" && qValue(params) > 0) return true;
+	}
+	return false;
+}
+
 function matchMarkdownParams(params: string[]) {
 	let specificity = 0;
 	let rejected = false;

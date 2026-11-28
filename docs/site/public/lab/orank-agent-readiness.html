@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent readiness surfaces playground</title>
+<meta name="description" content="Interactive walkthrough of the OrchestKit markdown twins, bot negotiation fix, and scoped auth discovery hint.">
+<style>
+:root{color-scheme:dark;--bg:#0d1117;--panel:#151b24;--panel2:#101720;--text:#e8eef6;--muted:#9aa8ba;--line:#2c3848;--accent:#67b7ff;--good:#74d99f;--warn:#ffd166}
+body{margin:0;background:radial-gradient(circle at top left,#182338 0,var(--bg) 42rem);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:980px;margin:0 auto;padding:36px 20px 56px}
+h1{font-size:clamp(2rem,5vw,3.6rem);line-height:1.05;margin:0 0 12px;letter-spacing:-.04em}
+h2{margin:34px 0 12px;font-size:1.25rem}
+p{color:var(--muted);max-width:72ch}
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;align-items:stretch}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 18px 50px #0005}
+.stat{font-size:2rem;color:var(--good);font-weight:750}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+button{font:inherit;border:1px solid var(--line);background:#101722;color:var(--text);border-radius:12px;padding:10px 12px;margin:4px 6px 4px 0;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--accent);background:#173250;box-shadow:0 0 0 1px var(--accent) inset}
+pre{white-space:pre-wrap;word-break:break-word;background:#080d13;border:1px solid var(--line);border-radius:14px;padding:16px;color:#cfe3ff;min-height:130px}
+.flow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
+.step{border:1px solid var(--line);border-radius:999px;padding:7px 11px;background:#101722;color:var(--muted)}
+.step.hot{border-color:var(--good);color:var(--good)}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--warn);font-size:.85rem}
+a{color:var(--accent)}
+@media(max-width:760px){.hero,.grid{grid-template-columns:1fr}}
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Agent readiness surfaces playground"><meta property="og:description" content="Walk the markdown twins, bot negotiation fix, and scoped auth discovery hint as an interactive negotiation."><meta property="og:url" content="https://orchestkit.dev/lab/orank-agent-readiness.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Agent readiness surfaces playground"><meta name="twitter:description" content="Walk the markdown twins, bot negotiation fix, and scoped auth discovery hint as an interactive negotiation."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+<section class="hero">
+<div class="card">
+<span class="pill">PR 5483 repair artifact</span>
+<h1>Agent readiness, visible as a negotiation</h1>
+<p>This playground shows what the branch changes for machine readers: a complete set of named markdown twins, a bot fallback that respects a positive HTML accept header, and auth discovery text that explains why the hint is scoped.</p>
+</div>
+<div class="card">
+<div class="stat">3</div>
+<p>named markdown twins after the fix: about, developers, and yonyon.</p>
+<div class="stat">1</div>
+<p>negotiation rule repaired: AI bot fallback yields when the client clearly accepts HTML.</p>
+</div>
+</section>
+
+<h2>Try the content negotiation rule</h2>
+<p>Pick a client shape. The result shows which representation middleware chooses and why.</p>
+<div id="cases"></div>
+<div class="flow" id="flow"></div>
+<pre id="result"></pre>
+
+<h2>What changed</h2>
+<div class="grid">
+<div class="card"><h3>about.md joins the twins</h3><p>The route static params now come from one slug list, so about, developers, and yonyon cannot drift apart. The about twin renders from contributor and product data.</p></div>
+<div class="card"><h3>HTML is respected</h3><p>An AI crawler that positively accepts HTML receives HTML. A wildcard does not hide that choice, while q=0 still counts as refusal.</p></div>
+<div class="card"><h3>Discovery stays anonymous</h3><p>auth.md now explains that the WWW-Authenticate discovery hint appears only when a credential was sent or identity is being read, not on anonymous public reads.</p></div>
+</div>
+
+<h2>Agent path</h2>
+<div class="flow">
+<span class="step hot">probe /.well-known/api-catalog</span><span>→</span>
+<span class="step hot">read llms.txt or a .md twin</span><span>→</span>
+<span class="step hot">use OpenAPI, MCP, search, or ask</span><span>→</span>
+<span class="step">send a bearer only when identity is needed</span>
+</div>
+<p>The source of truth is the branch diff. This page is a review aid, not a replacement for the tests.</p>
+</main>
+<script>
+var cases=[
+{name:"Browser",accept:"text/html,application/xhtml+xml",ua:"Mozilla",outcome:"HTML",why:"A positive HTML accept wins before any bot fallback."},
+{name:"GPTBot wildcard",accept:"*/*",ua:"GPTBot",outcome:"Markdown",why:"No positive HTML accept is present, so the AI bot fallback serves markdown."},
+{name:"GPTBot html",accept:"text/html,*/*;q=0.8",ua:"GPTBot",outcome:"HTML",why:"The crawler positively accepts HTML, and the wildcard does not mask it."},
+{name:"Explicit markdown",accept:"text/markdown",ua:"any client",outcome:"Markdown",why:"The Accept header explicitly asks for markdown."},
+{name:"HTML refused",accept:"text/html;q=0,*/*;q=0.8",ua:"GPTBot",outcome:"Markdown",why:"q=0 is a refusal, so HTML is not treated as accepted."}
+];
+var box=document.getElementById("cases");
+var result=document.getElementById("result");
+var flow=document.getElementById("flow");
+function renderFlow(outcome){
+flow.innerHTML="";
+["request","classify accept","bot fallback check",outcome+" response"].forEach(function(label,i){
+var s=document.createElement("span");
+s.className="step"+(i===3?" hot":"");
+s.textContent=label;
+flow.appendChild(s);
+if(i<3){var arrow=document.createElement("span");arrow.textContent="→";flow.appendChild(arrow)}
+});
+}
+function pick(i){
+var c=cases[i];
+result.textContent="client: "+c.name+"\nuser agent: "+c.ua+"\naccept: "+c.accept+"\n\nrepresentation: "+c.outcome+"\nreason: "+c.why;
+Array.prototype.forEach.call(box.children,function(b,j){b.setAttribute("aria-pressed",String(i===j))});
+renderFlow(c.outcome);
+}
+cases.forEach(function(c,i){
+var b=document.createElement("button");
+b.type="button";
+b.textContent=c.name;
+b.onclick=function(){pick(i)};
+box.appendChild(b);
+});
+pick(2);
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>
