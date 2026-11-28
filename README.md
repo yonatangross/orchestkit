@@ -684,6 +684,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 <!-- AUTO-GENERATED from CHANGELOG.md by scripts/stamp-whats-new.mjs — do not hand-edit between the ork:whats-new markers. -->
 <!-- Regenerated on `npm run build`; CI (`--check`) fails if this is stale. Full history: [CHANGELOG.md](CHANGELOG.md). -->
 
+**[v10.20.3](https://github.com/yonatangross/orchestkit/compare/v10.20.2...v10.20.3)** · 2026-11-28
+
+- **ci:** scope token permissions on rp-diff-gate and prune-playgrounds (#5485)
+
 **[v10.20.2](https://github.com/yonatangross/orchestkit/compare/v10.20.1...v10.20.2)** · 2026-11-27
 
 - **ci:** always add release media, never guess it is already there (#5474)
@@ -736,15 +740,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **docs:** preserve the full page index for Markdown clients (#5359)
 - **hooks:** catch assistant-format edits in scope-audit (#5361)
 - …and 18 more (see [CHANGELOG.md](CHANGELOG.md))
-
-**[v10.16.0](https://github.com/yonatangross/orchestkit/compare/v10.15.1...v10.16.0)** · 2026-11-22
-
-- **glyph:** add the devin-safe profile for engines that render shade fills as slabs (#5323)
-- **agents:** raise ci-cd and frontend maxTurns to 85 (#5299)
-- **build:** preserve reference docs on generator failure (#5301)
-- **cli:** ignore directories during host detection (#5319)
-- **cli:** treat --help and --version as flags after a command (#5318)
-- …and 16 more (see [CHANGELOG.md](CHANGELOG.md))
 
 _See [CHANGELOG.md](CHANGELOG.md) for the full release history._
 <!--/ork-->
