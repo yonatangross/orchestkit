@@ -5,6 +5,13 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.20.3](https://github.com/yonatangross/orchestkit/compare/v10.20.2...v10.20.3) (2026-11-28)
+
+
+### Bug Fixes
+
+* **ci:** scope token permissions on rp-diff-gate and prune-playgrounds ([#5485](https://github.com/yonatangross/orchestkit/issues/5485)) ([9570b05](https://github.com/yonatangross/orchestkit/commit/9570b05f4d20b13e207c8850b2c497621aa6a08a))
+
 ## [10.20.2](https://github.com/yonatangross/orchestkit/compare/v10.20.1...v10.20.2) (2026-11-27)
 
 
