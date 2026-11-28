@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanning gate references: stable names over line numbers</title>
+<style>
+  body { margin:0; background:#fbfaf7; color:#1d1d1b; font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:32px 20px 48px; }
+  h1 { font-size:1.55rem; margin:0 0 6px; }
+  h2 { font-size:1.05rem; margin:28px 0 10px; }
+  p { margin:0 0 14px; }
+  code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.92em; }
+  .verdict { color:#5f5e58; margin-bottom:22px; }
+  .card { background:#fff; border:1px solid #e2dfd7; border-radius:12px; padding:16px; margin:12px 0; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .label { color:#6b6b66; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+  .bad, .good { border-radius:8px; padding:10px; min-height:78px; }
+  .bad { background:#fff0ed; border:1px solid #efc0b7; }
+  .good { background:#eff9f2; border:1px solid #bfe4ca; }
+  .tabs { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+  button { border:1px solid #1d1d1b; background:#fff; color:#1d1d1b; border-radius:8px; padding:8px 12px; font:inherit; cursor:pointer; }
+  button[aria-pressed="true"] { background:#1d1d1b; color:#fff; }
+  table { width:100%; border-collapse:collapse; background:#fff; }
+  th, td { text-align:left; vertical-align:top; border-bottom:1px solid #e2dfd7; padding:10px; }
+  th { color:#6b6b66; font-size:.86rem; }
+  tr[tabindex] { cursor:pointer; }
+  tr[tabindex]:focus { outline:2px solid #5865f2; outline-offset:-2px; }
+  .detail { display:none; color:#5f5e58; font-size:.92rem; }
+  tr.open .detail { display:block; }
+  .pill { display:inline-block; border:1px solid #1f7a4d; color:#1f7a4d; border-radius:999px; padding:1px 8px; font-size:.8rem; }
+  .quiz button { margin:4px 8px 4px 0; }
+  .result { min-height:24px; font-weight:600; }
+  footer { margin-top:24px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  #status { color:#5f5e58; font-size:.9rem; }
+  @media (max-width:720px) { .grid { grid-template-columns:1fr; } }
+  @media (prefers-color-scheme: dark) {
+    body { background:#141413; color:#ecebe6; }
+    .card, table, button { background:#1c1c1a; color:#ecebe6; border-color:#393832; }
+    button[aria-pressed="true"] { background:#ecebe6; color:#1c1c1a; }
+    .verdict, .label, th, .detail, #status { color:#a3a29b; }
+    .bad { background:#3a211d; border-color:#6f3b32; }
+    .good { background:#183222; border-color:#315f3f; }
+    td { border-color:#393832; }
+  }
+</style>
+<!-- ork-lab-head:start --><meta property="og:type" content="website"><meta property="og:site_name" content="OrchestKit"><meta property="og:title" content="Scanning gate references: stable names over line numbers"><meta property="og:description" content="Why contributor-facing docs name the hook, security test script and gitleaks step instead of volatile line numbers, with the source and generated surfaces compared."><meta property="og:url" content="https://orchestkit.dev/lab/5484-scanning-gate-references.html"><meta property="og:image" content="https://orchestkit.dev/opengraph-image"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Scanning gate references: stable names over line numbers"><meta name="twitter:description" content="Why contributor-facing docs name the hook, security test script and gitleaks step instead of volatile line numbers, with the source and generated surfaces compared."><meta name="twitter:image" content="https://orchestkit.dev/opengraph-image"><!-- ork-lab-head:end --></head>
+<body>
+<main>
+  <h1>Scanning gate references: stable names over line numbers</h1>
+  <p class="verdict">Verdict: the durable fix is to name the hook, test script and workflow step. Numeric line references rot every time an unrelated edit moves the file.</p>
+
+  <section class="card" aria-labelledby="shape">
+    <h2 id="shape">The repair in one shape</h2>
+    <div class="grid">
+      <div>
+        <div class="label">Before</div>
+        <div class="bad"><code>bin/git-hooks/pre-push:324</code><br><code>.github/workflows/ci.yml:162</code><br>Precise today, stale after the next insertion.</div>
+      </div>
+      <div>
+        <div class="label">After</div>
+        <div class="good"><code>bin/git-hooks/pre-push</code><br><code>tests/security/run-security-tests.sh</code><br><code>Run gitleaks</code> step<br>Stable names that survive line movement.</div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="surfaces">
+    <h2 id="surfaces">Changed surfaces</h2>
+    <div class="tabs" role="group" aria-label="Filter surfaces">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="fixed" aria-pressed="false">Fixed at source</button>
+      <button type="button" data-filter="generated" aria-pressed="false">Generated output</button>
+    </div>
+    <table id="surfaceTable">
+      <thead><tr><th>Surface</th><th>Before</th><th>After</th><th>State</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="verdict">Click a row for why it matters.</p>
+  </section>
+
+  <section class="card quiz" aria-labelledby="quiz">
+    <h2 id="quiz">Quick check: which reference survives a CI yaml edit?</h2>
+    <p>Pick the reference style you would keep in contributor-facing docs.</p>
+    <button type="button" data-answer="line"><code>.github/workflows/ci.yml:473</code></button>
+    <button type="button" data-answer="name">the <code>Run gitleaks</code> step</button>
+    <p class="result" role="status" aria-live="polite"></p>
+  </section>
+
+  <footer>
+    <button type="button" id="copy">Copy as prompt</button>
+    <span id="status"></span>
+  </footer>
+</main>
+<script>
+const rows = [
+  {
+    surface: "CLAUDE.md",
+    before: "Numeric hook and workflow line references",
+    after: "Hook path, security test script and workflow step name",
+    kind: "fixed",
+    why: "This is the contributor-facing rule that started the repair. Stable names keep the instruction true when unrelated lines move."
+  },
+  {
+    surface: "src/skills/security-patterns/references/ork-delta.md",
+    before: "The same stale numeric references",
+    after: "The same stable names",
+    kind: "fixed",
+    why: "This is the source the generated skill documentation reads. Fixing only CLAUDE.md left the root source stale."
+  },
+  {
+    surface: "docs/site/content/docs/reference/skills/security-patterns.mdx",
+    before: "Generated copy of the stale source",
+    after: "Generated copy of the stable source",
+    kind: "generated",
+    why: "The docs page is regenerated, so the correction propagates instead of being hand-edited in two places."
+  }
+];
+const tbody = document.querySelector("#surfaceTable tbody");
+function render(filter) {
+  const list = rows.filter(row => filter === "all" || row.kind === filter);
+  tbody.innerHTML = list.map(row => `<tr tabindex="0"><td><code>${row.surface}</code><span class="detail">${row.why}</span></td><td>${row.before}</td><td>${row.after}</td><td><span class="pill">${row.kind === "fixed" ? "source fixed" : "regenerated"}</span></td></tr>`).join("");
+  tbody.querySelectorAll("tr").forEach(row => {
+    const toggle = () => row.classList.toggle("open");
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle();
+      }
+    });
+  });
+}
+document.querySelectorAll(".tabs button").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+    render(button.dataset.filter);
+  });
+});
+document.querySelectorAll(".quiz [data-answer]").forEach(button => {
+  button.addEventListener("click", () => {
+    const result = document.querySelector(".quiz .result");
+    if (button.dataset.answer === "name") {
+      result.textContent = "Correct. A step name survives line movement; a number does not.";
+    } else {
+      result.textContent = "Not durable. Any insertion above it makes the documentation lie.";
+    }
+  });
+});
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = "Repair stale scanning-gate references at the root: use bin/git-hooks/pre-push, tests/security/run-security-tests.sh, and the Run gitleaks step name instead of volatile line numbers; update CLAUDE.md and src/skills/security-patterns/references/ork-delta.md, then regenerate docs.";
+  try {
+    await navigator.clipboard.writeText(text);
+    document.getElementById("status").textContent = "Copied.";
+  } catch {
+    document.getElementById("status").textContent = "Copy failed; select the text manually.";
+  }
+});
+render("all");
+</script>
+<!-- ork-lab-chrome:start --><footer id="ork-lab-chrome" style="position:relative;z-index:2147483000;clear:both;box-sizing:border-box;width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin:48px 0 0;padding:16px 24px;border:0;border-top:1px solid rgba(148,163,184,.25);background:#0d1017;color:#cbd5e1;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;text-align:left"><a href="/" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0;color:#f8fafc;font-weight:700">OrchestKit</a><nav aria-label="OrchestKit site" style="display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0"><a href="/docs" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Read the docs</a><a href="/docs/getting-started/installation" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">Install</a><a href="/docs/showcase/lab" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">More playgrounds</a><a href="https://github.com/yonatangross/orchestkit" rel="noopener" style="color:#a5b4fc;text-decoration:none;font:inherit;background:none;border:0;padding:0;margin:0">GitHub</a></nav></footer><script>(function(){var f=document.getElementById("ork-lab-chrome"),framed;try{framed=window.self!==window.top}catch(e){framed=true}if(framed){if(f)f.remove();return}var h=location.hostname;if(h==="localhost"||h==="127.0.0.1")return;try{var b=JSON.stringify({project_id:"orchestkit",events:[{name:"page_view",path:location.pathname,referrer:document.referrer||"",timestamp:new Date().toISOString()}]});if(navigator.sendBeacon){navigator.sendBeacon("/api/analytics",new Blob([b],{type:"application/json"}))}else{fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:b,keepalive:true}).catch(function(){return null})}}catch(e){return null}})();</script><!-- ork-lab-chrome:end --></body>
+</html>

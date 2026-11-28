@@ -1,0 +1,12 @@
+{
+  "slug": "5484-scanning-gate-references",
+  "source": "docs/fix--pr5484-scanning-refs/scanning-gate-references.html",
+  "title": "Scanning gate references: stable names over line numbers",
+  "description": "Why contributor-facing docs name the hook, security test script and gitleaks step instead of volatile line numbers, with the source and generated surfaces compared.",
+  "tags": [
+    "docs",
+    "ci",
+    "explainer"
+  ],
+  "date": "2026-11-28"
+}

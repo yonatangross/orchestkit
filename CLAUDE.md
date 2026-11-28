@@ -61,7 +61,7 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 Work on a feature branch; `main` and `dev` are protected. Run `npm test`, and `npm run typecheck` if you touched hooks.
 
-`bin/git-hooks/pre-push:324` runs `tests/security/run-security-tests.sh` and `.github/workflows/ci.yml:162` runs gitleaks, so `--no-verify` relocates a security or secret failure to CI instead of avoiding it.
+`bin/git-hooks/pre-push` runs `tests/security/run-security-tests.sh` and the `Run gitleaks` step in `.github/workflows/ci.yml` scans for secrets, so `--no-verify` relocates a security or secret failure to CI instead of avoiding it.
 
 Use TaskCreate for 3+ step work. Enforcement is layered: `task-existence-gate` runs live inside `sync-task-dispatcher` (advisory nudge for un-tasked agent spawns, never blocking); `multi-step-task-nudge` covers 3+ step prompts. Non-agent work stays your judgement call.
 

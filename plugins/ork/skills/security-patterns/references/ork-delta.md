@@ -40,8 +40,8 @@ Upstream: OWASP LLM01 Prompt Injection (https://genai.owasp.org/llm-top-10/)
 ## Never bypass this repo's scanning gates with --no-verify
 
 Why: In OrchestKit itself the scanning rules are enforced, not advisory:
-`bin/git-hooks/pre-push:324` runs `tests/security/run-security-tests.sh` and
-`.github/workflows/ci.yml:162` runs gitleaks, so skipping the hook only relocates a
+`bin/git-hooks/pre-push` runs `tests/security/run-security-tests.sh` and
+the `Run gitleaks` step in `.github/workflows/ci.yml` scans for secrets, so skipping the hook only relocates a
 secret or security failure to CI (repo CLAUDE.md house rule).
 
 Upstream: https://github.com/gitleaks/gitleaks and https://semgrep.dev/docs/
